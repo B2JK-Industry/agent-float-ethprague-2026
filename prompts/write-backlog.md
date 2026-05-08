@@ -21,7 +21,7 @@ Do not propose a new project. Do not revive Agent Float. Do not add sponsor trac
 9. `docs/06-acceptance-gates.md`
 10. `docs/07-sponsor-fit.md`
 11. `docs/10-risks.md`
-12. GitHub Wiki (`https://github.com/B2JK-Industry/agent-float-ethprague-2026/wiki`)
+12. GitHub Wiki (`https://github.com/B2JK-Industry/Upgrade-Siren-ETHPrague2026/wiki`)
 
 ## Execution Model
 

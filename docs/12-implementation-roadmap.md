@@ -112,7 +112,7 @@ Owned by Daniel + Orch. Must complete before deadline.
 ### Required artifacts
 
 - [ ] Live demo URL (Vercel deployment)
-- [ ] Source code repo URL: `https://github.com/B2JK-Industry/agent-float-ethprague-2026` (note: repo name is from Agent Float era; can be renamed post-hackathon, kept now to avoid breaking links)
+- [ ] Source code repo URL: `https://github.com/B2JK-Industry/Upgrade-Siren-ETHPrague2026`
 - [ ] Sourcify-verified contract addresses (proxy + V1 + V2Safe + V2Dangerous + unverified scenario)
 - [ ] ENS subname examples (`vault.demo.upgradesiren.eth` or chosen parent)
 - [ ] Demo video (3-min booth script per `docs/05-demo-script.md`; recording fallback per Demo Plan)

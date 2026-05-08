@@ -129,7 +129,7 @@ ETHPrague2026/
     └── review-prs.md
 ```
 
-> Project wiki lives at the **GitHub Wiki** (separate git): https://github.com/B2JK-Industry/agent-float-ethprague-2026/wiki
+> Project wiki lives at the **GitHub Wiki** (separate git): https://github.com/B2JK-Industry/Upgrade-Siren-ETHPrague2026/wiki
     ├── write-backlog.md
     ├── run-dev-stream.md
     └── review-prs.md
