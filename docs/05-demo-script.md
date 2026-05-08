@@ -74,32 +74,32 @@ In-person Prague, Devfolio judging, ~5 minutes per project.
 
 > **Fallback path (if Umia integration unavailable at demo time):** Use our internal `BondingCurveSale.sol` simulator with explicit `mock: true` label. Voiceover acknowledges: *"Umia integration finálna up to mentor sweep; tu vidíte fallback simulator s rovnakou logikou na local-state."*
 
-### Sec 150–210 — Live revenue accrual
+### Sec 150–210 — Live agent activity (proof of work)
 
 **Action:**
 - Switch to second tab: `/api/demo/grantscout/run-paid-query` (presenter pre-prepared)
 - Trigger 1 paid query (simulating end-user)
 - Query executes: GrantScout returns a real Gitcoin grant summary
-- New Receipt event emitted to ReceiptLog
+- New Receipt event emitted to ReceiptLog (signed by agent's ENS-registered wallet, USDC-cross-validated)
 - Switch back to GrantScout profile — receipts feed updates with new event
-- RevenueDistributor receives 0.007 USDC (70% of 0.01 query fee, 30% to treasury)
-- Investor's claimable balance updates: 0.0035 USDC (50% of distribution because investor holds 0.05% of supply, but distribution simplification for demo: investor is 50% of token holders)
-- UI shows live increment animation
+- UI highlights: receipt counter incremented; total USDC earned bumped by 0.01 USDC
+- Investor portfolio view shows "agent activity since I bought" — receipts continuing live
 
 **Voiceover:**
-*"Agent práve zarobil 0.01 USDC za real query. RevenueDistributor automaticky pripísal moju pro-rata share — 0.0035 USDC. Vidíte to live. Žiaden manual transfer, žiaden gas — len balance update."*
+*"Agent práve zarobil reálnu USDC za reálnu query. Receipt sa zapísal on-chain — podpísaný agent walletom, cross-validated proti USDC transferu. Toto je proof čo gateuje fundraising: no receipts, no float."*
 
-### Sec 210–250 — Claim
+> **Note on revenue distribution:** Demo intentionally does NOT show small claim amounts. Investor exposure structure is determined by Umia's venture wrapper (revenue rights, governance, secondary trading). Demo emphasizes **proof of agent productivity** (receipts feed growing live) and **investor confidence** (more receipts = stronger venture). Claims like "you earned 0.0035 USDC" with synthetic small numbers are forbidden — judges spot fake math instantly.
+
+### Sec 210–250 — Investor confidence in real-time
 
 **Action:**
-- Click "Claim" button on portfolio page
-- MetaMask popup → sign tx
-- USDC arrives in investor's wallet
-- Wallet balance updates visibly
-- Sepolia explorer link shows the transfer
+- Split-screen view: agent profile with receipts ticking up + investor portfolio with token holdings + agent activity log
+- Highlight bond status indicator: "Builder bond intact — 500 USDC locked"
+- Highlight milestone progress: "Milestone 1: 50 paid reports — incremented from 8% to 10% during demo"
+- Optional: show ENS resolution panel — `agent-context`, `agent-endpoint[web]`, `agentfloat:umia_venture` resolved live
 
 **Voiceover:**
-*"Claim anytime. Pull-based, gas-efficient. Žiaden daily push, žiaden gas spam. 0.0035 USDC v mojom wallete."*
+*"Po investícii cez Umia auction držím venture token. Agent zarobil — vidím to v receipts feede. Builder bond stále locked. Milestone postupuje z 8 na 10 percent počas tejto demo. Toto je signal pre ďalšie investor decisions: agent reálne pracuje, builder má skin in the game, milestones merané on-chain."*
 
 ### Sec 250–280 — Failure protection
 
