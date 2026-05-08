@@ -700,3 +700,967 @@ test -f contracts/DEPLOYMENTS.md && grep -c "https://" contracts/DEPLOYMENTS.md
 #### Notes
 
 This document is what the PR Reviewer (and the Devfolio judges) will read first. It is the human-side counterpart of the machine-side `deployments/sepolia.json`. The reproduction recipe maps to GATE-15 (local run reproduces demo).
+
+### US-014 - Siren Report JSON schema in packages/shared
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | B |
+| Effort | S |
+| Sponsor | Sourcify, ENS |
+| Dependencies | none |
+| Acceptance gates | GATE-9 |
+| Status | open |
+
+#### Scope
+
+Define the canonical Siren Report JSON schema as a TypeScript type in `packages/shared/src/sirenReport.ts` plus a JSON Schema document at `packages/shared/schemas/siren-report-v1.json`. Schema must match the structure documented in `docs/04-technical-design.md` Report Format section: top-level fields, `sourcify` object, `ens` object, `auth` object, `mode` enum, `confidence` enum, `findings` array, `mock` boolean. Out of scope: signing helper (US-015), verification (US-028).
+
+#### Acceptance Criteria
+
+- [ ] `packages/shared/src/sirenReport.ts` exports `SirenReport` type with all fields fully typed (no `any`)
+- [ ] `packages/shared/schemas/siren-report-v1.json` is a valid JSON Schema document
+- [ ] Type and JSON Schema match each other (verified by a generation or assertion test)
+- [ ] `mode` enum: `signed-manifest | public-read | mock`
+- [ ] `confidence` enum: `operator-signed | public-read | mock`
+- [ ] `auth` object includes `signatureType`, `signer`, `signature`, `signedAt`, `status` (`valid | unsigned | invalid`)
+- [ ] Schema validates the example report from `docs/04-technical-design.md`
+- [ ] PR body references US-014
+
+#### Files
+
+- `packages/shared/src/sirenReport.ts`
+- `packages/shared/schemas/siren-report-v1.json`
+- `packages/shared/test/sirenReport.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/shared typecheck
+pnpm --filter @upgrade-siren/shared test
+```
+
+#### Notes
+
+This is the cross-stream contract. Stream A signs reports against this schema (US-011), Stream C renders them (US-044, US-045, US-049), Stream B verifies them (US-028) and produces them (US-029). Effort `S` and listed first in the Stream B Index per scheduling guidance.
+
+### US-015 - EIP-712 typed-data builder and signReport helper in packages/shared
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | B |
+| Effort | S |
+| Sponsor | Sourcify |
+| Dependencies | US-014 |
+| Acceptance gates | GATE-24 |
+| Status | open |
+
+#### Scope
+
+Implement the EIP-712 typed-data structure for Siren Reports in `packages/shared/src/eip712/sirenReportTypedData.ts`. Implement `signReport(report, privateKey)` in `packages/shared/src/eip712/signReport.ts` returning `{report, signature}` with `report.auth` populated. Domain: `name="Upgrade Siren"`, `version="1"`, `chainId` from the report, `verifyingContract=address(0)`. Uses viem's `signTypedData`. Out of scope: verification (US-028), automated signing flow (US-057 P2).
+
+#### Acceptance Criteria
+
+- [ ] `buildSirenReportTypedData(report: SirenReport)` returns a viem-compatible typed-data object
+- [ ] Domain fields exactly: `name="Upgrade Siren"`, `version="1"`, `chainId`, `verifyingContract=0x0000000000000000000000000000000000000000`
+- [ ] Primary type `SirenReport` enumerates the typed-data fields (subset of full report relevant to authentication)
+- [ ] `signReport(report, privateKey)` populates `report.auth.signatureType="EIP-712"`, `report.auth.signer=<recovered>`, `report.auth.signature=<hex>`, `report.auth.signedAt=<ISO>`, `report.auth.status="valid"`
+- [ ] Helper does not log the private key, mocks `console.log` in tests to assert this
+- [ ] Round-trip test: sign, then `recoverTypedDataAddress` returns the same address
+- [ ] PR body references US-015 and US-014 as merged prerequisite
+
+#### Files
+
+- `packages/shared/src/eip712/sirenReportTypedData.ts`
+- `packages/shared/src/eip712/signReport.ts`
+- `packages/shared/test/eip712.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/shared test eip712
+```
+
+#### Notes
+
+Effort `S` and listed second in the Stream B Index per scheduling guidance. Stream A (US-011) imports this directly to sign demo reports. Stream C does NOT import the signing helper; only verification (US-028) is consumed by C via Stream B.
+
+### US-016 - Shared types package for cross-stream consumption
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | B |
+| Effort | S |
+| Sponsor | - |
+| Dependencies | none |
+| Acceptance gates | - |
+| Status | open |
+
+#### Scope
+
+Bootstrap `packages/shared/` as a pnpm workspace package: `package.json`, `tsconfig.json`, `index.ts` re-exporting types. Configure ESM build via `tsup` or `tsc`. Consumed by `packages/evidence/` and `apps/web/`. Out of scope: schema content (US-014), signing helpers (US-015), specific business types beyond infrastructure.
+
+#### Acceptance Criteria
+
+- [ ] `packages/shared/package.json` declares `name=@upgrade-siren/shared`, ESM exports, `types` field
+- [ ] `packages/shared/tsconfig.json` extends a root tsconfig, strict mode on
+- [ ] `packages/shared/src/index.ts` re-exports from sub-modules
+- [ ] `pnpm --filter @upgrade-siren/shared build` produces `dist/` with `.js` and `.d.ts`
+- [ ] Root `pnpm-workspace.yaml` includes `packages/shared`
+- [ ] PR body references US-016
+
+#### Files
+
+- `pnpm-workspace.yaml`
+- `packages/shared/package.json`
+- `packages/shared/tsconfig.json`
+- `packages/shared/src/index.ts`
+
+#### Verification commands
+
+```bash
+pnpm install
+pnpm --filter @upgrade-siren/shared build
+```
+
+#### Notes
+
+Pure scaffolding. US-014 and US-015 add content. Splitting infrastructure from content lets US-014 and US-015 ship in parallel after this is merged.
+
+### US-017 - ENS live record resolution
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | B |
+| Effort | M |
+| Sponsor | ENS |
+| Dependencies | none |
+| Acceptance gates | GATE-3, GATE-17 |
+| Status | open |
+
+#### Scope
+
+Implement `resolveEnsRecords(name)` in `packages/evidence/src/ens/resolve.ts` that resolves stable `upgrade-siren:*` records and the atomic `upgrade-siren:upgrade_manifest` record live against a configured Alchemy RPC. Returns a typed `EnsResolutionResult` with each record present/absent flagged explicitly. Out of scope: manifest parsing (US-018), ENSIP-26 records (US-031), public-read fallback path (US-019), caching (US-033).
+
+#### Acceptance Criteria
+
+- [ ] `resolveEnsRecords(name: string)` returns a typed object with `chainId`, `proxy`, `owner`, `schema`, `upgradeManifestRaw`, plus per-record presence flags
+- [ ] Uses viem `getEnsText` or equivalent against Sepolia and mainnet Alchemy endpoints (configurable)
+- [ ] Absent record returns `null` for that field, not throws
+- [ ] Malformed ENS name returns a typed error result, not throws
+- [ ] Integration test against the demo subnames provisioned in US-010 (after merge)
+- [ ] Unit tests with viem mocks covering all-records-present, partial, and all-absent cases
+- [ ] PR body references US-017
+
+#### Files
+
+- `packages/evidence/src/ens/resolve.ts`
+- `packages/evidence/src/ens/types.ts`
+- `packages/evidence/test/ens/resolve.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test ens/resolve
+```
+
+#### Notes
+
+This is the core ENS reader. Live resolution is the GATE-3 + GATE-17 invariant; mock paths are not acceptable in the production code path. Caching layer (US-033) sits on top of this.
+
+### US-018 - Atomic upgrade-siren:upgrade_manifest parser and validator
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | B |
+| Effort | M |
+| Sponsor | ENS |
+| Dependencies | US-014, US-017 |
+| Acceptance gates | GATE-10 |
+| Status | open |
+
+#### Scope
+
+Implement `parseUpgradeManifest(raw: string)` in `packages/evidence/src/manifest/parse.ts` that takes the raw text record content, parses JSON, validates against the manifest schema (subset of report schema at US-014), and returns a typed `UpgradeManifest` or a discriminated `ManifestError` (`malformed_json`, `missing_required_field`, `unknown_schema_version`, `invalid_address`). Out of scope: hash-chain validation (US-030), absent-record paths (US-019, US-020).
+
+#### Acceptance Criteria
+
+- [ ] `parseUpgradeManifest(raw)` returns `Result<UpgradeManifest, ManifestError>`
+- [ ] Validates: `schema`, `chainId`, `proxy`, `previousImpl`, `currentImpl`, `reportUri`, `reportHash`, `version`, `effectiveFrom`, `previousManifestHash`
+- [ ] Address fields validated as 0x-prefixed 20-byte hex
+- [ ] `reportHash` validated as 0x-prefixed 32-byte hex
+- [ ] `effectiveFrom` validated as ISO-8601 string
+- [ ] `schema` field equals `siren-upgrade-manifest@1` for known version; unknown versions return `unknown_schema_version` error
+- [ ] Five unit tests covering each error branch + happy path
+- [ ] PR body references US-018
+
+#### Files
+
+- `packages/evidence/src/manifest/parse.ts`
+- `packages/evidence/src/manifest/types.ts`
+- `packages/evidence/test/manifest/parse.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test manifest/parse
+```
+
+#### Notes
+
+The `unknown_schema_version` error is the bridge to US-021 (schema version policy): unknown versions return `REVIEW` unless another `SIREN` rule fires.
+
+### US-019 - Public-read fallback path for absent Upgrade Siren records
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | B |
+| Effort | M |
+| Sponsor | ENS, Sourcify |
+| Dependencies | US-017 |
+| Acceptance gates | GATE-25 |
+| Status | open |
+
+#### Scope
+
+Implement `runPublicReadFallback(input)` in `packages/evidence/src/fallback/publicRead.ts` that handles inputs without `upgrade-siren:*` records. Input is either a raw 0x-prefixed address or a normal ENS name resolving to an address record. The function reads the EIP-1967 slot of the address (assumed proxy), fetches Sourcify evidence for the implementation, and returns a `PublicReadResult` with `mode="public-read"` and `confidence="public-read"`. Out of scope: verdict computation (US-029), absent-record verdict paths (US-020).
+
+#### Acceptance Criteria
+
+- [ ] Function accepts both raw address and ENS name with `addr` record
+- [ ] When input is a name without `upgrade-siren:*` records, returns `mode="public-read"`
+- [ ] Result never returns `confidence="operator-signed"`; this branch is only reachable when no signed manifest exists
+- [ ] Includes proxy address, current implementation, and Sourcify verification status in result
+- [ ] PR body references US-019
+
+#### Files
+
+- `packages/evidence/src/fallback/publicRead.ts`
+- `packages/evidence/test/fallback/publicRead.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test fallback/publicRead
+```
+
+#### Notes
+
+This is the addition that makes Upgrade Siren useful for protocols that have not yet adopted the records. Without this fallback, the product is demo-only.
+
+### US-020 - Absent-record verdict paths
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | B |
+| Effort | M |
+| Sponsor | - |
+| Dependencies | US-018, US-019 |
+| Acceptance gates | GATE-13 |
+| Status | open |
+
+#### Scope
+
+Implement the explicit verdict-condition table for absent and malformed records: missing manifest, missing owner in signed-manifest path, malformed manifest, slot-vs-manifest mismatch during a real upgrade window. Each case returns a typed `VerdictReason` consumed by the verdict engine (US-029). Out of scope: full verdict engine integration (US-029), grace-policy for upgrade window (US-036, P1).
+
+#### Acceptance Criteria
+
+- [ ] `manifest absent + signed-manifest path` returns `REVIEW` with reason `manifest_absent_falling_back_public_read`
+- [ ] `owner absent + signed-manifest path` returns `SIREN` with reason `owner_absent_authority_unverifiable`
+- [ ] `malformed manifest` returns `SIREN` with reason `malformed_manifest`
+- [ ] `slot != manifest currentImpl` returns `SIREN` with reason `manifest_stale_or_unexpected_upgrade`
+- [ ] Each path has a unit test with explicit input fixtures
+- [ ] PR body references US-020
+
+#### Files
+
+- `packages/evidence/src/verdict/absentRecords.ts`
+- `packages/evidence/test/verdict/absentRecords.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test verdict/absentRecords
+```
+
+#### Notes
+
+These edge cases are the difference between a verdict engine that handles real-world ENS state and one that only handles the happy-path demo. GATE-13 is the honesty gate: missing data must lower confidence, never produce false `SAFE`.
+
+### US-021 - Schema version policy for upgrade-siren-manifest@1
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | B |
+| Effort | S |
+| Sponsor | - |
+| Dependencies | US-014, US-018 |
+| Acceptance gates | - |
+| Status | open |
+
+#### Scope
+
+Document and enforce the schema version policy: `siren-upgrade-manifest@1` is the only known version at hackathon time. Unknown versions parsed by US-018 must surface a `unknown_schema_version` reason that the verdict engine treats as `REVIEW`. Document the upgrade path for v2: introduce a new schema, dual-read for a deprecation window, then sunset v1. Out of scope: implementing v2.
+
+#### Acceptance Criteria
+
+- [ ] `packages/evidence/src/manifest/versionPolicy.ts` exports `KNOWN_MANIFEST_VERSIONS=["siren-upgrade-manifest@1"]`
+- [ ] Parser (US-018) imports this list and rejects unknown versions
+- [ ] `packages/evidence/MANIFEST_VERSIONING.md` documents: how to add a new version, dual-read window, and sunset criteria
+- [ ] PR body references US-021
+
+#### Files
+
+- `packages/evidence/src/manifest/versionPolicy.ts`
+- `packages/evidence/MANIFEST_VERSIONING.md`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test manifest/versionPolicy
+```
+
+#### Notes
+
+Schema versioning is a future-proofing item, not a feature. Without it, a future v2 manifest crashes the parser instead of producing a graceful `REVIEW`.
+
+### US-022 - EIP-1967 implementation slot reader
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | B |
+| Effort | S |
+| Sponsor | - |
+| Dependencies | none |
+| Acceptance gates | GATE-4, GATE-8 |
+| Status | open |
+
+#### Scope
+
+Implement `readImplementationSlot(chainId, proxyAddress)` in `packages/evidence/src/chain/eip1967.ts` that reads the EIP-1967 implementation slot via `eth_getStorageAt` against the configured RPC. Returns the implementation address or `null` if zero. Out of scope: caching (US-033), Upgraded event reader (US-023).
+
+#### Acceptance Criteria
+
+- [ ] Slot constant is exactly `0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc` (no typo)
+- [ ] Returns 20-byte address from the rightmost 20 bytes of the slot value
+- [ ] Returns `null` when slot is zero (proxy not initialized)
+- [ ] Handles RPC error by returning a typed error result, not throwing
+- [ ] Unit test with fixture slot value
+- [ ] Integration test against a real EIP-1967 proxy on Sepolia (after US-009 merged)
+- [ ] PR body references US-022
+
+#### Files
+
+- `packages/evidence/src/chain/eip1967.ts`
+- `packages/evidence/test/chain/eip1967.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test chain/eip1967
+```
+
+#### Notes
+
+The slot constant is canonical and grep-able. Reviewer must verify the constant byte-for-byte.
+
+### US-023 - Upgraded(address) event reader
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | B |
+| Effort | S |
+| Sponsor | - |
+| Dependencies | none |
+| Acceptance gates | - |
+| Status | open |
+
+#### Scope
+
+Implement `readUpgradeEvents(chainId, proxyAddress, fromBlock?)` in `packages/evidence/src/chain/upgradeEvents.ts` that fetches `Upgraded(address)` event logs for the proxy. Returns a typed array of events with `blockNumber`, `txHash`, `newImplementation`. Out of scope: previous-implementation derivation logic (lives in verdict engine, US-029).
+
+#### Acceptance Criteria
+
+- [ ] Function uses viem `getLogs` with the canonical `Upgraded(address)` event signature
+- [ ] Returns events sorted ascending by block number
+- [ ] When proxy has no events, returns empty array
+- [ ] Handles RPC log-range limits by paginating
+- [ ] Unit test with viem mock
+- [ ] PR body references US-023
+
+#### Files
+
+- `packages/evidence/src/chain/upgradeEvents.ts`
+- `packages/evidence/test/chain/upgradeEvents.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test chain/upgradeEvents
+```
+
+#### Notes
+
+Used to derive the `previousImpl` when an ENS manifest is absent and we need to know what changed. Pagination matters because Sepolia RPC limits log windows.
+
+### US-024 - Sourcify verification status fetch
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | B |
+| Effort | M |
+| Sponsor | Sourcify |
+| Dependencies | none |
+| Acceptance gates | GATE-5, GATE-16 |
+| Status | open |
+
+#### Scope
+
+Implement `fetchSourcifyStatus(chainId, address)` in `packages/evidence/src/sourcify/status.ts` calling `https://sourcify.dev/server/v2/contract/{chainId}/{address}?fields=match`. Returns a typed `SourcifyStatus` with match level (`exact_match | match | not_found`), or a typed `SourcifyError` (`server_error`, `malformed_response`, `rate_limited`). Out of scope: full metadata fetch (US-025), caching (US-032), retry/rate-limit handling (US-034).
+
+#### Acceptance Criteria
+
+- [ ] Function returns `Result<SourcifyStatus, SourcifyError>`
+- [ ] HTTP 404 -> `match: "not_found"` (this is success, not error)
+- [ ] HTTP 5xx -> `server_error` with status code
+- [ ] HTTP 429 -> `rate_limited`
+- [ ] Malformed JSON -> `malformed_response`
+- [ ] No `any` types in exports
+- [ ] Unit tests covering all branches with `mock: true` fixtures
+- [ ] PR body references US-024
+
+#### Files
+
+- `packages/evidence/src/sourcify/status.ts`
+- `packages/evidence/src/sourcify/types.ts`
+- `packages/evidence/test/sourcify/status.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test sourcify/status
+```
+
+#### Notes
+
+Uses Sourcify's v2 endpoint per the API decision in `prompts/write-backlog.md` Stream B coverage list. v1 endpoints are deprecated paths.
+
+### US-025 - Sourcify metadata fetch
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | B |
+| Effort | M |
+| Sponsor | Sourcify |
+| Dependencies | none |
+| Acceptance gates | GATE-9, GATE-16 |
+| Status | open |
+
+#### Scope
+
+Implement `fetchSourcifyMetadata(chainId, address)` in `packages/evidence/src/sourcify/metadata.ts` calling `https://sourcify.dev/server/v2/contract/{chainId}/{address}?fields=all`. Returns a typed `SourcifyMetadata` with source files, ABI, compiler metadata, and storage layout where present, or a discriminated `SourcifyError`. Out of scope: ABI diff (US-026), storage diff (US-027), caching (US-032).
+
+#### Acceptance Criteria
+
+- [ ] Function returns `Result<SourcifyMetadata, SourcifyError>`
+- [ ] Parses `abi`, `compilerSettings`, `storageLayout`, `sources`
+- [ ] Missing `storageLayout` returns successful `SourcifyMetadata` with `storageLayout: null`, NOT an error (verdict engine handles missing layout per docs/04)
+- [ ] HTTP 404, 5xx, 429, malformed handled per US-024 error vocabulary
+- [ ] Integration test against a Sourcify-verified contract on Sepolia (after US-007 merged)
+- [ ] PR body references US-025
+
+#### Files
+
+- `packages/evidence/src/sourcify/metadata.ts`
+- `packages/evidence/test/sourcify/metadata.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test sourcify/metadata
+```
+
+#### Notes
+
+Storage layout being `null` is a legitimate state, not an error: many older contracts don't publish storage layout in metadata. The verdict engine treats `null` storage layout as `REVIEW` per `docs/04-technical-design.md`.
+
+### US-026 - ABI risky-selector diff
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | B |
+| Effort | M |
+| Sponsor | Sourcify |
+| Dependencies | US-025 |
+| Acceptance gates | GATE-11 |
+| Status | open |
+
+#### Scope
+
+Implement `diffAbiRiskySelectors(previousAbi, currentAbi)` in `packages/evidence/src/diff/abi.ts`. Returns the list of newly-added selectors that match the risky list (`sweep`, `withdraw`, `setOwner`, `setAdmin`, `transferOwnership`, `mint`, `pause`, `unpause`, `upgradeTo`, `upgradeToAndCall`, arbitrary `call`, arbitrary `delegatecall`). Result is deterministic: same inputs always produce same output. Out of scope: 4byte fallback for unverified contracts (US-035).
+
+#### Acceptance Criteria
+
+- [ ] Risky selector list is exported as a constant array `RISKY_SELECTOR_NAMES` and grep-able
+- [ ] Function returns `{added: SelectorMatch[], removed: SelectorMatch[]}` with each selector's name and 4-byte signature
+- [ ] When previous ABI lacks a selector and current ABI has it AND it matches a risky name, it is in `added`
+- [ ] When current ABI lacks a selector previously present and it matches a risky safety function, it is in `removed`
+- [ ] Unit tests covering: V1->V2Safe (no risky added), V1->V2Dangerous (sweep added)
+- [ ] PR body references US-026
+
+#### Files
+
+- `packages/evidence/src/diff/abi.ts`
+- `packages/evidence/src/diff/riskySelectors.ts`
+- `packages/evidence/test/diff/abi.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test diff/abi
+```
+
+#### Notes
+
+The list is a closed set per `docs/04-technical-design.md`. Adding a selector to the list is a P1 polish item, not a P0 fix.
+
+### US-027 - Storage-layout compatibility diff
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | B |
+| Effort | M |
+| Sponsor | Sourcify |
+| Dependencies | US-025 |
+| Acceptance gates | GATE-12 |
+| Status | open |
+
+#### Scope
+
+Implement `diffStorageLayout(previousLayout, currentLayout)` in `packages/evidence/src/diff/storage.ts`. Returns one of: `compatible_appended_only`, `incompatible_changed_type`, `incompatible_reordered`, `incompatible_inserted_before_existing`, `unknown_missing_layout`. Out of scope: integration with full verdict engine (US-029).
+
+#### Acceptance Criteria
+
+- [ ] Function returns one of the five enum values + a list of changed slots with details
+- [ ] When either layout is null, returns `unknown_missing_layout` (no fake confidence)
+- [ ] Append-only changes return `compatible_appended_only`
+- [ ] Type change on existing slot returns `incompatible_changed_type`
+- [ ] Slot reorder returns `incompatible_reordered`
+- [ ] Variable inserted before existing slots returns `incompatible_inserted_before_existing`
+- [ ] Unit tests with V1 vs V2Safe layout (compatible) and V1 vs V2Dangerous layout (incompatible)
+- [ ] PR body references US-027
+
+#### Files
+
+- `packages/evidence/src/diff/storage.ts`
+- `packages/evidence/test/diff/storage.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test diff/storage
+```
+
+#### Notes
+
+Diff result feeds the verdict engine (US-029). `unknown_missing_layout` is the honest state: rather than guess, surface to the user that storage compatibility cannot be verified.
+
+### US-028 - EIP-712 Siren Report signature verification against upgrade-siren:owner
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | B |
+| Effort | M |
+| Sponsor | Sourcify, ENS |
+| Dependencies | US-014, US-015, US-017 |
+| Acceptance gates | GATE-24 |
+| Status | open |
+
+#### Scope
+
+Implement `verifyReportSignature(report, owner)` in `packages/evidence/src/verify/signature.ts`. Reconstructs the EIP-712 typed-data using the same builder as US-015, recovers the signer from `report.auth.signature`, and asserts the recovered address equals `owner` (the `upgrade-siren:owner` address). Returns `{valid: true} | {valid: false, reason: ...}`. Out of scope: hash-chain validation (US-030).
+
+#### Acceptance Criteria
+
+- [ ] Function returns `{valid: true}` only when signature recovers to the owner address
+- [ ] Returns `{valid: false, reason: "missing_signature"}` when `report.auth.signature` is empty
+- [ ] Returns `{valid: false, reason: "owner_mismatch", recovered: <address>}` when recovered does not equal owner
+- [ ] Returns `{valid: false, reason: "malformed_signature"}` for syntactically invalid signatures
+- [ ] Round-trip test: sign with US-015 helper, verify with this function, expect `valid: true`
+- [ ] Negative tests for each failure branch
+- [ ] PR body references US-028 and US-014, US-015, US-017 as merged prerequisites
+
+#### Files
+
+- `packages/evidence/src/verify/signature.ts`
+- `packages/evidence/test/verify/signature.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test verify/signature
+```
+
+#### Notes
+
+This is the GATE-24 enforcement point. Verdict engine (US-029) uses this; if the result is `valid: false`, the verdict is `SIREN` (unless `mock: true`).
+
+### US-029 - Verdict engine: SAFE / REVIEW / SIREN rules
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | B |
+| Effort | L |
+| Sponsor | Sourcify, ENS, Future Society |
+| Dependencies | US-018, US-019, US-020, US-022, US-026, US-027, US-028 |
+| Acceptance gates | GATE-2, GATE-13 |
+| Status | open |
+
+#### Scope
+
+Implement `computeVerdict(input)` in `packages/evidence/src/verdict/engine.ts`. Aggregates manifest parse result, EIP-1967 slot read, Sourcify status, ABI diff, storage diff, signature verification result, and absent-record reasons into one of three verdicts (`SAFE`, `REVIEW`, `SIREN`) plus a structured findings list. Implements the verdict table from `docs/02-product-architecture.md`. Out of scope: caching (US-032), grace policy (US-036).
+
+#### Acceptance Criteria
+
+- [ ] `computeVerdict` returns `{verdict, findings, summary, mode, confidence}`
+- [ ] Verdict mapping matches `docs/02-product-architecture.md` Verdict Logic table exactly
+- [ ] `mode` is `signed-manifest`, `public-read`, or `mock` per Confidence Modes table
+- [ ] In `public-read` mode, verdict is never `SAFE` (always `REVIEW` or `SIREN`)
+- [ ] In `signed-manifest` mode, an unsigned report or signature mismatch returns `SIREN`
+- [ ] Each finding has `id`, `severity`, `title`, `evidence` keys
+- [ ] Engine is pure: same inputs always yield same outputs (deterministic)
+- [ ] Comprehensive unit tests for each verdict-table row
+- [ ] Integration test running the engine end-to-end against the V1->V2Safe and V1->V2Dangerous fixtures (after Stream A items merged)
+- [ ] PR body references US-029
+
+#### Files
+
+- `packages/evidence/src/verdict/engine.ts`
+- `packages/evidence/src/verdict/findings.ts`
+- `packages/evidence/test/verdict/engine.test.ts`
+- `packages/evidence/test/verdict/integration.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test verdict/engine
+pnpm --filter @upgrade-siren/evidence test verdict/integration
+```
+
+#### Notes
+
+The engine is the heart of the product. Reviewer must verify the code matches the verdict table in `docs/02-product-architecture.md` row-for-row. Determinism is non-negotiable: any LLM-generated text is purely cosmetic on top of these structured findings.
+
+### US-030 - Manifest hash-chain validation using previousManifestHash
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | B |
+| Effort | S |
+| Sponsor | ENS |
+| Dependencies | US-018 |
+| Acceptance gates | - |
+| Status | open |
+
+#### Scope
+
+Implement `validateManifestChain(currentManifest, previousManifest)` that asserts `currentManifest.previousManifestHash === keccak256(canonical(previousManifest))`. Returns `{valid: true}` or `{valid: false, reason}`. Used to construct an audit trail of upgrade history. Out of scope: full historical fetcher; this validates only one link.
+
+#### Acceptance Criteria
+
+- [ ] Function computes canonical JSON serialization (sorted keys, no whitespace) before hashing
+- [ ] Returns `valid: true` only when hash matches exactly
+- [ ] Unit test with two fixture manifests forming a valid chain link
+- [ ] Unit test with a tampered current manifest (different `previousManifestHash`) returning `valid: false`
+- [ ] PR body references US-030
+
+#### Files
+
+- `packages/evidence/src/manifest/chain.ts`
+- `packages/evidence/test/manifest/chain.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test manifest/chain
+```
+
+#### Notes
+
+P1 because the demo verdict path works without chain validation. Strengthens the ENS pitch by showing audit-trail integrity.
+
+### US-031 - ENSIP-26 agent-context and agent-endpoint[web] record reading
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | B |
+| Effort | S |
+| Sponsor | ENS |
+| Dependencies | US-017 |
+| Acceptance gates | - |
+| Status | open |
+
+#### Scope
+
+Extend `resolveEnsRecords` (US-017) to also read ENSIP-26 standard records: `agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`. Returns each as a separate field in `EnsResolutionResult`. Out of scope: behavioral integration (the records are surfaced to the UI but do not change the verdict).
+
+#### Acceptance Criteria
+
+- [ ] `EnsResolutionResult` gains `agentContext`, `agentEndpointWeb`, `agentEndpointMcp` fields
+- [ ] Each is `string | null`; absent record is `null`, not error
+- [ ] Unit test against a fixture with all three present and all three absent
+- [ ] Integration test against the demo subnames (after US-012 merged)
+- [ ] PR body references US-031
+
+#### Files
+
+- Extension of `packages/evidence/src/ens/resolve.ts`
+- `packages/evidence/test/ens/ensip26.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test ens/ensip26
+```
+
+#### Notes
+
+ENSIP-26 records are sponsor-positioning material more than verdict signals. The UI surfaces them in the ENS records panel (US-048).
+
+### US-032 - Sourcify response cache layer with TTL
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | B |
+| Effort | M |
+| Sponsor | Sourcify |
+| Dependencies | US-024, US-025 |
+| Acceptance gates | - |
+| Status | open |
+
+#### Scope
+
+Implement an in-memory + optional Upstash Redis cache for Sourcify status and metadata responses. TTL configurable per response type (default 1 hour for verified contracts, 30 seconds for `not_found`). Cache key includes `chainId` + `address` + endpoint type. Out of scope: ENS cache (US-033), retry/failover (US-034).
+
+#### Acceptance Criteria
+
+- [ ] Cache layer wraps `fetchSourcifyStatus` and `fetchSourcifyMetadata`
+- [ ] In-memory implementation always available; Upstash backend behind env-var feature flag
+- [ ] TTL configurable via constructor parameter
+- [ ] Cache hits do not call the network; cache miss + fetch + store works
+- [ ] Cache layer is testable in isolation with a mocked clock
+- [ ] PR body references US-032
+
+#### Files
+
+- `packages/evidence/src/sourcify/cache.ts`
+- `packages/evidence/test/sourcify/cache.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test sourcify/cache
+```
+
+#### Notes
+
+Important for the booth-day demo: Sourcify rate-limits or short outages can be papered over with a 1-hour TTL on the demo fixtures. Marked P1 because the cold path works without cache; cache is an availability layer.
+
+### US-033 - ENS resolution cache layer
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | B |
+| Effort | S |
+| Sponsor | ENS |
+| Dependencies | US-017 |
+| Acceptance gates | - |
+| Status | open |
+
+#### Scope
+
+Implement caching for ENS record resolution in `packages/evidence/src/ens/cache.ts`. Default TTL 60 seconds (records change infrequently but not never). Same cache-key + backend pattern as US-032.
+
+#### Acceptance Criteria
+
+- [ ] Cache wraps `resolveEnsRecords`
+- [ ] TTL default 60 seconds
+- [ ] Cache invalidation key includes the ENS name
+- [ ] Tests parallel to US-032
+- [ ] PR body references US-033
+
+#### Files
+
+- `packages/evidence/src/ens/cache.ts`
+- `packages/evidence/test/ens/cache.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test ens/cache
+```
+
+#### Notes
+
+ENS RPC calls are rate-limited by Alchemy; caching matters for repeat lookups during a demo run.
+
+### US-034 - RPC retry/failover and Sourcify rate-limit handling
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | B |
+| Effort | M |
+| Sponsor | Sourcify, ENS |
+| Dependencies | US-022, US-024 |
+| Acceptance gates | - |
+| Status | open |
+
+#### Scope
+
+Add a retry wrapper for RPC calls (EIP-1967 reads, ENS resolution) and Sourcify fetches. On rate-limit (HTTP 429) or 5xx, retry with exponential backoff up to N times. On exhaustion, fall back to a configured public RPC if Alchemy is the primary. Out of scope: caching (US-032, US-033).
+
+#### Acceptance Criteria
+
+- [ ] Retry wrapper applies to all RPC and Sourcify calls
+- [ ] Exponential backoff: 100ms, 200ms, 400ms, 800ms (max 4 retries)
+- [ ] On exhaustion, surfaces a typed `network_unavailable` error
+- [ ] Fallback RPC config via `ALCHEMY_RPC_*` and `PUBLIC_RPC_*` env vars
+- [ ] Unit tests with viem retry mocks
+- [ ] PR body references US-034
+
+#### Files
+
+- `packages/evidence/src/network/retry.ts`
+- `packages/evidence/test/network/retry.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test network/retry
+```
+
+#### Notes
+
+Booth-day risk mitigation. Without retries, a single Alchemy hiccup can render the demo SIREN-on-network-error.
+
+### US-035 - 4byte signature lookup for unverified contracts
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | B |
+| Effort | S |
+| Sponsor | Sourcify |
+| Dependencies | US-026 |
+| Acceptance gates | - |
+| Status | open |
+
+#### Scope
+
+When the current implementation is unverified on Sourcify, fetch its bytecode, extract function selectors, and look up names via the 4byte signature directory (Sourcify's similarity API or 4byte.directory fallback). Surface guessed names as a finding labeled `low-confidence`. Out of scope: full bytecode-level analysis.
+
+#### Acceptance Criteria
+
+- [ ] Function `lookup4byteSelectors(selectors: Hex[])` returns `Map<Hex, string[]>` (selector -> candidate names)
+- [ ] Names that match the risky-selector list (US-026) are flagged as `risky_low_confidence`
+- [ ] Confidence label is propagated to the verdict findings
+- [ ] PR body references US-035
+
+#### Files
+
+- `packages/evidence/src/sourcify/fourbyte.ts`
+- `packages/evidence/test/sourcify/fourbyte.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test sourcify/fourbyte
+```
+
+#### Notes
+
+P1 because the unverified demo scenario already returns `SIREN` from the verification check alone; 4byte lookup adds nuance but does not gate the verdict.
+
+### US-036 - Upgrade-window grace policy (P1)
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | B |
+| Effort | M |
+| Sponsor | - |
+| Dependencies | US-018, US-029 |
+| Acceptance gates | - |
+| Status | open |
+
+#### Scope
+
+Implement an optional grace window for the manifest-vs-slot mismatch verdict path. If the slot disagrees with the manifest's `currentImpl` AND the manifest's `effectiveFrom` is within the past 5 minutes, return `REVIEW` with reason `manifest_update_in_flight` instead of `SIREN`. P0 default remains conservative `SIREN`. Configurable via env var `MANIFEST_GRACE_SECONDS`.
+
+#### Acceptance Criteria
+
+- [ ] Grace window configurable, default disabled (0 seconds = P0 conservative behavior)
+- [ ] When enabled and within window, returns `REVIEW` with the documented reason
+- [ ] When enabled and outside window, returns `SIREN` per existing US-020 path
+- [ ] Unit tests with mocked clock at boundary times
+- [ ] PR body references US-036
+- [ ] PR body explicitly notes that this is P1 and disabled by default; mentor feedback decides whether to enable
+
+#### Files
+
+- `packages/evidence/src/verdict/gracePolicy.ts`
+- `packages/evidence/test/verdict/gracePolicy.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test verdict/gracePolicy
+```
+
+#### Notes
+
+Mentor question 60 in `docs/07-sponsor-fit.md` flags this as a sensitive verdict path; default-off lets us ship conservative and turn on if ENS mentor recommends.
