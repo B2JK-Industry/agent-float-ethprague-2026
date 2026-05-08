@@ -63,8 +63,9 @@ If Sourcify is removed, the product loses the proof behind the verdict.
 1. It is an alarm for upgradeable contracts, not a generic scanner.
 2. ENS names the protocol and version map (live-resolved, not decorative).
 3. Sourcify proves what code is actually behind the upgrade (deterministic evidence, not LLM prose).
-4. The UX is built for non-auditors (DAO voters, delegates, wallet users).
-5. The demo has a visible green-to-red moment within 5 seconds — `vault.demo.upgradesiren.eth` resolves, proxy implementation changes, Sourcify evidence loads, screen flips to `SIREN`.
+4. Public-read fallback makes it useful for existing protocols before they publish Upgrade Siren records.
+5. The UX is built for non-auditors (DAO voters, delegates, wallet users).
+6. The demo has a visible green-to-red moment within 5 seconds — `vault.demo.upgradesiren.eth` resolves, proxy implementation changes, Sourcify evidence loads, screen flips to `SIREN`.
 
 ## Future Directions
 
@@ -74,4 +75,4 @@ The hackathon scope uses ENS records, an atomic upgrade manifest, Sourcify evide
 - ZK proof that a verdict engine ran deterministically over a given Sourcify/ENS input set.
 - ZK or signed-origin proofs for external evidence responses where a direct API response is not enough.
 
-These are not P0. The P0 trust path is: live ENS records, atomic manifest, Sourcify evidence, and EIP-712 signature by `siren:owner`.
+These are not P0. The P0 signed trust path is: live ENS records, atomic manifest, Sourcify evidence, and EIP-712 signature by `upgrade-siren:owner`. The P0 adoption path is public-read fallback: address or ENS address record, chain state, Sourcify evidence, lower-confidence verdict, never `SAFE`.

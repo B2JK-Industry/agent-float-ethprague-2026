@@ -21,8 +21,9 @@ Tasks:
 5. Deploy unverified-implementation scenario (P0; required for SIREN-on-mismatch demo).
 6. Verify implementations on Sourcify (P0).
 7. Document deployed addresses and ENS record values (P0).
-8. Provision ENS records, including stable `siren:*` records, ENSIP-26 records, and atomic `siren:upgrade_manifest` after fixture deploy (P0).
+8. Provision ENS records, including stable `upgrade-siren:*` records and atomic `upgrade-siren:upgrade_manifest` after fixture deploy (P0).
 9. Generate, sign, and host Siren Report JSON for safe, dangerous, and unverified demo scenarios using `packages/shared/signReport` (P0; depends on Stream B typed-data/sign helper).
+10. Add ENSIP-26 `agent-context` and `agent-endpoint[web]` records for demo subnames (P1 sponsor polish).
 
 ## Stream B — Evidence Engine (Dev B)
 
@@ -41,9 +42,16 @@ Tasks:
 6. Compare storage layouts where available for fixture contracts (P0).
 7. Produce deterministic Siren Report JSON (P0).
 8. Provide EIP-712 typed-data builder and `signReport` helper in `packages/shared/` (P0).
-9. Parse `siren:upgrade_manifest` atomically and validate manifest hash chain (P0).
-10. Verify EIP-712 report signature against `siren:owner` (P0).
-11. Read ENSIP-26 `agent-context` and `agent-endpoint[web]` records (P0).
+9. Parse `upgrade-siren:upgrade_manifest` atomically (P0).
+10. Verify EIP-712 report signature against `upgrade-siren:owner` (P0).
+11. Implement public-read fallback for absent Upgrade Siren records (P0).
+12. Define absent-owner, malformed-manifest, and manifest-mismatch verdict paths (P0).
+13. Validate `upgrade-siren:upgrade_manifest` schema version `upgrade-siren-manifest@1`; unknown versions become `REVIEW` unless a `SIREN` rule triggers (P0).
+14. Read ENSIP-26 `agent-context` and `agent-endpoint[web]` records (P1 sponsor polish).
+15. Validate `previousManifestHash` chain (P1 audit trail).
+16. RPC retry/failover and Sourcify rate-limit/cache fallback (P1 reliability).
+17. Optional 4byte signature lookup for unverified contracts (P1).
+18. Upgrade-window grace policy research/implementation (P1; P0 remains conservative `SIREN` on mismatch).
 
 ## Stream C — Web UX + Optional Siren Agent (Dev C)
 
@@ -57,24 +65,31 @@ Owned paths after lock:
 
 1. ENS lookup page.
 2. Verdict-first screen.
-3. Before/after implementation comparison.
-4. Evidence drawer.
-5. Sourcify link panel.
-6. Demo mode with three scenarios (safe / dangerous / unverified).
-7. Governance comment generator.
-8. Signature status badge (`signed`, `unsigned`, `signature-invalid`) in report UI.
+3. Address / normal ENS address-record input for public-read fallback.
+4. Progressive loading checklist (`ENS`, `chain`, `Sourcify`, `diff`, `signature`).
+5. Before/after implementation comparison.
+6. Evidence drawer.
+7. Sourcify link panel.
+8. Demo mode with four scenarios (safe / dangerous / unverified / live public-read).
+9. Governance comment generator with short, forum, and vote-reason formats.
+10. Signed evidence citation embedded in governance comments.
+11. Signature status badge (`signed`, `unsigned`, `signature-invalid`) in report UI.
+12. Empty and error states for absent records, RPC failure, Sourcify failure, malformed manifest, and unsigned report.
 
 ### P1 — Web UX polish
 
-9. Plain-language explanation of verdict.
-10. Demo animation / presentation polish.
+13. Plain-language explanation of verdict.
+14. Demo animation / presentation polish.
+15. Share-verdict link with precomputed report result.
+16. Mobile responsive layout check for viewport <= 768px.
+17. Accessibility pass: WCAG AA color contrast and screen-reader labels for verdict/status.
 
 ### P2 — Optional Siren Agent (stretch, Umia-conditional)
 
-11. Watchlist config.
-12. Recurring evidence checks runner.
-13. Siren Agent signed report automation (P0 signing primitive and report signature verification already live in Stream B core).
-14. Optional Umia-style due-diligence panel.
+18. Watchlist config.
+19. Recurring evidence checks runner.
+20. Siren Agent signed report automation (P0 signing primitive and report signature verification already live in Stream B core).
+21. Optional Umia-style due-diligence panel.
 
 > Siren Agent + Umia panel land **only if** Daniel decides to pursue the Umia track after mentor feedback. If time tightens, these are the first cuts.
 
@@ -86,6 +101,8 @@ Not picked up by dev agents. Daniel owns:
 - Final sponsor decisions
 - PR merges
 - Scope cuts during execution
+- Operator wallet / report signer custody decision; default is dedicated deploy-time signer in local env, never committed
+- Live public-read protocol target selection for the fourth demo scenario
 
 ## Tracker — Orch (Claude orchestrator)
 
@@ -97,6 +114,8 @@ Not picked up by dev agents. Orch owns:
 - Devfolio description + video script
 - Mentor-finding translation into backlog adjustments
 - Keeping Agent Float language out of active docs
+- Devfolio logo/cover asset preparation
+- Booth fallback artifacts: recorded video, Anvil/local fallback, and cached fixture responses
 
 ## Devfolio Submission Checklist
 
@@ -124,6 +143,7 @@ Owned by Daniel + Orch. Must complete before deadline.
 - [ ] Sourcify-verified contract addresses (proxy + V1 + V2Safe + V2Dangerous + unverified scenario)
 - [ ] ENS subname examples (`vault.demo.upgradesiren.eth` or chosen parent)
 - [ ] Signed Siren Report URLs for safe, dangerous, and unverified demo scenarios
+- [ ] Live public-read protocol target and resulting report URL
 - [ ] Demo video (3-min booth script per `docs/05-demo-script.md`; recording fallback per Demo Plan)
 - [ ] README link
 - [ ] Acceptance gates checklist marked (per `docs/06`)
@@ -131,7 +151,7 @@ Owned by Daniel + Orch. Must complete before deadline.
 ### Sponsor-specific submission notes
 
 - **Sourcify track:** in submission body, list specific Sourcify endpoints used + concrete contract pages judges can inspect
-- **ENS Most Creative track:** in submission body, list `siren:*` records used + show that ENS is required (product breaks without it)
+- **ENS Most Creative track:** in submission body, list `upgrade-siren:*` records used + show that signed high-confidence mode requires ENS records
 - **Future Society track:** in submission body, frame public-good safety angle for DAO voters / wallet users
 - **Umia (if pursued):** Siren Agent due-diligence framing; must NOT pitch as token launchpad
 
@@ -145,8 +165,11 @@ Before clicking submit, verify each of these against `docs/06-acceptance-gates.m
 - [ ] GATE-13 Missing data lowers confidence (no fake claims)
 - [ ] GATE-14 Mocks labeled `mock: true`
 - [ ] GATE-15 Local run reproduces demo
-- [ ] GATE-24 Production report signed by `siren:owner`
-- [ ] Demo report URIs fetch signed JSON and hashes match `siren:upgrade_manifest.reportHash`
+- [ ] GATE-23 Governance comments in short, forum, and vote-reason formats
+- [ ] GATE-24 Production report signed by `upgrade-siren:owner`
+- [ ] Demo report URIs fetch signed JSON and hashes match `upgrade-siren:upgrade_manifest.reportHash`
+- [ ] GATE-25 Public-read fallback works for live protocol target
+- [ ] GATE-26 Progressive loading + error states visible
 - [ ] Kill conditions all clear (no AI auditor / generic scanner pitch)
 
 ### Submission timing
@@ -181,6 +204,9 @@ Before clicking submit, verify each of these against `docs/06-acceptance-gates.m
   - `ALCHEMY_RPC_SEPOLIA`
   - `ALCHEMY_RPC_MAINNET`
   - `SOURCIFY_API_BASE` (default `https://sourcify.dev`)
+- [ ] Local deploy/provision env vars set outside git:
+  - `REPORT_SIGNER_PRIVATE_KEY`
+  - `REPORT_SIGNER_ADDRESS`
 - [ ] Optional Upstash Redis instance (cache Sourcify responses, rate-limit per IP) — via Vercel Marketplace
 - [ ] Optional Neon Postgres (Siren Agent watchlist persistence, P2 stretch) — via Vercel Marketplace
 
@@ -203,8 +229,8 @@ Before clicking submit, verify each of these against `docs/06-acceptance-gates.m
 
 | Priority | Must ship | Streams |
 |---|---|---|
-| P0 | ENS live resolution, ENSIP-26 records, atomic upgrade manifest, EIP-712 signing primitive, signed demo reports, EIP-712 report signature verification, Sourcify evidence, verdict UI, ABI risk diff, storage-layout result for fixtures, governance comment, safe/dangerous/unverified demo | A + B + C |
-| P1 | Plain-language verdict explanation, demo animation, cache/fallback polish | B + C |
+| P0 | ENS live resolution, public-read fallback, atomic upgrade manifest, absent-record verdict paths, EIP-712 signing primitive, signed demo reports, EIP-712 report signature verification, Sourcify evidence, verdict UI, progressive loading/error states, ABI risk diff, storage-layout result for fixtures, governance comments, safe/dangerous/unverified/live-public-read demo | A + B + C |
+| P1 | ENSIP-26 records, manifest hash-chain validation, 4byte lookup, retry/cache/fallback polish, plain-language verdict explanation, demo animation, share link, mobile/a11y pass | A + B + C |
 | P2 | Siren Agent watchlist, automated signing/reporting flow, optional Umia panel | C |
 | P3 | API, wallet/explorer integrations | post-hack |
 
@@ -216,4 +242,4 @@ If time is tight, cut in this order:
 2. P2 Siren Agent + Umia panel
 3. P1 polish
 
-**Never cut:** ENS live resolution, ENSIP-26 context/web endpoint records, atomic upgrade manifest, EIP-712 signing primitive, signed demo reports, EIP-712 report signature verification, Sourcify evidence, ABI risk diff, storage-layout result for fixture contracts, governance comment, verdict UI, dangerous demo. These are the product core for submission.
+**Never cut:** ENS live resolution for signed manifest path, public-read fallback, atomic upgrade manifest, absent-record verdict paths, EIP-712 signing primitive, signed demo reports, EIP-712 report signature verification, Sourcify evidence, ABI risk diff, storage-layout result for fixture contracts, progressive loading/error states, governance comments, verdict UI, dangerous demo, live public-read demo. These are the product core for submission.

@@ -28,12 +28,13 @@ vault.demo.upgradesiren.eth
 
 Explain:
 
-"ENS is not cosmetic here. It is the public contract map: stable proxy and owner records, ENSIP-26 discovery, and one atomic upgrade manifest."
+"ENS is not cosmetic here. It is the public contract map: stable proxy and owner records, one atomic upgrade manifest, and optionally ENSIP-26 discovery."
 
 ### 0:45 Live Chain Check
 
 Show:
 
+- progressive checklist: `ENS`, `chain`, `Sourcify`, `diff`, `signature`
 - proxy address
 - manifest-declared previous implementation
 - current implementation from EIP-1967 slot
@@ -47,7 +48,7 @@ Open the evidence drawer:
 - previous implementation verified
 - current implementation verified or unverified
 - report hash matches fetched bytes
-- EIP-712 signature recovers to `siren:owner`
+- EIP-712 signature recovers to `upgrade-siren:owner`
 - ABI diff
 - storage-layout result
 - Sourcify links
@@ -62,14 +63,26 @@ Run the three prepared examples:
 | Dangerous upgrade | `SIREN` |
 | Unverified upgrade | `SIREN` |
 
+Then run the live public-read example:
+
+| Scenario | Expected screen |
+|---|---|
+| Existing mainnet protocol without Upgrade Siren records | `REVIEW` or `SIREN`, never `SAFE`; confidence badge says `public-read` |
+
 ### 2:20 Governance Comment
 
-Click "Copy governance comment".
+Click "Copy governance comment" and show the format switcher:
 
-Show that a delegate can paste a concise reason:
+| Format | Use |
+|---|---|
+| Short | Tweet-length summary with signed report link |
+| Forum | Discourse/Snapshot forum post with evidence bullets |
+| Vote reason | One or two sentences for vote rationale |
+
+Show that a delegate can paste a concise forum reason:
 
 ```text
-I cannot support this upgrade yet. Upgrade Siren reports that the current implementation is not verified on Sourcify and does not match the ENS-declared implementation.
+I cannot support this upgrade yet. Upgrade Siren reports SIREN for vault.demo.upgradesiren.eth: current implementation 0x... is not verified on Sourcify and does not match the signed Upgrade Siren manifest. Evidence: https://...
 ```
 
 ### 2:45 Sponsor Close

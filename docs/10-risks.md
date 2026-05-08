@@ -6,10 +6,13 @@
 |---|---:|---|---|
 | Looks like generic scanner | High | Crowded and weak pitch | Keep upgrade-specific, ENS-named, Sourcify-backed |
 | Sourcify data too thin for demo | High | Primary sponsor fit collapses | Build fixtures with verified implementations and known metadata |
-| ENS feels decorative | High | ENS bounty requires central use | Make app break without ENS records |
+| ENS feels decorative | High | ENS bounty requires central use | Signed high-confidence mode must require live ENS records; public-read fallback is visibly lower confidence |
 | Storage layout unavailable | Medium | Diff may look shallow | Show honest `REVIEW`; emphasize verification and ABI diff |
 | Overbuilding agent story | Medium | Umia can distract from stronger Sourcify/ENS path | Keep Siren Agent optional |
 | Demo contracts too artificial | Medium | Judges may discount it | Deploy real fixtures, link Sourcify pages, show live reads |
+| Demo uses only synthetic fixtures | High | Judge may dismiss the detector as fixture-shaped | Add one live mainnet public-read scenario without Upgrade Siren records |
+| Adoption gap | High | Real protocols do not publish `upgrade-siren:*` records yet | Public-read fallback for addresses / normal ENS address records; signed manifest is higher confidence |
+| Undefined absent-record behavior | High | Dev streams may invent inconsistent verdicts | Define public-read mode, missing-owner `SIREN`, malformed-manifest handling before backlog generation |
 | False confidence | High | Security tooling must be honest | Say verification is necessary, not sufficient |
 | Time pressure | High | Deadline is close | Build three strong scenarios, not a broad platform |
 | Mentor answers arrive too late | High | Sponsor-specific endpoint or ENS namespace advice may miss build window | Front-load Sourcify and ENS mentor sweeps; treat Umia as optional |
@@ -20,16 +23,19 @@
 | Vercel env/config failure | Medium | Production deploy can be live but unable to resolve RPC/API data | Add env checklist, `/health` endpoint, and preview deploy smoke test |
 | Shared schema race | Medium | Evidence engine and web UI may diverge on Siren Report JSON | Make `packages/shared` schema a P0 cross-stream item before UI integration |
 | Reviewer bottleneck | Medium | PR reviewer can over-block or miss critical issues | Daniel spot-checks high-risk PRs and can override with explicit comment |
-| Unsigned report spoofing | High | Hash-only report validation proves integrity but not authority | Require EIP-712 signature by `siren:owner`; reject unsigned production reports |
-| Multi-record ENS desync | Medium | Separate upgrade records can temporarily disagree and create false `SIREN` or false confidence | Use one atomic `siren:upgrade_manifest` JSON record with hash-chain |
+| Unsigned report spoofing | High | Hash-only report validation proves integrity but not authority | Require EIP-712 signature by `upgrade-siren:owner`; reject unsigned production reports |
+| Multi-record ENS desync | Medium | Separate upgrade records can temporarily disagree and create false `SIREN` or false confidence | Use one atomic `upgrade-siren:upgrade_manifest` JSON record with hash-chain |
+| Namespace collision | Medium | Generic `siren:*` namespace could conflict with other ENS use | Use project-specific `upgrade-siren:*` records |
 
 ## Kill Signals
 
-- Product works without ENS.
+- Signed manifest mode works without live ENS records.
 - Product works without Sourcify.
 - Verdict is only an LLM summary.
 - No live chain read.
-- Production report lacks valid EIP-712 signature from `siren:owner`.
+- Production report lacks valid EIP-712 signature from `upgrade-siren:owner`.
+- Absent Upgrade Siren records have no defined public-read path.
+- Demo uses only synthetic fixtures and no live public-read protocol scenario.
 - Demo cannot show an unverified implementation.
 - Pitch says "AI auditor".
 - UI is too dense for non-auditors.

@@ -59,7 +59,7 @@ The backlog must be deep enough that no dev stream ever runs out of work while w
 10. No emoji.
 11. **Each stream must have at least 4 items with `Dependencies | none`** so the stream can always work while waiting on cross-stream merges.
 12. Each item is small enough to be one PR (effort ≤ M for most items; XL items must be split).
-13. Production Siren Reports are never trusted from hash alone. The P0 path must verify an EIP-712 signature from `siren:owner`; unsigned or invalid production reports return `SIREN`.
+13. Production Siren Reports are never trusted from hash alone. The signed-manifest P0 path must verify an EIP-712 signature from `upgrade-siren:owner`; unsigned or invalid production reports return `SIREN`.
 
 ## Required Backlog Coverage
 
@@ -74,14 +74,19 @@ Create items for at least every topic below. Stream owner shown in parentheses.
 - Sourcify verification scripts for V1, V2Safe, V2Dangerous (A)
 - Foundry tests: storage-layout assertion, dangerous-selector behavior, upgrade flow (A)
 - deploy script with documented addresses, Sepolia targeted (A)
-- ENS subname provisioning script that writes stable `siren:*` records, ENSIP-26 context/web endpoint records, and one atomic `siren:upgrade_manifest` after each fixture deploy (A)
+- ENS subname provisioning script that writes stable `upgrade-siren:*` records and one atomic `upgrade-siren:upgrade_manifest` after each fixture deploy (A)
 - signed and hosted Siren Report JSON for safe, dangerous, and unverified demo scenarios, generated with `packages/shared/signReport` (A)
+- P1 ENSIP-26 context/web endpoint record provisioning for demo subnames (A)
 - documentation of deployed addresses + stable ENS records + atomic manifest values (A)
 
 **Stream B (Evidence Engine):**
-- ENS record live resolution: stable `siren:*` records, `siren:upgrade_manifest`, and ENSIP-26 records (B)
-- atomic `siren:upgrade_manifest` parsing and validation (B)
-- manifest hash-chain validation using `previousManifestHash` (B)
+- ENS record live resolution: stable `upgrade-siren:*` records and `upgrade-siren:upgrade_manifest` (B)
+- atomic `upgrade-siren:upgrade_manifest` parsing and validation (B)
+- public-read fallback path for absent Upgrade Siren records: address input or normal ENS address record -> chain read -> Sourcify -> lower-confidence verdict (B)
+- absent-record verdict paths: missing manifest, missing owner, malformed manifest, manifest/current slot mismatch (B)
+- schema version policy for `upgrade-siren-manifest@1`; unknown versions become `REVIEW` unless `SIREN` rule triggers (B)
+- **P1:** manifest hash-chain validation using `previousManifestHash` (B)
+- **P1:** ENSIP-26 `agent-context` and `agent-endpoint[web]` record reading (B)
 - EIP-1967 implementation slot reader (B)
 - `Upgraded(address)` event reader (B)
 - Sourcify verification/status fetch (`/server/v2/contract/{chainId}/{address}?fields=all`) (B)
@@ -90,36 +95,48 @@ Create items for at least every topic below. Stream owner shown in parentheses.
 - storage-layout compatibility diff (B)
 - Siren Report JSON schema in `packages/shared/` (B)
 - EIP-712 Siren Report typed-data builder and `signReport` helper in `packages/shared/` (B)
-- EIP-712 Siren Report signature verification against `siren:owner` (B)
+- EIP-712 Siren Report signature verification against `upgrade-siren:owner` (B)
 - verdict engine: SAFE / REVIEW / SIREN rules (B)
 - shared types package for cross-stream consumption (B)
-- Sourcify response cache layer with TTL (B)
-- ENS resolution cache layer (B)
-- 4byte signature lookup for unverified contracts (B)
+- **P1:** Sourcify response cache layer with TTL (B)
+- **P1:** ENS resolution cache layer (B)
+- **P1:** RPC retry/failover and Sourcify rate-limit handling (B)
+- **P1:** 4byte signature lookup for unverified contracts (B)
+- **P1:** upgrade-window grace policy; P0 remains conservative `SIREN` on manifest mismatch (B)
 
 **Stream C (Web UX + optional Siren Agent):**
 - Next.js 16 app scaffold with Tailwind 4 (C)
 - ENS lookup page (input field + submit) (C)
+- address / normal ENS address-record input for public-read fallback (C)
 - verdict card component (SAFE / REVIEW / SIREN) (C)
+- progressive loading checklist (`ENS`, `chain`, `Sourcify`, `diff`, `signature`) (C)
 - before/after implementation comparison view (C)
 - evidence drawer with Sourcify links (C)
 - ABI diff renderer (C)
 - storage diff renderer (C)
 - ENS records resolved live panel (C)
 - signature status badge (`signed`, `unsigned`, `signature-invalid`) (C)
-- governance comment generator (C)
-- demo mode runner with three scenarios (safe / dangerous / unverified) (C)
+- governance comment generator with short, forum, and vote-reason formats plus signed evidence citation (C)
+- demo mode runner with four scenarios (safe / dangerous / unverified / live public-read) (C)
 - mock-path visible badge component (C)
+- explicit empty/error states for absent records, RPC failure, Sourcify failure, malformed manifest, and unsigned report (C)
 - five-second-rule performance check (C)
+- **P1:** share-verdict link with precomputed result (C)
+- **P1:** mobile responsive layout check for viewport <= 768px (C)
+- **P1:** accessibility pass for WCAG AA and screen-reader status labels (C)
 - **P2:** Siren Agent watchlist config (C)
 - **P2:** operator report-signing workflow UX for Siren Agent automation (C)
 - **P2:** Umia-style due-diligence panel (C)
 
 **Tracker (Daniel + Orch):**
 - sponsor pitch finalization (Daniel + Orch)
+- operator wallet / report signer custody decision (Daniel + Orch)
+- live public-read protocol target research and selection (Daniel + Orch)
 - Devfolio submission materials (Daniel + Orch)
 - 3-minute booth script rehearsal (Daniel + Orch)
 - demo video recording fallback (Daniel + Orch)
+- Devfolio logo / cover asset (Daniel + Orch)
+- booth fallback artifacts: Anvil/local fallback, cached fixture responses, recorded full demo (Daniel + Orch)
 
 ## Output Format
 
@@ -315,7 +332,7 @@ pnpm --filter @upgrade-siren/evidence test:integration sourcify/metadata
 
 #### Notes
 
-Use Node 22 global `fetch` (undici under the hood); no axios. TTL/caching layer is US-024 - keep this function pure (no side effects beyond the fetch). Discriminated union beats throwing because the verdict engine needs to inspect the error reason. The integration test depends on US-016 being merged so a real verified contract address exists. This item does not authenticate the offchain Siren Report; a separate P0 item must verify the EIP-712 signature against `siren:owner`.
+Use Node 22 global `fetch` (undici under the hood); no axios. TTL/caching layer is US-024 - keep this function pure (no side effects beyond the fetch). Discriminated union beats throwing because the verdict engine needs to inspect the error reason. The integration test depends on US-016 being merged so a real verified contract address exists. This item does not authenticate the offchain Siren Report; a separate P0 item must verify the EIP-712 signature against `upgrade-siren:owner`.
 ````
 
 ### Example: Stream C item
@@ -340,13 +357,15 @@ Build the verdict card component at `apps/web/components/VerdictCard.tsx`. Rende
 
 #### Acceptance Criteria
 
-- [ ] `VerdictCard` accepts `{verdict, name, proxy, summary, signatureStatus, mock?}` typed props
+- [ ] `VerdictCard` accepts `{verdict, name, proxy, summary, confidenceMode, signatureStatus, mock?}` typed props
 - [ ] SAFE renders green bg + check glyph + "SAFE" label
 - [ ] REVIEW renders amber bg + warning glyph + "REVIEW" label
 - [ ] SIREN renders red bg + alarm glyph + "SIREN" label
 - [ ] Signature status renders as `signed`, `unsigned`, or `signature-invalid`
+- [ ] Confidence mode renders as `signed-manifest`, `public-read`, or `mock`
+- [ ] Public-read mode never renders the SAFE state
 - [ ] When `mock: true` prop set, badge `MOCK` renders in card corner
-- [ ] Component test covers all three verdicts + all three signature states + mock variant
+- [ ] Component test covers all three verdicts + confidence modes + all three signature states + mock variant
 - [ ] Playwright test asserts verdict text visible within 5000ms of navigation for the three demo fixtures
 - [ ] Lighthouse performance score >= 90 on the demo page
 - [ ] No `text-green` or `text-red` outside verdict component (audit grep)
@@ -380,6 +399,7 @@ When you set dependencies:
 - **B -> A:** A's signed demo report provisioning item depends on B's `packages/shared/signReport` helper being merged.
 - **B -> C:** C's UX items that consume the report schema can start as soon as B's schema item is merged; they do not need every B item merged.
 - **A -> C (rare):** C's demo scenario runner needs deployed addresses; this is one item only.
+- **Tracker -> A/B/C:** The live public-read demo item depends on Daniel/Orch selecting the target protocol/address.
 - **Within stream:** keep sequential dependencies short. Most A items can run in parallel after the proxy + V1 are deployed.
 - **Independent items first:** the first 4 items in each stream's index must have `Dependencies | none` so all three streams can start immediately.
 
@@ -387,13 +407,16 @@ When you set dependencies:
 
 The backlog must include explicit P0 items for:
 
-- parsing `siren:upgrade_manifest` as one atomic object, not separate mutable ENS fields
+- parsing `upgrade-siren:upgrade_manifest` as one atomic object, not separate mutable ENS fields
+- supporting public-read fallback when Upgrade Siren records are absent
+- defining missing manifest, missing owner, malformed manifest, and manifest-mismatch verdict paths
 - providing a P0 `packages/shared/signReport` primitive used by demo deploy/provisioning
 - generating signed demo reports for safe, dangerous, and unverified scenarios
 - verifying `reportHash` against fetched report bytes
-- verifying the Siren Report EIP-712 signature against `siren:owner`
+- verifying the Siren Report EIP-712 signature against `upgrade-siren:owner`
 - rendering unsigned or signature-invalid production reports as `SIREN`
-- reading ENSIP-26 `agent-context` and `agent-endpoint[web]` records
+- showing progressive loading and explicit empty/error states
+- producing governance comments in short, forum, and vote-reason formats with signed evidence links
 
 ## Reviewer Contract
 

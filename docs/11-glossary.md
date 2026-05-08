@@ -5,7 +5,8 @@
 | Upgrade Siren | Public upgrade-risk alarm for named Ethereum contracts |
 | Siren Agent | Monitoring agent that watches contracts and produces signed risk reports |
 | ENS Contract Map | Stable ENS records plus one atomic upgrade manifest describing proxy identity, owner, report discovery, and implementation history |
-| Atomic upgrade manifest | One `siren:upgrade_manifest` JSON text record containing upgrade state, report pointer/hash, version, timestamp, and previous manifest hash |
+| Atomic upgrade manifest | One `upgrade-siren:upgrade_manifest` JSON text record containing upgrade state, report pointer/hash, version, timestamp, and previous manifest hash |
+| Public-read fallback | Lower-confidence mode for protocols without Upgrade Siren records; uses address/ENS address record, chain state, and Sourcify, and never returns `SAFE` |
 | Sourcify Evidence Engine | Module that fetches verified-contract evidence from Sourcify |
 | Proxy | Contract address users interact with while logic lives in an implementation |
 | Implementation | Logic contract behind a proxy |
@@ -17,5 +18,6 @@
 | ABI diff | Comparison of callable functions before and after upgrade |
 | Storage layout | Compiler metadata describing storage slots and types |
 | Governance comment | Short explanation a DAO voter/delegate can paste into a proposal discussion |
-| EIP-712 report signature | Typed-data signature proving the report was authorized by the `siren:owner` address |
+| EIP-712 report signature | Typed-data signature proving the report was authorized by the `upgrade-siren:owner` address |
+| `upgrade-siren:*` namespace | Project-specific ENS text-record namespace for Upgrade Siren metadata; chosen over broad `siren:*` to reduce collision risk |
 | Mock | Simulated data path; must be explicitly labeled `mock: true` |

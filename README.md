@@ -30,14 +30,15 @@ It is not a generic audit tool. It is not an AI scanner. It is an alarm for the 
 
 1. **ENS Contract Map**
    - Resolve protocol-owned names such as `vault.demo.upgradesiren.eth`
-   - Read stable records for chain, proxy, owner, schema, ENSIP-26 context, and web endpoint
-   - Read one atomic `siren:upgrade_manifest` for current upgrade state, report pointer, report hash, and version history
+   - Read stable `upgrade-siren:*` records for chain, proxy, owner, and schema
+   - Read one atomic `upgrade-siren:upgrade_manifest` for current upgrade state, report pointer, report hash, and version history
    - ENS is the identity and version surface, not decoration
 
 2. **Proxy Upgrade Detector**
    - Read EIP-1967 implementation slots
    - Detect `Upgraded(address)` events
-   - Compare current implementation against ENS-declared `latest`
+   - Compare current implementation against the signed ENS manifest when available
+   - Fall back to lower-confidence public-read mode for protocols without Upgrade Siren records
    - Surface owner/admin/timelock status when available
 
 3. **Sourcify Evidence Engine**
@@ -49,7 +50,7 @@ It is not a generic audit tool. It is not an AI scanner. It is an alarm for the 
    - Human verdict first
    - Evidence drawer for technical judges
    - Governance-ready comment generator
-   - EIP-712 signed report bound to `siren:owner` for production trust
+   - EIP-712 signed report bound to `upgrade-siren:owner` for production trust
 
 5. **Siren Agent**
    - A monitoring agent that watches a contract or venture watchlist
@@ -80,7 +81,7 @@ We do **not** submit Swarm, SpaceComputer, or Apify unless Daniel explicitly swa
 
 ## Demo Flow
 
-The five-minute demo has three prepared upgrades:
+The five-minute demo has three prepared upgrades plus one live public-read protocol:
 
 1. **Safe upgrade**
    - Both implementations verified
@@ -95,8 +96,13 @@ The five-minute demo has three prepared upgrades:
 
 3. **Unverified upgrade**
    - Proxy points to implementation not verified on Sourcify
-   - ENS `latest` pointer and live slot disagree
+   - ENS manifest and live slot disagree
    - Verdict: `SIREN`
+
+4. **Live public-read protocol**
+   - Existing mainnet protocol without Upgrade Siren records
+   - Uses public chain state + Sourcify only
+   - Verdict: `REVIEW` or `SIREN`, never `SAFE`
 
 Five-second moment:
 
