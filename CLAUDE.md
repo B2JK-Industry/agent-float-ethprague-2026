@@ -79,7 +79,7 @@ Daniel confirmed 2026-05-08:
 - **Alchemy** RPC keys (Sepolia + mainnet) ready
 - **Operator wallet** for ENS operations ready
 
-Pre-launch blocker: ENS `upgradesiren.eth` mainnet collision check.
+Pre-launch blocker: register chosen ENS parent. Mainnet registry owner check on 2026-05-08 showed `upgradesiren.eth`, `upgrade-siren.eth`, and `upgrade-siren-demo.eth` unowned, but purchase is not complete yet.
 
 Full deployment prereqs + flow: `docs/12-implementation-roadmap.md` Production Deployment Prerequisites section.
 

@@ -12,6 +12,14 @@
 | Demo contracts too artificial | Medium | Judges may discount it | Deploy real fixtures, link Sourcify pages, show live reads |
 | False confidence | High | Security tooling must be honest | Say verification is necessary, not sufficient |
 | Time pressure | High | Deadline is close | Build three strong scenarios, not a broad platform |
+| Mentor answers arrive too late | High | Sponsor-specific endpoint or ENS namespace advice may miss build window | Front-load Sourcify and ENS mentor sweeps; treat Umia as optional |
+| Booth Wi-Fi fails | High | Live ENS/Sourcify/RPC demo can fail despite correct code | Prepare hotspot, pre-warmed cache, Anvil/local fallback, and recorded demo |
+| RPC rate limits | High | EIP-1967 reads and ENS resolution can fail during judging | Use Alchemy mainnet/Sepolia RPC, retry logic, and cached demo fixtures |
+| Sourcify rate limits or outage | High | Primary evidence source may be unavailable at booth time | Cache demo fixture responses and label cache state honestly |
+| ENS registration delay | Medium | Brand parent may not be registered before demo | Use chosen parent as soon as possible; fall back to available alternate or Sepolia/demo parent |
+| Vercel env/config failure | Medium | Production deploy can be live but unable to resolve RPC/API data | Add env checklist, `/health` endpoint, and preview deploy smoke test |
+| Shared schema race | Medium | Evidence engine and web UI may diverge on Siren Report JSON | Make `packages/shared` schema a P0 cross-stream item before UI integration |
+| Reviewer bottleneck | Medium | PR reviewer can over-block or miss critical issues | Daniel spot-checks high-risk PRs and can override with explicit comment |
 
 ## Kill Signals
 
@@ -22,6 +30,8 @@
 - Demo cannot show an unverified implementation.
 - Pitch says "AI auditor".
 - UI is too dense for non-auditors.
+- Booth demo requires live services but has no fallback.
+- Vercel production deploy lacks required environment variables.
 
 ## Strong Signals
 

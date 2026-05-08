@@ -130,14 +130,10 @@ ETHPrague2026/
 ```
 
 > Project wiki lives at the **GitHub Wiki** (separate git): https://github.com/B2JK-Industry/Upgrade-Siren-ETHPrague2026/wiki
-    ├── write-backlog.md
-    ├── run-dev-stream.md
-    └── review-prs.md
-```
 
 ## Current Status
 
-Documentation pivot complete in this branch. Code remains blocked until Daniel confirms this as the build scope.
+Documentation pivot is merged on `main`. Code remains blocked until Daniel confirms Upgrade Siren as the locked build scope and `docs/13-backlog.md` is generated.
 
 Read order:
 

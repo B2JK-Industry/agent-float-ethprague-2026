@@ -35,8 +35,8 @@ Tasks:
 2. Read EIP-1967 implementation slot (P0).
 3. Fetch upgrade events (P1).
 4. Fetch Sourcify verification + metadata (P0).
-5. Compare ABI and risky selectors (P1).
-6. Compare storage layouts where available (P1).
+5. Compare ABI and risky selectors (P0).
+6. Compare storage layouts where available for fixture contracts (P0).
 7. Produce deterministic Siren Report JSON (P0).
 
 ## Stream C — Web UX + Optional Siren Agent (Dev C)
@@ -55,11 +55,12 @@ Owned paths after lock:
 4. Evidence drawer.
 5. Sourcify link panel.
 6. Demo mode with three scenarios (safe / dangerous / unverified).
+7. Governance comment generator.
 
 ### P1 — Web UX polish
 
-7. Governance comment generator.
 8. Plain-language explanation of verdict.
+9. Demo animation / presentation polish.
 
 ### P2 — Optional Siren Agent (stretch, Umia-conditional)
 
@@ -161,7 +162,7 @@ Before clicking submit, verify each of these against `docs/06-acceptance-gates.m
 
 ### Pending pre-launch actions
 
-- [ ] ENS `upgradesiren.eth` mainnet collision check; if taken, fall back to alternate (`upgrade-siren.eth` reserved per `docs/08`)
+- [ ] Register chosen ENS parent. Registry owner check on 2026-05-08 showed `upgradesiren.eth`, `upgrade-siren.eth`, and `upgrade-siren-demo.eth` unowned, but purchase is not complete yet.
 - [ ] Mainnet ETH funded for ENS parent registration + initial subname issuance (~$50-100 estimated)
 - [ ] Sepolia ETH from faucet for fixture contract deploys
 - [ ] Vercel project linked to repo via Vercel CLI or dashboard
@@ -192,8 +193,8 @@ Before clicking submit, verify each of these against `docs/06-acceptance-gates.m
 
 | Priority | Must ship | Streams |
 |---|---|---|
-| P0 | ENS live resolution, Sourcify evidence, verdict UI, safe/dangerous/unverified demo | A + B + C |
-| P1 | Governance comment, storage-layout diff, ABI risk diff polish | B + C |
+| P0 | ENS live resolution, Sourcify evidence, verdict UI, ABI risk diff, storage-layout result for fixtures, governance comment, safe/dangerous/unverified demo | A + B + C |
+| P1 | Plain-language verdict explanation, demo animation, cache/fallback polish | B + C |
 | P2 | Siren Agent watchlist, signed report, optional Umia panel | C |
 | P3 | API, wallet/explorer integrations | post-hack |
 
@@ -205,4 +206,4 @@ If time is tight, cut in this order:
 2. P2 Siren Agent + Umia panel
 3. P1 polish
 
-**Never cut:** ENS live resolution, Sourcify evidence, verdict UI, dangerous demo. These are the product core.
+**Never cut:** ENS live resolution, Sourcify evidence, ABI risk diff, storage-layout result for fixture contracts, governance comment, verdict UI, dangerous demo. These are the product core for submission.
