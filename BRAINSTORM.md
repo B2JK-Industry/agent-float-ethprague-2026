@@ -69,6 +69,6 @@
 | Decision | Options | Default |
 |---|---|---|
 | Sponsor pair | Sourcify + ENS vs Sourcify + Umia | Sourcify + ENS |
-| ENS parent | `upgradesiren.eth` vs temporary Sepolia-compatible demo parent | Use whatever can be live-resolved fastest |
+| ENS parent | `upgradesiren.eth` vs alternate parent | Registry owner check on 2026-05-08 showed `upgradesiren.eth`, `upgrade-siren.eth`, and `upgrade-siren-demo.eth` unowned; default to `upgradesiren.eth` if still available at registration |
 | Report storage | App DB / JSON route vs Swarm | App JSON route for now; Swarm future |
 | Agent framing | Main product vs optional business panel | Optional Siren Agent panel |

@@ -87,7 +87,7 @@ latest.vault.demo.upgradesiren.eth
 report.vault.demo.upgradesiren.eth
 ```
 
-> **ENS parent name is provisional.** `upgradesiren.eth` mainnet availability has not been verified yet (open decision in `BRAINSTORM.md`). Default plan: register on Sepolia first for fast iteration; mainnet parent locked after collision check. Acceptable alternates if `upgradesiren.eth` is taken: `upgrade-siren.eth`, `upgrade-siren-demo.eth`. Daniel approves final choice.
+> **ENS parent name is not registered yet.** Registry owner check via public mainnet RPC on 2026-05-08 returned `0x0000000000000000000000000000000000000000` for `upgradesiren.eth`, `upgrade-siren.eth`, and `upgrade-siren-demo.eth`. Default: register `upgradesiren.eth` if still available at purchase time; fall back to `upgrade-siren.eth` or `upgrade-siren-demo.eth` if registration fails. Daniel approves final choice.
 
 Required live records:
 
