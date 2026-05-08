@@ -1,10 +1,12 @@
 # 03 — Tokenomics
 
-> **PIVOT NOTICE (2026-05-08):** Per external review + sponsor-native test analysis, primary funding mechanism shifted from custom `BondingCurveSale.sol` to **Umia Tailored Auctions** (Uniswap CCA-based). The bonding curve math below remains documented as either **internal fallback simulator** (if Umia integration unavailable) or **educational reference**. Final lock pending Umia mentor sweep confirmation. See `SCOPE.md §13` Decision log.
+> **PIVOT NOTICE (2026-05-08):** Per external review + sponsor-native test analysis, primary funding mechanism shifted from custom `BondingCurveSale.sol` to **Umia Tailored Auctions** (Uniswap CCA-based). This document leads with Umia-native mechanics. Legacy bonding-curve math is retained in **Appendix A** as a fallback simulator only. Final lock pending Umia mentor sweep confirmation. See `SCOPE.md §13` Decision log.
 
-This document expands `SCOPE.md §5.5` with worked examples, mathematical models, and edge-case behavior. The locked parameters in SCOPE.md remain the source of truth.
+This document expands `SCOPE.md §5.5`. The locked parameters in SCOPE.md remain the source of truth.
 
-## Locked parameters (recap, post-pivot)
+---
+
+## Locked parameters (post-pivot)
 
 | Parameter | Value | Status |
 |---|---|---|
@@ -21,46 +23,9 @@ This document expands `SCOPE.md §5.5` with worked examples, mathematical models
 
 > **Wording discipline (post-review):** Until Umia mentor confirms the exact legal/economic model, all Agent Float-side documentation **avoids** claims like "investors receive pro-rata revenue share", "X% of agent revenue goes to token holders", "claim accumulated USDC". Replace with: "investor exposure follows Umia's venture wrapper", "agent earns USDC; routing per Umia treasury", "token holders see receipts feed (proof of agent productivity)".
 
-## Bonding curve (FALLBACK / EDUCATIONAL — not primary sale path post-pivot)
+---
 
-> Bonding curve mechanics below describe **our internal `BondingCurveSale.sol`** which is now a **fallback** path. Primary path is Umia Tailored Auction. This section retained for: (1) fallback if Umia integration unavailable in demo, (2) educational understanding of price-discovery mechanics, (3) revert path if Umia mentor confirms custom curve acceptable.
-
-### Default shape
-
-A linear bonding curve. Price as function of tokens already sold:
-
-```
-price(n) = startPrice + slope * n
-```
-
-Where:
-- `n` = number of tokens already sold from the public allocation (excludes builder retention)
-- `startPrice` = USDC per token at first sale
-- `slope` = USDC increase per token sold
-
-### Default parameters (subject to lock)
-
-| Param | Default rec | Rationale |
-|---|---|---|
-| `startPrice` | 0.001 USDC | Low entry barrier; total token cap (1.6M public if 20% retention) at start ≈ 1,600 USDC |
-| `slope` | 0.000001 USDC per token | Linear growth; final token in 1.6M public allocation costs ~ 0.001 + 0.000001 × 1,600,000 = 0.0026 USDC |
-
-**Total public sale value at full bonding curve consumption** (with default 20% retention, 1.6M public):
-```
-totalUSDC = ∫₀^1.6M (0.001 + 0.000001 * n) dn
-          = 0.001 * 1,600,000 + 0.000001 * (1,600,000^2) / 2
-          = 1,600 + 1,280
-          = 2,880 USDC raised
-```
-
-### Alternative shapes (post-MVP consideration)
-
-- **Exponential:** `price(n) = startPrice * e^(k*n)` — more aggressive price escalation; rewards early buyers more
-- **Square root:** `price(n) = startPrice + slope * sqrt(n)` — diminishing escalation; smoother for late buyers
-
-Builder selects at registration. MVP defaults to linear.
-
-## Umia Tailored Auction (PRIMARY post-pivot)
+## Primary mechanism — Umia Tailored Auction
 
 ### What it is
 
@@ -68,140 +33,36 @@ Umia provides **Tailored Auctions powered by Uniswap CCA (Continuous Clearing Au
 
 > **Honest gap:** Specific mechanics of Umia's Tailored Auction (curve shape, time windows, fill priority, slippage parameters) are not yet verified at our level. Mentor sweep priority #1 (`docs/09-sponsor-mentor-questions.md`) confirms.
 
-### Expected flow (rekonštruovane z Umia public docs + reviewer findings)
+### Expected flow (reconstructed from Umia public docs + reviewer findings)
 
 1. Builder runs `umia venture init` (Umia CLI)
 2. Umia creates legal entity wrapper for the agent venture
 3. Umia deploys / configures venture token (their template OR our ERC20 imported)
-4. Umia configures Tailored Auction parameters (likely: clearing-price target, time bounds, supply allocation)
+4. Umia configures Tailored Auction parameters (clearing-price target, time bounds, supply allocation)
 5. Auction goes live; investors bid; Uniswap CCA settles continuous clearing prices
 6. Proceeds route to Umia noncustodial treasury per their config
 7. Tokens credited to investor wallets via Umia mechanism
 
-### Our integration
+### Agent Float surfacing (our integration)
 
-Agent Float surfaces:
-- `<agent>.agentfloat.eth` ENS passport (with `agentfloat:umia_venture` namespaced text record pointing to the Umia venture address)
-- "Float on Umia" CTA on agent profile → redirects to Umia auction page
+- `<agent>.agentfloat.eth` ENS passport with `agentfloat:umia_venture` namespaced text record pointing to the Umia venture address
+- "Fund via Umia" CTA on agent profile redirects to Umia auction page
 - Receipts feed visible from Agent Float profile (independent of Umia auction state)
 - Builder bond vault status (independent of Umia)
 - Milestone progress (independent of Umia)
-- Post-auction: token holdings visible on agent profile via Umia venture token contract
+- Post-auction: Umia venture token holdings visible on agent profile
 
 ### Why this is the right call
 
-Sponsor-native test: bez Umia auction by Umia bola decoration. Ich Tailored Auctions sú **ich core produkt** ($12K Best Agentic Venture rewards using their core, nie bypassing).
+Sponsor-native test: without Umia auction, Umia would be decoration. Their Tailored Auctions are their **core product** (the $12K Best Agentic Venture rewards using their core, not bypassing it).
 
-## Worked examples (FALLBACK BONDING CURVE PATH ONLY)
+---
 
-> ⚠️ **All examples below use the fallback `BondingCurveSale.sol` mechanism, NOT the primary Umia Tailored Auction.** They illustrate **fallback math only** for cases where Umia integration is unavailable at demo time. Do NOT cite these claim amounts (e.g., "0.0035 USDC accrued") in pitch, demo voiceover, or external comms. Umia handles primary economics; once mentor sweep confirms Umia auction integration, these examples will be replaced with Umia auction worked examples.
+## Builder bond strategy (Agent Float innovation)
 
-### Example 1 — Small agent (GrantScout demo)
+Builder personal collateral, locked at registration in `BuilderBondVault.sol`. Slashes pro-rata to current Umia venture token holders if milestones miss or agent goes silent.
 
-**Builder setup at registration:**
-- Token retention: 20% (400,000 tokens to builder)
-- Public allocation: 1,600,000 tokens via bonding curve
-- USDC split: 20% upfront / 80% treasury
-- Milestones: 50 paid reports / 100 paid reports / 250 paid reports
-- Builder bond: 500 USDC
-
-**Investor A buys 1,000 tokens at curve start:**
-- Price quote: avg of price(0) and price(1000) ≈ 0.0010005 USDC/token
-- Total cost: 1.0005 USDC
-- Routing: 0.20 USDC → builder wallet (upfront), 0.80 USDC → AgentTreasury
-
-**Investor A's holdings:**
-- 1,000 tokens of GrantScout
-- 0.0625% of total supply (1,000 / 1,600,000 of public, but accounting against full 2M for revenue distribution: 1,000 / 2,000,000 = 0.05%)
-
-**After agent earns 10 USDC in revenue:**
-- 30% goes to AgentTreasury (replenish runway: 3 USDC)
-- 70% goes to RevenueDistributor (distribute to holders: 7 USDC)
-- Investor A's claimable (FALLBACK PATH ONLY, do NOT cite in pitch): 7 × 0.05% = 0.0035 USDC
-
-**Investor A claims after 100 paid reports (10 USDC × 100 = 1,000 USDC revenue):**
-- Cumulative distributed: 700 USDC across all holders
-- Investor A's claimable: 700 × 0.05% = 0.35 USDC
-
-> **Note:** at small scale, the unit economics are tiny. The demo emphasizes the *mechanism* and *transparency*; real venture economics emerge at scale (1000+ paid queries × $0.01 = $10/day per agent → $300/month, distributed to <100 holders, gives meaningful returns).
-
-### Example 2 — Successful milestone hit
-
-GrantScout reaches 50 paid reports. MilestoneRegistry verifies. AgentTreasury releases first tranche to builder (e.g., 200 USDC of the locked treasury) for compute upgrade.
-
-### Example 3 — Failed milestone / silence
-
-GrantScout stops emitting receipts for 7 consecutive days. Silence detector triggers. BuilderBondVault.slash() executes:
-- Snapshots current token holders
-- 500 USDC bond distributes pro-rata
-- Investor A (1000 tokens, 0.05%) receives 0.25 USDC slashing payout
-- Agent profile shows "DEFAULTED" badge
-- Builder reputation marked
-
-## Revenue distribution mechanics
-
-### Snapshot model
-
-When agent posts revenue to RevenueDistributor:
-
-```
-1. RevenueDistributor receives X USDC
-2. Reads current AgentVentureToken.totalSupply (always 2M)
-3. For each holder:
-   - holderShare = balanceOf(holder) / 2,000,000
-   - holder.claimable += X * holderShare
-4. RevenueDistributor balance increases by X
-```
-
-### Claim model
-
-Investor calls `claim()`:
-
-```
-1. Read holder.claimable
-2. Transfer claimable USDC to holder
-3. Reset claimable = 0
-```
-
-### Edge case — token transfer between snapshots
-
-If investor A sells 500 tokens to investor B between distribution events:
-- A's claimable up to time of transfer remains with A (already accumulated)
-- B's claimable starts from time of transfer onward
-- This requires snapshot-on-distribution accounting (similar to Drips / 0xSplits design)
-
-In v1 simplification: distribution events happen at fixed cadence (e.g., on every receipt event); transfer between events is handled by balance-at-distribution-time logic. Re-entrancy and accounting safety prioritized.
-
-## Builder retention strategy
-
-Builder picks retention % at registration. Trade-offs:
-
-| Retention | Effect on builder | Effect on investors |
-|---|---|---|
-| 0% | All tokens public; builder has no skin in revenue | Investors get full upside but no signal of builder commitment |
-| 10% | Modest builder stake | Healthy alignment |
-| 20% (default rec) | Builder retains meaningful share; aligned with investors | Investors get 80% of supply on bonding curve |
-| 50% | Builder controls majority; might dump | Investors should be cautious |
-| 90%+ | Suspect — why fundraise? | Red flag |
-
-UI displays retention prominently on agent profile. Tooltip explains alignment implications.
-
-## USDC split strategy
-
-Builder picks split at registration. Trade-offs:
-
-| Upfront % | Effect on builder | Effect on investors |
-|---|---|---|
-| 0% | All USDC milestone-locked | Maximal investor protection; builder cash-starved at start |
-| 20% (default rec) | Immediate prep money for compute/setup | Reasonable; majority milestone-locked |
-| 50% | Builder gets half right away | Riskier for investors |
-| 100% | Builder gets all funds upfront | Equivalent to traditional VC; defeats milestone gating |
-
-UI shows split prominently. Investors see "X% of your contribution goes upfront to builder, (100-X)% locks in agent treasury, releases on milestones."
-
-## Builder bond strategy
-
-Builder personal collateral, locked at registration. Slashes if milestones missed or agent goes silent.
+This is **independent of Umia** — Umia's venture wrapper does not include personal accountability collateral. Agent Float adds it as the differentiating accountability primitive.
 
 Default rec for demo agent: 500 USDC.
 
@@ -214,36 +75,122 @@ Default rec for demo agent: 500 USDC.
 
 Bond size is public on agent profile.
 
-## Wash-trading mitigation
+---
+
+## Wash-trading defense (raises cost; does not eliminate)
 
 Builder might try to fake receipts to pump apparent revenue → token price → ROI metrics → attract more buyers.
 
-**Mitigation chain:**
+**Defense chain:**
 
 1. Receipts must be signed by agent's ENS-registered wallet (not builder's wallet — they're distinct keys)
 2. `paymentAmount` field on each Receipt cross-checks against an actual USDC `Transfer` event from end user → agent wallet on-chain
-3. ReceiptLog cannot accept a Receipt without a corresponding USDC transfer matching `paymentAmount`
-4. To fake a receipt, builder would need to send their own USDC to the agent → which means burning their own USDC for fake revenue → defeats the purpose
+3. ReceiptLog rejects Receipts without a corresponding USDC transfer matching `paymentAmount`
+4. To fake a receipt, builder must self-fund: send their own USDC to the agent wallet, then have the agent emit a receipt referencing it
 
-**Result:** wash-trading is mathematically un-profitable. Builder can fake receipts only by losing real money. The bonding curve reward of pumping doesn't compensate for the burn cost at any reasonable parameter choice.
+**Honest result:** This **raises the cost** of fake receipts to the value of the wash USDC moved, but **does not eliminate** wash-trading. A builder can still rationally fake activity if external hype or token-price gains exceed the wash cost. Mitigation is a deterrent, not a proof. The full defense relies on:
+
+- ReceiptLog cross-validation (this section)
+- BuilderBondVault personal collateral (raises stake further)
+- Public investor scrutiny via on-chain receipts feed (judges in market)
+- Umia's secondary market price discovery (post-launch reality test)
+
+---
 
 ## Failure mode summary
 
 | Failure | Detection | Response |
 |---|---|---|
-| Milestone missed (e.g., agent doesn't hit 50 reports in 30 days) | MilestoneRegistry oracle/multi-sig check | BuilderBondVault.slash() distributes bond pro-rata to current token holders |
+| Milestone missed | MilestoneRegistry oracle/multi-sig check | `BuilderBondVault.slash()` distributes bond pro-rata to current Umia venture token holders |
 | Agent silent (no receipts for N days, default 7) | ReceiptLog event timestamp + scheduled job | Same as above |
-| Builder rugpull attempt (drain agent wallet) | AgentTreasury multi-sig requires Umia delegate signature for non-milestone releases | Multi-sig blocks unauthorized release |
-| Wash-trading | ReceiptLog.checkUSDCMatch() function rejects unbacked receipts | Receipt rejected at write-time |
+| Builder rugpull attempt | Umia noncustodial treasury controls; Agent Float bond vault separate | Umia treasury rules block unauthorized release; bond unaffected by builder |
+| Wash-trading | `ReceiptLog.emitReceipt()` reverts on missing USDC `Transfer` match | Fake receipt rejected at write-time; cost-imposed on builder for self-funded fakes (does not eliminate) |
 
-## Scale economics (post-MVP projection)
+---
+
+## Scale economics — Umia-native framing
 
 For meaningful agent venture math, consider mid-scale agent:
 
-- 100 paid queries/day × 0.01 USDC = 1 USDC/day = $30/month gross
-- Split: $9 to treasury (replenish), $21 to RevenueDistributor
-- 100 token holders, average holding 16,000 tokens (0.8% supply)
-- Per-holder daily distribution: $0.21 × 0.8% = $0.0017/day = $0.05/month
-- Annual: $0.60 per holder per agent
+- 100 paid queries/day × 0.01 USDC = 1 USDC/day = ~$30/month gross
+- USDC routing per Umia venture treasury configuration (not defined by Agent Float)
+- Token holder economic exposure determined by Umia's venture wrapper
 
-Real venture math becomes meaningful at 1,000+ queries/day. The MVP demo emphasizes mechanism, not economics — at $10/query (B2B agents) or 10,000+ daily queries, distribution math becomes investor-relevant.
+The MVP demo emphasizes **mechanism + proof**, not economics. At small scale (single agent, demo conditions), distribution numbers are micro and meaningless. At $10/query (B2B agents) or 10,000+ daily queries, the venture math becomes investor-relevant — and that's the post-hackathon trajectory, not the demo.
+
+> Reviewer flagged: do not cite small distribution claim numbers (e.g., "0.0035 USDC accrued") in pitch or demo. Judges see fake math instantly. Demo emphasizes proof of agent productivity (receipts feed live), not micro-distribution amounts.
+
+---
+
+## Appendix A — Fallback bonding curve mechanics
+
+> ⚠️ This appendix describes our internal `BondingCurveSale.sol` **fallback** path. **Not pitched as primary.** Used only if Umia auction integration is unavailable at demo time. Not a substitute for the Umia primary mechanism. Math kept for engineering reference only.
+
+### Linear bonding curve (default if used)
+
+```
+price(n) = startPrice + slope * n
+```
+
+- `n` = number of tokens already sold from public allocation
+- `startPrice` = USDC per token at first sale
+- `slope` = USDC increase per token sold
+
+Default rec params (unused in primary path): `startPrice = 0.001 USDC`, `slope = 0.000001 USDC/token`.
+
+Total raise at full consumption (1.6M public allocation, 20% builder retention): `~2,880 USDC`.
+
+### Optional shapes
+
+- Exponential: `price(n) = startPrice * e^(k*n)`
+- Square root: `price(n) = startPrice + slope * sqrt(n)`
+
+Builder selects at registration if fallback path is used. If the Umia auction is the active path (default), these are irrelevant.
+
+### Builder retention / USDC split (fallback only)
+
+Used only if `BondingCurveSale.sol` is the active path. In Umia primary path, both are configured via `umia venture init`.
+
+| Retention % (fallback) | Investor signal |
+|---|---|
+| 0% | No builder skin in revenue |
+| 20% (default fallback rec) | Healthy alignment |
+| 50%+ | Caution |
+
+| Upfront USDC % (fallback) | Investor signal |
+|---|---|
+| 0% | All milestone-locked |
+| 20% (default fallback rec) | Reasonable; majority milestone-locked |
+| 100% | Defeats milestone gating |
+
+### Revenue distribution mechanics (fallback only)
+
+If the Umia treasury does not natively distribute to Umia venture token holders, Agent Float deploys a conditional `RevenueDistributor.sol`:
+
+```
+distribute(amount):
+  totalSupply = AgentVentureToken.totalSupply()
+  for each holder:
+    holder.claimable += amount * balanceOf(holder) / totalSupply
+
+claim():
+  transfer holder.claimable USDC
+  reset holder.claimable
+```
+
+Snapshot accounting handles transfers between distributions (similar to Drips / 0xSplits patterns).
+
+> If Umia natively handles holder distribution, this contract is **not deployed**.
+
+### Edge case — token transfer between distributions (fallback only)
+
+A's claimable up to time of transfer remains with A; B's claimable starts from time of transfer. Implementation uses balance-at-distribution-time logic with reentrancy guards.
+
+---
+
+## Cross-references
+
+- Locked source of truth: [`SCOPE.md §5.5`](../SCOPE.md)
+- Per-contract spec: [`docs/04-contracts.md`](./04-contracts.md)
+- Sponsor fit: [`docs/07-sponsor-fit.md`](./07-sponsor-fit.md)
+- Sponsor explainer: [`docs/12-sponsors-explained.md`](./12-sponsors-explained.md)

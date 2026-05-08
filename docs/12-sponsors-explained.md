@@ -161,7 +161,7 @@ Obe sú $2K. Most Creative má širší interpretation — judges hľadajú "wow
 Náš **per-agent passport pattern** (subname per agent + ENSIP-26 standard records `agent-context`/`agent-endpoint[*]` + namespaced extensions pre Umia venture / bond vault / milestones / receipts pointer) je novel:
 - Nikto nepoužíva ENS subname ako "venture passport" pre AI agent
 - Štruktúrovaná set-of-records (nie len `wallet`) je richer than typical
-- Subname je entry point do **8-contract ekosystému** per agent
+- Subname je entry point do **layeru nad Umia ventures** — resolves Umia venture + Agent Float core 4 contracts (registry / receipts / bond / milestones)
 
 AI Agents track má pravdepodobne 5+ submissions s ENS subnames pre agentov; náš creative angle je hierarchická passport architecture.
 
@@ -227,7 +227,7 @@ Many indexers a explorers consume Sourcify dataset (Blockscout, Etherscan-altern
 Naša integrácia je **dvojvrstvová**:
 
 **1. Source verification každého Agent Float kontraktu.**
-Všetkých 8 contractov (`AgentRegistry`, `AgentVentureToken`, `BondingCurveSale`, `AgentTreasury`, `MilestoneRegistry`, `BuilderBondVault`, `RevenueDistributor`, `ReceiptLog`) je deploy-time verified na Sourcify. Investor môže prečítať source pre KAŽDÝ contract s ktorým interaguje.
+**Agent Float core 4 contracts** (`AgentRegistry`, `ReceiptLog`, `BuilderBondVault`, `MilestoneRegistry`) are deploy-time verified on Sourcify — these are the contracts investors interact with directly. Any conditional/fallback contracts (`AgentVentureToken`, `BondingCurveSale`, `AgentTreasury`, `RevenueDistributor`) are also verified if deployed in a given configuration. Investors can read source for every contract they interact with.
 
 **2. Sourcify lookup linky v agent profile UI.**
 Každý agent profile má "Verify on Sourcify" link do Sourcify exploreru. Pridáva open-architecture proof pre Solarpunk framing.
@@ -324,7 +324,7 @@ Manual hovorí: *"Projects can win in multiple categories."* Submission na Devfo
 |---|---|---|
 | SpaceComputer | $6K | Hardware requirement (USB Armory, Pi); Agent Float nepasuje |
 | Apify | $3.7K | Používame ako infrastructure (GrantScout scraping) ale nepasuje ako track scope (TBD verify mentor) |
-| Swarm | $2.45K | Bounties small ($250-500); cost/value nie optimálny pre 8-contract platform |
+| Swarm | $2.45K | Bounties small ($250-500); cost/value nie optimálny pre Agent Float scope (4 core contracts + Umia layer) |
 
 ---
 

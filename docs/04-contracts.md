@@ -340,7 +340,7 @@ event Claimed(address indexed holder, uint256 amount);
 
 ## ReceiptLog.sol
 
-**Purpose:** Append-only log of agent activity. Each receipt cryptographically signed by agent's ENS-registered wallet. Tied to actual USDC transfer for wash-trading mitigation.
+**Purpose:** Append-only log of agent activity. Each receipt cryptographically signed by agent's ENS-registered wallet. Tied to actual USDC transfer to **raise the cost** of wash-trading (does not eliminate it; see `docs/03-tokenomics.md` Wash-trading defense for honest framing).
 
 ### State
 

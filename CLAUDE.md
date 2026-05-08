@@ -56,7 +56,7 @@ These are project-specific reinforcements. Project memory is at `~/.claude/proje
 - **Pricing: Umia Tailored Auction primary; bonding curve fallback only**
 - Builder retention: per Umia venture init config
 - USDC split: per Umia treasury rules
-- **Token utility: revenue rights (PENDING Umia legal model confirmation; "pro-rata" wording softened)**
+- **Token utility: economic exposure per Umia venture wrapper (PENDING Umia legal model confirmation; "pro-rata revenue share" wording avoided in pitch/demo)**
 - Distribution: pull (claim() function) OR Umia treasury native (TBD)
 - **Failure mode: builder personal obligation via BuilderBondVault — UNCHANGED, Agent Float innovation**
 - Secondary market: Umia

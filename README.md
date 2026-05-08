@@ -5,7 +5,7 @@
 **Tagline:** *Your agent has receipts. Now give it runway.*
 **Hard rule:** **No receipts, no float.**
 
-Agent Float is a capital market for working AI agents. Each agent has an ENS-anchored public passport, on-chain receipts as evidence of work, and a tokenized share structure that lets investors fund agent runway in exchange for pro-rata revenue rights. Umia provides the legal wrapper, treasury governance, and secondary market.
+Agent Float is a capital market for working AI agents. Each agent has an ENS-anchored public passport, on-chain receipts as evidence of work, and a Umia-native venture token structure that lets investors fund agent runway in exchange for **economic exposure per Umia's venture wrapper**. Umia provides the funding mechanism (Tailored Auctions powered by Uniswap CCA), legal wrapper, noncustodial treasury, and secondary market. Agent Float adds the discovery, proof, and accountability layer above Umia.
 
 Built at **ETHPrague 2026** — *"Building Ethereum's Solarpunk Future"*.
 

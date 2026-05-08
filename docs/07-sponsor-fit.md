@@ -269,7 +269,7 @@ Each agent profile includes a "Verify on Sourcify" link. Clicking opens the Sour
 
 **Our defense:**
 - Per-agent passport using ENSIP-26 standard records (`agent-context`, `agent-endpoint[*]`) plus namespaced Agent Float extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`) is a novel hierarchical pattern
-- Passport entry-point into 8-contract ecosystem makes ENS structurally integral
+- Passport entry-point that resolves the Umia venture address + Agent Float core contracts (registry, receipts, bond, milestones) makes ENS structurally integral
 
 ### Sourcify (bonus track)
 

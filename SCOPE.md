@@ -162,7 +162,7 @@
 | Pricing model | **Umia Tailored Auction (Uniswap CCA-based)** | Q2 PIVOT | Bola: bonding curve. Teraz: Umia auction primary. Naša `BondingCurveSale.sol` zostáva ako **internal fallback simulator** ak Umia integration nedôjde / ako pre-demo state populator. |
 | Builder token retention | **Builder určí pri Umia venture init** | Q3 | Stále builder volí, ale interface je Umia CLI / dashboard, nie naše params |
 | USDC split z token sale | **Per Umia treasury rules** | Q4 PIVOT | Bolo: builder určí upfront vs treasury. Teraz: proceeds idú do Umia noncustodial treasury per ich rules. Builder upfront access = subject to Umia treasury config. |
-| Token utility | **Revenue rights (PENDING UMIA LEGAL CONFIRMATION)** | Q6 | "Pro-rata revenue share" wording sa softuje kým Umia mentor nepotvrdí ich legal/token model. Možno: governance + revenue rights, alebo iba ekonomický exposure cez Umia decision markets. |
+| Token utility | **Economic exposure per Umia venture wrapper (PENDING UMIA LEGAL CONFIRMATION)** | Q6 | We do not redefine token economics. Specific structure (revenue rights vs governance vs other) deferred to Umia legal model. "Pro-rata revenue share" wording avoided in pitch + demo until mentor confirms. |
 | Revenue distribution | **Pull (claim) — pending Umia treasury integration** | Q5 | Ak Umia treasury podporuje native revenue distribution → použijeme ich. Ak nie → naša `RevenueDistributor.sol` ostáva ale sa napája na Umia treasury ako USDC source. |
 | Failure mode | **Builder personal obligation (collateral) — naša innovation NAD Umia** | Q7a | `BuilderBondVault.sol` stays as Agent Float's value-add layer. Slashing trigger nezávisí od Umia. |
 | Secondary market | **Umia secondary market** | Q8 | Beze zmeny |
@@ -432,15 +432,20 @@ ETHPrague2026/
 - **Blocked by:** Mentor sweep #2 (ENS — confirms mainnet vs Sepolia approach)
 
 ### Track B — Smart contracts (Foundry, Sepolia + selected mainnet)
-- `AgentRegistry.sol` — registerAgent() entry point (mints tokens + locks bond + sets curve)
-- `AgentVentureToken.sol` — ERC20 fixed 2M supply per agent
-- `BondingCurveSale.sol` — primary sale curve mechanism
-- `AgentTreasury.sol` — Safe-style multi-sig per agent (USDC reservoir)
-- `MilestoneRegistry.sol` — phased capital release + slashing trigger
-- `BuilderBondVault.sol` — builder collateral; slashes pro-rata na investorov pri default
-- `RevenueDistributor.sol` — accumulates revenue + per-holder claimable + claim() function
-- `ReceiptLog.sol` — append-only signed receipt events
-- Deploy scripts + Sourcify verification pipeline (každý kontrakt verified pre bonus track)
+
+**Agent Float core (always deployed):**
+- `AgentRegistry.sol` — registerAgent() entry point; links Umia venture address + ENS subname + bond + milestones (does NOT mint tokens or set up auction; Umia handles)
+- `ReceiptLog.sol` — append-only signed receipt events with USDC cross-validation
+- `BuilderBondVault.sol` — builder collateral; slashes pro-rata to current Umia venture token holders on default
+- `MilestoneRegistry.sol` — milestone tracking + slashing trigger
+
+**Conditional / fallback (deployed only if needed):**
+- `AgentVentureToken.sol` [CONDITIONAL] — only if Umia does not provide a token template
+- `AgentTreasury.sol` [LIKELY UNNECESSARY] — Umia provides noncustodial treasury
+- `RevenueDistributor.sol` [CONDITIONAL] — only if Umia treasury does not natively distribute to holders
+- `BondingCurveSale.sol` [FALLBACK ONLY] — internal simulator if Umia auction unavailable for demo
+
+**Deploy + Sourcify verification pipeline** for every deployed contract (Sourcify bonus track requirement).
 - **Blocks:** Track C, Track D, Track E
 - **Blocked by:** Mentor sweep #1 (Umia — confirms venture token shape) + #3 (Sourcify — confirms verification path)
 
