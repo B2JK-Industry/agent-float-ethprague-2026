@@ -123,15 +123,13 @@ ETHPrague2026/
 │   ├── 10-risks.md
 │   ├── 11-glossary.md
 │   └── 12-implementation-roadmap.md
-├── wiki/
-│   ├── Home.md
-│   ├── Project-Overview.md
-│   ├── Product-Architecture.md
-│   ├── Business-Architecture.md
-│   ├── Sponsor-Strategy.md
-│   ├── Demo-Script.md
-│   └── Risk-Register.md
 └── prompts/
+    ├── write-backlog.md
+    ├── run-dev-stream.md
+    └── review-prs.md
+```
+
+> Project wiki lives at the **GitHub Wiki** (separate git): https://github.com/B2JK-Industry/agent-float-ethprague-2026/wiki
     ├── write-backlog.md
     ├── run-dev-stream.md
     └── review-prs.md

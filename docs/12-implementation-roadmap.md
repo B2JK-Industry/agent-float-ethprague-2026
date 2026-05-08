@@ -83,7 +83,7 @@ Not picked up by dev agents. Daniel owns:
 
 Not picked up by dev agents. Orch owns:
 
-- `README.md`, `SCOPE.md`, `docs/`, `wiki/`, `prompts/` maintenance
+- `README.md`, `SCOPE.md`, `docs/`, GitHub Wiki, `prompts/` maintenance
 - Backlog status updates post-merge in `docs/13-backlog.md`
 - 3-minute booth script preparation
 - Devfolio description + video script

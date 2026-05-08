@@ -227,11 +227,11 @@ Three parallel dev streams + two tracker categories. This matches the 4-agent pi
 | Tracker | Owner | Scope (not picked up by dev agents) |
 |---|---|---|
 | **Daniel** | Daniel | Mentor sweeps (Sourcify, ENS, optional Umia), final sponsor decisions, PR merges, scope cuts |
-| **Orch** | Claude (orchestrator) | Documentation maintenance (SCOPE.md / docs / wiki / prompts), backlog file post-merge updates, mentor-finding translation |
+| **Orch** | Claude (orchestrator) | Documentation maintenance (SCOPE.md / docs / GitHub Wiki / prompts), backlog file post-merge updates, mentor-finding translation |
 
 **Siren Agent positioning:** Owned by Stream C. Marked **P2 stretch**. Activated only if Daniel decides to pursue Umia track after mentor feedback. If time pressure, Siren Agent + Umia panel are the **first cuts** (per Build Priority in `docs/12`).
 
-**Docs / submission work** (sponsor pitch, demo script, risk register, video script) is owned by **Daniel + Orch**, not by a dev stream. Dev agents do not edit `SCOPE.md`, `docs/01-12`, `wiki/`, or `prompts/`.
+**Docs / submission work** (sponsor pitch, demo script, risk register, video script) is owned by **Daniel + Orch**, not by a dev stream. Dev agents do not edit `SCOPE.md`, `docs/01-12`, GitHub Wiki, or `prompts/`.
 
 ## 11. Product Decisions
 

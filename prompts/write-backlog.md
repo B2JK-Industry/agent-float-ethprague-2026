@@ -21,7 +21,7 @@ Do not propose a new project. Do not revive Agent Float. Do not add sponsor trac
 9. `docs/06-acceptance-gates.md`
 10. `docs/07-sponsor-fit.md`
 11. `docs/10-risks.md`
-12. `wiki/`
+12. GitHub Wiki (`https://github.com/B2JK-Industry/agent-float-ethprague-2026/wiki`)
 
 ## Execution Model
 
@@ -38,7 +38,7 @@ Tracker-only owners:
 | Owner | Scope |
 |---|---|
 | Daniel | mentor sweeps, final sponsor decisions, merges, scope cuts |
-| Orch | docs, wiki, prompts, backlog maintenance |
+| Orch | docs, GitHub Wiki, prompts, backlog maintenance |
 
 ## Hard Rules
 

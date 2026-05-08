@@ -25,7 +25,7 @@ Do not modify files outside your stream unless the backlog item explicitly autho
 3. Branch naming: `feat/US-NNN-slug`, `fix/US-NNN-slug`, `docs/US-NNN-slug`, or `chore/US-NNN-slug`.
 4. PR title: `US-NNN - <title>`.
 5. Never push to `main`.
-6. Do not edit `SCOPE.md`, `docs/01-12`, `wiki/`, or `prompts/` unless your backlog item explicitly says so.
+6. Do not edit `SCOPE.md`, `docs/01-12`, GitHub Wiki, or `prompts/` unless your backlog item explicitly says so.
 7. Do not revive Agent Float or add tokenomics.
 8. No generic scanner, AI auditor, agent OS, launchpad, or marketplace framing.
 9. Mocked behavior must be labeled `mock: true`.

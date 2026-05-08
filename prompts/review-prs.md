@@ -43,7 +43,7 @@ You approve or request changes. You do not merge.
 
 - Branch follows naming convention.
 - Files touched match stream ownership.
-- Docs/wiki/prompts are untouched unless item authorizes it.
+- Docs / GitHub Wiki / prompts are untouched unless item authorizes it.
 
 ### C. Sponsor Fit
 
