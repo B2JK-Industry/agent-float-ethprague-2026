@@ -138,6 +138,47 @@ Create items for at least every topic below. Stream owner shown in parentheses.
 - Devfolio logo / cover asset (Daniel + Orch)
 - booth fallback artifacts: Anvil/local fallback, cached fixture responses, recorded full demo (Daniel + Orch)
 
+## Effort and Scheduling Guidance
+
+Apply this when assigning Effort tags and ordering the Index. The goal is to prevent reviewer-bottleneck pile-up and keep cross-stream blockers short.
+
+### Stream B priority order
+
+The two cross-stream-blocking items must be Effort `S` and listed first in the Stream B Index, regardless of where they appear in the Required Backlog Coverage list:
+
+1. `Siren Report JSON schema in packages/shared/` — Effort `S`. Blocks Stream C UX consumption (`B -> C` dependency).
+2. `EIP-712 Siren Report typed-data builder and signReport helper in packages/shared/` — Effort `S`. Blocks Stream A signed-report provisioning (`B -> A` dependency).
+
+If either is sized larger than `S`, split it. A `M`+ schema or signer helper item drags down both downstream streams.
+
+### Stream A doc / provisioning split
+
+The Stream A coverage list already separates "ENS subname provisioning script" from "documentation of deployed addresses + ENS records + manifest values". Keep them as two distinct US-NNN items in the backlog. Do not merge the documentation item into the provisioning item — they map to two PRs reviewed independently.
+
+### Stream C P0 effort distribution
+
+Stream C has roughly 14 P0 items, the largest stream. To avoid 14 simultaneously-open PRs hitting the PR Reviewer at once (reviewer-bottleneck risk per `docs/10`), at least four Stream C P0 items must be Effort `S` so they merge fast and free the queue. Recommended `S` candidates:
+
+- ENS lookup page (input field + submit)
+- address / normal ENS address-record input for public-read fallback
+- mock-path visible badge component
+- signature status badge
+
+Items like the verdict card, evidence drawer, before/after comparison, and progressive loading checklist may stay `M`.
+
+### Tracker items must start at scope-lock
+
+Four Tracker items gate dev streams and must start the moment Daniel signals scope-lock, not after dev pipeline ships:
+
+| Tracker item | Gates | Why immediate |
+|---|---|---|
+| operator wallet / report signer custody decision | Stream A signing item | Without `REPORT_SIGNER_PRIVATE_KEY` decided + provisioned, Stream A cannot sign demo reports. |
+| live public-read protocol target research and selection | Stream A 4th demo scenario, Stream C demo runner | Without target chosen, the public-read demo cannot be wired. |
+| sponsor pitch finalization | Devfolio submission, mentor sweeps | Pitch text drives demo script and judging conversation. |
+| booth fallback artifacts (Anvil + cache + recorded demo) | Booth-day risk mitigation | Booth Wi-Fi / RPC / Sourcify failure has no fallback otherwise. |
+
+The remaining Tracker items (Devfolio materials, logo, video recording, booth rehearsal) can run in parallel with dev streams and finish closer to submission.
+
 ## Output Format
 
 Write one file: `docs/13-backlog.md`.
