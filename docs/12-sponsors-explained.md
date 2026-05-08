@@ -278,7 +278,7 @@ Format: in-person ~3-day hackathon, Devfolio submission, in-person presentations
 **Network Economy** je presne pre projekty čo riešia:
 - **Privacy** — agent identity je pseudonymous (ENS subname); investor identity neviazaná na real ID
 - **Identity** — per-agent ENS passport je primárny identity primitív
-- **Onchain economic coordination** — bonding curve, revenue distribution, milestone-gated treasury, builder bond — všetko on-chain ekonomika
+- **Onchain economic coordination** — Umia Tailored Auctions (primary sale) + signed receipts gating fundraising + milestone slashing of builder bond + Umia noncustodial treasury — všetko on-chain ekonomika
 - **User control** — investori držia tokens samostatne; builder má personal liability cez bond; nikto centrálne nedrží váhy
 
 Zo 6 trackov je Network Economy najpresnejší match.

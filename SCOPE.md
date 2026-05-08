@@ -57,7 +57,7 @@
 | Tier | Sponsor | Bounty | Use | Sponsor-native test |
 |---|---|---|---|---|
 | **Primary** | **Umia** | $12K Best Agentic Venture | Funding / legal wrapper / treasury / governance engine | ✅ ABSOLUTE — bez Umia nie je funding mechanism, nie je čo float-ovať |
-| **Secondary** | **ENS** | $2K Most Creative | Per-agent passport: `<agent>.agentfloat.eth` subname pattern; text records pre capabilities/wallet/endpoints/receipts pointer | ✅ ENS subnames su live identity backbone — bez ENS nie je passport |
+| **Secondary** | **ENS** | $2K Most Creative | Per-agent passport: `<agent>.agentfloat.eth` using **ENSIP-26 standard records** (`agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`) plus namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`) | ✅ ENS subnames sú live identity backbone — bez ENS nie je passport |
 | **Tertiary bonus** | Sourcify | $4K (if shipped) | Verify agent treasury contract sources publicly (open governance proof) | ⚠️ Iba ak treasury contracts deployed + verified; nie deal-breaker pre primary scope |
 
 **Skip explicit:**
@@ -319,16 +319,16 @@ Items ktoré v skoršej drafte boli markované ako "post-hack" alebo "MVP cuts" 
 | Sec | Action | Voiceover |
 |---|---|---|
 | 0–25 | Landing page → "Discover working AI agents seeking capital" + 3 agents grid + prominent **"No receipts, no float"** rule banner | *"Väčšina AI agent tokens je hype. Agent Float je iný — každý agent tu má on-chain receipts."* |
-| 25–80 | Klik na GrantScout → profile: ENS passport (`grantscout.agentfloat.eth` resolved live) + receipts feed (3 real Sepolia events) + revenue $18 USDC + 2,000,000 tokens minted + bonding curve price chart + builder retention 20% + milestones list | *"GrantScout: real Apify-backed grant scout. 3 paid reports, 18 USDC earned. 2 millió tokenov mintnutých pri registrácii. Aktuálna bonding curve price 0.001 USDC za token."* |
-| 80–150 | Investor klikne "Buy 1,000 tokens" → bonding curve quote "1.20 USDC" → confirm tx → on-chain split: 20% (0.24 USDC) upfront builder wallet, 80% (0.96 USDC) AgentTreasury | *"Kupujem 1,000 tokenov za 1.20 USDC. Bonding curve transparent. USDC sa splittuje per builder's setup — 20% upfront builderovi pre okamžitý prep, 80% do AgentTreasury, milestone-locked."* |
-| 150–210 | Investor portfolio view: 1,000 GrantScout tokens = 0.05% supply. Live demo trigger: agent vykoná 1 paid query → ReceiptLog emit → $0.01 revenue → RevenueDistributor accrues → investor claimable balance updates from $0.00 → $0.000005 | *"Agent práve zarobil 0.01 USDC. RevenueDistributor automaticky pripísal moju 0.05% share. Vidíte to live v claimable balance."* |
-| 210–250 | Investor klikne "Claim" → tx → USDC arrives v wallet | *"Claim anytime. Pull-based, gas-efficient. Žiadny daily push."* |
-| 250–280 | Pohľad na milestones panel: "Milestone 1: 50 paid reports — 6% complete. Builder bond locked: 500 USDC. Slashing trigger: 7 days silence ALEBO milestone fail." | *"Builder má 500 USDC personal collateral. Ak agent ide silent alebo nesplní milestones, bond sa rozdelí investorom pro-rata."* |
-| 280–300 | Tagline screen: **"Your agent has receipts. Now give it runway."** + Umia / ENS / Sourcify logos + GitHub link | *"Agent Float. Capital market for working AI agents. Postavené na ETHPrague 2026."* |
+| 25–80 | Klik na GrantScout → profile: ENS passport (`grantscout.agentfloat.eth` resolved live, ENSIP-26 records visible) + receipts feed (3 real Sepolia events, signed + USDC-cross-validated) + Umia Tailored Auction state + builder bond locked + milestones list | *"GrantScout: real Apify-backed grant scout. 3 paid reports, podpísané agent walletom, USDC cross-validated. ENS resolution live cez ENSIP-26 records. Umia Tailored Auction in progress."* |
+| 80–150 | Investor klikne "Fund via Umia" → redirect na Umia auction page → Tailored Auction (Uniswap CCA) UI → bid placeuje 1 USDC → settle → tokens v investor wallete | *"Klikám Fund via Umia. Umia Tailored Auction — Uniswap CCA. Continuous clearing price discovery. Bid placeujem 1 USDC. Umia settles, tokeny v mojom portfoliu, treasury proceedy idú do ich noncustodial treasury per legal wrapper."* |
+| 150–210 | Investor sa vráti na Agent Float profile → vidí svoje token holdings + agent activity log → live demo: agent vykoná 1 paid query → ReceiptLog emit → receipts feed updates s novým eventom | *"Späť na Agent Float profile. Držím tokeny od Umia. Agent práve zarobil reálnu USDC za reálnu query. Receipt podpísaný + USDC cross-validated. Toto je proof čo gateuje fundraising."* |
+| 210–250 | Split-screen: agent receipts ticking + investor portfolio + builder bond status (500 USDC locked) + milestone progress (8% → 10% počas demo) | *"Po investícii vidím agent productivity rastie. Builder bond intact. Milestone postupuje on-chain. Toto je investor confidence postavená na proof, nie na sľuboch."* |
+| 250–280 | Pohľad na milestones panel: "Milestone 1: 50 paid reports — 10% complete. Builder bond locked: 500 USDC. Slashing trigger: 7 days silence ALEBO milestone fail." | *"Builder má 500 USDC personal collateral. Ak agent ide silent alebo nesplní milestones, bond sa rozdelí Umia venture token holderom pro-rata. Toto je accountability layer ktorý čisté token launchpadi nemajú."* |
+| 280–300 | Tagline screen: **"Your agent has receipts. Now give it runway."** + Umia / ENS / Sourcify logos + GitHub link | *"Agent Float. Discovery + accountability layer pre Umia ventures. Postavené na ETHPrague 2026."* |
 
-**5-sek meta moment:** Live agent paid query → claimable balance updates → investor claims → USDC arrives. Visible end-to-end value transfer cez tokenomiku.
+**5-sek meta moment:** Receipt feed grows live during demo + bond visible + milestone progressing. Investor confidence built on on-chain proof.
 
-**Backup wow moment** (ak primary nedôjde): bonding curve price chart pri ďalšom buy ide hore — "next token costs more, current holders' tokens worth more".
+**Backup wow moment** (ak primary nedôjde): adversarial fail-trigger — show silence detector firing on test agent → bond auto-distribution preview.
 
 ---
 

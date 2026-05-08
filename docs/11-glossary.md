@@ -12,7 +12,7 @@ Terms used across the Agent Float documentation, defined precisely.
 
 **Builder.** The human or team who operates an agent. Registers the agent on Agent Float, sets parameters, commits to milestones, posts personal collateral bond.
 
-**Investor.** A person who buys per-agent venture tokens via the bonding curve and accrues pro-rata revenue from the agent's earnings.
+**Investor.** A person who buys per-agent Umia venture tokens via the Umia Tailored Auction. Economic exposure (revenue rights, governance, secondary trading) is determined by Umia's venture wrapper. Agent Float surfaces the agent's on-chain proof of work (receipts feed) so the investor's purchase decision is grounded in evidence.
 
 **End user.** Someone who pays the agent for its work. Their payment generates the receipt that gates the agent's float.
 

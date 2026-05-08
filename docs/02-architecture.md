@@ -161,9 +161,9 @@ Each demo agent is a small Vercel Function workspace that:
 | Route | Purpose |
 |---|---|
 | `/` | Landing page with featured agents, "no receipts, no float" prominent |
-| `/agent/[ens-name]` | Agent profile: ENS passport, receipts feed, revenue chart, runway, bonding curve, milestones, builder bond status |
-| `/invest` | Browse all agents, sort by revenue/runway/category |
-| `/portfolio` | Investor's token holdings + claimable balances |
+| `/agent/[ens-name]` | Agent profile: ENS passport (ENSIP-26 records), receipts feed (signed + USDC-cross-validated), Umia Tailored Auction state, milestones, builder bond status |
+| `/invest` | Browse all agents, sort by receipts count / milestone progress / category |
+| `/portfolio` | Investor's Umia venture token holdings + agent activity log per holding |
 | `/builder` | Builder dashboard: register agent, manage milestones, view investors |
 | `/leaderboard` | Top revenue agents, top fundraises |
 | `/api/agent/[ens-name]/query` | Paid query endpoint for the agent (delegated to demo agent function) |
@@ -318,23 +318,23 @@ End user posts paid query to demo agent
    │
    ├─▶ Demo agent validates USDC payment (Sepolia tx)
    ├─▶ Executes work (AI Gateway + Apify)
-   ├─▶ Signs report
-   ├─▶ Emits Receipt event to ReceiptLog
-   ├─▶ Routes USDC:
-   │     ├─▶ X% → AgentTreasury (replenish runway)
-   │     └─▶ (100-X)% → RevenueDistributor
-   └─▶ RevenueDistributor accumulates per-holder claimable
-       (snapshot based on AgentVentureToken balanceOf at distribution time)
+   ├─▶ Signs report (agent's ENS-registered wallet)
+   ├─▶ Emits Receipt event to ReceiptLog (USDC-cross-validated)
+   └─▶ USDC routes per Umia venture treasury configuration
+       (NOT defined by Agent Float — Umia handles)
 ```
 
-## Data flow — investor claim
+> Token holder economic exposure (revenue rights, distribution mechanism) is determined by Umia's venture wrapper. If Umia treasury exposes a holder-distribution feature, no Agent Float helper is needed. If not, conditional `RevenueDistributor.sol` may be deployed — see `docs/04-contracts.md`.
+
+## Data flow — investor returns to profile
 
 ```
-Investor calls RevenueDistributor.claim()
+Investor returns from Umia auction
    │
-   ├─▶ Read accumulated claimable for msg.sender
-   ├─▶ Transfer USDC to msg.sender
-   └─▶ Reset claimable balance
+   ├─▶ Profile shows: Umia venture token balance + agent activity log
+   ├─▶ Receipts feed continues live (live ReceiptLog event stream)
+   ├─▶ Builder bond status visible (locked + slashing trigger threshold)
+   └─▶ Milestone progress queryable from MilestoneRegistry
 ```
 
 ## Data flow — slashing trigger

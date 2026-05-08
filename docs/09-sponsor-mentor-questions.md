@@ -53,7 +53,7 @@ After all three sweeps complete, scope updates locked in SCOPE.md and execution 
 
 ### Pitch first (60s)
 
-> Hi, we're building **Agent Float** — a capital market for working AI agents. Each agent gets an ENS passport — `<agent>.agentfloat.eth` — with structured text records: `wallet`, `endpoints`, `capabilities`, `receipts_pointer`, `treasury`, `venture_token`, `bond_vault`. Receipts are signature-bound to the wallet ENS resolves. We're targeting Most Creative Use of ENS.
+> Hi, we're building **Agent Float** — discovery + accountability layer above Umia ventures for working AI agents. Each agent gets an ENS passport — `<agent>.agentfloat.eth` — using **ENSIP-26 standard records** (`agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`) plus namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`). Receipts are signature-bound to the wallet ENS resolves. We're targeting Most Creative Use of ENS.
 
 ### Critical questions (POST-PIVOT — ENSIP-26 alignment focus)
 
@@ -85,7 +85,7 @@ After all three sweeps complete, scope updates locked in SCOPE.md and execution 
 
 ### Pitch first (60s)
 
-> Hi, we're building **Agent Float**. We deploy 8+ contracts per agent (registry, token, bonding curve, treasury, milestones, bond vault, revenue distributor, receipt log). Every contract is source-verified on Sourcify — investors can audit before they buy. Agent profiles surface verification status. We're targeting your bonus track.
+> Hi, we're building **Agent Float** — a discovery and accountability layer above Umia ventures. We deploy 4 core contracts (`AgentRegistry`, `ReceiptLog`, `BuilderBondVault`, `MilestoneRegistry`) and verify them on Sourcify. Every contract investors interact with is publicly auditable. Agent profiles surface verification status. We're targeting your bonus track.
 
 ### Critical questions
 

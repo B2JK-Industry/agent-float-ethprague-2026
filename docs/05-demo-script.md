@@ -7,7 +7,7 @@ Full 5-minute walkthrough. Investor POV throughout. Real on-chain interactions w
 - Pre-deploy GrantScout agent on Sepolia with all contracts
 - Pre-fund test wallets (builder, investor A, investor B)
 - Pre-execute 2-3 agent paid queries to populate receipts feed
-- Pre-warm bonding curve with 1-2 small buys (avoids zero-state demo)
+- Pre-warm Umia auction state (or fallback simulator) with 1-2 small bids (avoids zero-state demo)
 - Verify all contracts on Sourcify
 - Confirm ENS subname resolution from mainnet OR Sepolia
 - Have backup recording ready (in case live demo fails)
@@ -179,7 +179,7 @@ A: *"Umia is agentic-first. They understand AI agent revenue streams, on-chain r
 A: *"ENS is canonical Ethereum identity. Wallets, dApps, indexers all support it natively. Custom registry would mean vendor lock-in. Subnames are hierarchical and programmatic — perfect for agent passport patterns."*
 
 ### Q: "What if the agent stops earning?"
-A: *"Two outcomes. If agent goes silent for 7 days, BuilderBondVault auto-slashes builder bond pro-rata to current token holders. If revenue just declines without going to zero, token price decays naturally on the bonding curve as new buys slow — investors can exit on Umia secondary at the lower price. Investor risk is real but transparent."*
+A: *"Two outcomes. If agent goes silent for the configured threshold (default 7 days), BuilderBondVault auto-slashes builder bond pro-rata to current Umia venture token holders. If revenue just declines without going to zero, token price moves on Umia secondary market based on actual buy/sell pressure — investors can exit at the prevailing price. Investor risk is real but transparent through the on-chain receipts feed."*
 
 ### Q: "Is this a security?"
 A: *"That's Umia's domain — they handle legal wrapper, securities classification, and jurisdictional compliance. We rely on their compliance layer. We don't promote tokens as investments outside Umia's permitted jurisdictions."*
@@ -204,7 +204,7 @@ A: *"Solarpunk-aligned. Open architecture. Anyone can fork, audit, or build a co
 ## What judges should remember after 5 minutes
 
 1. **Hard rule:** "No receipts, no float" — the only thing that separates Agent Float from a token casino
-2. **Mechanism:** ENS passport + bonding curve + USDC split + revenue distribution + builder bond — five primitives in a clean loop
+2. **Mechanism:** ENS passport (ENSIP-26) + signed receipts gate + Umia Tailored Auction + builder bond + milestone slashing — five primitives in a clean loop
 3. **Differentiation:** every claim verifiable on-chain in real time, not pitch-deck promises
 4. **Sponsor depth:** Umia is the venture engine; ENS is the identity backbone; Sourcify is the open-governance proof
 5. **Solarpunk:** public capital market, anti-extractive, open source

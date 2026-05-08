@@ -92,9 +92,9 @@ Agent Float surfaces:
 
 Sponsor-native test: bez Umia auction by Umia bola decoration. Ich Tailored Auctions sú **ich core produkt** ($12K Best Agentic Venture rewards using their core, nie bypassing).
 
-## Worked examples (using fallback bonding curve numbers)
+## Worked examples (FALLBACK BONDING CURVE PATH ONLY)
 
-> Below examples assume **fallback bonding curve** path. Once Umia auction integration is locked, examples will be re-cast using Umia's actual auction parameters.
+> ⚠️ **All examples below use the fallback `BondingCurveSale.sol` mechanism, NOT the primary Umia Tailored Auction.** They illustrate **fallback math only** for cases where Umia integration is unavailable at demo time. Do NOT cite these claim amounts (e.g., "0.0035 USDC accrued") in pitch, demo voiceover, or external comms. Umia handles primary economics; once mentor sweep confirms Umia auction integration, these examples will be replaced with Umia auction worked examples.
 
 ### Example 1 — Small agent (GrantScout demo)
 

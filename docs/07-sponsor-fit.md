@@ -288,7 +288,7 @@ Each agent profile includes a "Verify on Sourcify" link. Clicking opens the Sour
 
 **Our defense:**
 - Combination of identity + onchain coordination + user control hits 3 of 4 track criteria
-- Builder bond + milestone + bonding curve = three coordination primitives in one
+- Builder bond + milestone slashing + ENS-anchored receipts gate = three coordination primitives layered above Umia auctions
 
 ## Cross-track sponsor-native test
 
