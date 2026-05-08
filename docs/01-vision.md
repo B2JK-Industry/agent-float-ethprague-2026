@@ -60,8 +60,8 @@ If Sourcify is removed, the product loses the proof behind the verdict.
 
 ## What Judges Should Remember
 
-1. It is an alarm for upgradeable contracts.
-2. ENS names the protocol and version map.
-3. Sourcify proves what code is actually behind the upgrade.
-4. The UX is built for non-auditors.
-5. The demo has a visible green-to-red moment.
+1. It is an alarm for upgradeable contracts, not a generic scanner.
+2. ENS names the protocol and version map (live-resolved, not decorative).
+3. Sourcify proves what code is actually behind the upgrade (deterministic evidence, not LLM prose).
+4. The UX is built for non-auditors (DAO voters, delegates, wallet users).
+5. The demo has a visible green-to-red moment within 5 seconds — `vault.demo.upgradesiren.eth` resolves, proxy implementation changes, Sourcify evidence loads, screen flips to `SIREN`.

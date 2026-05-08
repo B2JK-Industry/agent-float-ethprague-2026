@@ -197,26 +197,39 @@ Demo UI must show:
 - Governance comment generator
 - Optional Siren Agent watchlist / Umia due-diligence panel
 
-## 9. Acceptance Gates
+## 9. Acceptance Gates (summary)
 
-1. ENS is live-resolved, not hardcoded.
-2. Sourcify is the source of verification and metadata evidence.
-3. Demo includes at least one safe and one dangerous upgrade.
-4. Report includes deterministic findings, not only LLM text.
-5. UI shows `SAFE`, `REVIEW`, or `SIREN` within five seconds.
-6. Every mock path is labeled `mock: true`.
-7. Pitch does not say "generic scanner", "AI auditor", "trust layer", or "agent OS".
-8. Run instructions reproduce the demo locally.
+> **Full register:** [`docs/06-acceptance-gates.md`](./docs/06-acceptance-gates.md) defines the canonical 23-gate register (GATE-1..GATE-23 across Product / Technical / Sponsor / UX / Kill Conditions). The 8 points below are the in-SCOPE summary; every backlog P0 item must map to one or more `GATE-N` references from `docs/06`.
+
+| # | Summary requirement | Maps to docs/06 |
+|---|---|---|
+| 1 | ENS is live-resolved, not hardcoded | GATE-3 |
+| 2 | Sourcify is the source of verification and metadata evidence | GATE-5, GATE-9, GATE-16 |
+| 3 | Demo includes at least one safe and one dangerous upgrade | GATE-6 |
+| 4 | Report includes deterministic findings, not only LLM text | GATE-11, GATE-13 + Kill Conditions |
+| 5 | UI shows `SAFE`, `REVIEW`, or `SIREN` within five seconds | GATE-1, GATE-2, GATE-20 |
+| 6 | Every mock path is labeled `mock: true` | GATE-14 |
+| 7 | Pitch does not say "generic scanner", "AI auditor", "trust layer", or "agent OS" | Kill Conditions |
+| 8 | Run instructions reproduce the demo locally | GATE-15 |
 
 ## 10. Workstreams
 
-| Track | Ownership | Scope |
+Three parallel dev streams + two tracker categories. This matches the 4-agent pipeline in `prompts/` (Dev A + Dev B + Dev C + PR Reviewer).
+
+| Stream | Owner | Scope | Owned paths after lock |
+|---|---|---|---|
+| **A** | **Dev A — Contract Fixtures** | Demo proxy, safe implementation, dangerous implementation, unverified-implementation scenario, deploy/verify scripts, Sourcify verification | `contracts/`, `scripts/deploy*`, `test/` |
+| **B** | **Dev B — Evidence Engine** | ENS live resolution, EIP-1967 slot reads, `Upgraded` event reads, Sourcify fetch, ABI/storage diff logic, Siren Report JSON schema | `packages/evidence/`, `packages/shared/` |
+| **C** | **Dev C — Web UX (+ optional Siren Agent)** | Next.js app, verdict UI, evidence drawer, Sourcify links, governance comment, demo scenario runner. **Optional P2:** Siren Agent watchlist + signed report + optional Umia due-diligence panel | `apps/web/`, `apps/siren-agent/` (P2 only) |
+
+| Tracker | Owner | Scope (not picked up by dev agents) |
 |---|---|---|
-| A | Contract fixtures | Demo proxy, safe implementation, dangerous implementation, deploy/verify scripts |
-| B | Evidence engine | ENS resolution, EIP-1967 slot reads, event reads, Sourcify fetch, diff logic |
-| C | Web UX | Next.js app, verdict UI, evidence drawer, governance comment |
-| D | Siren Agent | Watchlist runner, signed report, Umia-style due-diligence panel |
-| E | Docs / submission | Sponsor pitch, demo script, risk register, video script |
+| **Daniel** | Daniel | Mentor sweeps (Sourcify, ENS, optional Umia), final sponsor decisions, PR merges, scope cuts |
+| **Orch** | Claude (orchestrator) | Documentation maintenance (SCOPE.md / docs / wiki / prompts), backlog file post-merge updates, mentor-finding translation |
+
+**Siren Agent positioning:** Owned by Stream C. Marked **P2 stretch**. Activated only if Daniel decides to pursue Umia track after mentor feedback. If time pressure, Siren Agent + Umia panel are the **first cuts** (per Build Priority in `docs/12`).
+
+**Docs / submission work** (sponsor pitch, demo script, risk register, video script) is owned by **Daniel + Orch**, not by a dev stream. Dev agents do not edit `SCOPE.md`, `docs/01-12`, `wiki/`, or `prompts/`.
 
 ## 11. Product Decisions
 

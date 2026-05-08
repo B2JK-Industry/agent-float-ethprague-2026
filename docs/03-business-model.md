@@ -37,9 +37,11 @@ The business value is simple:
 - Wallet/explorer integrations
 - Custom risk policies for funds and launch platforms
 
-## Umia Angle
+## Umia Angle (optional, only if Daniel pursues Umia track)
 
-If Umia already handles venture tokenization and funding, Upgrade Siren does not compete with it. It becomes the verification and monitoring layer around ventures.
+> Activated only if mentor feedback confirms the Siren Agent due-diligence story lands for Umia. Otherwise this section is post-hackathon territory. Per `SCOPE.md §10` and `docs/12`, Siren Agent is **P2 stretch** and the first cut under time pressure.
+
+If Daniel decides to pursue Umia, Upgrade Siren does not compete with their tokenization or funding mechanics. It becomes the verification and monitoring layer around ventures.
 
 For Umia, Siren Agent could answer:
 
@@ -50,9 +52,11 @@ For Umia, Siren Agent could answer:
 - Did a new unverified contract become part of the system?
 - Should investors be alerted?
 
-Business sentence:
+Business sentence (Umia framing):
 
 > Siren Agent gives Umia a contract due-diligence and post-launch monitoring layer for agentic ventures.
+
+Default plan does **not** include Umia. Sourcify + ENS + Future Society are the locked sponsor pair.
 
 ## Why It Can Win Despite Existing Tools
 
