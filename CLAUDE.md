@@ -4,9 +4,13 @@ This file orients Claude (any session) when working in this repo.
 
 ## Project state
 
-Agent Float — capital market for working AI agents. Built for ETHPrague 2026 (in-person, *"Building Ethereum's Solarpunk Future"*).
+Agent Float — **proof-gated funding rail for public-good AI agents**, integrating ERC-8004 + ENSIP-25/26 + Umia. Built for ETHPrague 2026 (in-person, *"Building Ethereum's Solarpunk Future"*).
 
-**Submission deadline:** 2026-05-10 12:00 PM via Devfolio (external fact, not scope driver).
+**Sponsor-facing pitch:** *"Agent Float turns working public-good AI agents into fundable Umia ventures."*
+**Stage tagline:** *"No impact proof, no funding."*
+**Submission deadline:** 2026-05-10 12:00 PM via Devfolio.
+
+**Path B positioning lock (2026-05-08 evening):** Sharpened from generic "funding rail for working AI agents" to "public-good agents only" + standards-based (ERC-8004 + ENSIP-25/26). Reason: external review identified crowded competitive landscape for generic agent trust/passport (AgentMandate, AgentPass, Slopstock, Obolos, etc.). Defensible niche = Solarpunk + Umia + public-good restriction.
 
 ## Source of truth
 

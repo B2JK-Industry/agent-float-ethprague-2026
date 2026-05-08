@@ -1,18 +1,20 @@
 # 01 — Vision
 
-## Pitch
+## Pitch (sponsor-facing)
 
-> *Agent Float turns working AI agents into investable ventures.*
+> *Agent Float turns working public-good AI agents into fundable Umia ventures.*
 
-## Tagline
+## Stage tagline (5-sec hook)
 
-> *Your agent has receipts. Now give it runway.*
+> *No impact proof, no funding.*
 
-## Hard product rule
+## Hard product rules
 
 > **No receipts, no float.**
+> **Public-good agents only.**
+> **Standards-based — we adopt ERC-8004 + ENSIP-25/26 + Umia, we do not reinvent them.**
 
-This rule is not negotiable. It is the only thing that separates Agent Float from a token casino. Every agent profile carries on-chain proof of paid work before fundraising opens. The receipts feed must be live, signature-bound to the agent's ENS-registered wallet, and tied to actual user-paid USDC transactions.
+These three rules are non-negotiable. Together they separate Agent Float from token casinos (rule 1), generic agent infrastructure (rule 2), and "yet another vanity protocol" projects (rule 3). Every agent profile carries on-chain proof of paid public-good work before fundraising opens.
 
 ## Solarpunk framing
 
@@ -20,26 +22,35 @@ ETHPrague 2026's theme is *"Building Ethereum's Solarpunk Future"* — optimisti
 
 Agent Float fits this frame in five concrete ways:
 
-1. **Public capital market over closed VC.** Anyone can fund a working agent in any amount. There are no accredited-investor gates, no warm intros, no closed cap tables.
-2. **Proof-first over hype-first.** Every fundable agent must show on-chain receipts before fundraising opens. A venture cannot float through Agent Float without working evidence — token issuance itself happens on Umia's side; we gate the path to it.
-3. **Builder accountability through bond.** Builders post personal collateral that slashes pro-rata to investors if milestones are missed. This is the inverse of typical token launchpads where builders take cash and disappear.
-4. **Open architecture.** The repo is open-source (MIT). Anyone can fork, audit, or build a competing platform. Treasury contracts are verified on Sourcify so investors can read the source.
-5. **Network economy primitive.** Per-agent ENS passports + Umia venture tokens (economic exposure per Umia's wrapper) + on-chain receipts = transparent economic coordination at the agent level. Solarpunk doesn't reject markets; it rejects opaque, extractive ones.
+1. **Public-good agents only.** We deliberately exclude trading bots, yield optimizers, generic AI assistants, and financialization-first agents. Eligible agent categories: civic transparency monitors, public-goods grant scouts, climate metric reporters, open knowledge curators, anti-corruption watchdogs. The funding rail amplifies regenerative capacity, not extractive activity.
+2. **Proof-first over hype-first.** Every fundable agent must show on-chain receipts of paid public-good work before fundraising opens. A venture cannot float through Agent Float without working evidence.
+3. **Builder accountability through bond.** Builders post personal collateral that slashes pro-rata to investors if milestones are missed. The inverse of typical token launchpads where builders take cash and disappear.
+4. **Standards-based, not vanity infra.** We adopt ERC-8004 (Trustless Agents), ENSIP-25 (binding), ENSIP-26 (discovery). We do not reinvent identity or reputation. Lower trust requirement on us as a project; lower implementation risk; better composability with the rest of the ecosystem.
+5. **Open architecture.** Repo is open-source (MIT). Anyone can fork, audit, or build a competing platform. Every Agent Float contract is verified on Sourcify so investors and reviewers can read the source.
 
-## What we are NOT
+## What we are NOT (explicit anti-positioning vs known competitors)
 
-| Anti-positioning | Why we exclude it |
-|---|---|
-| AI agent marketplace | No prompt store, no model registry. We don't list agents — we float them. |
-| Token launchpad / meme casino | "No receipts, no float" rule blocks hype tokens by design. |
-| DAO governance tooling | Aragon, Snapshot, Tally already cover this surface. |
-| Trading bot leaderboard | Anti-Solarpunk (extractive); explicitly excluded from supported agent categories. |
-| Agent OS / runtime / framework | Platform smell; we don't run agents, we fund them. |
-| Generic "AI agent + wallet" wrapper | Agents already have wallets. Our value is the venture wrapper, not the wallet. |
+| Anti-positioning | Competitor / pattern | Why we exclude it |
+|---|---|---|
+| Agent stock market | Slopstock | We don't financialize generic agents; only public-good agents pass the gate |
+| Agent commerce / job marketplace | Obolos, A2A | We don't run job posts, RFPs, or escrow-based commerce |
+| Generic agent passport / trust dashboard | AgentPass, AgentMandate, AgentVault | We are not a passport; passport ≠ funding |
+| Policy boundary as primary pitch | SBO3L | Policy logic only as accountability layer; not the headline |
+| Token launchpad / meme casino | various | "No receipts, no float" + public-good restriction blocks hype |
+| DAO governance tooling | Aragon, Snapshot | Out of category |
+| Agent OS / runtime / framework | various | Platform smell; we fund agents, we don't run them |
+| Trading / yield / financial agents | Tradewise, generic DeFi bots | Anti-Solarpunk (extractive); explicitly excluded by scope rule |
+| Generic AI agent assistant | many | Out of public-good scope unless agent specifically serves civic/public utility |
 
 ## What we ARE
 
-A **funding layer for working AI agents.** Operative word: *working* — proof gates every dollar.
+A **proof-gated funding rail for public-good AI agents**, integrating ERC-8004 + ENSIP-25/26 + Umia.
+
+Operative phrases:
+- **Public-good** — only agents that produce verifiable civic/research/climate/transparency/open-knowledge value
+- **Proof-gated** — receipts of paid public-good work required before any fundraising
+- **Funding rail** — connection to Umia Tailored Auction; we do not custody capital
+- **Standards-based** — ERC-8004 identity, ENSIP-25 binding, ENSIP-26 discovery, EIP-712 signed receipts; no reinvention
 
 ## Target users (in order of demo priority)
 

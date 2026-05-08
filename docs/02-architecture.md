@@ -92,25 +92,37 @@ Agent Float sits as a **discovery, proof, and accountability layer ABOVE** Umia.
 
 ## Layered components
 
-### Layer 1 — Identity (ENS, ENSIP-26 standards-aligned)
+### Layer 1 — Identity (ERC-8004 + ENSIP-25/26)
 
-- Parent ENS: `agentfloat.eth` (mainnet primary, Sepolia mirror for iteration)
-- Subnames issued programmatically: `<agent>.agentfloat.eth`
+Standards adopted (we do not reinvent any of these):
+
+- **ERC-8004 Trustless Agents** — onchain agent identity registry, reputation registry, validation registry. Each agent has an `agentId` (uint256) tied to its onchain identity record. We read identity + reputation from ERC-8004 contracts; we do not store our own copy.
+- **ENSIP-25** — binding pattern: ENS subname → ERC-8004 `agentId` (via dedicated text record), so resolution `<agent>.agent-float.eth` → ERC-8004 record is canonical and verifiable.
+- **ENSIP-26** — discovery records: `agent-context` (capabilities/description), `agent-endpoint[web]` (web URL), `agent-endpoint[mcp]` (MCP endpoint). Read by clients, agents, and indexers.
+
+Agent Float ENS layer:
+
+- Parent ENS: `agent-float.eth` (or chosen parent per `docs/08`)
+- Subnames issued programmatically: `<agent>.agent-float.eth`
 - Live resolve via wagmi/viem in UI; no hard-coded addresses
 
-**Records — ENSIP-26 standards first, namespaced extensions only where needed:**
+**Records — standards-first hierarchy:**
 
-ENSIP-26 standard records (canonical):
-- `agent-context` — primary agent metadata (description, capabilities, model info)
-- `agent-endpoint[web]` — agent's web URL endpoint
-- `agent-endpoint[mcp]` — agent's MCP (Model Context Protocol) endpoint
-- `agent-registration[...]` — registration metadata (per ENSIP-25/26 conventions, used where applicable)
+ERC-8004 binding (via ENSIP-25 pattern):
+- Dedicated text record (e.g., `erc8004:agentId`) — points to the agent's `agentId` in the ERC-8004 IdentityRegistry. Canonical identity link.
 
-Agent Float namespaced extensions (only where ENSIP-26 doesn't cover Agent Float-specific data):
-- `agentfloat:umia_venture` — Umia venture address (canonical pointer to funding/treasury/token)
+ENSIP-26 standard records (canonical discovery):
+- `agent-context` — primary agent metadata
+- `agent-endpoint[web]` — web URL endpoint
+- `agent-endpoint[mcp]` — MCP endpoint
+- `agent-registration[...]` — optional registration metadata
+
+Agent Float namespaced extensions (only Agent-Float-specific data not covered by standards):
+- `agentfloat:umia_venture` — Umia venture address
 - `agentfloat:bond_vault` — `BuilderBondVault` contract address
 - `agentfloat:milestones` — `MilestoneRegistry` contract address
-- `agentfloat:receipts_pointer` — `ReceiptLog` contract address (or shared registry locator)
+- `agentfloat:receipts_pointer` — `ReceiptLog` contract address
+- `agentfloat:public_good_category` — category enum hash (civic / research / climate / transparency / open-knowledge)
 
 ### Layer 2 — Onchain core (Foundry, Sepolia + selected mainnet)
 

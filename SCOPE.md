@@ -10,22 +10,27 @@
 
 | Field | Value |
 |---|---|
-| Project name | **Agent Float** (provisional) |
-| Pitch sentence | *"Agent Float turns working AI agents into investable ventures."* |
-| Marketing tagline | *"Your agent has receipts. Now give it runway."* |
-| Alternative | *"From local agent to funded venture."* |
+| Project name | **Agent Float** (risk-accepted, see `docs/08`) |
+| Pitch sentence (sponsor-facing) | *"Agent Float turns working public-good AI agents into fundable Umia ventures."* |
+| Stage tagline (5-sec hook) | *"No impact proof, no funding."* |
+| Marketing tagline (alternate) | *"Your agent has receipts. Now give it runway."* |
 | Hard product rule | **No receipts, no float.** |
-| Category | Capital market for working AI agents |
+| Category | Proof-gated funding rail for public-good AI agents |
+| Standards adopted | ERC-8004 Trustless Agents (identity + reputation), ENSIP-25 (binding), ENSIP-26 (discovery), EIP-712 (signed receipts) |
 
 **What we are NOT:**
-- AI agent marketplace
-- Token launchpad / meme casino
-- DAO tooling
-- Trading bot leaderboard
-- Agent OS
+- ❌ NOT Slopstock — we do not financialize generic agents into a stock market
+- ❌ NOT Obolos — we do not run agent-to-agent commerce or job marketplaces
+- ❌ NOT AgentPass / AgentMandate / AgentVault — we do not build a generic agent passport
+- ❌ NOT SBO3L — we do not pitch a generic policy boundary as primary
+- ❌ NOT a token casino, meme launchpad, agent OS, generic agent marketplace, or DAO tooling
+- ❌ NOT for trading bots, yield agents, or generic AI assistants — those are explicitly out of scope
 
-**What we are:**
-- Funding layer for **working** AI agents (operative word: working — proof first)
+**What we ARE:**
+- ✅ A **proof-gated funding rail** for **public-good AI agents only** — via Umia
+- ✅ **Public-good** = civic transparency, research / grant scouting, climate metrics, open knowledge curation, anti-corruption monitoring. NOT financialization-first agents.
+- ✅ **Standards-based**: ERC-8004 for identity, ENSIP-25/26 for discovery, Umia for funding. We integrate, we do not reinvent.
+- ✅ **Accountability primitives** above Umia: receipts gate (ReceiptLog), builder bond (BuilderBondVault), milestone slashing (MilestoneRegistry)
 
 ---
 
@@ -527,6 +532,7 @@ Demo passes ONLY ak:
 - **[LOCKED by Daniel]:** Agent Float ako primary direction pre ETHPrague 2026. Umia + ENS sponsor lock. Network Economy organizer track primary.
 - **[LOCKED — Tokenomics v1]:** 2M tokens fixed per agent (Q1) + bonding curve primary sale (Q2) + builder-set retention% (Q3) + builder-set USDC split upfront/treasury (Q4) + pull-claim revenue distribution (Q5) + revenue-only utility (Q6) + builder personal obligation via BuilderBondVault collateral (Q7a) + Umia secondary market (Q8) + Umia legal wrapper (Q9).
 - **[PIVOTED — Tokenomics v2 — 2026-05-08]:** Primary sale changes from custom `BondingCurveSale.sol` to **Umia Tailored Auctions** (Uniswap CCA). Token issuance, treasury, secondary all delegated to Umia. Naše inovácie (ReceiptLog, BuilderBondVault, MilestoneRegistry, ENS passport) zostávajú ako Agent Float value-add layer NAD Umia ventures. **PENDING UMIA MENTOR CONFIRMATION** — pivot je default direction. Mentor potvrdí buď (a) Tailored Auction integration path = pivot finalizuje sa, alebo (b) custom curve OK = revert na v1. Reviewer flagged that bypassing Umia core product is sponsor-fit risk for $12K Best Agentic Venture.
+- **[SHARPENED — Path B — 2026-05-08 evening]:** Positioning sharpened from "funding rail for working AI agents" to **"proof-gated funding rail for public-good AI agents only"**. Reasons: (1) external review (codex) found "agent trust/passport" space is crowded globally (AgentMandate, AgentPass, A2A, Execution Market, Jurex, Obolos, Aegis, x402-Guardrails) — Agent Float as generic agent infra would lose comparative analysis. (2) Solarpunk theme + Umia ETHPrague-specific fit + public-good restriction creates locally defensible niche. (3) Adopting **ERC-8004 Trustless Agents** + **ENSIP-25 binding** + **ENSIP-26 discovery** as identity primitives makes us standards-based ("we use trustless-agents standard, not invent our own"). (4) Demo flow becomes dual-agent: generic yield agent **rejected** (no public-good impact, no receipts), GrantScout **fundable** (ENS + ERC-8004 + receipts + Umia-ready). New stage tagline: **"No impact proof, no funding."** Sponsor-facing pitch: **"Agent Float turns working public-good AI agents into fundable Umia ventures."**
 - **[RESOLVED — risk-accepted 2026-05-08]:** Naming "Agent Float" collision check completed. No active project collision found. Partial collisions (`agentfloat.eth` mainnet likely taken, `agentfloat.com`/`agentfloat.xyz` squatted) accepted by Daniel. Proceeding with brand. Detail in `docs/08-naming-research.md`.
 - **[pending]:** Umia integration path — mentor sweep priority #1.
 - **[pending]:** Silence-detector N days threshold pre BuilderBondVault slashing trigger (default rec: 7 days).

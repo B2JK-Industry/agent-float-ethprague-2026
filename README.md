@@ -1,11 +1,11 @@
 # Agent Float
 
-> *Agent Float turns working AI agents into investable ventures.*
+> *Agent Float turns working public-good AI agents into fundable Umia ventures.*
 
-**Tagline:** *Your agent has receipts. Now give it runway.*
+**Stage tagline:** *No impact proof, no funding.*
 **Hard rule:** **No receipts, no float.**
 
-Agent Float is a capital market for working AI agents. Each agent has an ENS-anchored public passport, on-chain receipts as evidence of work, and a Umia-native venture token structure that lets investors fund agent runway in exchange for **economic exposure per Umia's venture wrapper**. Umia provides the funding mechanism (Tailored Auctions powered by Uniswap CCA), legal wrapper, noncustodial treasury, and secondary market. Agent Float adds the discovery, proof, and accountability layer above Umia.
+Agent Float is a **proof-gated funding rail for public-good AI agents**. We do not invent identity, discovery, or fundraising — we integrate established standards (ERC-8004 + ENSIP-25/26 + Umia Tailored Auctions) and add a sharp gate: an agent cannot reach Umia funding unless its ENS identity, ERC-8004 registration, signed receipts, and milestone commitments check out. The agent must demonstrate **public-good impact**, not just activity.
 
 Built at **ETHPrague 2026** — *"Building Ethereum's Solarpunk Future"*.
 
@@ -23,15 +23,23 @@ Agent Float bridges these by enforcing one rule above all: **no receipts, no flo
 
 ## What we are NOT
 
-- AI agent marketplace (no prompt store, no model registry)
-- Token casino / meme launchpad (no hype tokens; receipts gate every float)
-- DAO governance tooling (Aragon/Snapshot already cover this)
-- Trading bot leaderboard (anti-Solarpunk; explicitly excluded)
-- Agent OS / runtime / framework (anti-pattern; we are not a platform)
+- ❌ NOT Slopstock (we do not financialize generic agents into a stock market)
+- ❌ NOT Obolos (we do not run agent-to-agent commerce or job marketplaces)
+- ❌ NOT AgentPass / AgentMandate / AgentVault (we do not build a generic trust passport)
+- ❌ NOT SBO3L (we do not pitch a generic policy boundary)
+- ❌ NOT a token casino / meme launchpad
+- ❌ NOT an agent OS / runtime / framework
+- ❌ NOT a generic AI agent marketplace
 
-## What we are
+## What we ARE
 
-A **funding layer for working AI agents.** Operative word: *working* — proof gates everything.
+A **proof-gated funding rail for public-good AI agents.** Operative phrases:
+
+- **Public-good** — civic, research, climate, transparency, open knowledge agents only. Not yield bots, not trading agents, not generic AI assistants.
+- **Proof-gated** — agent must show on-chain receipts of paid public-good work before its venture can float.
+- **Standards-based** — ERC-8004 for agent identity/reputation, ENSIP-25/26 for discovery, Umia for venture funding. We integrate, we do not reinvent.
+
+Tagline for stage: *No impact proof, no funding.*
 
 ---
 
@@ -51,28 +59,29 @@ A **funding layer for working AI agents.** Operative word: *working* — proof g
 
 ## Core loop
 
-Agent Float is the **discovery, proof, and accountability layer above Umia ventures**. It does not replace Umia's funding mechanism; it gates access to it with on-chain proof of work and adds builder accountability primitives.
+Agent Float is the **proof-gated funding rail above Umia ventures, restricted to public-good AI agents**. We do not replace Umia's funding mechanism; we gate access to it.
 
-1. Builder operates an agent that already does meaningful work
-2. Agent gets an ENS passport: `<agent>.agentfloat.eth` resolved via **ENSIP-26 standard records** (`agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`) plus namespaced Agent Float extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`)
-3. Agent emits **on-chain receipts** (signed by agent's ENS-registered wallet, USDC-cross-validated). These are the proof gate — *no receipts, no float*.
-4. Builder runs `umia venture init` (Umia CLI) to create the venture: legal entity wrapper, venture token issuance, Tailored Auction setup (Uniswap CCA), noncustodial treasury
-5. Builder registers the agent with Agent Float — links Umia venture to ENS passport, locks personal accountability bond (`BuilderBondVault`), commits funding milestones (`MilestoneRegistry`)
-6. Investors browse Agent Float, see agent profile: ENS passport + receipts feed + Umia Tailored Auction state + milestones + builder bond status
-7. Investors fund via **Umia Tailored Auction** (Uniswap CCA mechanism); proceeds route to Umia noncustodial treasury per Umia governance
-8. Agent earns USDC from end-user payments; receipts continue to emit on-chain; agent profile updates live
-9. Token holders see receipt activity continuously; investor exposure (revenue, governance, secondary trading) handled through Umia's venture wrapper
-10. If builder misses committed milestones OR agent goes silent for the configured threshold, `BuilderBondVault` slashes builder's personal collateral pro-rata to current Umia venture token holders
+1. Builder operates an agent doing real **public-good work** (grant scouting, civic monitoring, climate metrics, transparency reporting, open knowledge curation)
+2. Agent registers under the **ERC-8004 Trustless Agents standard** — gets an `agentId` with onchain identity + reputation surface
+3. Agent gets an ENS passport: `<agent>.agent-float.eth` (or chosen parent) — uses **ENSIP-26** standard records (`agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`) and **ENSIP-25**-style binding to the ERC-8004 `agentId`. Plus namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`).
+4. Agent emits **on-chain receipts** for paid public-good work — signed by agent's ENS-registered wallet, USDC-cross-validated. Receipts are the proof gate.
+5. Builder runs `umia venture init` to create the Umia venture (legal wrapper, venture token, Tailored Auction, noncustodial treasury)
+6. Builder registers the agent with Agent Float — links Umia venture + ENS + ERC-8004 agentId + builder bond + milestones in one tx
+7. Investors browse Agent Float and see only **fundable** agents (those passing the proof gate). Each profile shows: ERC-8004 identity + ENS records + receipts feed + Umia auction state + builder bond + milestones
+8. Investors fund via **Umia Tailored Auction**; proceeds to Umia noncustodial treasury
+9. Agent keeps emitting receipts; ERC-8004 reputation accumulates; profile updates live
+10. If builder misses milestones OR agent goes silent, `BuilderBondVault` slashes builder collateral pro-rata to current Umia venture token holders. Failed agent loses fundable status.
 
 ---
 
-## Sponsor stack (POST-PIVOT)
+## Sponsor stack (Path-B sharpened, ERC-8004 integrated)
 
 | Tier | Sponsor | Use |
 |---|---|---|
-| **Primary** | **Umia** ($12K Best Agentic Venture) | **Tailored Auctions (Uniswap CCA)** for primary sale + legal wrapper (`umia venture init`) + noncustodial treasury + decision markets + secondary market. We integrate Umia core products natively, do not substitute them. |
-| **Secondary** | **ENS** ($2K Most Creative) | Per-agent passport: `<agent>.agentfloat.eth` using **ENSIP-26 standard records** (`agent-context`, `agent-endpoint[*]`) plus namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`) |
-| **Bonus** | **Sourcify** ($4K) | Verified source code for every Agent Float contract we deploy (registry, receipts, bond, milestones) — open governance proof |
+| **Primary** | **Umia** ($12K Best Agentic Venture) | Tailored Auctions (Uniswap CCA) + legal wrapper (`umia venture init`) + noncustodial treasury + decision markets + secondary market — Umia is the funding mechanism Agent Float gates access to |
+| **Secondary** | **ENS** ($2K Most Creative) | Per-agent passport using **ENSIP-26** standard records (`agent-context`, `agent-endpoint[web|mcp]`) + **ENSIP-25**-style binding to ERC-8004 `agentId` + namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`) |
+| **Bonus** | **Sourcify** ($4K) | Verified source code for every Agent Float contract — open governance proof |
+| **Standards used (not direct sponsor)** | **ERC-8004** Trustless Agents | Agent identity + reputation registry — we adopt, not reinvent |
 
 **Organizer track:** Network Economy (privacy + identity + onchain economic coordination + user control). Best UX Flow as secondary if polish allows.
 

@@ -24,14 +24,23 @@ address public bondVaultFactory;
 address public milestoneRegistry;
 
 struct Agent {
-    address owner;          // builder EOA
-    address umiaVenture;    // Umia venture address (provided by builder; contains token, treasury, auction)
-    address bondVault;      // BuilderBondVault instance for this agent
-    bytes32 milestonesRoot; // pointer into MilestoneRegistry namespace
-    address receiptLog;     // shared or per-agent ReceiptLog
+    address owner;            // builder EOA
+    uint256 erc8004AgentId;   // ERC-8004 Trustless Agents identity reference
+    address umiaVenture;      // Umia venture address (token, treasury, auction)
+    address bondVault;        // BuilderBondVault instance for this agent
+    bytes32 milestonesRoot;   // pointer into MilestoneRegistry namespace
+    address receiptLog;       // shared or per-agent ReceiptLog
+    bytes32 publicGoodCategory; // hash of category enum: civic, research, climate, transparency, open-knowledge
     uint256 registeredAt;
     bool active;
 }
+
+// Eligibility check at registration:
+// - erc8004AgentId must exist in ERC-8004 IdentityRegistry
+// - publicGoodCategory must be in the allow-list
+// - umiaVenture must be a valid Umia venture address
+// - milestones array must not be empty
+// - builderBond >= minimum threshold
 ```
 
 ### Functions
@@ -48,13 +57,17 @@ function deactivate(bytes32 ensNode) external onlyOwner  // for defaulted agents
 ```solidity
 struct RegisterParams {
     string ensLabel;                       // e.g., "grantscout"
+    uint256 erc8004AgentId;                // pre-registered in ERC-8004 IdentityRegistry
     address umiaVenture;                   // from `umia venture init` output
+    bytes32 publicGoodCategory;            // must be in allow-list (civic, research, climate, transparency, open-knowledge)
     Milestone[] milestones;                // builder commitments
     uint256 builderBond;                   // USDC collateral locked in BuilderBondVault
     uint256 silenceThresholdSeconds;       // bond slashing trigger window
-    AgentMetadata agentMetadata;           // ENSIP-26 record payload
+    AgentMetadata agentMetadata;           // ENSIP-26 record payload (agent-context, agent-endpoint[web|mcp])
 }
 ```
+
+> **Public-good restriction:** `registerAgent()` reverts with `error CategoryNotPublicGood(bytes32 provided)` if `publicGoodCategory` is not in the allow-list. This is the structural enforcement of Path B positioning — generic financialization agents cannot register, period.
 
 ### Events
 

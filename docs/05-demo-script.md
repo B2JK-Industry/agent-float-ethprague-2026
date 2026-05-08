@@ -24,34 +24,51 @@ In-person Prague, Devfolio judging, ~5 minutes per project.
 
 ## Script
 
-### Sec 0–25 — Hook & landing
+### Sec 0–25 — Hook & landing — DUAL-AGENT FRAMING
 
 **Action:**
 - Browser opens `agentfloat.app` (or local dev URL)
 - Landing page shows:
-  - Headline: *"Discover working AI agents seeking capital"*
-  - Subhead: *"Your agent has receipts. Now give it runway."*
-  - Banner near top: **"NO RECEIPTS, NO FLOAT"** rule
-  - Featured agents grid (3 cards: GrantScout, DataMonitor, TenderEye)
-  - Stats: total agents floated, total revenue distributed, total holders
+  - Headline: *"Public-good AI agents seeking capital"*
+  - Subhead: **"No impact proof, no funding."**
+  - Banner: **"Standards: ERC-8004 + ENSIP-25/26 + Umia"**
+  - Two prominent agent cards side-by-side:
+    - **`yield-alpha.agent-float.eth`** — labeled `REJECTED` (red badge, greyed out)
+    - **`grantscout.agent-float.eth`** — labeled `FUNDABLE` (green badge, prominent)
+- Stats: total fundable agents, total receipts emitted, total impact reports
 
 **Voiceover (Slovak, English technical terms):**
-*"Väčšina AI agent tokens je hype — landing page, žiadne dôkazy. Agent Float je iný. Každý agent tu má on-chain receipts pred-tým ako sa môže fundraisovať."*
+*"Väčšina launchpadov financuje hype. Agent Float financuje len public-good agentov ktorí ukázali reálnu prácu. Tu vidíte dvoch agentov: jeden zarába na yield strategy — REJECTED, lebo to nie je verejné dobro. Druhý každý deň skenuje Gitcoin a Octant, sumarizuje grant opportunities, má reálne receipts — FUNDABLE."*
 
-### Sec 25–80 — Agent profile
+### Sec 20–35 — Quick contrast: REJECTED agent
 
 **Action:**
-- Click GrantScout card → `/agent/grantscout.agentfloat.eth`
-- Profile loads with sections:
-  - **ENS passport** — `grantscout.agentfloat.eth` resolved live; ENSIP-26 records visible (`agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`) plus namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`)
-  - **Receipts feed** — 3 recent receipts with timestamp, query ID, payment amount, signer; each cross-validated against on-chain USDC `Transfer`
-  - **Umia venture** — link to Umia venture address (resolved from ENS), Tailored Auction state (live or post-auction)
-  - **Milestones panel** — milestone 1: 50 paid reports (8% complete)
-  - **Builder bond** — 500 USDC locked in BuilderBondVault, slashing trigger: 7-day silence OR milestone fail
-  - **Builder identity** — public wallet, optional X handle
+- Click `yield-alpha.agent-float.eth` REJECTED card
+- Profile shows:
+  - **NO impact proof** — no public-good output category
+  - ERC-8004 identity present, but reputation flag: `category=trading`
+  - Receipts: present but for paid yield optimization (extractive)
+  - Big banner: **"Outside Agent Float scope: financialization-first agents not eligible. Use Slopstock or generic launchpads instead."**
+- Investor cannot click "Fund via Umia" — disabled
 
 **Voiceover:**
-*"GrantScout je real Apify-backed agent. Scrape-uje Gitcoin a Octant rounds, generuje paid reports. Tu vidíte 3 receipts — každý je on-chain Sepolia tx, podpísaný agentovým ENS-registered walletom, cross-validated voči USDC transferu. ENS resolution live cez ENSIP-26 records. Umia venture link viditeľný — primárny funding ide cez ich Tailored Auction. Builder commitnutý 500 USDC personal bond cez Agent Float layer."*
+*"Yield-alpha má všetko technicky — ERC-8004, ENS, receipts. Ale jeho output je yield optimization. To je extractive, to je out of scope. Agent Float ho nepustí ďalej. Inde si ho možno fundujte, ale tu nie."*
+
+### Sec 35–95 — FUNDABLE agent profile (GrantScout)
+
+**Action:**
+- Back to landing → click `grantscout.agent-float.eth` FUNDABLE card → `/agent/grantscout.agent-float.eth`
+- Profile loads with sections:
+  - **ERC-8004 identity** — `agentId`, reputation surface, validation registry references (live read from ERC-8004 contracts)
+  - **ENS passport** — resolved live; ENSIP-26 records (`agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`) + ENSIP-25-style binding text record pointing to ERC-8004 `agentId` + namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`)
+  - **Public-good category** — `civic / public-goods scout`
+  - **Receipts feed** — 3 recent receipts (signed + USDC-cross-validated) for paid grant summary reports
+  - **Umia venture** — link to Umia venture address, Tailored Auction state
+  - **Milestones panel** — milestone 1: 50 paid reports (8% complete)
+  - **Builder bond** — 500 USDC locked, slashing trigger: 7-day silence OR milestone fail
+
+**Voiceover:**
+*"GrantScout je Apify-backed agent. Každý deň skenuje Gitcoin, Octant, Drips. Predáva summary reports za 0.01 USDC. Tu vidíte ERC-8004 identity — štandardná agent reputation, nie naša vymyslená infra. ENS resolution cez ENSIP-26 records. Umia venture pripravená. Builder bond locked. Agent je FUNDABLE lebo: 1, kategória je public-goods scout. 2, má on-chain receipts. 3, má ERC-8004 identity. 4, má builder bond v hre."*
 
 ### Sec 80–150 — Investor purchase via Umia Tailored Auction (POST-PIVOT)
 
