@@ -31,8 +31,8 @@ Agent Float does not mint tokens, define sale pricing, custody sale proceeds, or
 
 ### Layer 1: Identity
 
-- ENS parent: `agentfloat.eth`.
-- Subnames: `<agent>.agentfloat.eth`.
+- ENS parent: exact mainnet name pending final ENS availability decision. Working docs use `agentfloat.eth`; fallback may be a hyphenated or Sepolia-only parent.
+- Subnames: `<agent>.<parent>`, for example `grantscout.agentfloat.eth` if that parent is available.
 - ENSIP-26 records:
   - `agent-context`,
   - `agent-endpoint[web]`,
@@ -147,4 +147,3 @@ End user pays USDC
   -> UI indexes receipt
   -> profile updates
 ```
-

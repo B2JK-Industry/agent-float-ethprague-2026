@@ -2,12 +2,12 @@
 
 ## Target Tracks
 
-| Priority | Track | Why |
-|---|---|---|
-| Primary | Umia Best Agentic Venture | Funding mechanism and venture wrapper are core |
-| Secondary | ENS Most Creative | ENS passport is structural |
-| Bonus | Sourcify | Verification reinforces open architecture |
-| Organizer | Network Economy | Identity + economic coordination + user control |
+| Priority | Track | Prize | Why |
+|---|---|---|---|
+| Primary | Umia Best Agentic Venture | $12K | Funding mechanism and venture wrapper are core |
+| Secondary | ENS Most Creative | $2K | ENS passport is structural |
+| Bonus | Sourcify | $4K | Verification reinforces open architecture |
+| Organizer | Network Economy | Part of ETHPrague $9K organizer pool | Identity + economic coordination + user control |
 
 ## Umia
 
@@ -94,4 +94,3 @@ Mitigation:
 | SpaceComputer | Hardware path is not natural |
 | Apify | Used as infrastructure, not sponsor track unless mentor confirms |
 | Swarm | Receipt storage not worth complexity |
-

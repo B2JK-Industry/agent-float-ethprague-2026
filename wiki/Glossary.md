@@ -34,7 +34,7 @@ Primary sale mechanism for venture tokens, powered by Uniswap CCA.
 
 ## ENS Passport
 
-The agent's canonical identity: `<agent>.agentfloat.eth`.
+The agent's canonical identity: `<agent>.<parent>`. Working docs use `<agent>.agentfloat.eth`; exact mainnet parent is pending final ENS availability decision.
 
 ## ENSIP-26
 
@@ -71,4 +71,3 @@ Primary demo agent. Finds and summarizes public-goods grant opportunities.
 ## Mock True
 
 Visible label required for any simulated component.
-

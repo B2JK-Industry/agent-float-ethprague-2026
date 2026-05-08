@@ -40,27 +40,13 @@ Blocked by:
 - Umia mentor answers for venture shape,
 - ENS decision for parent/subname approach.
 
-## Track C: Umia Integration
+## Track C: Demo Agents
+
+Primary:
+
+- GrantScout.
 
 Deliver:
-
-- venture pointer model,
-- auction link/redirect,
-- auction state fetch,
-- fallback simulator if needed,
-- clear `mock: true` labels.
-
-Mentor questions:
-
-- SDK/API,
-- testnet/mainnet,
-- token template,
-- treasury events,
-- legal wording.
-
-## Track D: Demo Agent
-
-GrantScout:
 
 - paid query endpoint,
 - Apify-backed data,
@@ -74,7 +60,18 @@ Stretch:
 - DataMonitor,
 - TenderEye.
 
-## Track E: Web UI
+Blocks:
+
+- demo,
+- submission,
+- receipts acceptance gates.
+
+Blocked by:
+
+- Track A,
+- Track B.
+
+## Track D: Platform UI
 
 Views:
 
@@ -94,6 +91,44 @@ Must show:
 - milestones,
 - Sourcify links.
 
+Blocks:
+
+- demo,
+- submission.
+
+Blocked by:
+
+- Track A,
+- Track B for read-only contract data,
+- Track E for live funding.
+
+## Track E: Umia Integration
+
+Deliver:
+
+- venture pointer model,
+- auction link/redirect,
+- auction state fetch,
+- fallback simulator if needed,
+- clear `mock: true` labels.
+
+Mentor questions:
+
+- SDK/API,
+- testnet/mainnet,
+- token template,
+- treasury events,
+- legal wording.
+
+Blocks:
+
+- "Float" interface,
+- demo.
+
+Blocked by:
+
+- Track G mentor sweep #1.
+
 ## Track F: SDK
 
 Deliver:
@@ -104,7 +139,33 @@ Deliver:
 - verification helpers,
 - example integration.
 
-## Track G: Demo and Submission
+Blocks:
+
+- builder onboarding adoption story.
+
+## Track G: Mentor Sweeps
+
+Priority order:
+
+1. Umia.
+2. ENS.
+3. Sourcify.
+
+Deliver:
+
+- integration answers,
+- mentor contacts,
+- SDK/API links,
+- mainnet vs Sepolia decisions,
+- sponsor-specific bar for winning.
+
+Blocks:
+
+- Track A mainnet/Sepolia decision,
+- Track B token/contract shape,
+- Track E Umia integration.
+
+## Track H: Demo and Submission
 
 Deliver:
 
@@ -113,6 +174,10 @@ Deliver:
 - fallback recording,
 - Devfolio submission,
 - sponsor-specific wording.
+
+Blocked by:
+
+- Tracks A-F.
 
 ## Done Means
 
@@ -124,4 +189,3 @@ The project is demo-ready only if:
 - receipts are real,
 - repo can be cloned and run,
 - contracts are verified where deployed.
-
