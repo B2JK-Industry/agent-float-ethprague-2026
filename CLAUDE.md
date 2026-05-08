@@ -52,7 +52,7 @@ These are project-specific reinforcements. Project memory is at `~/.claude/proje
 
 **Per external review, primary funding mechanism shifted to Umia Tailored Auctions (Uniswap CCA). Pending Umia mentor confirmation.**
 
-- Token supply: 2,000,000 fixed per agent (conditional on Umia template)
+- Token supply: per Umia venture template (was 2M fixed in v1; now Umia controls)
 - **Pricing: Umia Tailored Auction primary; bonding curve fallback only**
 - Builder retention: per Umia venture init config
 - USDC split: per Umia treasury rules

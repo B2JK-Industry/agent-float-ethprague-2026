@@ -26,32 +26,41 @@ Stream letter for this run: **`<A | B | C>`**
 ```
 loop forever:
   1. fetch latest main
-  2. read docs/13-backlog.md, find items where:
-       - status = open
+  2. read docs/13-backlog.md as of latest main + list open PRs via gh CLI
+  3. compute item status from these sources (NOT from inline edits to backlog):
+       - merged: AF-NNN PR has been merged to main (orchestrator updates backlog field after Daniel merge)
+       - pr-open: an open PR exists with title starting "AF-NNN — "
+       - blocked: orchestrator has annotated it [BLOCKED-EXTERNAL] in backlog
+       - open: no PR yet and not blocked
+  4. find items where:
        - stream = <STREAM_LETTER>
-       - all dependencies are status = done
+       - status = open
+       - all dependencies are status = merged (PR open does NOT count)
        - priority is the highest available among unblocked items (P0 > P1 > P2 > P3)
-  3. if no item matches:
+  5. if no item matches:
        - log "stream <X> waiting: no unblocked items"
-       - wait or sleep, then go to 1
-  4. else, pick the top one (lowest AF-NNN among the priority tier)
-  5. checkout new branch: feat/AF-NNN-<short-slug>
-  6. mark item status = in-progress (commit to a documentation update branch)
-  7. implement the item:
+       - wait or sleep (poll interval), then go to 1
+  6. else, pick the top one (lowest AF-NNN among the priority tier)
+  7. checkout new branch: feat/AF-NNN-<short-slug>
+  8. implement the item:
        - read all linked docs
        - write code conforming to acceptance criteria
        - write tests where applicable
        - verify acceptance criteria pass locally
        - update CHANGELOG.md if the item is a public-surface change
-  8. commit with message: feat(AF-NNN): <title> per <doc>
-  9. push branch
-  10. open PR titled: AF-NNN — <title>
+       - DO NOT modify docs/13-backlog.md (status is derived, not edited by you)
+  9. commit with message: feat(AF-NNN): <title> per <doc>
+  10. push branch
+  11. open PR titled: "AF-NNN — <title>"
        - PR body lists: acceptance criteria checklist, doc references,
          any coordination needs, any open questions
-  11. log: "AF-NNN PR opened, moving to next"
-  12. mark item status = done in your local backlog tracking (Daniel reviews + merges)
-  13. go to 1
+  12. log: "AF-NNN PR opened, moving to next"
+  13. go to 1 — do NOT wait for merge; pick the next unblocked own-stream item
+       whose dependencies are merged (your in-flight PR's downstream
+       items will simply remain blocked until Daniel merges)
 ```
+
+**Critical:** You never edit `docs/13-backlog.md`. Status is derived from `git log` on main + `gh pr list`. Orchestrator (Claude) maintains the backlog file post-merge. Dependency = `merged to main`, never `PR open`.
 
 ## Reviewer agent
 

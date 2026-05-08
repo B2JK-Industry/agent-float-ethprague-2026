@@ -28,7 +28,15 @@ When writing the backlog, design every item so that:
 
 ## Three AI dev streams (ownership areas — non-overlapping)
 
-The backlog must assign **every item to exactly one of three streams**. Each stream owns a set of repository paths and an outcome surface. PRs from one stream do not touch another stream's paths except via explicit cross-stream coordination items.
+**Hard rule:** Every **executable dev item** has exactly one stream — `A` or `B` or `C`. No compound ownership (no `A + B` items). If a single goal requires work from two streams, **split it into two items** with an explicit dependency: parent item in one stream, dependent item in the other stream blocking on parent merge.
+
+Two non-dev tracker categories also exist for items that are not coding work:
+- **`Daniel`** — items Daniel personally owns (mentor sweeps, decisions, merges, naming pivot triggers)
+- **`Orch`** — orchestrator (Claude) items (SCOPE.md / docs / prompts / wiki maintenance, mentor-finding translation)
+
+Both `Daniel` and `Orch` items are tracker-only; the dev agents do not pick them up. They appear in the backlog so dependencies can reference them.
+
+Each dev stream owns a set of repository paths and an outcome surface. PRs from one stream do not touch another stream's paths except via explicit cross-stream coordination items (which themselves are owned by exactly one stream and provide outputs other streams consume after merge).
 
 ### Dev A — Onchain stream (Solidity / Foundry / contract deployment)
 **Owns:**
@@ -46,11 +54,10 @@ The backlog must assign **every item to exactly one of three streams**. Each str
 
 ### Dev B — Frontend / SDK stream (Next.js / TypeScript / wagmi)
 **Owns:**
-- `apps/web/` (Next.js 16 platform)
+- `apps/web/` (Next.js 16 platform; including `apps/web/vercel.ts` Vercel config)
 - `packages/sdk-ts/` (`@agentfloat/sdk` TypeScript)
-- `packages/shared/` (shared types, ENS helpers, receipt schema)
-- ENS resolution UI helpers (wagmi/viem)
-- Vercel deployment config
+- `packages/shared/` (shared types, ENS helpers, receipt schema, wagmi/viem ENS resolve helpers)
+- root `vercel.ts` if shared across web app deploys
 
 **Implements (per `docs/02-architecture.md` Layer 4 + Layer 5):**
 - All routes: `/`, `/agent/[ens-name]`, `/invest`, `/portfolio`, `/builder`, `/leaderboard`
@@ -61,12 +68,13 @@ The backlog must assign **every item to exactly one of three streams**. Each str
 
 ### Dev C — Demo agents / integrations stream (Vercel Functions / Python / Apify)
 **Owns:**
-- `apps/agent-grantscout/` (primary demo agent, Vercel Functions)
+- `apps/agent-grantscout/` (primary demo agent, Vercel Functions; including its `apps/agent-grantscout/vercel.ts`)
 - `apps/agent-datamonitor/` (stretch)
 - `apps/agent-tendereye/` (stretch)
 - `packages/sdk-py/` (`agentfloat` Python package)
-- Umia integration scaffolds (CLI wrappers, simulator)
-- Apify Actor configurations
+- `packages/umia-integration/` (Umia CLI wrappers, REST client, simulator + `mock: true` fallback)
+- `apps/agent-grantscout/integrations/` and equivalent paths in stretch agents (per-agent Umia/Apify hooks)
+- Apify Actor configurations checked in under `packages/umia-integration/apify/` or per-agent integration paths
 
 **Implements (per `docs/02-architecture.md` Layer 3 + Layer 6):**
 - GrantScout: paid query endpoint, Apify-backed Gitcoin/Octant scraping, AI Gateway summarization, USDC payment validation, receipt signing, ReceiptLog emit
@@ -175,11 +183,11 @@ Single file: `docs/13-backlog.md`. Structure:
 - Types: epic / story / task
 - Priority: P0 (must) / P1 (should) / P2 (nice) / P3 (deferred / conditional / fallback)
 - Effort: XS (~1h) / S (~half day) / M (~1 day) / L (~2-3 days) / XL (>3 days)
-- Stream: A / B / C / D-shared (Daniel) / O-orch (Claude orchestrator)
+- Stream: `A` | `B` | `C` (executable dev items) OR `Daniel` | `Orch` (tracker-only items, not picked up by dev agents)
 - Workstream: A / B / C / D / E / F / G / H (per SCOPE.md §11)
 - Sponsor: Umia / ENS / Sourcify / Network Economy / —
-- Status: open / in-progress / blocked / done
-- Dependencies: list of AF-NNN IDs
+- Status: `open` (PR not yet open against main) | `pr-open` (PR opened, in review) | `merged` (merged to main; this is "done") | `blocked` (depends on external answer) — **status source is GitHub PR state + orchestrator updates after merge, NOT inline edits to docs/13-backlog.md by dev agents**
+- Dependencies: list of AF-NNN IDs that must reach `status = merged` before this item is considered unblocked. **"PR open" is NOT done; only merged-to-main counts.**
 
 ## Stream ownership map
 
@@ -208,24 +216,38 @@ Single file: `docs/13-backlog.md`. Structure:
 
 (every item with full fields)
 
-### AF-001 — [epic] ENS parent registration + resolver setup
-- **Type:** epic
-- **Stream:** A (onchain) + B (frontend helpers)
+### AF-001 — [story] ENS parent registration + Sepolia mirror + on-chain resolver wiring
+- **Type:** story
+- **Stream:** A
 - **Workstream:** A
 - **Priority:** P0
-- **Effort:** L
+- **Effort:** M
 - **Sponsor:** ENS
 - **Status:** open
-- **Dependencies:** AF-NNN (mentor sweep ENS)
+- **Dependencies:** AF-XXX (mentor sweep ENS, owned by `Daniel`)
 - **Acceptance criteria:**
-  - mainnet `agent-float.eth` registered (or recorded blocker if owner unreachable per docs/08)
-  - Sepolia mirror registered for iteration
-  - resolver supports ENSIP-26 records and namespaced extensions
-  - GATE-12 verifiable
-- **Owning files (Dev A):** `contracts/ens/...`
-- **Owning files (Dev B):** `packages/shared/ens-helpers.ts`
-- **Cross-stream coordination:** ENS resolver address must be available before Dev B can wire UI; emit coordination event in `docs/13-backlog.md` index when complete
-- **Stories:** AF-002 ... AF-NNN
+  - mainnet ENS parent registered (per docs/08 risk-acceptance — `agent-float.eth` if `agentfloat.eth` confirmed taken, otherwise `agentfloat.eth`)
+  - Sepolia mirror parent registered for iteration
+  - on-chain resolver supports ENSIP-26 records and `agentfloat:*` namespaced extensions
+  - GATE-12 verifiable for at least one test subname
+- **Owning files (Stream A):** `contracts/ens/`, `scripts/deploy-ens.s.sol`
+- **Outputs for downstream:** resolver contract address + parent node hash, published to `apps/web/.env.example` and `packages/shared/src/ens.ts` constants via a follow-up `Orch` item; recorded in PR description
+- **Stories:** AF-NNN ...
+
+### AF-002 — [story] wagmi/viem ENS resolve helpers consuming AF-001 resolver
+- **Type:** story
+- **Stream:** B
+- **Workstream:** A
+- **Priority:** P0
+- **Effort:** S
+- **Sponsor:** ENS
+- **Status:** open
+- **Dependencies:** AF-001 (must be `merged`)
+- **Acceptance criteria:**
+  - `packages/shared/src/ens.ts` exports `resolveAgent(ensName)` returning ENSIP-26 records + namespaced extensions
+  - vitest unit coverage for happy path + missing-record path
+  - GATE-12 supported end-to-end in a unit/integration test
+- **Owning files (Stream B):** `packages/shared/src/ens.ts`, `packages/shared/test/ens.test.ts`
 ```
 
 ## Quality bar

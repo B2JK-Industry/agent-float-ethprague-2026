@@ -88,7 +88,7 @@ If B fails: request changes, recommend either path correction or coordination-it
 - [ ] No "Day 1/2/3 / morning / evening" time-driven cuts
 - [ ] No v1 architecture as primary (bonding curve / RevenueDistributor / AgentTreasury / 2M token mint as primary path)
 - [ ] No "pro-rata revenue rights" / "claim accumulated USDC" claims unless explicitly defending Umia-confirmed model
-- [ ] No "platform / OS / framework / boundary / layer / engine" framing in customer-facing strings
+- [ ] No "Agent OS / platform / framework / boundary / engine" framing in customer-facing strings. **Note:** "Agent Float layer above / on top of Umia ventures" is the **approved positioning** — that specific use of "layer" is allowed and expected. Reject only the platform-smell anti-patterns.
 - [ ] No emoji in code, comments, or strings (unless explicitly requested by an item)
 
 If C fails: request changes with the specific anti-pattern citation.
