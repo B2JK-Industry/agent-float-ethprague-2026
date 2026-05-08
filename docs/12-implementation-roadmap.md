@@ -90,6 +90,64 @@ Not picked up by dev agents. Orch owns:
 - Mentor-finding translation into backlog adjustments
 - Keeping Agent Float language out of active docs
 
+## Devfolio Submission Checklist
+
+Owned by Daniel + Orch. Must complete before deadline.
+
+### Project metadata
+
+- [ ] Project name: `Upgrade Siren`
+- [ ] One-line tagline: `No source, no upgrade.`
+- [ ] Long description: pitch + thesis + verdict triade + sponsor framing (~3 paragraphs from `README.md` opening)
+- [ ] Logo / cover image (simple wordmark + verdict-traffic-light visual; defer to existing demo screenshot if no time)
+- [ ] Tags: `Sourcify`, `ENS`, `EIP-1967`, `proxy`, `upgrade-risk`, `DAO governance`, `public-good`
+
+### Track selection (mark these on Devfolio)
+
+- [ ] **Primary:** Sourcify Bounty
+- [ ] **Secondary:** ENS Most Creative Use
+- [ ] **Organizer:** ETHPrague Future Society
+- [ ] **Optional:** Umia Best Agentic Venture (only if Daniel pursues after mentor feedback; only if Siren Agent shipped)
+
+### Required artifacts
+
+- [ ] Live demo URL (Vercel deployment)
+- [ ] Source code repo URL: `https://github.com/B2JK-Industry/agent-float-ethprague-2026` (note: repo name is from Agent Float era; can be renamed post-hackathon, kept now to avoid breaking links)
+- [ ] Sourcify-verified contract addresses (proxy + V1 + V2Safe + V2Dangerous + unverified scenario)
+- [ ] ENS subname examples (`vault.demo.upgradesiren.eth` or chosen parent)
+- [ ] Demo video (3-min booth script per `docs/05-demo-script.md`; recording fallback per Demo Plan)
+- [ ] README link
+- [ ] Acceptance gates checklist marked (per `docs/06`)
+
+### Sponsor-specific submission notes
+
+- **Sourcify track:** in submission body, list specific Sourcify endpoints used + concrete contract pages judges can inspect
+- **ENS Most Creative track:** in submission body, list `siren:*` records used + show that ENS is required (product breaks without it)
+- **Future Society track:** in submission body, frame public-good safety angle for DAO voters / wallet users
+- **Umia (if pursued):** Siren Agent due-diligence framing; must NOT pitch as token launchpad
+
+### Pre-submission gate verification
+
+Before clicking submit, verify each of these against `docs/06-acceptance-gates.md`:
+
+- [ ] GATE-3 ENS live resolution
+- [ ] GATE-5 Sourcify verification fetched live
+- [ ] GATE-6 Safe + dangerous demo cases working
+- [ ] GATE-13 Missing data lowers confidence (no fake claims)
+- [ ] GATE-14 Mocks labeled `mock: true`
+- [ ] GATE-15 Local run reproduces demo
+- [ ] Kill conditions all clear (no AI auditor / generic scanner pitch)
+
+### Submission timing
+
+- Devfolio submission must be complete by **2026-05-10 12:00 PM** Prague time
+- Recommend submitting at least 60 minutes early to allow for last-minute fixes if Devfolio surfaces validation errors
+
+### Post-submission
+
+- Daniel posts in mentor channels (Sourcify, ENS, Future Society) confirming submission ID
+- Daniel updates BRAINSTORM Decision log with submission status
+
 ## Build Priority (cross-stream)
 
 | Priority | Must ship | Streams |
