@@ -43,17 +43,15 @@ In-person Prague, Devfolio judging, ~5 minutes per project.
 **Action:**
 - Click GrantScout card → `/agent/grantscout.agentfloat.eth`
 - Profile loads with sections:
-  - **ENS passport** — `grantscout.agentfloat.eth` resolved live (verifiable in DevTools)
-  - **Receipts feed** — 3 recent receipts with timestamp, query ID, payment amount, signer
-  - **Revenue chart** — running total, 7-day rolling
-  - **Bonding curve** — current price (e.g., 0.001 USDC per token), historical price chart
-  - **Token info** — 2,000,000 supply, 20% builder retention, public allocation 1,600,000
+  - **ENS passport** — `grantscout.agentfloat.eth` resolved live; ENSIP-26 records visible (`agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`) plus namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`)
+  - **Receipts feed** — 3 recent receipts with timestamp, query ID, payment amount, signer; each cross-validated against on-chain USDC `Transfer`
+  - **Umia venture** — link to Umia venture address (resolved from ENS), Tailored Auction state (live or post-auction)
   - **Milestones panel** — milestone 1: 50 paid reports (8% complete)
-  - **Builder bond** — 500 USDC locked, slashing trigger: 7-day silence OR milestone fail
+  - **Builder bond** — 500 USDC locked in BuilderBondVault, slashing trigger: 7-day silence OR milestone fail
   - **Builder identity** — public wallet, optional X handle
 
 **Voiceover:**
-*"GrantScout je real Apify-backed agent. Scrape-uje Gitcoin a Octant rounds, generuje paid reports. Tu vidíte 3 receipts — každý je on-chain Sepolia tx, podpísaný agentovým ENS-registered wallet. Bonding curve current price 0.001 USDC za token. Builder commitnutý 500 USDC personal bond."*
+*"GrantScout je real Apify-backed agent. Scrape-uje Gitcoin a Octant rounds, generuje paid reports. Tu vidíte 3 receipts — každý je on-chain Sepolia tx, podpísaný agentovým ENS-registered walletom, cross-validated voči USDC transferu. ENS resolution live cez ENSIP-26 records. Umia venture link viditeľný — primárny funding ide cez ich Tailored Auction. Builder commitnutý 500 USDC personal bond cez Agent Float layer."*
 
 ### Sec 80–150 — Investor purchase via Umia Tailored Auction (POST-PIVOT)
 
@@ -167,7 +165,7 @@ In-person judging usually has 1-3 minutes for questions after the 5-min demo. Li
 A: *"No receipts, no float — every fundable agent must show on-chain proof of paid work before the token mints. Token launchpads issue tokens against promises; we require evidence."*
 
 ### Q: "What stops a builder from rugpulling?"
-A: *"Two layers. First, USDC split forces majority into AgentTreasury (multi-sig with Umia delegate signature for non-milestone releases). Second, BuilderBondVault locks builder's personal collateral that auto-distributes to investors if agent goes silent for N days or misses a milestone."*
+A: *"Two layers. First, the auction proceeds route to Umia's noncustodial treasury — builder doesn't custody investor USDC. Second, our BuilderBondVault locks builder's own USDC collateral that auto-distributes to current Umia venture token holders if agent goes silent for N days or misses a milestone. So builder can't drain treasury (Umia controls it) and can't walk away clean (we hold their bond)."*
 
 ### Q: "How do you prevent fake receipts to pump token price?"
 A: *"Receipts must be signed by the agent's ENS-registered wallet — distinct from builder's wallet. Each receipt's `paymentAmount` cross-checks against an actual USDC `Transfer` event from end user. To fake receipts, builder would have to send their own USDC to the agent — defeats the purpose."*
@@ -187,14 +185,14 @@ A: *"That's Umia's domain — they handle legal wrapper, securities classificati
 ### Q: "What's the post-hackathon plan?"
 A: *"Open-source codebase, Umia partnership, 5 working agents floated within 90 days. Revenue model: success fee on raised capital (1-3%) + premium analytics for institutional investors. We see Agent Float as the discovery funnel for Umia's venture pipeline."*
 
-### Q: "Why 2 million tokens fixed supply?"
-A: *"Default for v1 — gives meaningful precision (per-token revenue share visible at micro-scale) while keeping arithmetic clean. Fixed supply means no dilution surprise for investors. Builders can choose to issue a follow-on (post-MVP) but v1 is one-shot."*
+### Q: "What's the token supply?"
+A: *"Per Umia venture template — Umia controls token issuance via `umia venture init`. We don't redefine that. Whatever supply Umia configures for the venture, that's what investors interact with."*
 
 ### Q: "What happens if Umia integration is delayed?"
 A: *"Umia simulator with `mock: true` label visible in UI for the demo. Honest-over-slick rule. Real integration commitment post-hack."*
 
-### Q: "How does revenue actually distribute?"
-A: *"Pull-claim model. RevenueDistributor accumulates per-holder claimable balance based on token holdings at distribution time. Investor calls `claim()` when they want — gas-efficient, no daily push spam. UI shows live accumulating balance."*
+### Q: "How does revenue actually distribute to token holders?"
+A: *"That follows Umia's venture wrapper — they handle treasury and holder economics. We surface the agent's on-chain receipts feed so investors see proof of productivity in real time, but distribution mechanics are Umia's domain. If Umia treasury doesn't natively distribute, we have a conditional helper, but we defer to Umia first."*
 
 ### Q: "Why MIT license?"
 A: *"Solarpunk-aligned. Open architecture. Anyone can fork, audit, or build a competing platform. Permissionless capital market should have permissionless code."*

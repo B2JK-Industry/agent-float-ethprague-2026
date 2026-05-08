@@ -59,10 +59,10 @@ A **funding layer for working AI agents.** Operative word: *working* — proof g
 - Builds reputation through successful milestone hits
 
 ### 3. Agent (subject of the platform)
-- Has an ENS passport (`<agent>.agentfloat.eth`)
+- Has an ENS passport (`<agent>.agentfloat.eth`) with ENSIP-26 records + namespaced extensions
 - Has its own wallet that signs receipts
 - Earns USDC from paid users
-- Routes earnings: a portion replenishes treasury, the rest goes to RevenueDistributor for token holders
+- USDC routes per Umia venture treasury configuration; Agent Float surfaces receipts feed but does not redefine token-holder economics
 
 ### 4. End user of the agent
 - Pays for the agent's service (e.g., 0.01 USDC per GrantScout report)

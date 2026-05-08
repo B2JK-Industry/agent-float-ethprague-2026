@@ -12,7 +12,7 @@ Per-contract specification. All contracts in Solidity 0.8.24+, OpenZeppelin impo
 
 ## AgentRegistry.sol
 
-**Purpose:** Single entry point for agent registration. Orchestrates token mint, bond lock, curve setup, treasury deploy, milestone registration.
+**Purpose:** Entry point for Agent Float registration **after** the builder has run `umia venture init`. Links the Umia venture address + ENS subname + builder bond + milestones. **Does not mint tokens, set up auctions, or deploy treasuries** — those are Umia's responsibility, completed before this contract is called.
 
 ### State
 
@@ -20,15 +20,14 @@ Per-contract specification. All contracts in Solidity 0.8.24+, OpenZeppelin impo
 mapping(bytes32 ensNode => Agent) public agents;
 address public ensResolver;
 address public usdc;
-address public umiaDelegate;
+address public bondVaultFactory;
+address public milestoneRegistry;
 
 struct Agent {
     address owner;          // builder EOA
-    address ventureToken;   // AgentVentureToken instance
-    address bondingCurve;   // BondingCurveSale instance
-    address treasury;       // AgentTreasury instance
-    address milestones;     // MilestoneRegistry instance
-    address bondVault;      // BuilderBondVault instance
+    address umiaVenture;    // Umia venture address (provided by builder; contains token, treasury, auction)
+    address bondVault;      // BuilderBondVault instance for this agent
+    bytes32 milestonesRoot; // pointer into MilestoneRegistry namespace
     address receiptLog;     // shared or per-agent ReceiptLog
     uint256 registeredAt;
     bool active;
@@ -48,13 +47,12 @@ function deactivate(bytes32 ensNode) external onlyOwner  // for defaulted agents
 
 ```solidity
 struct RegisterParams {
-    string ensLabel;                    // e.g., "grantscout"
-    uint16 builderRetentionBps;         // basis points, e.g., 2000 = 20%
-    BondingCurveParams curveParams;
-    USDCSplit usdcSplit;
-    Milestone[] milestones;
-    uint256 builderBond;                // USDC locked
-    AgentMetadata metadata;
+    string ensLabel;                       // e.g., "grantscout"
+    address umiaVenture;                   // from `umia venture init` output
+    Milestone[] milestones;                // builder commitments
+    uint256 builderBond;                   // USDC collateral locked in BuilderBondVault
+    uint256 silenceThresholdSeconds;       // bond slashing trigger window
+    AgentMetadata agentMetadata;           // ENSIP-26 record payload
 }
 ```
 
@@ -390,43 +388,54 @@ event ReceiptEmitted(
 
 ## Deployment order
 
-1. Deploy shared contracts: `ReceiptLog` (or per-agent — design choice), USDC reference (Sepolia mock or real)
-2. Deploy `AgentRegistry` (parent contract)
-3. Per-agent registration calls `AgentRegistry.registerAgent()`, which deploys per-agent contracts:
-   - `AgentVentureToken`
-   - `BondingCurveSale`
-   - `AgentTreasury`
-   - `MilestoneRegistry` (or shared with subspaces)
-   - `BuilderBondVault`
-   - `RevenueDistributor`
+**Step 1 — Builder side, Umia CLI (handled entirely by Umia, no Agent Float involvement):**
+- `umia venture init <agent-name>` deploys the Umia venture, token, Tailored Auction, and noncustodial treasury
+
+**Step 2 — Agent Float side, deploy our 4 core contracts:**
+1. Deploy shared infrastructure: `ReceiptLog` (shared registry pattern), USDC reference (Sepolia mock or real)
+2. Deploy `MilestoneRegistry` (shared registry that namespaces per-agent milestones)
+3. Deploy `BuilderBondVault` factory (per-agent vaults instantiated at registration)
+4. Deploy `AgentRegistry` (parent contract that wires the above to ENS subnames and Umia ventures)
+
+**Step 3 — Per-agent registration:**
+- Builder runs Umia CLI (Step 1) → obtains `umiaVenture` address
+- Builder calls `AgentRegistry.registerAgent({ensLabel, umiaVenture, milestones, builderBond, …})`
+- This issues ENS subname, locks bond in BuilderBondVault, registers milestones — does NOT deploy token / auction / treasury (those exist on Umia side)
+
+**Conditional contracts (deploy only if Umia integration requires):**
+- `AgentVentureToken` — only if Umia does not provide a token template
+- `AgentTreasury` — likely unnecessary; Umia provides noncustodial treasury
+- `RevenueDistributor` — only if Umia treasury does not natively distribute to holders
+- `BondingCurveSale` — fallback only; deployed only if Umia auction unavailable for demo
 
 ## Sourcify verification
 
-All deployed contracts must be source-verified on Sourcify (sponsor track requirement). Foundry build produces metadata; deploy script POSTs to Sourcify API. Verification status surfaced in agent profile UI.
+All deployed Agent Float contracts must be source-verified on Sourcify (sponsor track requirement). Foundry build produces metadata; deploy script POSTs to Sourcify API. Verification status surfaced in agent profile UI. If conditional/fallback contracts are deployed in a given environment, they are verified too.
 
 ## Test plan
 
-Foundry tests cover:
+Foundry tests cover (Agent Float core):
 
-- `AgentRegistry.registerAgent` — happy path + invalid params
-- `AgentVentureToken` — minting splits, transfer mechanics
-- `BondingCurveSale.buy` — quotes correct, splits correct, reverts on no tokens
-- `AgentTreasury` — multi-sig propose/confirm/execute, milestone auto-release
+- `AgentRegistry.registerAgent` — happy path + invalid params (e.g., `umiaVenture` zero, milestones empty, bond too small)
 - `MilestoneRegistry` — addMilestone, markMet, checkExpired flow
-- `BuilderBondVault.slash` — both triggers, pro-rata distribution
-- `RevenueDistributor` — distribute, claim, transfer-between-distributions
-- `ReceiptLog.emitReceipt` — signature verify, USDC match, reverts on fake
+- `BuilderBondVault.slash` — both triggers (milestone fail, silence detector), pro-rata payout to current Umia venture token holders, claim payout
+- `ReceiptLog.emitReceipt` — signature verify, USDC `Transfer` match, reverts on signature mismatch or USDC mismatch
 
 Integration tests:
 
-- Full register → buy → query → emit receipt → distribute → claim flow
-- Failure path: silence detector → slash → claim slash payout
-- Failure path: missed milestone → slash
+- Full Umia-native flow: `umia venture init` (mocked) → `AgentRegistry.registerAgent()` → end-user paid query → `ReceiptLog` event emitted with USDC cross-validation
+- Failure path: silence detector → `BuilderBondVault.slash()` → token holder `claimSlashPayout()`
+- Failure path: missed milestone → slash trigger fires correctly
 
 Fuzz tests:
 
-- Bonding curve math invariants (price monotonic, sum cost = integral)
-- Distribution math invariants (sum of claimable ≤ totalDistributed)
+- Bond accounting invariants (sum of payouts ≤ initial bond)
+- Receipt cross-validation invariants (cannot emit receipt without matching USDC `Transfer`)
+
+Conditional contract tests (run only if those contracts are deployed):
+
+- `BondingCurveSale.buy` — quotes correct, splits correct (fallback only)
+- `RevenueDistributor.distribute` and `claim` — pro-rata math, transfer-between-distributions accounting (only if Umia treasury lacks holder distribution)
 
 ## Custom errors (per OpenZeppelin v5+ pattern)
 
@@ -435,21 +444,9 @@ Each contract uses custom errors instead of revert strings for gas efficiency an
 ```solidity
 // AgentRegistry
 error AgentAlreadyRegistered(bytes32 ensNode);
-error InvalidBuilderRetention(uint16 bps);
-error InvalidUSDCSplit(uint16 upfront, uint16 treasury);
+error UmiaVentureZero();
 error MilestonesEmpty();
 error BondTooSmall(uint256 provided, uint256 minimum);
-
-// BondingCurveSale
-error InsufficientUSDC(uint256 required, uint256 provided);
-error TokensExhausted(uint256 requested, uint256 available);
-error CurveParamsInvalid();
-
-// AgentTreasury
-error NotSigner(address caller);
-error AlreadyConfirmed(uint256 proposalId, address signer);
-error ProposalAlreadyExecuted(uint256 proposalId);
-error InsufficientConfirmations(uint8 has, uint8 required);
 
 // MilestoneRegistry
 error MilestoneNotFound(bytes32 milestoneId);
@@ -461,7 +458,20 @@ error AlreadySlashed();
 error TriggerNotMet();
 error NoPayoutAvailable(address holder);
 
-// RevenueDistributor
+// Conditional/fallback contracts (errors apply only if those contracts are deployed):
+
+// BondingCurveSale [FALLBACK ONLY]
+error InsufficientUSDC(uint256 required, uint256 provided);
+error TokensExhausted(uint256 requested, uint256 available);
+error CurveParamsInvalid();
+
+// AgentTreasury [LIKELY UNNECESSARY]
+error NotSigner(address caller);
+error AlreadyConfirmed(uint256 proposalId, address signer);
+error ProposalAlreadyExecuted(uint256 proposalId);
+error InsufficientConfirmations(uint8 has, uint8 required);
+
+// RevenueDistributor [CONDITIONAL]
 error NothingToClaim(address holder);
 error InvalidDistributionAmount();
 

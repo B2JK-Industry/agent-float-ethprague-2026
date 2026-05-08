@@ -193,11 +193,14 @@ Before submitting to Devfolio:
 
 - [ ] All 12 gates run through dry-run successfully
 - [ ] Recording fallback exists for each demo segment
-- [ ] All deployed contracts verified on Sourcify
+- [ ] All deployed Agent Float contracts verified on Sourcify (4 core + any conditional/fallback actually deployed)
 - [ ] Demo wallets pre-funded
-- [ ] Bonding curve pre-warmed (1-2 small buys)
-- [ ] Receipts feed has 3+ real events
-- [ ] ENS subname resolves on first try
+- [ ] Umia auction state pre-warmed (1-2 mock bids on testnet auction OR fallback simulator state populated)
+- [ ] Receipts feed has 3+ real events with USDC cross-validation passing
+- [ ] ENS subname resolves on first try with all ENSIP-26 + namespaced records present
+- [ ] BuilderBondVault locked at correct amount per agent
+- [ ] MilestoneRegistry contains committed milestones with realistic deadlines
+- [ ] `agentfloat:umia_venture` ENS record points to a valid Umia venture
 - [ ] `.env.example` complete
 - [ ] README has run instructions
 - [ ] Sourcify links visible on agent profile
@@ -207,16 +210,17 @@ Before submitting to Devfolio:
 During the live demo, mention key gates verbally:
 
 - §25-80: *"ENS resolves live — you can see this in the network tab"* (GATE-2)
-- §150-210: *"This is a real Sepolia tx — here's the explorer link"* (GATE-1, GATE-3)
-- §150-210: *"USDC split happens on-chain — verify in the tx"* (GATE-9)
-- §250-280: *"Builder bond is locked here — link to contract on explorer"* (GATE-12)
+- §25-80: *"All ENSIP-26 records and Agent Float namespaced extensions resolve from ENS"* (GATE-12)
+- §80-150: *"This is the actual Umia Tailored Auction page for this venture — here's the live state"* (GATE-7, GATE-8)
+- §150-210: *"This is a real Sepolia tx — here's the explorer link; receipt is signed and USDC-cross-validated"* (GATE-1, GATE-3, GATE-9)
+- §250-280: *"Builder bond is locked here — link to BuilderBondVault contract on explorer"* (GATE-10)
 
 ## Post-demo verification (judges)
 
 Judges who want to dig deeper can:
 
 1. Open Sepolia explorer with provided contract addresses
-2. Verify token total supply is exactly 2,000,000
+2. Verify ENS subname resolves with `agentfloat:umia_venture` record pointing to an actual Umia venture address
 3. Click any receipt → verify Receipt event matches displayed data
 4. Verify all contracts source-verified on Sourcify
 5. Clone repo and run locally

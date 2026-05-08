@@ -126,7 +126,7 @@ We submit to Network Economy (privacy + identity + onchain economic coordination
 
 If a track-specific mentor is available:
 
-**Question:** *Our project is Agent Float — capital market for working AI agents. We have per-agent ENS identity, on-chain economic coordination via bonding-curve token sales and milestone-gated capital release, and user control via builder bonds and pull-claim revenue. Does this fit Network Economy track, or would Best UX Flow be a better fit?*
+**Question:** *Our project is Agent Float — discovery and accountability layer above Umia ventures for working AI agents. Per-agent ENS identity (ENSIP-26 records), on-chain economic coordination via Umia Tailored Auctions + signed receipts gate before fundraising, and user control via builder bonds (slashable on milestone miss or agent silence). Does this fit Network Economy track, or would Best UX Flow be a better fit?*
 
 Submit to whichever track the mentor recommends.
 

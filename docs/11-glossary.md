@@ -28,45 +28,49 @@ Terms used across the Agent Float documentation, defined precisely.
 
 ## Tokenomics terms
 
-**Venture token.** Per-agent ERC20 with fixed 2,000,000 supply. Represents claim on the agent's revenue stream.
+**Venture token.** ERC20 issued per agent venture by Umia (via `umia venture init`). Supply, retention, distribution rules are configured on Umia's side. Agent Float does not redefine these.
 
-**Bonding curve.** Mechanism where token price increases as more tokens are sold. Linear by default in Agent Float: `price(n) = startPrice + slope * n`.
+**Umia Tailored Auction.** Primary sale mechanism for agent venture tokens. Powered by Uniswap CCA (Continuous Clearing Auctions). Replaces v1's custom `BondingCurveSale.sol` (now fallback only).
 
-**Builder retention.** Percentage of the 2M token supply retained by the builder at registration. Public allocation = supply minus retention.
+**Umia noncustodial treasury.** Holds USDC proceeds from the Tailored Auction. Builder does not custody. Capital release per Umia governance + (optionally) Agent Float milestone triggers.
 
-**USDC split.** Builder-set parameter at registration: what % of investor USDC goes upfront to builder vs. into AgentTreasury (milestone-locked).
+**Builder bond.** USDC collateral posted by builder at Agent Float registration, locked in `BuilderBondVault.sol`. Slashes pro-rata to current Umia venture token holders if milestones miss or agent goes silent. Agent Float innovation; Umia ventures don't natively include personal accountability collateral.
 
-**Builder bond.** USDC collateral posted by builder at registration, locked in `BuilderBondVault`. Slashes pro-rata to investors if milestones miss or agent goes silent.
+**Milestone.** Builder-committed deliverable (e.g., "50 paid reports in 30 days"). Tracked in `MilestoneRegistry`. Failed milestone triggers `BuilderBondVault.slash()`.
 
-**Milestone.** Builder-committed deliverable (e.g., "50 paid reports in 30 days"). Tracked in `MilestoneRegistry`. Triggers tranche release from treasury when met; triggers bond slashing if missed.
+**Slashing.** When a builder bond is forcibly distributed to current Umia venture token holders due to default. Pro-rata by token holdings.
 
-**Slashing.** When a builder bond is forcibly distributed to current token holders due to default. Pro-rata by token holdings.
+**Receipts gate ("no receipts, no float").** Hard product rule: an agent cannot have its venture floated until it has demonstrated paid work via signed, USDC-cross-validated receipts. Agent Float's primary differentiator vs. token launchpads.
 
-**Pull claim.** Revenue distribution model where investors call `claim()` to receive accumulated USDC. Gas-efficient. Contrasted with push (auto-distribute every distribution event, expensive).
-
-**Snapshot accounting.** Per-holder claimable balance updated at each `distribute()` call based on `balanceOf(holder)` at that moment.
+**ENSIP-26 records.** Standard ENS records for AI agents: `agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`, `agent-registration[...]`. Agent Float aligns with these as the canonical agent passport schema, plus namespaced extensions for Agent Float-specific data.
 
 ---
 
 ## Onchain components
 
-**AgentRegistry.** Master contract that orchestrates agent registration. Deploys per-agent contracts and sets up state.
+### Agent Float core (always deployed)
 
-**AgentVentureToken.** Per-agent ERC20. Fixed 2M supply.
+**AgentRegistry.** Entry point for Agent Float registration after Umia venture init. Links Umia venture address + ENS subname + builder bond + milestone registry. Does not mint tokens or set up auctions (Umia does that).
 
-**BondingCurveSale.** Per-agent primary sale mechanism. Investors buy tokens with USDC at curve price.
+**ReceiptLog.** Append-only event log for agent paid work. Each receipt signed by agent's ENS-registered wallet AND USDC-cross-validated against on-chain `Transfer` event from end user. Wash-trading defense (raises cost, does not eliminate).
 
-**AgentTreasury.** Per-agent multi-sig that holds USDC. Signers: builder + Umia delegate + investor delegate. Releases tranches via `MilestoneRegistry`.
+**BuilderBondVault.** Per-agent vault holding builder's USDC collateral. Slashes on milestone miss or agent silence. Pull-claim payout to current Umia venture token holders.
 
-**MilestoneRegistry.** Tracks committed milestones per agent. Marks met or failed. Triggers treasury releases or bond slashing.
+**MilestoneRegistry.** Tracks committed milestones per agent. Marks met or failed. Failed milestone triggers `BuilderBondVault.slash()`.
 
-**BuilderBondVault.** Per-agent vault holding builder's collateral. Slashes on milestone miss or silence.
+### Conditional / fallback (deployed only if Umia integration requires)
 
-**RevenueDistributor.** Per-agent contract that receives agent revenue and tracks claimable per holder.
+**AgentVentureToken** [CONDITIONAL]. Used only if Umia does not provide a token template; otherwise Umia's template is used. ERC20 fed into Umia auction.
 
-**ReceiptLog.** Append-only event log for agent paid work. Receipts signed by agent's wallet, validated against USDC transfers.
+**AgentTreasury** [LIKELY UNNECESSARY]. Umia provides noncustodial treasury; this contract is needed only if we hold Agent Float-specific extension state.
 
-**ENS subname.** `<agent>.agentfloat.eth`. Public passport for an agent. Resolves to wallet, capabilities, contract addresses.
+**RevenueDistributor** [CONDITIONAL]. Pull-claim helper for token holder distribution. Deployed only if Umia treasury does not natively distribute.
+
+**BondingCurveSale** [FALLBACK ONLY]. Internal simulator if Umia auction is unavailable for demo. Not pitched as primary.
+
+### Identity
+
+**ENS subname.** `<agent>.agentfloat.eth`. Public passport for an agent. Resolves with ENSIP-26 records (`agent-context`, `agent-endpoint[*]`) plus namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`).
 
 ---
 

@@ -279,37 +279,50 @@ If all 4 pass, receipt is verified. The verifier need not trust any server, only
 - **AI Gateway (Vercel)** — LLM calls for demo agents; provider/model strings, prompt caching enabled.
 - **Apify** — used as infrastructure for demo agent scraping (Gitcoin, Octant). Not claimed as sponsor track.
 
-## Data flow — registration
+## Data flow — registration (two-step, Umia-first)
 
 ```
-Builder calls AgentRegistry.registerAgent({
-  ensName, builderRetention%, bondingCurveParams,
-  usdcSplit{upfront, treasury}, milestones, builderBond, metadata
-})
+Step 1: Builder runs `umia venture init <agent-name>`
+        │
+        ├─▶ Umia creates legal entity wrapper
+        ├─▶ Umia deploys / configures venture token (their template)
+        ├─▶ Umia configures Tailored Auction (Uniswap CCA)
+        ├─▶ Umia deploys noncustodial treasury
+        └─▶ Returns: { ventureAddress, tokenAddress, treasuryAddress, auctionAddress }
+
+Step 2: Builder calls Agent Float AgentRegistry.registerAgent({
+          ensLabel, umiaVenture, milestones,
+          builderBond, silenceThresholdSeconds, agentMetadata
+        })
    │
-   ├─▶ ENS subname registered: <agent>.agentfloat.eth
-   ├─▶ AgentVentureToken deployed (2M supply minted)
-   │     └─▶ builderRetention% goes to builder wallet
-   │     └─▶ rest reserved for BondingCurveSale
-   ├─▶ BondingCurveSale deployed with curve params
-   ├─▶ AgentTreasury deployed (multi-sig)
-   ├─▶ MilestoneRegistry initialized with builder's milestones
+   ├─▶ ENS subname issued: <agent>.agentfloat.eth
+   │     └─▶ ENSIP-26 records (agent-context, agent-endpoint[web|mcp])
+   │     └─▶ namespaced records (agentfloat:umia_venture, …:bond_vault,
+   │                              …:milestones, …:receipts_pointer)
    ├─▶ BuilderBondVault locks builderBond USDC from builder
+   ├─▶ MilestoneRegistry initialized with builder's milestones
    └─▶ Agent ready to receive paid queries
 ```
 
-## Data flow — investor purchase
+> No token mint, no curve setup, no USDC split parameters at this layer — those live entirely on Umia's side via Step 1.
+
+## Data flow — investor purchase (Umia-native)
 
 ```
-Investor calls BondingCurveSale.buy(amount)
+Investor browses Agent Float → opens agent profile
    │
-   ├─▶ Curve calculates USDC required for `amount` tokens
-   ├─▶ Investor pays USDC
-   │     └─▶ usdcSplit.upfront% → builder wallet
-   │     └─▶ usdcSplit.treasury% → AgentTreasury
-   ├─▶ Tokens transferred to investor (out of reserved pool)
-   └─▶ Investor now eligible for revenue distribution
+   ├─▶ Profile shows: ENS passport, receipts feed, Umia auction state, bond, milestones
+   ├─▶ Investor clicks "Fund via Umia"
+   │
+   └─▶ Browser redirects to Umia Tailored Auction page (Uniswap CCA mechanism)
+         │
+         ├─▶ Investor places bid (USDC posted)
+         ├─▶ Umia auction settles clearing price
+         ├─▶ Tokens credited to investor wallet via Umia
+         └─▶ Proceeds route to Umia noncustodial treasury per Umia governance
 ```
+
+> Investor exposure structure (revenue rights, governance, secondary trading) follows Umia's venture wrapper — Agent Float does not redefine token economics.
 
 ## Data flow — agent earns + distributes
 

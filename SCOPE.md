@@ -346,10 +346,16 @@ Items ktoré v skoršej drafte boli markované ako "post-hack" alebo "MVP cuts" 
 - Umia integration (TBD Day 1 mentor)
 - Optional Apify Actor pre GrantScout
 
-**Smart contracts (Foundry, Sepolia):**
-- `AgentRegistry.sol` — `register(ensNode, ownerEoa)` + metadata pointer
-- `ReceiptLog.sol` — `logReceipt(agentEns, queryHash, reportHash, amount)` event-only append
-- `AgentTreasury.sol` — Safe-lite multi-sig per agent; deposit USDC, release on milestone
+**Smart contracts (Foundry, Sepolia + selected mainnet):**
+
+Core (always deployed):
+- `AgentRegistry.sol` — links Umia venture address + ENS subname + bond + milestones
+- `ReceiptLog.sol` — append-only signed receipt events with USDC cross-validation
+- `BuilderBondVault.sol` — locks builder collateral; slashes pro-rata to current Umia venture token holders on default
+- `MilestoneRegistry.sol` — milestone tracking + slashing trigger
+
+Conditional / fallback only (deployed only if Umia integration requires; otherwise omitted):
+- `AgentVentureToken.sol`, `AgentTreasury.sol`, `RevenueDistributor.sol`, `BondingCurveSale.sol`
 
 **Identity:**
 - Parent ENS: `agentfloat.eth` (Sepolia) — registrácia tonight
@@ -390,8 +396,8 @@ ETHPrague2026/
 | **Token-casino perception** | 35% | High | Demo MUSI prominently zobraziť "no receipts, no float" rule; explicitly contrast against meme launchpads v opening. |
 | **Wash-trading by builder** (fakuje receipts → pump token price) | 30% | High | Receipts musia byť signed by agent's ENS-registered wallet AND tied to actual user-paid USDC tx (paymentAmount field cross-checks against on-chain transfer). Cannot fake receipt without burning own USDC. |
 | **Builder default / rugpull** | 20% | High | BuilderBondVault.sol locks personal collateral; auto-slashes ak agent ide silent OR milestone missed. Q7a personal obligation enforced on-chain. |
-| **Bonding curve price volatility v demo** | 25% | Medium | Pre-warm curve s 2-3 small buys before demo, aby live buy nehit nezvyklú price. Linear curve s tight slope pre demo. |
-| **RevenueDistributor accounting bugs** | 15% | High | Foundry tests pre per-holder claimable math; reuse battle-tested 0xSplits accounting model. |
+| **Umia auction state stale during demo** | 25% | Medium | Pre-warm via 1-2 mock bids on Umia testnet auction (or Sepolia simulator if Umia auction is mainnet-only). Verify state propagates to agent profile in <2s. |
+| **Conditional `RevenueDistributor` accounting bugs (only if deployed)** | 15% | High | Only relevant if Umia treasury does not natively distribute. If we must deploy, Foundry fuzz tests for invariants; reuse 0xSplits accounting model. |
 | **Live ENS resolve fails on stage** | 20% | High | Pre-resolve + cache; fallback display "loading from cache" if RPC blip. |
 | **Sepolia gas/RPC issues** | 15% | High | Pre-fund wallets; have Anvil local fork as deep fallback. |
 
@@ -505,12 +511,14 @@ Demo passes ONLY ak:
 - [ ] GATE-4: Funding proposal text reflects what builder ACTUALLY needs (not Lorem ipsum)
 - [ ] GATE-5: Any mocked component labeled `mock: true` visibly v UI (e.g., Umia simulator badge)
 - [ ] GATE-6: Demo doesn't make claims that aren't reproducible from `git checkout && pnpm dev`
-- [ ] GATE-7: Token mint executes on registration (2M tokens) — verifiable on Sepolia explorer
-- [ ] GATE-8: Bonding curve quote returned correctly for given token amount (math reproducible)
-- [ ] GATE-9: USDC split happens correctly on token purchase (% upfront vs treasury verifiable v tx)
-- [ ] GATE-10: RevenueDistributor accepts USDC + updates per-holder claimable (snapshot logic)
-- [ ] GATE-11: claim() function transfers correct USDC pro-rata to investor wallet
-- [ ] GATE-12: BuilderBondVault locks collateral pri registrácii + slashable per ObligationRegistry trigger
+- [ ] GATE-7: Umia venture address linked from `<agent>.agentfloat.eth` ENS record (`agentfloat:umia_venture`); on-chain registry agrees
+- [ ] GATE-8: Umia Tailored Auction state visible from agent profile (live or post-auction); "Fund via Umia" CTA resolves to a real Umia auction
+- [ ] GATE-9: ReceiptLog events signed by agent's ENS-resolved wallet AND USDC `Transfer` cross-validation present for each receipt
+- [ ] GATE-10: BuilderBondVault holds builder's USDC collateral at correct amount immediately after registration
+- [ ] GATE-11: MilestoneRegistry milestones queryable from agent profile; status (pending/met/failed) tracked; failed → slash trigger fires
+- [ ] GATE-12: ENS subname resolves with both ENSIP-26 standard records (`agent-context`, `agent-endpoint[*]`) and namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`)
+
+> Detailed gate spec with verification protocol: [docs/06-acceptance-gates.md](./docs/06-acceptance-gates.md). All v1-shaped gates (token mint, bonding curve quote, USDC split, RevenueDistributor claim) explicitly removed post-pivot.
 
 ---
 
@@ -521,6 +529,6 @@ Demo passes ONLY ak:
 - **[PIVOTED — Tokenomics v2 — 2026-05-08]:** Primary sale changes from custom `BondingCurveSale.sol` to **Umia Tailored Auctions** (Uniswap CCA). Token issuance, treasury, secondary all delegated to Umia. Naše inovácie (ReceiptLog, BuilderBondVault, MilestoneRegistry, ENS passport) zostávajú ako Agent Float value-add layer NAD Umia ventures. **PENDING UMIA MENTOR CONFIRMATION** — pivot je default direction. Mentor potvrdí buď (a) Tailored Auction integration path = pivot finalizuje sa, alebo (b) custom curve OK = revert na v1. Reviewer flagged that bypassing Umia core product is sponsor-fit risk for $12K Best Agentic Venture.
 - **[pending]:** Naming "Agent Float" collision check.
 - **[pending]:** Umia integration path — mentor sweep priority #1.
-- **[pending]:** Bonding curve params (linear vs exponential, starting price) — fix at scaffold time.
 - **[pending]:** Silence-detector N days threshold pre BuilderBondVault slashing trigger (default rec: 7 days).
+- **[obsolete post-pivot]:** ~~Bonding curve params (linear vs exponential, starting price)~~ — only relevant if fallback path activates; not a v2 primary decision.
 - **Backup pivot:** ak Umia mentor session reveals integration block, fallback: Probono (civic procurement) alebo PGRoll (SpaceComputer cTRNG public goods).
