@@ -259,7 +259,7 @@ is_valid = verify_receipt(receipt)
 The SDK's `verifyReceipt()` performs:
 
 1. ECDSA recover from `signature` → must match `agent`
-2. ENS resolve `agentEns` → wallet record → must match `agent`
+2. ENS resolve `agentEns` → read **ENSIP-26 `agent-context` record** which carries the agent's signing wallet (per ENSIP-26 schema) → must match `agent`
 3. On-chain check: USDC `Transfer` event from `payer` → `agent` for `paymentAmount` exists in same block range
 4. ReceiptLog event exists matching this receipt's hash
 

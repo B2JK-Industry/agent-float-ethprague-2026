@@ -72,22 +72,29 @@ event AgentDeactivated(bytes32 indexed ensNode, string reason);
 
 ## AgentVentureToken.sol [CONDITIONAL post-pivot]
 
-> **Status (post-pivot 2026-05-08):** Use Umia's venture token template if they provide one. Otherwise deploy our ERC20 and feed into Umia Tailored Auction as the auctioned asset. Spec below accurate for our-deployed case; may be replaced entirely by Umia template.
+> **Status (post-pivot 2026-05-08):** Use Umia's venture token template if they provide one — that's the default path. This contract is deployed only if Umia explicitly requires us to provide the ERC20. In that case, the token is fed into the Umia Tailored Auction (or other Umia-defined distribution address) as the auctioned asset. Supply, retention, and distribution are configured per Umia's venture init parameters, not Agent Float-defined.
 
-**Purpose:** ERC20 token, fixed 2M supply, minted once at agent registration. Deployed per-agent.
+**Purpose:** ERC20 token, supply per Umia template. Minted once and transferred to the Umia auction/distribution address as configured.
 
 ### Implementation
 
-Inherits OpenZeppelin `ERC20` + `ERC20Permit`.
+Inherits OpenZeppelin `ERC20` + `ERC20Permit`. Total supply parameterized at construction time per Umia venture template.
 
 ```solidity
-constructor(string memory name, string memory symbol, address bondingCurveSale, uint256 builderRetention, address builder) ERC20(name, symbol) ERC20Permit(name) {
-    _mint(bondingCurveSale, 2_000_000e18 - builderRetention);
+constructor(
+    string memory name,
+    string memory symbol,
+    address umiaDistributionAddress,   // Umia auction / distribution endpoint
+    uint256 totalSupply,               // per Umia venture template
+    uint256 builderRetention,          // per Umia venture init config
+    address builder
+) ERC20(name, symbol) ERC20Permit(name) {
+    _mint(umiaDistributionAddress, totalSupply - builderRetention);
     _mint(builder, builderRetention);
 }
 ```
 
-Total supply locked at 2M. No further minting in v1.
+Total supply, retention split, and distribution endpoint are Umia-defined. No further minting unless Umia template specifies follow-on issuance.
 
 ### Functions
 
@@ -500,13 +507,16 @@ Trade-off: bug discovered post-deploy means ship v2 + migrate. Acceptable for MV
 
 | Operation | Estimated gas (Sepolia) |
 |---|---|
-| `registerAgent` (deploys 6 contracts) | ~3M gas (heavy) |
-| `buy` (bonding curve) | ~150k gas |
-| `emitReceipt` (with USDC verify) | ~80k gas |
-| `distribute` | ~50k gas |
-| `claim` | ~50k gas |
-| `slash` (mark slashed) | ~80k gas |
-| `claimSlashPayout` | ~50k gas |
+| `AgentRegistry.registerAgent` (links Umia venture + ENS subname + bond + milestones; no per-agent contract deploys at this layer) | ~400k gas |
+| `BuilderBondVault.lockBond` (during registration) | ~80k gas |
+| `MilestoneRegistry.addMilestone` (per milestone) | ~60k gas |
+| `ReceiptLog.emitReceipt` (with USDC verify) | ~80k gas |
+| `BuilderBondVault.slash` (permissionless trigger) | ~80k gas |
+| `BuilderBondVault.claimSlashPayout` | ~50k gas |
+| **Conditional/fallback contracts (only if deployed):** | |
+| `BondingCurveSale.buy` [fallback] | ~150k gas |
+| `RevenueDistributor.distribute` [conditional] | ~50k gas |
+| `RevenueDistributor.claim` [conditional] | ~50k gas |
 
 Optimization paths if mainnet deploy needed:
 - Use minimal proxy (EIP-1167) for per-agent contract deployment

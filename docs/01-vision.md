@@ -93,7 +93,7 @@ Three of seven Open Agents finalists/track-winners hit similar primitives. Stron
 | Builder takes USDC and disappears | Auction proceeds route to Umia noncustodial treasury (builder doesn't custody investor USDC); BuilderBondVault separately holds builder's personal collateral that slashes pro-rata to current Umia venture token holders on default |
 | Agent stops earning | Receipts feed silence triggers BuilderBondVault slashing after grace period; investors see decline before bond auto-distributes |
 | Builder fakes receipts to pump token price | Receipts must be signed by agent's ENS-registered wallet AND tied to actual USDC transfers from end users; fake receipts require burning own USDC, defeating the purpose |
-| Token speculation decouples from agent reality | Bonding curve enforces price-discovery against actual buy-pressure; UI prominently shows revenue-per-token-per-day so speculation is visible against fundamentals |
+| Token speculation decouples from agent reality | Umia secondary market provides price discovery against real buy/sell pressure; UI surfaces live receipts feed so speculation is visible against agent productivity fundamentals |
 | Token interpreted as security | Umia legal wrapper (their core product) addresses this off-chain |
 
 ## What success looks like

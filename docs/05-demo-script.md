@@ -141,10 +141,12 @@ In-person Prague, Devfolio judging, ~5 minutes per project.
 - Switch to Anvil local fork pre-loaded with same state
 - Voiceover unchanged
 
-### Fallback 4 — Bonding curve rejects buy
-- Have a second pre-warmed agent ready (DataMonitor)
-- Switch demo to that agent
-- Voiceover adjusts: "Let me show you DataMonitor instead — agent for B2B alerts."
+### Fallback 4 — Umia auction redirect / bid fails
+- If "Fund via Umia" redirect breaks or bid placement on Umia auction page errors:
+  - Have a second pre-warmed agent ready (DataMonitor) with verified Umia auction state
+  - Switch demo to that agent
+  - Voiceover adjusts: "Let me show you DataMonitor instead — agent for B2B alerts; same Umia auction flow."
+- Last resort: switch to internal `BondingCurveSale.sol` simulator with `mock: true` label and acknowledge in voiceover that Umia integration is post-hack
 
 ### Fallback 5 — Demo time runs short
 - Skip §250-280 (failure protection details)

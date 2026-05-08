@@ -76,8 +76,8 @@ Risk levels: **Critical** (blocks submission), **High** (degrades quality signif
 - **Level:** High
 - **Probability:** 30%
 - **Owner:** Daniel (presenter) + Claude (pre-flight check)
-- **Description:** Live demo requires real Sepolia tx + Apify scraper + AI Gateway + RevenueDistributor — many moving parts.
-- **Mitigation:** Pre-record fallback video of the same flow. Pre-warm bonding curve. Have backup demo agent ready. Fast Sepolia RPC (Alchemy paid tier).
+- **Description:** Live demo requires real Sepolia tx + Apify scraper + AI Gateway + ReceiptLog emit + Umia auction state surfacing — many moving parts.
+- **Mitigation:** Pre-record fallback video of the same flow. Pre-warm Umia auction state (or fallback simulator). Have backup demo agent ready. Fast Sepolia RPC (Alchemy paid tier).
 
 ### R-009 — ENS resolution delays during demo
 
@@ -137,7 +137,7 @@ Risk levels: **Critical** (blocks submission), **High** (degrades quality signif
 - **Probability:** 50%
 - **Owner:** Claude (UI)
 - **Description:** Token price could pump on hype, decoupling from actual agent revenue. Buyers later may regret.
-- **Mitigation:** Bonding curve enforces price-discovery against actual buy-pressure (no infinite-mint hype). UI prominently shows revenue-per-token-per-day so speculation visible against fundamentals. Honest UI is the cure.
+- **Mitigation:** Umia secondary market provides actual price discovery against real buy/sell pressure (not arbitrary curve params). UI surfaces the live receipts feed so speculation is visible against agent productivity fundamentals. Honest UI + real on-chain proof of work are the cure.
 
 ### R-016 — Token classified as security in unfriendly jurisdiction
 

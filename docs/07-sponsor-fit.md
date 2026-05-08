@@ -63,7 +63,7 @@ Agent Float is **a discovery + reputation + accountability layer ON TOP OF Umia 
 | Agentic product | GrantScout (and DataMonitor, TenderEye) are real working agents |
 | Clear user | Investor (primary), Builder (secondary), End user (tertiary) |
 | Revenue path | Umia Tailored Auction primary sale + token-holder economics per Umia venture wrapper + Agent Float platform success fees on raised capital (1-3%) post-MVP |
-| Venture logic | Token-share-of-revenue model with milestone-gated capital release and builder bond |
+| Venture logic | Umia venture wrapper (token + treasury + secondary market) gated by Agent Float proof layer (signed receipts + builder bond + milestone slashing). Specific token-holder economics deferred to Umia's legal model — we do not redefine. |
 | Strong narrative | "Capital market for working AI agents — proof first, funding second" |
 | Post-hack continuation | Open-source codebase + Umia partnership + 3 demo agents = ready for Phase 2 |
 
