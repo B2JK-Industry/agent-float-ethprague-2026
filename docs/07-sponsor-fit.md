@@ -268,7 +268,7 @@ Each agent profile includes a "Verify on Sourcify" link. Clicking opens the Sour
 - A project with mainnet deployment + significant usage at demo time
 
 **Our defense:**
-- Per-agent passport with structured records (`wallet`, `endpoints`, `capabilities`, `receipts_pointer`, `treasury`, `venture_token`, `bond_vault`) is novel hierarchical pattern
+- Per-agent passport using ENSIP-26 standard records (`agent-context`, `agent-endpoint[*]`) plus namespaced Agent Float extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`) is a novel hierarchical pattern
 - Passport entry-point into 8-contract ecosystem makes ENS structurally integral
 
 ### Sourcify (bonus track)

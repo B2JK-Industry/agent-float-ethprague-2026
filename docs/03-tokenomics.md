@@ -117,7 +117,7 @@ Sponsor-native test: bez Umia auction by Umia bola decoration. Ich Tailored Auct
 **After agent earns 10 USDC in revenue:**
 - 30% goes to AgentTreasury (replenish runway: 3 USDC)
 - 70% goes to RevenueDistributor (distribute to holders: 7 USDC)
-- Investor A's claimable: 7 × 0.05% = 0.0035 USDC
+- Investor A's claimable (FALLBACK PATH ONLY, do NOT cite in pitch): 7 × 0.05% = 0.0035 USDC
 
 **Investor A claims after 100 paid reports (10 USDC × 100 = 1,000 USDC revenue):**
 - Cumulative distributed: 700 USDC across all holders

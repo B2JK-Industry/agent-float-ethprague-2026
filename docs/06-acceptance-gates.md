@@ -43,7 +43,7 @@ Gates 4, 5 are **MEDIUM** — polish (proposal text, mock labeling).
 **Verify:**
 - During demo §25-80, ENS resolution happens client-side via wagmi/viem
 - Browser DevTools → Network tab shows ENS RPC calls
-- Resolution returns agent wallet, endpoints, capabilities, receipts pointer
+- Resolution returns ENSIP-26 records (`agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`) + namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`)
 
 **Pass criteria:** No cached/hardcoded display. RPC call visible in network log.
 

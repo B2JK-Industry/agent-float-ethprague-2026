@@ -127,7 +127,7 @@ What is pending:
 - Naming collision check ([docs/08-naming-research.md](./docs/08-naming-research.md))
 - Umia mentor sweep ([docs/09-sponsor-mentor-questions.md](./docs/09-sponsor-mentor-questions.md))
 - Code scaffolding (Next.js + Foundry + pnpm workspaces)
-- Smart contract implementation (8 contracts in [docs/04-contracts.md](./docs/04-contracts.md))
+- Smart contract implementation (4 Agent Float core contracts + up to 4 conditional/fallback — see [docs/04-contracts.md](./docs/04-contracts.md))
 - Demo agent build (GrantScout)
 
 ## How to read this repo

@@ -425,7 +425,7 @@ ETHPrague2026/
 
 ### Track A — Identity layer (ENS)
 - Register `agentfloat.eth` parent (mainnet primary; Sepolia ako iteration sandbox)
-- ENS Resolver supporting custom text records (`wallet`, `endpoints`, `capabilities`, `receipts_pointer`, `treasury`, `venture_token`)
+- ENS Resolver supporting **ENSIP-26 standard records** (`agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`) plus namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`)
 - Programmatic subname registration helpers
 - Wagmi/viem live resolve helpers pre UI
 - **Blocks:** Track C, Track D

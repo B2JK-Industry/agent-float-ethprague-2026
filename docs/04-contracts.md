@@ -105,7 +105,7 @@ Standard ERC20 events.
 
 > **Status (post-pivot 2026-05-08):** Not the primary sale path. Umia Tailored Auctions are primary. This contract retained as **internal fallback simulator** for cases where: (1) Umia integration unavailable during demo, (2) local pre-deploy testing, (3) revert path if mentor confirms custom curve acceptable. Spec below remains accurate for fallback usage; not pitched as headline mechanism.
 
-**Purpose:** Primary sale via bonding curve. Investors buy tokens with USDC; sale proceeds split per builder's USDCSplit.
+**Purpose (FALLBACK ONLY):** Internal-simulator primary-sale-style mechanism for cases where Umia Tailored Auction is unavailable at demo time. Was originally designed as primary; now strictly fallback. Investors buy tokens with USDC; sale proceeds split per builder's USDCSplit. Not pitched in primary narrative.
 
 ### State
 
@@ -475,7 +475,7 @@ error AgentNotRegistered(address agent);
 
 **v1 contracts are non-upgradeable.** No proxy pattern. Reasons:
 
-1. Hackathon-scale: 8 contracts × proxy overhead = unnecessary complexity
+1. Hackathon-scale: 4 core + up to 4 conditional contracts × proxy overhead = unnecessary complexity
 2. Honest-over-slick: investors verify exact source on Sourcify; upgradeable contracts add trust assumption
 3. Bond + treasury security: immutable contracts can't be retroactively changed to drain funds
 

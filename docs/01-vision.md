@@ -45,14 +45,15 @@ A **funding layer for working AI agents.** Operative word: *working* — proof g
 
 ### 1. Investor (primary demo POV)
 - Browses Agent Float, sees a grid of working agents
-- Reads a profile: receipts feed, revenue, milestones, bonding curve price, builder identity
-- Buys tokens through bonding curve
+- Reads a profile: receipts feed (signed + USDC-cross-validated), milestones, Umia auction state, builder bond, builder identity
+- Buys tokens through Umia Tailored Auction (Uniswap CCA)
 - Holds tokens, watches receipts feed, claims accumulated USDC anytime
 - Optionally trades on Umia secondary market
 
 ### 2. Builder (secondary demo POV)
 - Operates an agent that already does paid work
-- Registers the agent: assigns ENS subname, mints 2M venture tokens, locks personal bond, commits milestones, sets bonding curve
+- Runs `umia venture init` to create Umia venture (legal wrapper, token, auction, treasury)
+- Registers the agent with Agent Float: links Umia venture to ENS subname (ENSIP-26 records), locks personal bond, commits milestones
 - Receives USDC tranches as milestones land
 - Spends on compute, API credits, data sources, distribution
 - Builds reputation through successful milestone hits

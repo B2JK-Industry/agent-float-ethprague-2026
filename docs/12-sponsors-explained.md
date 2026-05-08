@@ -158,7 +158,7 @@ Pre AI agent identity je ENS **silnejšia voľba** než custom registry, lebo:
 
 Obe sú $2K. Most Creative má širší interpretation — judges hľadajú "wow" moment v ENS use, nie checklist compliance.
 
-Náš **per-agent passport pattern** (subname per agent + structured text records pre wallet/endpoints/capabilities/receipts/treasury/venture token/bond vault) je novel:
+Náš **per-agent passport pattern** (subname per agent + ENSIP-26 standard records `agent-context`/`agent-endpoint[*]` + namespaced extensions pre Umia venture / bond vault / milestones / receipts pointer) je novel:
 - Nikto nepoužíva ENS subname ako "venture passport" pre AI agent
 - Štruktúrovaná set-of-records (nie len `wallet`) je richer than typical
 - Subname je entry point do **8-contract ekosystému** per agent

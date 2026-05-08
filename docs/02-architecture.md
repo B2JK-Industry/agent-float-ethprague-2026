@@ -203,7 +203,7 @@ const receipts = await fetchReceipts({
 
 // Resolve agent's full passport from ENS
 const agent = await resolveAgent('mygrant.agentfloat.eth');
-// returns { wallet, endpoints, capabilities, treasury, ventureToken, bondVault, receiptsPointer }
+// returns { agentContext, agentEndpointWeb, agentEndpointMcp, umiaVenture, bondVault, milestones, receiptsPointer }
 
 // Verify a third-party receipt without trusting any server
 const isValid = await verifyReceipt(receipt);
