@@ -68,9 +68,20 @@ Five-second moment:
 - wagmi + viem
 - Foundry
 - Sourcify API
-- ENS live resolution
+- ENS live resolution (Alchemy RPC — Sepolia + mainnet)
 - Sepolia demo contracts
 - Optional signed reports via EIP-712
+
+## Production Deployment
+
+Daniel confirmed 2026-05-08:
+- **Vercel Pro** account available
+- **Alchemy** RPC keys (Sepolia + mainnet) ready
+- **Operator wallet** for ENS operations ready
+
+Pre-launch blocker: ENS `upgradesiren.eth` mainnet collision check.
+
+Full deployment prereqs + flow: `docs/12-implementation-roadmap.md` Production Deployment Prerequisites section.
 
 ## Past Project Memory
 

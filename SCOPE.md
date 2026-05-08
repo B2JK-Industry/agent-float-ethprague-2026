@@ -242,3 +242,4 @@ Three parallel dev streams + two tracker categories. This matches the 4-agent pi
 - Apify is not needed.
 - No tokenomics document; this is not a token project.
 - No custom marketplace or launchpad.
+- **Production deployment via Vercel Pro confirmed** (Daniel 2026-05-08). Full deployment prerequisites + flow in `docs/12-implementation-roadmap.md` Production Deployment Prerequisites section.

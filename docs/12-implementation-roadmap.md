@@ -148,6 +148,46 @@ Before clicking submit, verify each of these against `docs/06-acceptance-gates.m
 - Daniel posts in mentor channels (Sourcify, ENS, Future Society) confirming submission ID
 - Daniel updates BRAINSTORM Decision log with submission status
 
+## Production Deployment Prerequisites
+
+> Confirmed by Daniel 2026-05-08: Vercel Pro available; remaining infrastructure prerequisites will be provisioned by Daniel as needed. This section is the canonical list.
+
+### Confirmed by Daniel
+
+- [x] Vercel Pro account (production hosting + AI Gateway access + preview deploys + analytics)
+- [x] Alchemy account from prior project (Sepolia + mainnet RPC endpoints)
+- [x] Operator wallet for mainnet ENS operations
+- [x] GitHub repo (`B2JK-Industry/Upgrade-Siren-ETHPrague2026`) public, wiki + issues + projects + discussions enabled
+
+### Pending pre-launch actions
+
+- [ ] ENS `upgradesiren.eth` mainnet collision check; if taken, fall back to alternate (`upgrade-siren.eth` reserved per `docs/08`)
+- [ ] Mainnet ETH funded for ENS parent registration + initial subname issuance (~$50-100 estimated)
+- [ ] Sepolia ETH from faucet for fixture contract deploys
+- [ ] Vercel project linked to repo via Vercel CLI or dashboard
+- [ ] Production env vars set in Vercel:
+  - `AI_GATEWAY_API_KEY`
+  - `ALCHEMY_RPC_SEPOLIA`
+  - `ALCHEMY_RPC_MAINNET`
+  - `SOURCIFY_API_BASE` (default `https://sourcify.dev`)
+- [ ] Optional Upstash Redis instance (cache Sourcify responses, rate-limit per IP) — via Vercel Marketplace
+- [ ] Optional Neon Postgres (Siren Agent watchlist persistence, P2 stretch) — via Vercel Marketplace
+
+### Deployment flow (post scope-lock)
+
+1. Stream A deploys fixture contracts to Sepolia + Sourcify-verifies them
+2. Operator registers ENS parent (`upgradesiren.eth` or chosen) + issues demo subnames pointing at fixtures
+3. Stream B + C scaffold Next.js + packages; pnpm workspace; `vercel.ts` config
+4. Vercel auto-deploys `main` to production (`*.vercel.app` or custom domain post-hack)
+5. Pre-cache Sourcify + ENS responses for demo fixtures (warm cache fixture)
+6. Booth-day fallbacks: Anvil local fork + recorded full-demo video
+
+### Custom domain (optional, post-hack polish)
+
+- Reserve options: `upgradesiren.app`, `upgrade-siren.io`, `upgradesiren.xyz`
+- Vercel handles SSL automatically; DNS via Cloudflare or registrar
+- Cost: $15-30/year; acceptable polish for post-hackathon expansion
+
 ## Build Priority (cross-stream)
 
 | Priority | Must ship | Streams |
