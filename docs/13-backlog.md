@@ -2605,3 +2605,337 @@ pnpm --filter @upgrade-siren/web test UmiaDueDiligencePanel
 #### Notes
 
 GATE-19 enforcement: Umia pitch must NOT read as launchpad. Reviewer audits the page header copy specifically.
+
+### US-059 - Sponsor pitch finalization (start at scope-lock)
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | Daniel + Orch |
+| Effort | M |
+| Sponsor | Sourcify, ENS, Future Society |
+| Dependencies | none |
+| Acceptance gates | GATE-16, GATE-17, GATE-18 |
+| Status | open |
+
+#### Scope
+
+Finalize the per-sponsor pitch language for Sourcify, ENS, and Future Society. For each: lock the one-sentence judge framing, the demo beat that lands, and the evidence the judge will inspect. Update `docs/07-sponsor-fit.md` if framings shift. Daniel runs mentor sweeps; Orch updates docs and Devfolio submission body. **Start at scope-lock (2026-05-09).**
+
+#### Acceptance Criteria
+
+- [ ] Sourcify one-sentence framing locked and verified with mentor sweep: "Upgrade Siren turns Sourcify-verified contract data into a public upgrade-risk alarm" or equivalent
+- [ ] ENS framing locked: stable records + atomic manifest + ENSIP-26 reuse + EIP-712 signature against `upgrade-siren:owner`
+- [ ] Future Society framing locked: public-good DAO governance hygiene
+- [ ] `docs/07-sponsor-fit.md` reflects locked language
+- [ ] Devfolio track selection finalized (Sourcify primary + ENS secondary + Future Society organizer; Umia conditional)
+- [ ] Mentor sweeps logged with date and feedback
+- [ ] PR body references US-059
+
+#### Files
+
+- `docs/07-sponsor-fit.md` (Orch update)
+- `BRAINSTORM.md` (decision log entries)
+
+#### Verification commands
+
+```bash
+# Manual: read the doc and Devfolio body
+cat docs/07-sponsor-fit.md | head -50
+```
+
+#### Notes
+
+**Start-at-scope-lock item.** Must begin 2026-05-09 because pitch language drives the demo script (US-065) and Devfolio submission (US-064).
+
+### US-060 - Operator wallet / report signer custody decision (start at scope-lock)
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | Daniel |
+| Effort | S |
+| Sponsor | - |
+| Dependencies | none |
+| Acceptance gates | GATE-24 |
+| Status | open |
+
+#### Scope
+
+Decide and document the operator key custody pattern for `REPORT_SIGNER_PRIVATE_KEY` and `OPERATOR_PRIVATE_KEY`. Default per `SCOPE.md §11`: dedicated burner key, env-only, never committed; mainnet ENS parent uses Daniel's existing operator wallet. Document the decision in `BRAINSTORM.md` decision log and reference from `docs/12-implementation-roadmap.md`. **Start at scope-lock (2026-05-09).**
+
+#### Acceptance Criteria
+
+- [ ] Decision committed to `BRAINSTORM.md` decision log with date and rationale
+- [ ] `REPORT_SIGNER_PRIVATE_KEY` source: env var, generated burner, stored in Vercel Secrets for production
+- [ ] `OPERATOR_PRIVATE_KEY` source: same pattern, separate key from deployer
+- [ ] Documented escalation: how to rotate keys if leaked
+- [ ] PR body references US-060
+
+#### Files
+
+- `BRAINSTORM.md` (decision log entry)
+- `docs/12-implementation-roadmap.md` (key-handling note if missing)
+
+#### Verification commands
+
+```bash
+grep -A5 "REPORT_SIGNER_PRIVATE_KEY" BRAINSTORM.md
+```
+
+#### Notes
+
+**Start-at-scope-lock item.** Stream A's US-009 (Sepolia deploy) and US-011 (signed reports) cannot start without this decision because they need to know where keys come from.
+
+### US-061 - ENS parent registration and operator wallet provisioning
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | Daniel |
+| Effort | M |
+| Sponsor | ENS |
+| Dependencies | US-060 |
+| Acceptance gates | GATE-3, GATE-17 |
+| Status | open |
+
+#### Scope
+
+Register the ENS parent name on mainnet (`upgradesiren.eth` if available, else fallback per `SCOPE.md §7` provisional list) and fund the operator wallet with enough ETH for subname provisioning + manifest updates over the demo lifetime. Sepolia testnet parent is provisioned separately by Stream A US-010 using a test parent if needed.
+
+#### Acceptance Criteria
+
+- [ ] ENS parent registered on mainnet, registration tx hash documented in `BRAINSTORM.md`
+- [ ] Operator wallet funded with ≥ 0.05 ETH for subname provisioning gas budget
+- [ ] Sepolia ETH funded for the deployer wallet (Stream A US-009 prerequisite)
+- [ ] Final parent name communicated to Stream A in a PR comment so US-010 references the live parent
+- [ ] PR body references US-061 and US-060 as merged prerequisite
+
+#### Files
+
+- `BRAINSTORM.md` (registration log entry)
+
+#### Verification commands
+
+```bash
+# Manual: verify mainnet registry ownership
+cast call --rpc-url $ALCHEMY_RPC_MAINNET <ens-registrar> "ownerOf(uint256)" <tokenid>
+```
+
+#### Notes
+
+This unblocks Stream A US-010 ENS provisioning in production-mode. Stream A can ship US-010 against a Sepolia test parent first; the mainnet flip happens once this lands.
+
+### US-062 - Live public-read protocol target research (start at scope-lock)
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | Daniel + Orch |
+| Effort | M |
+| Sponsor | Sourcify, ENS, Future Society |
+| Dependencies | none |
+| Acceptance gates | GATE-25 |
+| Status | open |
+
+#### Scope
+
+Research and select the live mainnet protocol target for the public-read demo scenario. Constraints: protocol uses an upgradeable proxy (EIP-1967), implementation is Sourcify-verified, no privileged sweep risk in current implementation, well-known enough for judges to recognize, and has had at least one historical upgrade visible via `Upgraded(address)` events. Candidates to evaluate: Lido stETH, Compound v3, Optimism OPCM, Aave v3 Pool. Document choice in `BRAINSTORM.md` decision log. **Start at scope-lock (2026-05-09).**
+
+#### Acceptance Criteria
+
+- [ ] At least three candidates evaluated against the constraint list
+- [ ] One target selected and documented in `BRAINSTORM.md`
+- [ ] Selected target's mainnet proxy address recorded
+- [ ] Pre-flight verdict from running US-019 against the target predicted (likely `REVIEW` since `public-read` mode never returns `SAFE`)
+- [ ] Stream C US-050 demo runner config updated with the selected target (post-merge into Stream C)
+- [ ] PR body references US-062
+
+#### Files
+
+- `BRAINSTORM.md` (decision log entry)
+- `apps/web/app/demo/demo.config.ts` (Orch updates after Stream C US-050 merges)
+
+#### Verification commands
+
+```bash
+# Manual: read the decision entry
+grep -A10 "live public-read target" BRAINSTORM.md
+```
+
+#### Notes
+
+**Start-at-scope-lock item.** Without a chosen target, US-050 demo runner has a placeholder for the 4th scenario. Selection eliminates the "syntetic demo" critique from the audit.
+
+### US-063 - Booth fallback artifacts: Anvil, cached fixtures, recorded demo (start at scope-lock)
+
+| Field | Value |
+|---|---|
+| Type | epic |
+| Priority | P0 |
+| Owner | Orch |
+| Effort | L |
+| Sponsor | - |
+| Dependencies | US-009, US-050 |
+| Acceptance gates | - |
+| Status | open |
+
+#### Scope
+
+Prepare booth-day fallback artifacts: an Anvil local fork running the demo state, pre-warmed Sourcify and ENS response caches for the four demo subnames, and a recorded full-demo video. The video must be standalone (no live network calls) and runnable on the booth laptop offline. **Start at scope-lock (2026-05-09).**
+
+#### Acceptance Criteria
+
+- [ ] `scripts/booth/run-anvil-fork.sh` starts an Anvil instance at the deployed Sepolia state, with deployed addresses unchanged
+- [ ] `scripts/booth/prewarm-cache.sh` invokes US-024, US-025, US-017 against each demo target and stores responses in a local cache directory
+- [ ] `booth/demo-video.mp4` exists, ≥ 3 minutes, covers all four scenarios end-to-end
+- [ ] Booth runbook documents how to switch from live mode to fallback mode in under 30 seconds
+- [ ] PR body references US-063
+
+#### Files
+
+- `scripts/booth/run-anvil-fork.sh`
+- `scripts/booth/prewarm-cache.sh`
+- `booth/RUNBOOK.md`
+- `booth/demo-video.mp4` (committed via Git LFS or hosted externally with link in runbook)
+
+#### Verification commands
+
+```bash
+bash scripts/booth/run-anvil-fork.sh &
+bash scripts/booth/prewarm-cache.sh
+```
+
+#### Notes
+
+**Start-at-scope-lock item.** Risks register `docs/10-risks.md` lists booth Wi-Fi, RPC limits, and Sourcify outage as high-severity. This item is the unified mitigation. Recording can come last but Anvil fork + prewarm are critical day-one.
+
+### US-064 - Devfolio submission materials
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | Daniel + Orch |
+| Effort | M |
+| Sponsor | - |
+| Dependencies | US-013, US-029, US-050, US-059 |
+| Acceptance gates | GATE-15, GATE-16, GATE-17, GATE-18 |
+| Status | open |
+
+#### Scope
+
+Assemble the Devfolio submission package: project description, tags, track selection (Sourcify primary + ENS secondary + Future Society organizer + optional Umia), gate checklist, repo URL, demo URL, video link. Per `docs/12-implementation-roadmap.md` Devfolio Submission Checklist.
+
+#### Acceptance Criteria
+
+- [ ] Devfolio submission body drafted with: tagline, 3-paragraph description, sponsor-specific framing per US-059
+- [ ] Tags include Sourcify, ENS, EIP-1967, proxy, upgrade-risk, DAO governance, public-good
+- [ ] Track selection submitted on Devfolio
+- [ ] Live demo URL points to Vercel production deploy
+- [ ] Sourcify-verified contract addresses listed (Sourcify links per US-007)
+- [ ] ENS subname examples listed (per US-010, US-013)
+- [ ] Demo video link (per US-063)
+- [ ] Acceptance gates checklist marked
+- [ ] Submission ID logged in `BRAINSTORM.md`
+- [ ] PR body references US-064
+
+#### Files
+
+- `BRAINSTORM.md` (submission log entry)
+- `docs/12-implementation-roadmap.md` (checklist updates if needed)
+
+#### Verification commands
+
+```bash
+# Manual: open Devfolio and verify submission state
+```
+
+#### Notes
+
+Submission deadline 2026-05-10 12:00 PM Prague time per `SCOPE.md`. Submit at least 60 minutes early to handle validation errors.
+
+### US-065 - 3-minute booth script rehearsal
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | Daniel |
+| Effort | S |
+| Sponsor | - |
+| Dependencies | US-050 |
+| Acceptance gates | GATE-15 |
+| Status | open |
+
+#### Scope
+
+Rehearse the 3-minute booth script per `docs/05-demo-script.md` against the live demo runner. Time each beat (hook, ENS lookup, live chain check, Sourcify evidence, three scenarios, governance comment, sponsor close). Identify and fix any beat exceeding its time budget. Out of scope: video recording (US-063).
+
+#### Acceptance Criteria
+
+- [ ] Live rehearsal recorded and timed
+- [ ] Total time ≤ 3:00 with safety margin
+- [ ] Each beat within its budget per `docs/05`
+- [ ] Adjustments to UI flow (if any) committed as Stream C bug-fix items
+- [ ] PR body references US-065
+
+#### Files
+
+- (no source code changes; rehearsal log added to BRAINSTORM.md)
+
+#### Verification commands
+
+```bash
+# Manual rehearsal
+```
+
+#### Notes
+
+If a beat blows the budget, the fix lives in Stream C as a backlog-add (Orch flags for Daniel approval). Do not silently extend the budget.
+
+### US-066 - Devfolio logo and cover asset
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | Daniel + Orch |
+| Effort | S |
+| Sponsor | - |
+| Dependencies | none |
+| Acceptance gates | - |
+| Status | open |
+
+#### Scope
+
+Produce the Devfolio cover image (1200x630) and project logo per `prompts/design-brief.md`. Lead visual: the green-to-red verdict flip moment per `docs/05-demo-script.md`. If the design brief produces deliverables in time, use those; otherwise use a wordmark + tagline composition as fallback.
+
+#### Acceptance Criteria
+
+- [ ] Devfolio cover image saved at `assets/brand/devfolio-cover.png` (1200x630)
+- [ ] Project logo saved at `assets/brand/logo-mark.svg` and `assets/brand/wordmark.svg`
+- [ ] Both assets readable at thumbnail size in Devfolio grid
+- [ ] No emoji in any asset
+- [ ] PR body references US-066
+
+#### Files
+
+- `assets/brand/devfolio-cover.png`
+- `assets/brand/logo-mark.svg`
+- `assets/brand/wordmark.svg`
+
+#### Verification commands
+
+```bash
+# Manual: open assets and verify rendering
+file assets/brand/devfolio-cover.png
+```
+
+#### Notes
+
+P1 because Devfolio accepts a default placeholder if the visual identity from `prompts/design-brief.md` arrives late. Do not block submission on this item.
