@@ -89,28 +89,34 @@ report.vault.demo.upgradesiren.eth
 
 > **ENS parent name is not registered yet.** Registry owner check via public mainnet RPC on 2026-05-08 returned `0x0000000000000000000000000000000000000000` for `upgradesiren.eth`, `upgrade-siren.eth`, and `upgrade-siren-demo.eth`. Default: register `upgradesiren.eth` if still available at purchase time; fall back to `upgrade-siren.eth` or `upgrade-siren-demo.eth` if registration fails. Daniel approves final choice.
 
+Namespace decision:
+
+- Use `upgrade-siren:*` for project-specific records.
+- Do not use the shorter `siren:*` namespace; it is too broad and collision-prone.
+- ENSIP-26 remains the standards-compatible discovery layer. `upgrade-siren:*` carries Upgrade Siren-specific verdict data.
+
 Required live records are split by update behavior. Stable identity and discovery records live directly in ENS. Upgrade-specific data is updated through one atomic manifest record so related values cannot desynchronize across multiple `setText` calls.
 
 Stable ENS records:
 
 | Record | Purpose |
 |---|---|
-| `siren:chain_id` | Chain where contracts live |
-| `siren:proxy` | Proxy address |
-| `siren:owner` | Operator or protocol owner address authorized to sign reports |
-| `siren:schema` | JSON schema pointer for records |
+| `upgrade-siren:chain_id` | Chain where contracts live |
+| `upgrade-siren:proxy` | Proxy address |
+| `upgrade-siren:owner` | Operator or protocol owner address authorized to sign reports |
+| `upgrade-siren:schema` | JSON schema pointer for records |
 
 Atomic upgrade manifest record:
 
 | Record | Purpose |
 |---|---|
-| `siren:upgrade_manifest` | Single JSON object for current upgrade state: previous implementation, current implementation, report URI, report hash, version, effective timestamp, and previous manifest hash |
+| `upgrade-siren:upgrade_manifest` | Single JSON object for current upgrade state: previous implementation, current implementation, report URI, report hash, version, effective timestamp, and previous manifest hash |
 
-`siren:upgrade_manifest` shape:
+`upgrade-siren:upgrade_manifest` shape:
 
 ```json
 {
-  "schema": "siren-upgrade-manifest@1",
+  "schema": "upgrade-siren-manifest@1",
   "chainId": 11155111,
   "proxy": "0x...",
   "previousImpl": "0x...",
@@ -131,7 +137,21 @@ ENSIP-26 compatibility records:
 | `agent-endpoint[web]` | Web report endpoint, e.g. `https://upgradesiren.app/r/vault.demo.upgradesiren.eth` |
 | `agent-endpoint[mcp]` | P2 Siren Agent MCP endpoint when the agent watchlist ships |
 
-ENS must be live-resolved in the app. No hardcoded demo values in the product path.
+The signed manifest path must live-resolve ENS records in the app. No hardcoded demo values in the product path.
+
+### Public-Read Fallback
+
+The signed ENS manifest path is the highest-confidence mode, but adoption cannot depend on every protocol publishing `upgrade-siren:*` records on day one.
+
+If an ENS name does not publish the Upgrade Siren records, the app must fall back to **public-read mode**:
+
+- accept an Ethereum address or ENS name with a normal address record
+- read EIP-1967 proxy state directly from chain
+- fetch Sourcify evidence for the live implementation
+- label the result as `public-read`, not operator-signed
+- never return `SAFE`; return `REVIEW` for low-risk verified evidence or `SIREN` for unverified / dangerous evidence
+
+Public-read mode is not a mock. It is the adoption bridge: Upgrade Siren can warn on existing protocols immediately, while protocols that publish signed manifests get higher-confidence reports.
 
 ### Proxy Upgrade Detector
 
@@ -140,7 +160,7 @@ Must support:
 - EIP-1967 implementation slot lookup
 - `Upgraded(address)` event detection
 - Current implementation vs ENS manifest-declared current implementation check
-- Previous implementation selection from event history or `siren:upgrade_manifest`
+- Previous implementation selection from event history or `upgrade-siren:upgrade_manifest`
 - Admin / owner / timelock heuristics where available
 
 ### Sourcify Evidence Engine
@@ -164,7 +184,7 @@ Diff checks:
 | Storage | Incompatible slot/type/order change |
 | Admin power | New `upgradeTo`, `setOwner`, `setAdmin`, `sweep`, `withdraw`, `mint`, `pause`, arbitrary `call` |
 | Timelock | Upgrade admin not timelocked or timelock disappeared |
-| ENS consistency | `siren:upgrade_manifest.currentImpl` does not match live proxy slot |
+| ENS consistency | `upgrade-siren:upgrade_manifest.currentImpl` does not match live proxy slot |
 | Source risk | Dangerous low-level calls added without clear guard |
 
 ### Siren Report
@@ -186,12 +206,15 @@ Report fields:
     "currentVerified": false,
     "links": []
   },
+  "mode": "signed-manifest | public-read | mock",
+  "confidence": "operator-signed | public-read | mock",
   "ens": {
     "recordsResolvedLive": true,
     "manifestHash": "0x...",
     "owner": "0x..."
   },
   "auth": {
+    "status": "valid | missing | invalid | not-applicable",
     "signatureType": "EIP-712",
     "signer": "0x...",
     "signature": "0x...",
@@ -202,7 +225,7 @@ Report fields:
 }
 ```
 
-Production reports must be EIP-712 signed by the address in `siren:owner`. A matching `reportHash` proves bytes did not change; the EIP-712 signature proves the report is authorized by the ENS owner. The verdict engine must refuse unsigned or invalidly signed production reports. Mock/demo reports are allowed only when visibly labeled `mock: true`.
+Production reports must be EIP-712 signed by the address in `upgrade-siren:owner`. A matching `reportHash` proves bytes did not change; the EIP-712 signature proves the report is authorized by the ENS owner. The verdict engine must refuse unsigned or invalidly signed production reports. Mock/demo reports are allowed only when visibly labeled `mock: true`.
 
 ### Siren Agent
 
@@ -224,10 +247,18 @@ Prepare three demo upgrade scenarios:
 | Dangerous upgrade | Verified v2 adds `sweep()` and incompatible storage layout | `SIREN` |
 | Unverified upgrade | Proxy points to unverified implementation or ENS record mismatch | `SIREN` |
 
+Prepare one live public-read scenario:
+
+| Scenario | Description | Expected verdict |
+|---|---|---|
+| Live mainnet protocol read | Existing protocol address or ENS address record without `upgrade-siren:*` records; selected by Daniel/Orch before demo | `REVIEW` or `SIREN`, never `SAFE` |
+
 Demo UI must show:
 
 - ENS lookup field
+- address/public-read fallback input
 - Big verdict card
+- progressive evidence checklist (`ENS`, `chain`, `Sourcify`, `diff`, `signature`)
 - Before/after implementation comparison
 - Human diff
 - Evidence drawer
@@ -238,7 +269,7 @@ Demo UI must show:
 
 ## 9. Acceptance Gates (summary)
 
-> **Full register:** [`docs/06-acceptance-gates.md`](./docs/06-acceptance-gates.md) defines the canonical 24-gate register (GATE-1..GATE-24 across Product / Technical / Sponsor / UX / Kill Conditions). The 9 points below are the in-SCOPE summary; every backlog P0 item must map to one or more `GATE-N` references from `docs/06`.
+> **Full register:** [`docs/06-acceptance-gates.md`](./docs/06-acceptance-gates.md) defines the canonical 26-gate register (GATE-1..GATE-26 across Product / Technical / Sponsor / UX / Kill Conditions). The 11 points below are the in-SCOPE summary; every backlog P0 item must map to one or more `GATE-N` references from `docs/06`.
 
 | # | Summary requirement | Maps to docs/06 |
 |---|---|---|
@@ -249,8 +280,10 @@ Demo UI must show:
 | 5 | UI shows `SAFE`, `REVIEW`, or `SIREN` within five seconds | GATE-1, GATE-2, GATE-20 |
 | 6 | Every mock path is labeled `mock: true` | GATE-14 |
 | 7 | Pitch does not say "generic scanner", "AI auditor", "trust layer", or "agent OS" | Kill Conditions |
-| 8 | Production reports are EIP-712 signed by `siren:owner` | GATE-24 |
-| 9 | Run instructions reproduce the demo locally | GATE-15 |
+| 8 | Production reports are EIP-712 signed by `upgrade-siren:owner` | GATE-24 |
+| 9 | Public-read fallback works for protocols without Upgrade Siren records | GATE-25 |
+| 10 | Progressive loading and error states are visible | GATE-26 |
+| 11 | Run instructions reproduce the demo locally | GATE-15 |
 
 ## 10. Workstreams
 
@@ -280,4 +313,6 @@ Three parallel dev streams + two tracker categories. This matches the 4-agent pi
 - Apify is not needed.
 - No tokenomics document; this is not a token project.
 - No custom marketplace or launchpad.
+- Project-specific ENS records use `upgrade-siren:*`, not `siren:*`.
+- Demo report signing uses a dedicated operator signing key loaded from local environment (`REPORT_SIGNER_PRIVATE_KEY`) for deploy/provision scripts. The key is never committed. Mainnet ENS parent control remains Daniel/operator wallet custody.
 - **Production deployment via Vercel Pro confirmed** (Daniel 2026-05-08). Full deployment prerequisites + flow in `docs/12-implementation-roadmap.md` Production Deployment Prerequisites section.

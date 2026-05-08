@@ -8,11 +8,12 @@
 4. Is storage-layout comparison a good bounty fit, or should we focus on metadata/source links and bytecode evidence?
 5. What is the best demo contract pattern for judges to inspect quickly?
 6. Are there rate limits or endpoint caveats for a live booth demo?
+7. Does the "unverified implementation becomes public SIREN" loop feel like a useful Sourcify adoption flywheel?
 
 ## ENS
 
-1. Does `siren:*` make sense as a prototype namespace for upgrade-risk metadata?
-2. Should `siren:upgrade_manifest` be a text record, `contenthash`, or CCIP-Read response?
+1. Does `upgrade-siren:*` make sense as a collision-reduced prototype namespace for upgrade-risk metadata?
+2. Should `upgrade-siren:upgrade_manifest` be a text record, `contenthash`, or CCIP-Read response?
 3. Is ENSIP-26 `agent-context` + `agent-endpoint[web]` appropriate as the standards-compatible layer?
 4. Is a hierarchy like `v1.vault.demo.upgradesiren.eth` and `latest.vault.demo.upgradesiren.eth` compelling?
 5. Would wildcard/offchain subnames make this more creative, or too risky for the timeframe?

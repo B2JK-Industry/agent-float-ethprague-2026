@@ -18,6 +18,16 @@ Sourcify is the evidence engine. Upgrade Siren cannot make credible claims witho
 
 > Upgrade Siren turns Sourcify's verified-contract data into a public upgrade-risk alarm.
 
+### Adoption Flywheel
+
+Upgrade Siren should be framed as a Sourcify adoption loop, not just an API consumer:
+
+1. Protocol wants a `SAFE` or high-confidence `REVIEW` verdict.
+2. Upgrade Siren requires Sourcify-verified implementations for credible evidence.
+3. If an implementation is unverified, the public verdict becomes `SIREN`.
+4. DAO voters, wallets, and reviewers ask the protocol to verify on Sourcify.
+5. Sourcify gets more verified contracts, more inspection traffic, and clearer public-good value.
+
 ### Mentor Questions
 
 1. Which Sourcify API path is preferred for metadata, ABI, and storage layout during the hackathon?
@@ -39,6 +49,7 @@ ENS is not just resolving a wallet address. It is the protocol's public upgrade 
 - schema pointer
 - atomic upgrade manifest
 - ENSIP-26 context and web endpoint records
+- project-specific `upgrade-siren:*` namespace to avoid broad `siren:*` collisions
 
 ### What To Show
 
@@ -46,7 +57,7 @@ ENS is not just resolving a wallet address. It is the protocol's public upgrade 
 - named contract hierarchy
 - proxy slot compared against manifest-declared implementation
 - report discovery through ENS
-- EIP-712 report signature verified against `siren:owner`
+- EIP-712 report signature verified against `upgrade-siren:owner`
 - ENSIP-26 records (`agent-context`, `agent-endpoint[web]`) reused instead of inventing every record
 - no hardcoded product path
 
@@ -56,8 +67,8 @@ ENS is not just resolving a wallet address. It is the protocol's public upgrade 
 
 ### Mentor Questions
 
-1. Is `siren:*` a reasonable text-record namespace for the upgrade-specific records?
-2. Should `siren:upgrade_manifest` be a text record, contenthash pointer, or CCIP-Read response?
+1. Is `upgrade-siren:*` a reasonable collision-reduced text-record namespace for the upgrade-specific records?
+2. Should `upgrade-siren:upgrade_manifest` be a text record, contenthash pointer, or CCIP-Read response?
 3. Is reusing ENSIP-26 `agent-context` and `agent-endpoint[web]` the right standard compatibility layer?
 4. Would wildcard/offchain subnames be more compelling than normal text records?
 5. What would make this feel "Most Creative" rather than ordinary ENS metadata?

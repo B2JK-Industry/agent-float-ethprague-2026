@@ -26,6 +26,7 @@ The project combines four things that are rarely presented together:
 2. Proxy implementation change detection.
 3. Sourcify-backed verification and diff evidence.
 4. A simple public verdict for governance and funding decisions.
+5. Public-read fallback that works on existing protocols before they publish Upgrade Siren records.
 
 ## Weak Points
 
@@ -35,7 +36,7 @@ The project combines four things that are rarely presented together:
 | Storage-layout data may be incomplete | Show honest `REVIEW` state when missing |
 | Sourcify cannot prove code is safe | Say verification is necessary, not sufficient |
 | ENS records could be stale or malicious | Compare ENS declaration against live chain state |
-| Hackathon demo may feel synthetic | Use live ENS resolution and real deployed fixtures |
+| Hackathon demo may feel synthetic | Add one live mainnet public-read scenario, not only fixtures |
 
 ## Hard Differentiators To Repeat
 

@@ -69,8 +69,10 @@ Five-second moment:
 - Foundry
 - Sourcify API
 - ENS live resolution (Alchemy RPC — Sepolia + mainnet)
+- `upgrade-siren:*` text records for project-specific ENS metadata
+- Public-read fallback for protocols without Upgrade Siren records
 - Sepolia demo contracts
-- Mandatory EIP-712 report signature verification against `siren:owner`
+- Mandatory EIP-712 report signature verification against `upgrade-siren:owner`
 
 ## Production Deployment
 

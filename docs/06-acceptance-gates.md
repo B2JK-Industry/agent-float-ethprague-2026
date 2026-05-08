@@ -1,6 +1,6 @@
 # Acceptance Gates
 
-These gates define submission readiness. `P0` gates must pass before submission. `P1` gates are still planned, but if Daniel explicitly cuts them they must be called out honestly in the submission. Current scope treats ABI diff, storage-layout result, report signature verification, and governance comment generator as `P0`.
+These gates define submission readiness. `P0` gates must pass before submission. `P1` gates are still planned, but if Daniel explicitly cuts them they must be called out honestly in the submission. Current scope treats ABI diff, storage-layout result, report signature verification, public-read fallback, progressive loading/error states, and governance comment generator as `P0`.
 
 ## Product Gates
 
@@ -13,6 +13,7 @@ These gates define submission readiness. `P0` gates must pass before submission.
 | GATE-5 | P0 | Sourcify verification status is fetched live |
 | GATE-6 | P0 | At least one safe upgrade and one dangerous upgrade are demoable |
 | GATE-7 | P0 | UI explains the verdict in plain language |
+| GATE-25 | P0 | Public-read fallback returns a labeled lower-confidence verdict for an address or ENS name without `upgrade-siren:*` records |
 
 ## Technical Gates
 
@@ -26,7 +27,7 @@ These gates define submission readiness. `P0` gates must pass before submission.
 | GATE-13 | P0 | Missing data lowers confidence instead of being hidden |
 | GATE-14 | P0 | Every mock is labeled `mock: true` |
 | GATE-15 | P0 | Local run instructions reproduce demo |
-| GATE-24 | P0 | Production Siren Report is EIP-712 signed by `siren:owner`; verdict engine refuses unsigned or invalidly signed production reports |
+| GATE-24 | P0 | Production Siren Report is EIP-712 signed by `upgrade-siren:owner`; verdict engine refuses unsigned or invalidly signed production reports |
 
 ## Sponsor Gates
 
@@ -44,17 +45,20 @@ These gates define submission readiness. `P0` gates must pass before submission.
 | GATE-20 | P0 | Verdict appears within five seconds for demo cases |
 | GATE-21 | P0 | Evidence drawer is understandable to technical judges |
 | GATE-22 | P0 | Non-technical user understands recommended action |
-| GATE-23 | P0 | Governance comment generator works |
+| GATE-23 | P0 | Governance comment generator provides short, forum, and vote-reason formats with specific findings and report link |
+| GATE-26 | P0 | Progressive loading checklist and explicit empty/error states are visible for ENS, RPC, Sourcify, malformed manifest, and unsigned report failures |
 
 ## Kill Conditions
 
 Do not submit if:
 
-- ENS is only a label
+- ENS is only a label in the signed manifest path
 - Sourcify is only a link
 - verdict is generated only by LLM text
 - no live chain read exists
-- production report is unsigned or signed by an address other than `siren:owner`
+- production report is unsigned or signed by an address other than `upgrade-siren:owner`
+- absent Upgrade Siren records have no defined verdict path
+- demo uses only synthetic fixtures and no live public-read protocol scenario
 - UI looks like a generic audit dashboard
 - pitch says "AI auditor" or "generic scanner"
 - old Agent Float story leaks into active pitch

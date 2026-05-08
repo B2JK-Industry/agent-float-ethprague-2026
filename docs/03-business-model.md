@@ -22,6 +22,7 @@ The business value is simple:
 ## Free Product
 
 - Public ENS lookup
+- Public-read fallback for addresses / ENS address records without Upgrade Siren records
 - One-off report for a named contract
 - Basic `SAFE` / `REVIEW` / `SIREN` verdict
 - Sourcify links
@@ -72,10 +73,11 @@ The niche is sharper:
 
 ## Revenue Hypothesis
 
-1. Free public scanner builds trust and examples.
-2. DAOs and venture platforms pay for watchlists and signed reports.
-3. Wallets and explorers pay for API or embedded warnings.
-4. Protocol teams pay for public transparency pages before major upgrades.
+1. Public-read fallback lets Upgrade Siren warn on existing protocols before they adopt any records.
+2. Protocol teams publish signed `upgrade-siren:*` manifests to earn higher-confidence verdicts.
+3. DAOs and venture platforms pay for watchlists and signed reports.
+4. Wallets and explorers pay for API or embedded warnings.
+5. Protocol teams pay for public transparency pages before major upgrades.
 
 ## Anti-Positioning
 
