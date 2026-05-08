@@ -79,7 +79,7 @@ Create items for at least every topic below. Stream owner shown in parentheses.
 - ENS record live resolution (siren:* records) (B)
 - EIP-1967 implementation slot reader (B)
 - `Upgraded(address)` event reader (B)
-- Sourcify verification fetch (`/check-by-addresses`) (B)
+- Sourcify verification/status fetch (`/server/v2/contract/{chainId}/{address}?fields=all`) (B)
 - Sourcify metadata fetch (source, ABI, compiler, storage layout) (B)
 - ABI risky-selector diff (`sweep`, `withdraw`, `setOwner`, `setAdmin`, `mint`, `pause`, arbitrary `call`) (B)
 - storage-layout compatibility diff (B)
@@ -275,7 +275,7 @@ The danger is two-pronged: storage incompat AND new privileged selector. Both ar
 
 #### Scope
 
-Implement `fetchSourcifyMetadata(chainId, address)` in `packages/evidence/src/sourcify/metadata.ts`. It calls `https://sourcify.dev/server/files/any/{chainId}/{address}` and parses the metadata JSON, returning a typed `SourcifyMetadata` or a discriminated `SourcifyError` describing one of: `not_found`, `partial_match_only`, `server_error`, `malformed_metadata`, `missing_storage_layout`. No silent fallbacks. Caching is out of scope (US-024). The verdict engine (US-030) consumes the result; missing data must downgrade verdict, never produce false confidence.
+Implement `fetchSourcifyMetadata(chainId, address)` in `packages/evidence/src/sourcify/metadata.ts`. It calls `https://sourcify.dev/server/v2/contract/{chainId}/{address}?fields=all` and parses the returned contract lookup payload, including match status, ABI, compiler metadata, and storage layout where available. It returns a typed `SourcifyMetadata` or a discriminated `SourcifyError` describing one of: `not_found`, `partial_or_nonperfect_match`, `server_error`, `malformed_metadata`, `missing_storage_layout`. No silent fallbacks. Caching is out of scope (US-024). The verdict engine (US-030) consumes the result; missing data must downgrade verdict, never produce false confidence.
 
 #### Acceptance Criteria
 
@@ -283,7 +283,7 @@ Implement `fetchSourcifyMetadata(chainId, address)` in `packages/evidence/src/so
 - [ ] Returns discriminated union `Result<SourcifyMetadata, SourcifyError>`
 - [ ] Handles HTTP 404 -> `not_found`
 - [ ] Handles HTTP 5xx -> `server_error` with status code
-- [ ] Handles partial-match-only response -> `partial_match_only`
+- [ ] Handles partial or non-perfect match response -> `partial_or_nonperfect_match`
 - [ ] Handles missing `storageLayout` field -> `missing_storage_layout`
 - [ ] Handles malformed JSON -> `malformed_metadata`
 - [ ] Vitest unit tests cover all five error modes with `mock: true` fixtures
@@ -307,7 +307,7 @@ pnpm --filter @upgrade-siren/evidence test:integration sourcify/metadata
 
 #### Notes
 
-Use `fetch` from undici (Node 22 builtin); no axios. TTL/caching layer is US-024 - keep this function pure (no side effects beyond the fetch). Discriminated union beats throwing because the verdict engine needs to inspect the error reason. The integration test depends on US-016 being merged so a real verified contract address exists.
+Use Node 22 global `fetch` (undici under the hood); no axios. TTL/caching layer is US-024 - keep this function pure (no side effects beyond the fetch). Discriminated union beats throwing because the verdict engine needs to inspect the error reason. The integration test depends on US-016 being merged so a real verified contract address exists.
 ````
 
 ### Example: Stream C item
@@ -337,7 +337,7 @@ Build the verdict card component at `apps/web/components/VerdictCard.tsx`. Rende
 - [ ] REVIEW renders amber bg + warning glyph + "REVIEW" label
 - [ ] SIREN renders red bg + alarm glyph + "SIREN" label
 - [ ] When `mock: true` prop set, badge `MOCK` renders in card corner
-- [ ] Storybook story covers all three verdicts + mock variant
+- [ ] Component test covers all three verdicts + mock variant
 - [ ] Playwright test asserts verdict text visible within 5000ms of navigation for the three demo fixtures
 - [ ] Lighthouse performance score >= 90 on the demo page
 - [ ] No `text-green` or `text-red` outside verdict component (audit grep)
@@ -346,7 +346,7 @@ Build the verdict card component at `apps/web/components/VerdictCard.tsx`. Rende
 #### Files
 
 - `apps/web/components/VerdictCard.tsx`
-- `apps/web/components/VerdictCard.stories.tsx`
+- `apps/web/components/VerdictCard.test.tsx`
 - `apps/web/e2e/verdict-card.spec.ts`
 
 #### Verification commands
