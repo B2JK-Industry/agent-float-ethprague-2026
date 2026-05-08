@@ -43,7 +43,7 @@ Status legend: ✅ available, ⚠️ partial collision (acceptable), ❌ blocked
 | Channel | Status | Notes |
 |---|---|---|
 | GitHub org `agent-float` | (pending) | Check `https://github.com/agent-float` |
-| GitHub repo `B2JK-Industry/agent-float` | (pending) | Within Daniel's org |
+| GitHub repo `B2JK-Industry/agent-float-ethprague-2026` | ✅ live | Public, wiki/discussions/issues/projects enabled |
 | npm `agent-float` | (pending) | Check `https://www.npmjs.com/package/agent-float` |
 | npm scope `@agentfloat/*` | (pending) | Check `https://www.npmjs.com/~agentfloat` |
 | crates.io `agent-float` | (pending) | Lower priority — no Rust planned in v1 |

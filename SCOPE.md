@@ -378,13 +378,13 @@ ETHPrague2026/
 ## 10. Pre-event prep checklist (parallel-able)
 
 - [ ] **Naming research "Agent Float"** + alternates:
-  - GitHub: `B2JK-Industry/agent-float`
+  - GitHub: `B2JK-Industry/agent-float-ethprague-2026` (live, public)
   - npm: `@agentfloat/*`
   - ENS: `agentfloat.eth` mainnet (Alchemy key z memory)
   - X handle: `@agentfloat`
   - Domains: `agentfloat.app` / `.io` / `.xyz`
   - Backup names: AgentRunway, AgentPier, AgentDrydock, AgentBerth
-- [ ] **GitHub repo init** `B2JK-Industry/agent-float` (private)
+- [x] **GitHub repo init** `B2JK-Industry/agent-float-ethprague-2026` (public, wiki + discussions + issues enabled)
 - [ ] **Vercel project link** + AI Gateway env (`AI_GATEWAY_API_KEY`)
 - [ ] **Sepolia wallet status check** — funded (Alchemy memory pointer)
 - [ ] **Umia documentation deep-read** — find any publicly available API/SDK info pred mentor session
