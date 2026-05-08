@@ -117,6 +117,7 @@ You do not exit. Idle-poll mode:
 - Fixture behavior has Foundry tests covering happy path and at least one failure path.
 - Deploy/verification scripts are reproducible (pinned compiler, documented Sourcify verification).
 - ENS provisioning writes stable records, ENSIP-26 records, and one atomic `siren:upgrade_manifest`; separate mutable implementation/report records are a request-for-changes.
+- Demo provisioning produces signed Siren Report JSON for safe, dangerous, and unverified scenarios using the shared `signReport` primitive.
 - Dangerous upgrade is genuinely dangerous and the danger is identified in NatSpec.
 - Storage-layout-sensitive changes have layout assertion tests.
 
@@ -124,6 +125,7 @@ You do not exit. Idle-poll mode:
 - EIP-1967 implementation slot read uses the correct constant `0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc`.
 - Sourcify fetch handles 404, 5xx, partial verification, and missing storage layout explicitly.
 - ENS record parsing handles absent stable records, absent ENSIP-26 records, and malformed `siren:upgrade_manifest` (returns confidence loss, not crash).
+- `packages/shared/` contains the canonical EIP-712 typed-data builder and `signReport` helper before Stream A depends on signed reports.
 - Report verifier checks fetched bytes against `reportHash`, verifies EIP-712 signature, and requires recovered signer to equal `siren:owner`.
 - Unsigned or signature-invalid production reports return `SIREN`; only visible `mock: true` paths may bypass this.
 - Verdict rules match `docs/04-technical-design.md`.

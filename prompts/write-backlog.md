@@ -75,6 +75,7 @@ Create items for at least every topic below. Stream owner shown in parentheses.
 - Foundry tests: storage-layout assertion, dangerous-selector behavior, upgrade flow (A)
 - deploy script with documented addresses, Sepolia targeted (A)
 - ENS subname provisioning script that writes stable `siren:*` records, ENSIP-26 context/web endpoint records, and one atomic `siren:upgrade_manifest` after each fixture deploy (A)
+- signed and hosted Siren Report JSON for safe, dangerous, and unverified demo scenarios, generated with `packages/shared/signReport` (A)
 - documentation of deployed addresses + stable ENS records + atomic manifest values (A)
 
 **Stream B (Evidence Engine):**
@@ -88,6 +89,7 @@ Create items for at least every topic below. Stream owner shown in parentheses.
 - ABI risky-selector diff (`sweep`, `withdraw`, `setOwner`, `setAdmin`, `mint`, `pause`, arbitrary `call`) (B)
 - storage-layout compatibility diff (B)
 - Siren Report JSON schema in `packages/shared/` (B)
+- EIP-712 Siren Report typed-data builder and `signReport` helper in `packages/shared/` (B)
 - EIP-712 Siren Report signature verification against `siren:owner` (B)
 - verdict engine: SAFE / REVIEW / SIREN rules (B)
 - shared types package for cross-stream consumption (B)
@@ -110,7 +112,7 @@ Create items for at least every topic below. Stream owner shown in parentheses.
 - mock-path visible badge component (C)
 - five-second-rule performance check (C)
 - **P2:** Siren Agent watchlist config (C)
-- **P2:** report signing helper UX for operators (C)
+- **P2:** operator report-signing workflow UX for Siren Agent automation (C)
 - **P2:** Umia-style due-diligence panel (C)
 
 **Tracker (Daniel + Orch):**
@@ -375,6 +377,7 @@ Color contrast: WCAG AA at minimum. Glyphs are required because some judges may 
 When you set dependencies:
 
 - **A -> B:** B's evidence engine items can read against fixtures only after the fixture deploy item is merged. Sourcify verification items (A) must be merged before B's Sourcify integration tests can run against real verified contracts.
+- **B -> A:** A's signed demo report provisioning item depends on B's `packages/shared/signReport` helper being merged.
 - **B -> C:** C's UX items that consume the report schema can start as soon as B's schema item is merged; they do not need every B item merged.
 - **A -> C (rare):** C's demo scenario runner needs deployed addresses; this is one item only.
 - **Within stream:** keep sequential dependencies short. Most A items can run in parallel after the proxy + V1 are deployed.
@@ -385,6 +388,8 @@ When you set dependencies:
 The backlog must include explicit P0 items for:
 
 - parsing `siren:upgrade_manifest` as one atomic object, not separate mutable ENS fields
+- providing a P0 `packages/shared/signReport` primitive used by demo deploy/provisioning
+- generating signed demo reports for safe, dangerous, and unverified scenarios
 - verifying `reportHash` against fetched report bytes
 - verifying the Siren Report EIP-712 signature against `siren:owner`
 - rendering unsigned or signature-invalid production reports as `SIREN`

@@ -258,9 +258,9 @@ Three parallel dev streams + two tracker categories. This matches the 4-agent pi
 
 | Stream | Owner | Scope | Owned paths after lock |
 |---|---|---|---|
-| **A** | **Dev A — Contract Fixtures** | Demo proxy, safe implementation, dangerous implementation, unverified-implementation scenario, deploy/verify scripts, Sourcify verification | `contracts/`, `scripts/deploy*`, `test/` |
-| **B** | **Dev B — Evidence Engine** | ENS live resolution, EIP-1967 slot reads, `Upgraded` event reads, Sourcify fetch, ABI/storage diff logic, Siren Report JSON schema | `packages/evidence/`, `packages/shared/` |
-| **C** | **Dev C — Web UX (+ optional Siren Agent)** | Next.js app, verdict UI, evidence drawer, Sourcify links, governance comment, demo scenario runner. **Optional P2:** Siren Agent watchlist + signed report + optional Umia due-diligence panel | `apps/web/`, `apps/siren-agent/` (P2 only) |
+| **A** | **Dev A — Contract Fixtures** | Demo proxy, safe implementation, dangerous implementation, unverified-implementation scenario, deploy/verify/provision scripts, signed demo report generation, Sourcify verification | `contracts/`, `scripts/deploy*`, `test/` |
+| **B** | **Dev B — Evidence Engine** | ENS live resolution, EIP-1967 slot reads, `Upgraded` event reads, Sourcify fetch, ABI/storage diff logic, Siren Report JSON schema, EIP-712 sign/verify primitives | `packages/evidence/`, `packages/shared/` |
+| **C** | **Dev C — Web UX (+ optional Siren Agent)** | Next.js app, verdict UI, evidence drawer, Sourcify links, governance comment, demo scenario runner. **Optional P2:** Siren Agent watchlist + automated signing flow + optional Umia due-diligence panel | `apps/web/`, `apps/siren-agent/` (P2 only) |
 
 | Tracker | Owner | Scope (not picked up by dev agents) |
 |---|---|---|

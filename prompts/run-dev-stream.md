@@ -50,6 +50,7 @@ Working style:
 - **Determinism.** Deploy scripts must be reproducible: fixed compiler version pinned in `foundry.toml`, fixed salt for CREATE2 if used, deployment artifacts committed.
 - **Sourcify verification is part of "done".** A deploy script that does not produce a Sourcify-verified artifact is incomplete.
 - **ENS records are manifest-based.** Provision stable `siren:*` records, ENSIP-26 records, and one atomic `siren:upgrade_manifest`; do not write mutable implementation/report fields as separate records.
+- **Demo reports are signed.** Fixture provisioning must use the Stream B shared `signReport` primitive to produce signed Siren Reports for the safe, dangerous, and unverified scenarios.
 
 Voice in PR descriptions: terse, technical, references EIPs and selector signatures by hex.
 
@@ -64,6 +65,7 @@ Working style:
 - **No silent fallbacks.** Missing data raises confidence loss, not fake confidence. If ENS does not resolve, the verdict reflects that — the engine never invents data.
 - **Schema is contract.** The Siren Report JSON schema is published in `packages/shared/`; both streams (B and C) consume it; breaking changes require a backlog item with explicit cross-stream coordination.
 - **Hash proves bytes; signature proves authority.** `reportHash` only verifies integrity. Production reports must recover to `siren:owner` through EIP-712 or the verdict is `SIREN`.
+- **Sign and verify live together.** `packages/shared/` owns the EIP-712 typed-data builder plus `signReport` primitive; `packages/evidence/` verifies reports against the same typed data.
 - **Cache thoughtfully.** Sourcify and RPC responses are cached with explicit TTLs and cache keys; cache layer is testable in isolation.
 
 Voice in PR descriptions: structured with explicit input/output examples; lists every edge case handled with checkbox.
@@ -182,6 +184,7 @@ The `Loop status` line proves to Daniel and the Reviewer that you are still runn
 - Foundry tests are mandatory for contract behavior. Storage-layout-sensitive contracts get a layout-assertion test.
 - Sourcify verification must be documented (script + verified artifact link) for every deployed fixture.
 - ENS provisioning scripts write stable records, ENSIP-26 records, and atomic `siren:upgrade_manifest` JSON. Do not split `previousImpl`, `currentImpl`, `reportUri`, and `reportHash` into separate mutable ENS records.
+- Demo provisioning scripts produce signed Siren Report JSON for all three scenarios using `packages/shared/signReport`; unsigned demo reports are not acceptable in production-mode flows.
 - Dangerous fixture must be obviously dangerous in code review (NatSpec on the dangerous selector explaining the risk).
 
 ### Dev B guardrails
@@ -191,6 +194,7 @@ The `Loop status` line proves to Daniel and the Reviewer that you are still runn
 - ENS parsing must use stable records plus `siren:upgrade_manifest`; absent or malformed manifests lower confidence and never silently fall back to hardcoded addresses.
 - Sourcify data must be fetched through documented endpoints; vendored fixtures only allowed under `mock: true` in tests.
 - Report JSON must validate against the published schema in `packages/shared/`.
+- `packages/shared/` must expose the canonical EIP-712 typed-data builder and `signReport` helper before any Stream A provisioning item depends on signed reports.
 - Production Siren Reports must verify `reportHash` and EIP-712 signature against `siren:owner`; unsigned or signature-invalid reports return `SIREN`.
 - Missing evidence must downgrade verdict to `REVIEW` or `SIREN`, never produce fake confidence.
 - All exported functions are typed; no `any`.
