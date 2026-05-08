@@ -12,6 +12,20 @@ You are producing the **complete, prioritized, parallelization-aware work backlo
 
 `https://github.com/B2JK-Industry/agent-float-ethprague-2026`
 
+## Four-agent execution model
+
+The backlog will be consumed by four parallel AI agents:
+
+- **Dev A, Dev B, Dev C** — three coding agents, each owning a non-overlapping repository surface (defined below). They run non-stop, opening PRs.
+- **Reviewer** — a fourth agent that polls open PRs and reviews them against acceptance criteria, anti-patterns, stream ownership, and honest-over-slick rules. Reviewer approves or requests changes; does not merge.
+
+Daniel handles merges and decisions that escalate beyond locked scope. Claude (orchestrator) maintains SCOPE.md / docs / prompts / wiki and translates mentor findings into backlog adjustments.
+
+When writing the backlog, design every item so that:
+- It is unambiguously assignable to one of the three dev streams (or marked as Daniel/orchestrator-owned)
+- Its acceptance criteria are review-checkable by the Reviewer agent without needing additional human context
+- Cross-stream coordination items are explicit, not implicit
+
 ## Three AI dev streams (ownership areas — non-overlapping)
 
 The backlog must assign **every item to exactly one of three streams**. Each stream owns a set of repository paths and an outcome surface. PRs from one stream do not touch another stream's paths except via explicit cross-stream coordination items.

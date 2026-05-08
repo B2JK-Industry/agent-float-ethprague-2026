@@ -53,6 +53,23 @@ loop forever:
   13. go to 1
 ```
 
+## Reviewer agent
+
+A 4th AI agent — the **PR Reviewer** (`prompts/review-prs.md`) — runs in parallel and reviews every PR you open. Expectations:
+
+- Reviewer reads your PR description, changed files, and the AF-NNN backlog item
+- Reviewer leaves either **approve** or **request changes** review (does not merge)
+- If you get **request changes**, push fixes to the same branch and ping the reviewer for re-review
+- If you get **approve**, Daniel merges; you continue to next item without waiting for the merge
+- If reviewer escalates (leaves a comment for Daniel without approve/changes), do not block on it; pick a different unblocked item
+
+Make the reviewer's job easy:
+- Cite AF-NNN in PR title
+- Copy acceptance criteria into PR description as a checklist
+- Reference the doc sections you implemented against
+- Include test output or verification screenshots/links
+- Flag any cross-stream coordination needs explicitly
+
 ## When you must stop (the only allowed stops)
 
 - All items assigned to your stream are `status = done` (final state).
