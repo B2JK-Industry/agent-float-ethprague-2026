@@ -1664,3 +1664,944 @@ pnpm --filter @upgrade-siren/evidence test verdict/gracePolicy
 #### Notes
 
 Mentor question 60 in `docs/07-sponsor-fit.md` flags this as a sensitive verdict path; default-off lets us ship conservative and turn on if ENS mentor recommends.
+
+### US-037 - Next.js 16 app scaffold with Tailwind 4
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | C |
+| Effort | M |
+| Sponsor | - |
+| Dependencies | none |
+| Acceptance gates | GATE-1 |
+| Status | open |
+
+#### Scope
+
+Bootstrap `apps/web/` as a Next.js 16 App Router app with Tailwind 4. Configure pnpm workspace inclusion, dark-mode-primary theme tokens (per `prompts/design-brief.md`), and a `/health` route that returns env config status. Out of scope: ENS lookup form (US-038), verdict card (US-042), demo runner (US-050).
+
+#### Acceptance Criteria
+
+- [ ] `apps/web/package.json` declares `name=@upgrade-siren/web`, depends on `@upgrade-siren/shared` and `@upgrade-siren/evidence` (workspace links)
+- [ ] Next.js 16 App Router structure: `app/layout.tsx`, `app/page.tsx`, `app/health/route.ts`
+- [ ] Tailwind 4 configured with token references for verdict colors (`safe`, `review`, `siren`)
+- [ ] Dark mode is the default theme; light mode is opt-in via system or toggle
+- [ ] `/health` returns `200 OK` with `{ ens_rpc, sourcify, ai_gateway: "configured" | "missing" }`
+- [ ] `pnpm --filter @upgrade-siren/web build` produces a production build
+- [ ] `pnpm --filter @upgrade-siren/web dev` runs locally on port 3000
+- [ ] PR body references US-037
+
+#### Files
+
+- `apps/web/package.json`
+- `apps/web/next.config.ts`
+- `apps/web/tailwind.config.ts`
+- `apps/web/app/layout.tsx`
+- `apps/web/app/page.tsx`
+- `apps/web/app/health/route.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web build
+pnpm --filter @upgrade-siren/web dev &
+curl -s http://localhost:3000/health | jq
+```
+
+#### Notes
+
+Scaffold only. The home page is intentionally a placeholder until US-038 lands. Tailwind tokens for verdict colors must match the design brief and the GATE-22 plain-language requirement (color paired with glyph, not color alone).
+
+### US-038 - ENS lookup form component
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | C |
+| Effort | S |
+| Sponsor | ENS |
+| Dependencies | none |
+| Acceptance gates | GATE-1 |
+| Status | open |
+
+#### Scope
+
+Build `<EnsLookupForm />` in `apps/web/components/EnsLookupForm.tsx`: input field for an ENS name, submit button, validation that name has at least one dot. On submit, navigate to `/r/<name>`. Out of scope: address input variant (US-039), verdict rendering (US-042).
+
+#### Acceptance Criteria
+
+- [ ] Component renders an input + submit button
+- [ ] Validates input has at least one dot before submitting
+- [ ] On valid submit, navigates to `/r/<encodeURIComponent(name)>`
+- [ ] On invalid submit, shows inline error message
+- [ ] Storybook story or test file demonstrating both states
+- [ ] Component test asserts navigation behavior on submit
+- [ ] No `any` types in props
+- [ ] PR body references US-038
+
+#### Files
+
+- `apps/web/components/EnsLookupForm.tsx`
+- `apps/web/components/EnsLookupForm.test.tsx`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web test EnsLookupForm
+```
+
+#### Notes
+
+Effort `S` per scheduling guidance: this is one of the four fast-merging Stream C items meant to relieve reviewer queue pressure.
+
+### US-039 - Public-read address / ENS-address-record input component
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | C |
+| Effort | S |
+| Sponsor | ENS, Sourcify |
+| Dependencies | none |
+| Acceptance gates | GATE-25 |
+| Status | open |
+
+#### Scope
+
+Build `<PublicReadInput />` in `apps/web/components/PublicReadInput.tsx`: accepts either a 0x-prefixed address or an ENS name. On submit, navigates to `/r/<input>?mode=public-read`. Out of scope: actual public-read fetching (Stream B US-019); this component is just the input.
+
+#### Acceptance Criteria
+
+- [ ] Detects whether input is a hex address (0x + 40 hex chars) or an ENS name
+- [ ] On hex address, navigates to `/r/<address>?mode=public-read`
+- [ ] On ENS name, navigates to `/r/<name>?mode=public-read` (the page resolves address client-side)
+- [ ] Validation rejects strings that are neither
+- [ ] Component test covering both branches and invalid input
+- [ ] PR body references US-039
+
+#### Files
+
+- `apps/web/components/PublicReadInput.tsx`
+- `apps/web/components/PublicReadInput.test.tsx`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web test PublicReadInput
+```
+
+#### Notes
+
+This is the entry point for the read-only fallback flow that makes the product useful for protocols without `upgrade-siren:*` records. Effort `S` per scheduling guidance.
+
+### US-040 - Mock-path visible badge component
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | C |
+| Effort | S |
+| Sponsor | - |
+| Dependencies | none |
+| Acceptance gates | GATE-14 |
+| Status | open |
+
+#### Scope
+
+Build `<MockBadge />` in `apps/web/components/MockBadge.tsx` rendering a visible "MOCK" label whenever the underlying data path is a mock. Includes color (amber stripe), text label, and accessible aria-label. Out of scope: integration into specific renderers (those happen item-by-item in Stream C as data flows in).
+
+#### Acceptance Criteria
+
+- [ ] `<MockBadge />` accepts `{visible: boolean, label?: string}` typed props
+- [ ] Renders nothing when `visible=false`
+- [ ] When `visible=true`, renders an amber-bordered chip with "MOCK" or custom label
+- [ ] `aria-label` reads "Mock data path"
+- [ ] Storybook covers both states
+- [ ] Component test asserts conditional rendering
+- [ ] PR body references US-040
+
+#### Files
+
+- `apps/web/components/MockBadge.tsx`
+- `apps/web/components/MockBadge.test.tsx`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web test MockBadge
+```
+
+#### Notes
+
+GATE-14 enforcement: every mock path renders this badge. Reviewer must verify it is wired wherever a mock value is used.
+
+### US-041 - Signature status badge component
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | C |
+| Effort | S |
+| Sponsor | ENS |
+| Dependencies | US-014 |
+| Acceptance gates | GATE-24 |
+| Status | open |
+
+#### Scope
+
+Build `<SignatureStatusBadge />` in `apps/web/components/SignatureStatusBadge.tsx`: takes a `SirenReport.auth` value and renders one of three states: `signed` (green check, "Signed by 0x..."), `unsigned` (amber, "No operator signature"), `signature-invalid` (red, "Signature mismatch"). Out of scope: full verdict card (US-042).
+
+#### Acceptance Criteria
+
+- [ ] Component accepts `{auth: SirenReport["auth"]}` typed prop
+- [ ] Renders three distinct states based on `auth.status`
+- [ ] Color paired with glyph (check / warning / cross), not color alone
+- [ ] Truncated signer address shown with copy-to-clipboard affordance for `signed` state
+- [ ] Storybook covers all three states
+- [ ] Component test asserts correct state mapping
+- [ ] PR body references US-041 and US-014 as merged prerequisite
+
+#### Files
+
+- `apps/web/components/SignatureStatusBadge.tsx`
+- `apps/web/components/SignatureStatusBadge.test.tsx`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web test SignatureStatusBadge
+```
+
+#### Notes
+
+Critical for GATE-24: signature failures must be visible, not hidden in the evidence drawer. The verdict card (US-042) embeds this badge near the verdict label.
+
+### US-042 - Verdict card component (SAFE / REVIEW / SIREN)
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | C |
+| Effort | M |
+| Sponsor | Future Society |
+| Dependencies | US-037, US-041 |
+| Acceptance gates | GATE-1, GATE-2, GATE-22 |
+| Status | open |
+
+#### Scope
+
+Build `<VerdictCard />` in `apps/web/components/VerdictCard.tsx`. Renders the verdict (SAFE / REVIEW / SIREN) as the largest visual element above the fold. Color paired with glyph (color-blind safe). Includes protocol name, truncated proxy address, one-sentence summary, embedded signature status badge (US-041), confidence mode badge, and `mock` badge when applicable. Out of scope: evidence drawer (US-045), governance comment (US-049).
+
+#### Acceptance Criteria
+
+- [ ] `VerdictCard` accepts `{verdict, name, proxy, summary, auth, mode, mock?}` typed props
+- [ ] SAFE renders green bg + check glyph + "SAFE" label
+- [ ] REVIEW renders amber bg + warning glyph + "REVIEW" label
+- [ ] SIREN renders red bg + alarm glyph + "SIREN" label
+- [ ] Verdict label is the largest text on the card
+- [ ] Embeds `<SignatureStatusBadge />` and a confidence mode chip
+- [ ] When `mock: true`, renders `<MockBadge visible />` in card corner
+- [ ] No `text-green` / `text-red` classes outside this component (audit grep should only find them here and in MockBadge)
+- [ ] Storybook covers all three verdicts + mock variant
+- [ ] Component test asserts correct labels and styles per verdict
+- [ ] PR body references US-042
+
+#### Files
+
+- `apps/web/components/VerdictCard.tsx`
+- `apps/web/components/VerdictCard.stories.tsx`
+- `apps/web/components/VerdictCard.test.tsx`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web test VerdictCard
+pnpm --filter @upgrade-siren/web grep "text-green\|text-red" apps/web/components | grep -v VerdictCard\|MockBadge && exit 1 || echo "OK"
+```
+
+#### Notes
+
+The five-second moment depends on this card. Color-blind safe is non-negotiable per `docs/06-acceptance-gates.md` (GATE-22) and the design brief. WCAG AA contrast for verdict text on verdict background is the floor.
+
+### US-043 - Progressive loading checklist
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | C |
+| Effort | M |
+| Sponsor | Future Society |
+| Dependencies | US-037 |
+| Acceptance gates | GATE-20, GATE-26 |
+| Status | open |
+
+#### Scope
+
+Build `<LoadingChecklist />` in `apps/web/components/LoadingChecklist.tsx`. Vertical list of evidence-fetch milestones (`ENS`, `chain`, `Sourcify`, `diff`, `signature`) that fill in real-time as upstream data arrives. Each row shows pending / success / failure state. Out of scope: actual data orchestration logic (lives in `app/r/[name]/page.tsx`).
+
+#### Acceptance Criteria
+
+- [ ] Component accepts `{steps: Array<{key, label, status}>}` typed props
+- [ ] Status enum: `pending | running | success | failure`
+- [ ] Renders glyph + label + optional duration ms once complete
+- [ ] Updates render in under 50ms when status changes (visible to user as flowing)
+- [ ] Failure state shows specific error message
+- [ ] Storybook covers each combination
+- [ ] PR body references US-043
+
+#### Files
+
+- `apps/web/components/LoadingChecklist.tsx`
+- `apps/web/components/LoadingChecklist.stories.tsx`
+- `apps/web/components/LoadingChecklist.test.tsx`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web test LoadingChecklist
+```
+
+#### Notes
+
+Five-second-rule mitigation per `docs/05-demo-script.md` and the audit recommendations. Without progressive loading, a cold uncached lookup feels like a 6-second blank page.
+
+### US-044 - Before/after implementation comparison view
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | C |
+| Effort | M |
+| Sponsor | Sourcify |
+| Dependencies | US-014, US-037 |
+| Acceptance gates | GATE-21 |
+| Status | open |
+
+#### Scope
+
+Build `<ImplementationComparison />` rendering the previous and current implementations side by side: address (truncated + copy), Sourcify verification status, deployment block, last-changed timestamp from upgrade events. Out of scope: ABI/storage diff renderers (US-046, US-047).
+
+#### Acceptance Criteria
+
+- [ ] Component accepts `{previous, current}` typed props matching `SirenReport.previousImplementation` and `SirenReport.currentImplementation` shape
+- [ ] Two columns on desktop, stacked on mobile (≤ 768px)
+- [ ] Each side shows address (truncated to 6+4 chars), copy button, Sourcify link if verified, "unverified" label otherwise
+- [ ] Storybook covers both verified, only previous verified, only current verified, neither verified
+- [ ] PR body references US-044
+
+#### Files
+
+- `apps/web/components/ImplementationComparison.tsx`
+- `apps/web/components/ImplementationComparison.stories.tsx`
+- `apps/web/components/ImplementationComparison.test.tsx`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web test ImplementationComparison
+```
+
+#### Notes
+
+Stack on mobile is the responsive contract. The judge demo viewport is desktop, but DAO voters reading on phone need the comparison to work.
+
+### US-045 - Evidence drawer with Sourcify links
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | C |
+| Effort | M |
+| Sponsor | Sourcify |
+| Dependencies | US-014, US-025, US-037 |
+| Acceptance gates | GATE-9, GATE-21 |
+| Status | open |
+
+#### Scope
+
+Build `<EvidenceDrawer />` as a right-side collapsible panel containing: Sourcify links for previous and current implementations, ABI summary (count of selectors + risky selectors flagged), storage layout summary (compatible / incompatible / unknown), report download link. Out of scope: full ABI diff renderer (US-046), storage diff renderer (US-047).
+
+#### Acceptance Criteria
+
+- [ ] Drawer opens/closes via button on the verdict card
+- [ ] Renders Sourcify links for both implementations (or "unverified" placeholder)
+- [ ] Shows summary counts (e.g., "12 selectors, 1 risky added")
+- [ ] Shows storage layout result tag
+- [ ] Includes a "download report JSON" button serving the canonical signed report
+- [ ] Keyboard-accessible (Esc closes)
+- [ ] Storybook covers expanded and collapsed states
+- [ ] PR body references US-045
+
+#### Files
+
+- `apps/web/components/EvidenceDrawer.tsx`
+- `apps/web/components/EvidenceDrawer.stories.tsx`
+- `apps/web/components/EvidenceDrawer.test.tsx`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web test EvidenceDrawer
+```
+
+#### Notes
+
+Drawer is for the technical judge moment. The non-technical user sees the verdict card and never opens the drawer.
+
+### US-046 - ABI diff renderer
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | C |
+| Effort | M |
+| Sponsor | Sourcify |
+| Dependencies | US-026, US-037 |
+| Acceptance gates | GATE-11 |
+| Status | open |
+
+#### Scope
+
+Build `<AbiDiffRenderer />` consuming the diff result from `diffAbiRiskySelectors` (US-026). Renders added/removed selectors grouped, with risky selectors highlighted in red. Out of scope: full ABI explorer (post-hack feature).
+
+#### Acceptance Criteria
+
+- [ ] Component accepts `{diff: AbiDiffResult}` typed prop
+- [ ] Lists added selectors with name, signature hex, severity
+- [ ] Lists removed selectors with same fields
+- [ ] Risky selectors highlighted with red dot + label
+- [ ] When diff is empty, renders "no ABI changes detected"
+- [ ] Storybook covers V1->V2Safe (no risky), V1->V2Dangerous (sweep added)
+- [ ] PR body references US-046
+
+#### Files
+
+- `apps/web/components/AbiDiffRenderer.tsx`
+- `apps/web/components/AbiDiffRenderer.stories.tsx`
+- `apps/web/components/AbiDiffRenderer.test.tsx`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web test AbiDiffRenderer
+```
+
+#### Notes
+
+Dangerous selector highlighting maps to GATE-11 (deterministic ABI risk diff visible to user).
+
+### US-047 - Storage diff renderer
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | C |
+| Effort | M |
+| Sponsor | Sourcify |
+| Dependencies | US-027, US-037 |
+| Acceptance gates | GATE-12 |
+| Status | open |
+
+#### Scope
+
+Build `<StorageDiffRenderer />` consuming the diff result from `diffStorageLayout` (US-027). Renders the result tag (`compatible_appended_only` etc.) plus a slot-by-slot table when changes exist. Out of scope: visual storage-layout explorer for full layouts.
+
+#### Acceptance Criteria
+
+- [ ] Component accepts `{diff: StorageDiffResult}` typed prop
+- [ ] Renders result tag prominently with color (green/amber/red)
+- [ ] Slot table shows: index, previous type/name, current type/name, change kind
+- [ ] When `unknown_missing_layout`, renders honest "storage layout not published" message
+- [ ] Storybook covers each result type
+- [ ] PR body references US-047
+
+#### Files
+
+- `apps/web/components/StorageDiffRenderer.tsx`
+- `apps/web/components/StorageDiffRenderer.stories.tsx`
+- `apps/web/components/StorageDiffRenderer.test.tsx`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web test StorageDiffRenderer
+```
+
+#### Notes
+
+`unknown_missing_layout` rendering is the GATE-13 honesty test: the UI must not pretend to know storage compatibility when it does not.
+
+### US-048 - ENS records resolved live panel
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | C |
+| Effort | M |
+| Sponsor | ENS |
+| Dependencies | US-017, US-037 |
+| Acceptance gates | GATE-3, GATE-17 |
+| Status | open |
+
+#### Scope
+
+Build `<EnsRecordsPanel />` rendering each `upgrade-siren:*` record live-resolved value (chain_id, proxy, owner, schema, upgrade_manifest). Includes ENSIP-26 records (`agent-context`, `agent-endpoint[web]`) when present. Manifest is rendered as collapsible JSON. Out of scope: editing records (out of scope for the entire product).
+
+#### Acceptance Criteria
+
+- [ ] Component accepts `{ens: EnsResolutionResult}` typed prop
+- [ ] Each stable record shows label + value (or "absent" tag)
+- [ ] Manifest renders as collapsible JSON, valid syntax-highlighted
+- [ ] ENSIP-26 records shown as separate sub-section when present
+- [ ] "absent" records visually distinct from present (for the public-read fallback case)
+- [ ] Storybook covers signed-manifest and public-read modes
+- [ ] PR body references US-048
+
+#### Files
+
+- `apps/web/components/EnsRecordsPanel.tsx`
+- `apps/web/components/EnsRecordsPanel.stories.tsx`
+- `apps/web/components/EnsRecordsPanel.test.tsx`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web test EnsRecordsPanel
+```
+
+#### Notes
+
+Live records being shown explicitly is the GATE-3 demonstration: the judge sees records resolving in real time, not hardcoded.
+
+### US-049 - Governance comment generator (short / forum / vote-reason)
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | C |
+| Effort | M |
+| Sponsor | Future Society |
+| Dependencies | US-014, US-037 |
+| Acceptance gates | GATE-7, GATE-22, GATE-23 |
+| Status | open |
+
+#### Scope
+
+Build `<GovernanceComment />` with three switchable formats: `short` (tweet-length, ~240 chars including signed report link), `forum` (multi-line Discourse/Snapshot post with evidence bullets), `vote-reason` (1-2 sentences for on-chain vote rationale). Each format includes a copy button that copies plain text plus an inline signed-report citation link. Out of scope: AI-generated text (deterministic templates only; LLM polish optional P1).
+
+#### Acceptance Criteria
+
+- [ ] Component accepts `{report: SirenReport, name: string}` typed props
+- [ ] Three radio/tab buttons switch format
+- [ ] Each format produced by a deterministic template function over the report's findings + verdict
+- [ ] Short format ≤ 240 chars including the report URL
+- [ ] Forum format includes bullet list of top 3 findings
+- [ ] Vote-reason format ≤ 200 chars
+- [ ] Copy button copies the rendered text + report URL
+- [ ] Component test asserts output matches expected templates for sample report fixtures
+- [ ] PR body references US-049
+
+#### Files
+
+- `apps/web/components/GovernanceComment.tsx`
+- `apps/web/components/GovernanceComment.test.tsx`
+- `apps/web/lib/governanceTemplates.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web test GovernanceComment
+```
+
+#### Notes
+
+Three formats per audit recommendation. Deterministic templates beat LLM at hackathon time: predictable demo + reviewable. AI polish is P1 if time allows.
+
+### US-050 - Demo mode runner with four scenarios
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | C |
+| Effort | M |
+| Sponsor | Sourcify, ENS, Future Society |
+| Dependencies | US-009, US-010, US-011, US-029, US-037, US-042 |
+| Acceptance gates | GATE-6 |
+| Status | open |
+
+#### Scope
+
+Build `/demo` route in `apps/web/app/demo/page.tsx` with a scenario picker (radio: safe / dangerous / unverified / live public-read). Selecting a scenario navigates to the verdict result page using the corresponding pre-provisioned ENS subname or live-target address. Live public-read scenario uses the address selected by US-062. Out of scope: target selection (US-062, Tracker).
+
+#### Acceptance Criteria
+
+- [ ] `/demo` page exists with four scenario buttons
+- [ ] Safe button navigates to `/r/safe.demo.upgradesiren.eth`
+- [ ] Dangerous button navigates to `/r/dangerous.demo.upgradesiren.eth`
+- [ ] Unverified button navigates to `/r/unverified.demo.upgradesiren.eth`
+- [ ] Live public-read button navigates to `/r/<chosen-target>?mode=public-read` (target read from config; placeholder until US-062 selects)
+- [ ] Each navigation produces the expected verdict (SAFE / SIREN / SIREN / REVIEW respectively, asserted by integration test)
+- [ ] PR body references US-050
+
+#### Files
+
+- `apps/web/app/demo/page.tsx`
+- `apps/web/app/demo/demo.config.ts`
+- `apps/web/app/demo/demo.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web test app/demo
+pnpm --filter @upgrade-siren/web e2e demo
+```
+
+#### Notes
+
+Four-scenario picker is the booth demo orchestration. The live public-read scenario address may land late if US-062 research takes longer; demo runner handles missing config by greying out that scenario rather than 404-ing.
+
+### US-051 - Empty/error states
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | C |
+| Effort | M |
+| Sponsor | - |
+| Dependencies | US-019, US-020, US-037 |
+| Acceptance gates | GATE-13, GATE-26 |
+| Status | open |
+
+#### Scope
+
+Build typed error-state components for: ENS name has no `upgrade-siren:*` records (empty state -> public-read CTA), RPC down (error state with retry button), Sourcify down (error state with cached-data note), malformed manifest (error state with raw record dump for debugging), unsigned production report (red verdict with explicit "no operator signature" reason). Out of scope: full network retry orchestration (US-034 in Stream B).
+
+#### Acceptance Criteria
+
+- [ ] `<EmptyStateNoRecords />` renders when ENS resolves but `upgrade-siren:*` records absent; offers "switch to public-read mode" CTA
+- [ ] `<ErrorStateRpc />` renders with retry button and link to `/health`
+- [ ] `<ErrorStateSourcify />` renders with cached-data note when applicable
+- [ ] `<ErrorStateMalformedManifest />` renders raw record content for inspection
+- [ ] `<ErrorStateUnsignedReport />` renders with verdict locked to SIREN and explicit reason
+- [ ] Storybook covers each state
+- [ ] Each state has a component test
+- [ ] PR body references US-051
+
+#### Files
+
+- `apps/web/components/EmptyStateNoRecords.tsx`
+- `apps/web/components/ErrorStateRpc.tsx`
+- `apps/web/components/ErrorStateSourcify.tsx`
+- `apps/web/components/ErrorStateMalformedManifest.tsx`
+- `apps/web/components/ErrorStateUnsignedReport.tsx`
+- `apps/web/components/error-states.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web test error-states
+```
+
+#### Notes
+
+GATE-26 requires explicit empty/error states per audit recommendation. Without these, a silent failure looks like a verdict bug.
+
+### US-052 - Five-second-rule performance check
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | C |
+| Effort | S |
+| Sponsor | Future Society |
+| Dependencies | US-042, US-043 |
+| Acceptance gates | GATE-20 |
+| Status | open |
+
+#### Scope
+
+Add a Playwright test in `apps/web/e2e/five-second-rule.spec.ts` that navigates to each demo scenario page and asserts the verdict text is visible within 5000ms of navigation start. Also adds a Lighthouse check in CI requiring performance ≥ 90 on the demo page. Out of scope: actually optimizing performance (this item is the regression test; optimizations live in caching items US-032, US-033).
+
+#### Acceptance Criteria
+
+- [ ] Playwright spec asserts verdict text visible within 5000ms for safe, dangerous, unverified scenarios
+- [ ] Test passes in CI against the local dev server
+- [ ] Lighthouse CI config in `.lighthouserc.json` requires performance ≥ 90 for `/r/safe.demo.upgradesiren.eth`
+- [ ] PR body references US-052
+
+#### Files
+
+- `apps/web/e2e/five-second-rule.spec.ts`
+- `apps/web/.lighthouserc.json`
+- `apps/web/package.json` (add `e2e` and `lighthouse:demo` scripts)
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web e2e five-second-rule
+pnpm --filter @upgrade-siren/web lighthouse:demo
+```
+
+#### Notes
+
+If the test fails, the fix lies in caching (US-032, US-033) or the progressive loading (US-043), not in this item. Reviewer must not approve a PR that "fixes" performance by lowering the budget.
+
+### US-053 - Share-verdict link with precomputed result
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | C |
+| Effort | M |
+| Sponsor | Future Society |
+| Dependencies | US-042 |
+| Acceptance gates | - |
+| Status | open |
+
+#### Scope
+
+Build `<ShareVerdictLink />` that produces a stable URL of the form `/r/<name>?v=<verdict>&t=<timestamp>` so a DAO voter can paste a snapshot of "what Siren said when I voted". The page reads the precomputed verdict from URL params and renders it without re-fetching, then offers a "verify live now" button. Out of scope: cryptographic proof of the precomputed verdict (P3, ZK-proof territory).
+
+#### Acceptance Criteria
+
+- [ ] Verdict result page accepts `?v=` and `?t=` URL params
+- [ ] When present, renders the precomputed verdict alongside a "verify live now" affordance
+- [ ] When user clicks "verify live now", page re-fetches and renders the live verdict (which may differ)
+- [ ] Share button copies the share URL to clipboard
+- [ ] Component test covers both initial-render-from-url and live-refresh paths
+- [ ] PR body references US-053
+
+#### Files
+
+- `apps/web/components/ShareVerdictLink.tsx`
+- `apps/web/app/r/[name]/page.tsx` (modification)
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web test ShareVerdictLink
+```
+
+#### Notes
+
+P1 because the demo path doesn't need shareable links; this is for real-world DAO governance use after hackathon.
+
+### US-054 - Mobile responsive layout check (viewport ≤ 768px)
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | C |
+| Effort | S |
+| Sponsor | Future Society |
+| Dependencies | US-042, US-045 |
+| Acceptance gates | - |
+| Status | open |
+
+#### Scope
+
+Add a Playwright test that verifies the verdict result page renders correctly on a 390x844 viewport (iPhone-sized). Verdict card stacks vertically, evidence drawer becomes a full-screen modal instead of side panel, governance comment generator collapses formats into a dropdown.
+
+#### Acceptance Criteria
+
+- [ ] Playwright test runs at 390x844 viewport against demo scenarios
+- [ ] Asserts verdict text visible without horizontal scroll
+- [ ] Asserts evidence drawer button still tappable (≥ 44px hit area)
+- [ ] Asserts no critical content cut off
+- [ ] PR body references US-054
+
+#### Files
+
+- `apps/web/e2e/mobile-responsive.spec.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web e2e mobile-responsive
+```
+
+#### Notes
+
+P1 because demo audience is desktop. DAO voters on phones are real-world, not booth-day, so this can ship in a follow-up.
+
+### US-055 - Accessibility pass for WCAG AA and screen-reader status labels
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | C |
+| Effort | M |
+| Sponsor | Future Society |
+| Dependencies | US-042, US-045 |
+| Acceptance gates | - |
+| Status | open |
+
+#### Scope
+
+Run axe-core against the verdict result page and fix any WCAG AA violations. Verify all verdict states (SAFE / REVIEW / SIREN) have screen-reader-friendly aria-labels (color paired with text label). Verify keyboard navigation works for the evidence drawer and governance comment generator.
+
+#### Acceptance Criteria
+
+- [ ] axe-core scan reports zero WCAG AA violations on `/r/safe.demo.upgradesiren.eth` and `/r/dangerous.demo.upgradesiren.eth`
+- [ ] Verdict card has `role="status"` and `aria-label` reading the full verdict word
+- [ ] Tab order is logical
+- [ ] Esc closes evidence drawer
+- [ ] PR body references US-055
+
+#### Files
+
+- `apps/web/e2e/accessibility.spec.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web e2e accessibility
+```
+
+#### Notes
+
+P1 because public-good positioning demands a11y, but the gate-listed tests do not enforce it. Mentor feedback may upgrade this to P0.
+
+### US-056 - Siren Agent watchlist config (P2)
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P2 |
+| Owner | C |
+| Effort | M |
+| Sponsor | Umia |
+| Dependencies | US-029 |
+| Acceptance gates | - |
+| Status | open |
+
+#### Scope
+
+Build `apps/siren-agent/` package: a long-running watcher that takes a list of ENS names from a config file and runs `computeVerdict` on each every N minutes. Logs verdict changes. Out of scope: signed report automation (US-057), Umia panel (US-058), persistence (Neon Postgres is a future P3 item).
+
+#### Acceptance Criteria
+
+- [ ] `apps/siren-agent/package.json` declares the package
+- [ ] CLI: `pnpm siren-agent --config watchlist.json` runs the watcher
+- [ ] Config schema: array of `{name, intervalSeconds}` entries
+- [ ] On verdict change, logs structured event to stdout
+- [ ] Unit tests for the polling loop
+- [ ] PR body references US-056
+- [ ] PR body explicitly notes this is P2, only ships if Daniel pursues Umia track
+
+#### Files
+
+- `apps/siren-agent/package.json`
+- `apps/siren-agent/src/cli.ts`
+- `apps/siren-agent/src/watcher.ts`
+- `apps/siren-agent/test/watcher.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/siren-agent test
+```
+
+#### Notes
+
+Conditional on Umia track decision per `SCOPE.md §10`. First cut if time pressure.
+
+### US-057 - Operator report-signing workflow UX for Siren Agent automation (P2)
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P2 |
+| Owner | C |
+| Effort | M |
+| Sponsor | Umia |
+| Dependencies | US-015, US-056 |
+| Acceptance gates | - |
+| Status | open |
+
+#### Scope
+
+Add a UX flow in `apps/siren-agent/` for the operator to approve a generated Siren Report and trigger the signing helper (US-015) to produce the signed JSON. Includes a CLI prompt with diff against the previous report and a confirmation step. Out of scope: web-based signing UI (further P2 stretch).
+
+#### Acceptance Criteria
+
+- [ ] CLI prompt shows the new report alongside the previous report's diff
+- [ ] Operator confirms with `y/N`; on `y`, calls `signReport` and writes the signed JSON to disk
+- [ ] On `n`, prints "skipped, no new report signed"
+- [ ] Operator key is read from environment, never logged
+- [ ] PR body references US-057 and US-015 as merged prerequisite
+
+#### Files
+
+- `apps/siren-agent/src/signFlow.ts`
+- `apps/siren-agent/test/signFlow.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/siren-agent test signFlow
+```
+
+#### Notes
+
+Same conditional as US-056. P2 only.
+
+### US-058 - Umia-style due-diligence panel (P2)
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P2 |
+| Owner | C |
+| Effort | M |
+| Sponsor | Umia |
+| Dependencies | US-029 |
+| Acceptance gates | GATE-19 |
+| Status | open |
+
+#### Scope
+
+Build `<UmiaDueDiligencePanel />` rendering a Siren Agent watchlist for venture contracts: list of monitored contracts, latest verdict per contract, last-changed timestamp, signed report links. Frames the agent as a due-diligence tool, not a token launchpad. Out of scope: actual Umia integration (post-hack feature).
+
+#### Acceptance Criteria
+
+- [ ] Component accepts `{watchlist: WatchlistEntry[]}` typed prop
+- [ ] Each entry shows name, current verdict, signed-report link, last-changed time
+- [ ] Page route at `/umia` renders the panel
+- [ ] Pitch text in the page header explicitly says "due-diligence and post-launch monitoring", not "token launch"
+- [ ] PR body references US-058 and notes this is P2
+
+#### Files
+
+- `apps/web/app/umia/page.tsx`
+- `apps/web/components/UmiaDueDiligencePanel.tsx`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web test UmiaDueDiligencePanel
+```
+
+#### Notes
+
+GATE-19 enforcement: Umia pitch must NOT read as launchpad. Reviewer audits the page header copy specifically.
