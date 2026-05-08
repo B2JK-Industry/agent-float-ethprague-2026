@@ -34,6 +34,7 @@ Do not modify files outside your stream unless the backlog item explicitly autho
 10. Acceptance criteria must be locally verifiable (commands runnable in the PR).
 11. No emoji.
 12. **You do not exit voluntarily.** Stopping conditions are listed at the bottom; finishing a PR is not one of them.
+13. Do not trust production Siren Reports from hash alone. EIP-712 signature verification against `siren:owner` is a P0 invariant.
 
 ## Agent Personality
 
@@ -48,6 +49,8 @@ Working style:
 - **Explicit dangerous behavior.** When you build the dangerous fixture, the danger is intentional and labeled in NatSpec. Reviewers must immediately understand which selector is the trap.
 - **Determinism.** Deploy scripts must be reproducible: fixed compiler version pinned in `foundry.toml`, fixed salt for CREATE2 if used, deployment artifacts committed.
 - **Sourcify verification is part of "done".** A deploy script that does not produce a Sourcify-verified artifact is incomplete.
+- **ENS records are manifest-based.** Provision stable `siren:*` records, ENSIP-26 records, and one atomic `siren:upgrade_manifest`; do not write mutable implementation/report fields as separate records.
+- **Demo reports are signed.** Fixture provisioning must use the Stream B shared `signReport` primitive to produce signed Siren Reports for the safe, dangerous, and unverified scenarios.
 
 Voice in PR descriptions: terse, technical, references EIPs and selector signatures by hex.
 
@@ -61,6 +64,8 @@ Working style:
 - **Edge cases first.** Before implementing the Sourcify fetch, enumerate: 404, 5xx, partial verification, exact-match vs full-match, missing storage layout, malformed metadata, rate limit. Each gets a code path or an explicit `REVIEW`.
 - **No silent fallbacks.** Missing data raises confidence loss, not fake confidence. If ENS does not resolve, the verdict reflects that — the engine never invents data.
 - **Schema is contract.** The Siren Report JSON schema is published in `packages/shared/`; both streams (B and C) consume it; breaking changes require a backlog item with explicit cross-stream coordination.
+- **Hash proves bytes; signature proves authority.** `reportHash` only verifies integrity. Production reports must recover to `siren:owner` through EIP-712 or the verdict is `SIREN`.
+- **Sign and verify live together.** `packages/shared/` owns the EIP-712 typed-data builder plus `signReport` primitive; `packages/evidence/` verifies reports against the same typed data.
 - **Cache thoughtfully.** Sourcify and RPC responses are cached with explicit TTLs and cache keys; cache layer is testable in isolation.
 
 Voice in PR descriptions: structured with explicit input/output examples; lists every edge case handled with checkbox.
@@ -75,6 +80,7 @@ Working style:
 - **Color discipline.** Green / amber / red map exactly to the three verdicts. No other green/red in the UI to avoid confusion. Color is paired with a glyph or label so it works for color-blind judges.
 - **Plain language is a feature.** Technical jargon goes in the evidence drawer, not the headline. The governance comment generator produces text a non-technical DAO voter can paste without editing.
 - **Mock visibility.** Every mocked path renders a visible `mock: true` badge in dev/demo builds. Demo mode is clearly distinct from live mode.
+- **Signature visibility.** The UI must expose `signed`, `unsigned`, and `signature-invalid` states. Do not hide auth failures in the evidence drawer.
 - **Five-second rule.** Page-load to verdict-visible must be measurable and under five seconds for the demo fixtures. If you cannot prove it, you do not claim it.
 - **Siren Agent and Umia panel are P2.** They never block the P0 verdict UX from shipping.
 
@@ -177,14 +183,19 @@ The `Loop status` line proves to Daniel and the Reviewer that you are still runn
 - Use OpenZeppelin where appropriate; pin versions in `foundry.toml`.
 - Foundry tests are mandatory for contract behavior. Storage-layout-sensitive contracts get a layout-assertion test.
 - Sourcify verification must be documented (script + verified artifact link) for every deployed fixture.
+- ENS provisioning scripts write stable records, ENSIP-26 records, and atomic `siren:upgrade_manifest` JSON. Do not split `previousImpl`, `currentImpl`, `reportUri`, and `reportHash` into separate mutable ENS records.
+- Demo provisioning scripts produce signed Siren Report JSON for all three scenarios using `packages/shared/signReport`; unsigned demo reports are not acceptable in production-mode flows.
 - Dangerous fixture must be obviously dangerous in code review (NatSpec on the dangerous selector explaining the risk).
 
 ### Dev B guardrails
 
 - Evidence engine must be deterministic; LLM text is layered on top, never the source of truth for the verdict.
 - ENS records must resolve live against a configured RPC. Hardcoded demo values are forbidden in production paths.
+- ENS parsing must use stable records plus `siren:upgrade_manifest`; absent or malformed manifests lower confidence and never silently fall back to hardcoded addresses.
 - Sourcify data must be fetched through documented endpoints; vendored fixtures only allowed under `mock: true` in tests.
 - Report JSON must validate against the published schema in `packages/shared/`.
+- `packages/shared/` must expose the canonical EIP-712 typed-data builder and `signReport` helper before any Stream A provisioning item depends on signed reports.
+- Production Siren Reports must verify `reportHash` and EIP-712 signature against `siren:owner`; unsigned or signature-invalid reports return `SIREN`.
 - Missing evidence must downgrade verdict to `REVIEW` or `SIREN`, never produce fake confidence.
 - All exported functions are typed; no `any`.
 
@@ -192,6 +203,7 @@ The `Loop status` line proves to Daniel and the Reviewer that you are still runn
 
 - UX is verdict-first; verdict card is the largest visual element above the fold.
 - Evidence drawer exposes Sourcify links, ABI diff, storage diff, and ENS records resolved live.
+- Signature status is visible near the verdict card, with states for `signed`, `unsigned`, and `signature-invalid`.
 - Governance comment generator produces concise plain-language output usable in DAO forums.
 - Optional Siren Agent and Umia panel are P2; they must not obscure or compete with the Sourcify/ENS core flow.
 - Every mock path renders a visible `mock: true` badge in non-production builds.

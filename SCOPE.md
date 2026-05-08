@@ -89,18 +89,47 @@ report.vault.demo.upgradesiren.eth
 
 > **ENS parent name is not registered yet.** Registry owner check via public mainnet RPC on 2026-05-08 returned `0x0000000000000000000000000000000000000000` for `upgradesiren.eth`, `upgrade-siren.eth`, and `upgrade-siren-demo.eth`. Default: register `upgradesiren.eth` if still available at purchase time; fall back to `upgrade-siren.eth` or `upgrade-siren-demo.eth` if registration fails. Daniel approves final choice.
 
-Required live records:
+Required live records are split by update behavior. Stable identity and discovery records live directly in ENS. Upgrade-specific data is updated through one atomic manifest record so related values cannot desynchronize across multiple `setText` calls.
+
+Stable ENS records:
 
 | Record | Purpose |
 |---|---|
 | `siren:chain_id` | Chain where contracts live |
 | `siren:proxy` | Proxy address |
-| `siren:previous_impl` | Previous implementation address |
-| `siren:current_impl` | Current implementation address |
-| `siren:report_uri` | Latest report pointer |
-| `siren:report_hash` | Integrity hash for latest report |
-| `siren:owner` | Operator or protocol owner reference |
+| `siren:owner` | Operator or protocol owner address authorized to sign reports |
 | `siren:schema` | JSON schema pointer for records |
+
+Atomic upgrade manifest record:
+
+| Record | Purpose |
+|---|---|
+| `siren:upgrade_manifest` | Single JSON object for current upgrade state: previous implementation, current implementation, report URI, report hash, version, effective timestamp, and previous manifest hash |
+
+`siren:upgrade_manifest` shape:
+
+```json
+{
+  "schema": "siren-upgrade-manifest@1",
+  "chainId": 11155111,
+  "proxy": "0x...",
+  "previousImpl": "0x...",
+  "currentImpl": "0x...",
+  "reportUri": "https://...",
+  "reportHash": "0x...",
+  "version": 3,
+  "effectiveFrom": "2026-05-09T12:00:00Z",
+  "previousManifestHash": "0x..."
+}
+```
+
+ENSIP-26 compatibility records:
+
+| Record | Purpose |
+|---|---|
+| `agent-context` | Human-readable context, e.g. `Upgrade Siren risk report for vault.demo.upgradesiren.eth` |
+| `agent-endpoint[web]` | Web report endpoint, e.g. `https://upgradesiren.app/r/vault.demo.upgradesiren.eth` |
+| `agent-endpoint[mcp]` | P2 Siren Agent MCP endpoint when the agent watchlist ships |
 
 ENS must be live-resolved in the app. No hardcoded demo values in the product path.
 
@@ -110,8 +139,8 @@ Must support:
 
 - EIP-1967 implementation slot lookup
 - `Upgraded(address)` event detection
-- Current implementation vs ENS-declared current implementation check
-- Previous implementation selection from event history or ENS record
+- Current implementation vs ENS manifest-declared current implementation check
+- Previous implementation selection from event history or `siren:upgrade_manifest`
 - Admin / owner / timelock heuristics where available
 
 ### Sourcify Evidence Engine
@@ -135,7 +164,7 @@ Diff checks:
 | Storage | Incompatible slot/type/order change |
 | Admin power | New `upgradeTo`, `setOwner`, `setAdmin`, `sweep`, `withdraw`, `mint`, `pause`, arbitrary `call` |
 | Timelock | Upgrade admin not timelocked or timelock disappeared |
-| ENS consistency | ENS `latest` record does not match live proxy slot |
+| ENS consistency | `siren:upgrade_manifest.currentImpl` does not match live proxy slot |
 | Source risk | Dangerous low-level calls added without clear guard |
 
 ### Siren Report
@@ -159,13 +188,21 @@ Report fields:
   },
   "ens": {
     "recordsResolvedLive": true,
-    "recordHash": "0x..."
+    "manifestHash": "0x...",
+    "owner": "0x..."
+  },
+  "auth": {
+    "signatureType": "EIP-712",
+    "signer": "0x...",
+    "signature": "0x...",
+    "signedAt": "ISO-8601"
   },
   "recommendedAction": "approve | review | reject | wait",
-  "generatedAt": "ISO-8601",
-  "signature": "optional EIP-712 signature"
+  "generatedAt": "ISO-8601"
 }
 ```
+
+Production reports must be EIP-712 signed by the address in `siren:owner`. A matching `reportHash` proves bytes did not change; the EIP-712 signature proves the report is authorized by the ENS owner. The verdict engine must refuse unsigned or invalidly signed production reports. Mock/demo reports are allowed only when visibly labeled `mock: true`.
 
 ### Siren Agent
 
@@ -201,7 +238,7 @@ Demo UI must show:
 
 ## 9. Acceptance Gates (summary)
 
-> **Full register:** [`docs/06-acceptance-gates.md`](./docs/06-acceptance-gates.md) defines the canonical 23-gate register (GATE-1..GATE-23 across Product / Technical / Sponsor / UX / Kill Conditions). The 8 points below are the in-SCOPE summary; every backlog P0 item must map to one or more `GATE-N` references from `docs/06`.
+> **Full register:** [`docs/06-acceptance-gates.md`](./docs/06-acceptance-gates.md) defines the canonical 24-gate register (GATE-1..GATE-24 across Product / Technical / Sponsor / UX / Kill Conditions). The 9 points below are the in-SCOPE summary; every backlog P0 item must map to one or more `GATE-N` references from `docs/06`.
 
 | # | Summary requirement | Maps to docs/06 |
 |---|---|---|
@@ -212,7 +249,8 @@ Demo UI must show:
 | 5 | UI shows `SAFE`, `REVIEW`, or `SIREN` within five seconds | GATE-1, GATE-2, GATE-20 |
 | 6 | Every mock path is labeled `mock: true` | GATE-14 |
 | 7 | Pitch does not say "generic scanner", "AI auditor", "trust layer", or "agent OS" | Kill Conditions |
-| 8 | Run instructions reproduce the demo locally | GATE-15 |
+| 8 | Production reports are EIP-712 signed by `siren:owner` | GATE-24 |
+| 9 | Run instructions reproduce the demo locally | GATE-15 |
 
 ## 10. Workstreams
 
@@ -220,9 +258,9 @@ Three parallel dev streams + two tracker categories. This matches the 4-agent pi
 
 | Stream | Owner | Scope | Owned paths after lock |
 |---|---|---|---|
-| **A** | **Dev A — Contract Fixtures** | Demo proxy, safe implementation, dangerous implementation, unverified-implementation scenario, deploy/verify scripts, Sourcify verification | `contracts/`, `scripts/deploy*`, `test/` |
-| **B** | **Dev B — Evidence Engine** | ENS live resolution, EIP-1967 slot reads, `Upgraded` event reads, Sourcify fetch, ABI/storage diff logic, Siren Report JSON schema | `packages/evidence/`, `packages/shared/` |
-| **C** | **Dev C — Web UX (+ optional Siren Agent)** | Next.js app, verdict UI, evidence drawer, Sourcify links, governance comment, demo scenario runner. **Optional P2:** Siren Agent watchlist + signed report + optional Umia due-diligence panel | `apps/web/`, `apps/siren-agent/` (P2 only) |
+| **A** | **Dev A — Contract Fixtures** | Demo proxy, safe implementation, dangerous implementation, unverified-implementation scenario, deploy/verify/provision scripts, signed demo report generation, Sourcify verification | `contracts/`, `scripts/deploy*`, `test/` |
+| **B** | **Dev B — Evidence Engine** | ENS live resolution, EIP-1967 slot reads, `Upgraded` event reads, Sourcify fetch, ABI/storage diff logic, Siren Report JSON schema, EIP-712 sign/verify primitives | `packages/evidence/`, `packages/shared/` |
+| **C** | **Dev C — Web UX (+ optional Siren Agent)** | Next.js app, verdict UI, evidence drawer, Sourcify links, governance comment, demo scenario runner. **Optional P2:** Siren Agent watchlist + automated signing flow + optional Umia due-diligence panel | `apps/web/`, `apps/siren-agent/` (P2 only) |
 
 | Tracker | Owner | Scope (not picked up by dev agents) |
 |---|---|---|

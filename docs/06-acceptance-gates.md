@@ -1,6 +1,6 @@
 # Acceptance Gates
 
-These gates define submission readiness. `P0` gates must pass before submission. `P1` gates are still planned, but if Daniel explicitly cuts them they must be called out honestly in the submission. Current scope treats ABI diff, storage-layout result, and governance comment generator as `P0`.
+These gates define submission readiness. `P0` gates must pass before submission. `P1` gates are still planned, but if Daniel explicitly cuts them they must be called out honestly in the submission. Current scope treats ABI diff, storage-layout result, report signature verification, and governance comment generator as `P0`.
 
 ## Product Gates
 
@@ -20,12 +20,13 @@ These gates define submission readiness. `P0` gates must pass before submission.
 |---|---|---|
 | GATE-8 | P0 | EIP-1967 implementation slot read works |
 | GATE-9 | P0 | Sourcify evidence links are included in report |
-| GATE-10 | P0 | ENS expected implementation is compared to live proxy slot |
+| GATE-10 | P0 | ENS manifest-declared current implementation is compared to live proxy slot |
 | GATE-11 | P0 | ABI risk diff runs deterministically |
 | GATE-12 | P0 | Storage-layout result is shown when available for fixture contracts |
 | GATE-13 | P0 | Missing data lowers confidence instead of being hidden |
 | GATE-14 | P0 | Every mock is labeled `mock: true` |
 | GATE-15 | P0 | Local run instructions reproduce demo |
+| GATE-24 | P0 | Production Siren Report is EIP-712 signed by `siren:owner`; verdict engine refuses unsigned or invalidly signed production reports |
 
 ## Sponsor Gates
 
@@ -53,6 +54,7 @@ Do not submit if:
 - Sourcify is only a link
 - verdict is generated only by LLM text
 - no live chain read exists
+- production report is unsigned or signed by an address other than `siren:owner`
 - UI looks like a generic audit dashboard
 - pitch says "AI auditor" or "generic scanner"
 - old Agent Float story leaks into active pitch

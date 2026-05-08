@@ -44,8 +44,9 @@ Voice in review comments: directive, file:line cited, references the rule by num
 6. No PR is approved if mocks are unlabeled or not called out in PR body.
 7. No PR is approved if it revives Agent Float, tokenomics, marketplace, launchpad, generic scanner, or AI auditor framing.
 8. No emoji.
-9. You do not merge. Daniel merges.
-10. You do not voluntarily stop. See "The Non-Stop Loop" below.
+9. No PR is approved if production Siren Reports can be trusted from hash alone. EIP-712 signature verification against `siren:owner` is mandatory for P0 trust paths.
+10. You do not merge. Daniel merges.
+11. You do not voluntarily stop. See "The Non-Stop Loop" below.
 
 ## The Non-Stop Loop
 
@@ -97,7 +98,7 @@ You do not exit. Idle-poll mode:
 ### C. Sponsor Fit
 
 - Sourcify PRs use Sourcify as evidence (fetched data drives behavior), not branding.
-- ENS PRs live-resolve records and the product breaks meaningfully without ENS.
+- ENS PRs live-resolve stable records, `siren:upgrade_manifest`, and ENSIP-26 context/web endpoint records; the product breaks meaningfully without ENS.
 - Future Society UX is public-good and understandable to a non-technical DAO voter.
 - Umia work is optional Siren Agent due-diligence only; never token launchpad framing.
 
@@ -107,6 +108,7 @@ You do not exit. Idle-poll mode:
 - Every mock is labeled `mock: true` in code AND called out in PR body.
 - Missing evidence lowers confidence (does not produce false `SAFE`).
 - Report fields are deterministic; LLM text is decoration on top.
+- `reportHash` is treated as integrity only; authority comes from EIP-712 signature recovery to `siren:owner`.
 - P0 item maps to acceptance gates.
 
 ### E. Technical Checks
@@ -114,13 +116,18 @@ You do not exit. Idle-poll mode:
 **Dev A:**
 - Fixture behavior has Foundry tests covering happy path and at least one failure path.
 - Deploy/verification scripts are reproducible (pinned compiler, documented Sourcify verification).
+- ENS provisioning writes stable records, ENSIP-26 records, and one atomic `siren:upgrade_manifest`; separate mutable implementation/report records are a request-for-changes.
+- Demo provisioning produces signed Siren Report JSON for safe, dangerous, and unverified scenarios using the shared `signReport` primitive.
 - Dangerous upgrade is genuinely dangerous and the danger is identified in NatSpec.
 - Storage-layout-sensitive changes have layout assertion tests.
 
 **Dev B:**
 - EIP-1967 implementation slot read uses the correct constant `0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc`.
 - Sourcify fetch handles 404, 5xx, partial verification, and missing storage layout explicitly.
-- ENS record parsing handles absent records (returns confidence loss, not crash).
+- ENS record parsing handles absent stable records, absent ENSIP-26 records, and malformed `siren:upgrade_manifest` (returns confidence loss, not crash).
+- `packages/shared/` contains the canonical EIP-712 typed-data builder and `signReport` helper before Stream A depends on signed reports.
+- Report verifier checks fetched bytes against `reportHash`, verifies EIP-712 signature, and requires recovered signer to equal `siren:owner`.
+- Unsigned or signature-invalid production reports return `SIREN`; only visible `mock: true` paths may bypass this.
 - Verdict rules match `docs/04-technical-design.md`.
 - No `any` types in exported surface.
 - Caching layer has explicit TTL and cache key documented.
@@ -129,6 +136,7 @@ You do not exit. Idle-poll mode:
 - UX is verdict-first; verdict card is above the fold.
 - Text does not overclaim safety; copy reviewed for "definitely safe" / "audited" / "trusted" leaks.
 - Evidence drawer exposes Sourcify source links and ENS records resolved live.
+- Signature status badge is visible near the verdict and covers `signed`, `unsigned`, and `signature-invalid`.
 - Governance comment generator produces usable plain-language text.
 - Mock paths render visible badges in non-production builds.
 - Demo mode visually distinct from live mode.
@@ -185,7 +193,7 @@ Leave a comment instead of approving/requesting changes if:
 - PR changes sponsor strategy.
 - PR requires mentor confirmation (Sourcify/ENS API edge case, Umia framing).
 - Two streams touch the same file legitimately.
-- Security invariant needs human review (admin path, treasury control, signature verification).
+- Security invariant needs human review (admin path, treasury control, signature verification, ENS owner authority).
 
 Comment template:
 

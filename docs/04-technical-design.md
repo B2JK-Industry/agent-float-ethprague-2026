@@ -9,12 +9,12 @@ Deterministic evidence first. AI text is optional polish, not the source of trut
 ```text
 ENS name
   -> live text records
-  -> proxy address + expected implementations
+  -> stable proxy/owner records + atomic upgrade manifest
   -> chain reads
   -> Sourcify evidence
   -> diff checks
   -> Siren Report
-  -> web verdict + optional signed agent output
+  -> web verdict + signature status
 ```
 
 ## ENS Resolution
@@ -23,17 +23,62 @@ The app resolves records at runtime:
 
 - `siren:chain_id`
 - `siren:proxy`
-- `siren:previous_impl`
-- `siren:current_impl`
-- `siren:report_uri`
-- `siren:report_hash`
+- `siren:owner`
 - `siren:schema`
+- `siren:upgrade_manifest`
+- `agent-context`
+- `agent-endpoint[web]`
+- `agent-endpoint[mcp]` (P2)
 
 Implementation rule:
 
 - demo config may provide fallback ENS names
-- contract addresses must come from live resolution in the main path
+- contract addresses and manifest data must come from live resolution in the main path
 - hardcoded addresses are allowed only in fixture/deploy docs and must be labeled
+
+## Atomic Upgrade Manifest
+
+Changing upgrade data must not be split across multiple ENS text records. The app reads one composite `siren:upgrade_manifest` JSON object:
+
+```json
+{
+  "schema": "siren-upgrade-manifest@1",
+  "chainId": 11155111,
+  "proxy": "0x...",
+  "previousImpl": "0x...",
+  "currentImpl": "0x...",
+  "reportUri": "https://...",
+  "reportHash": "0x...",
+  "version": 3,
+  "effectiveFrom": "2026-05-09T12:00:00Z",
+  "previousManifestHash": "0x..."
+}
+```
+
+This gives one ENS `setText` update per upgrade and avoids false `SIREN` states from partially updated implementation and report fields. `previousManifestHash` creates a hash-chain audit trail.
+
+## Authentication Of Offchain Reports
+
+`reportHash` proves integrity only. It does not prove the report was authorized by the ENS owner.
+
+P0 trust path:
+
+- fetch report from `siren:upgrade_manifest.reportUri`
+- verify bytes hash to `siren:upgrade_manifest.reportHash`
+- verify report EIP-712 signature
+- recover signer
+- require recovered signer equals `siren:owner`
+- reject unsigned or invalidly signed production reports
+
+Mock/demo exceptions:
+
+- unsigned reports are allowed only with visible `mock: true`
+- production UI must never label an unsigned report as trusted
+
+P3 paths:
+
+- ERC-3668 / CCIP-Read resolver for contract-readable verification of the same signed report payload
+- ZK proof that the verdict engine ran over the declared ENS/Sourcify inputs
 
 ## Chain Reads
 
@@ -67,7 +112,7 @@ If the current implementation is unverified, verdict is `SIREN`.
 
 ### ENS Consistency
 
-If the live proxy slot does not match `siren:current_impl`, verdict is `SIREN`.
+If the live proxy slot does not match `siren:upgrade_manifest.currentImpl`, verdict is `SIREN`.
 
 ### ABI Risk
 
@@ -126,7 +171,14 @@ If storage layout is missing:
   },
   "ens": {
     "recordsResolvedLive": true,
-    "recordHash": "0x..."
+    "manifestHash": "0x...",
+    "owner": "0x..."
+  },
+  "auth": {
+    "signatureType": "EIP-712",
+    "signer": "0x...",
+    "signature": "0x...",
+    "signedAt": "2026-05-09T00:00:00Z"
   },
   "recommendedAction": "approve",
   "mock": false,

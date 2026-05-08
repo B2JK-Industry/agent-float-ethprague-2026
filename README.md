@@ -30,7 +30,8 @@ It is not a generic audit tool. It is not an AI scanner. It is an alarm for the 
 
 1. **ENS Contract Map**
    - Resolve protocol-owned names such as `vault.demo.upgradesiren.eth`
-   - Read live records for proxy, previous implementation, current implementation, report pointer, owner, and version labels
+   - Read stable records for chain, proxy, owner, schema, ENSIP-26 context, and web endpoint
+   - Read one atomic `siren:upgrade_manifest` for current upgrade state, report pointer, report hash, and version history
    - ENS is the identity and version surface, not decoration
 
 2. **Proxy Upgrade Detector**
@@ -48,7 +49,7 @@ It is not a generic audit tool. It is not an AI scanner. It is an alarm for the 
    - Human verdict first
    - Evidence drawer for technical judges
    - Governance-ready comment generator
-   - Optional signed report for Umia-style venture due diligence
+   - EIP-712 signed report bound to `siren:owner` for production trust
 
 5. **Siren Agent**
    - A monitoring agent that watches a contract or venture watchlist

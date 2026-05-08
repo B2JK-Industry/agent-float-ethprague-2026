@@ -37,13 +37,17 @@ ENS is not just resolving a wallet address. It is the protocol's public upgrade 
 - report pointer
 - report hash
 - schema pointer
+- atomic upgrade manifest
+- ENSIP-26 context and web endpoint records
 
 ### What To Show
 
 - live ENS text-record resolution
 - named contract hierarchy
-- proxy slot compared against ENS-declared implementation
+- proxy slot compared against manifest-declared implementation
 - report discovery through ENS
+- EIP-712 report signature verified against `siren:owner`
+- ENSIP-26 records (`agent-context`, `agent-endpoint[web]`) reused instead of inventing every record
 - no hardcoded product path
 
 ### Judge Sentence
@@ -52,10 +56,11 @@ ENS is not just resolving a wallet address. It is the protocol's public upgrade 
 
 ### Mentor Questions
 
-1. Is `siren:*` a reasonable text-record namespace for this prototype?
-2. Should report discovery use text records, `contenthash`, or a hybrid?
-3. Would wildcard/offchain subnames be more compelling than normal text records?
-4. What would make this feel "Most Creative" rather than ordinary ENS metadata?
+1. Is `siren:*` a reasonable text-record namespace for the upgrade-specific records?
+2. Should `siren:upgrade_manifest` be a text record, contenthash pointer, or CCIP-Read response?
+3. Is reusing ENSIP-26 `agent-context` and `agent-endpoint[web]` the right standard compatibility layer?
+4. Would wildcard/offchain subnames be more compelling than normal text records?
+5. What would make this feel "Most Creative" rather than ordinary ENS metadata?
 
 ## Organizer: Future Society
 
