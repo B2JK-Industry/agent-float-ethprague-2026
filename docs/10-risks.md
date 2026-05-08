@@ -20,14 +20,20 @@ Risk levels: **Critical** (blocks submission), **High** (degrades quality signif
   3. **Last resort:** Our `BondingCurveSale.sol` fallback with explicit `mock: true` label + voiceover acknowledging Umia integration is post-hack
 - **Trigger to escalate:** Mentor reveals Tailored Auctions are mainnet-only and demo-impractical → use fallback path 3 with explicit honest framing in demo.
 
-### R-002 — Naming "Agent Float" collision
+### R-002 — Naming "Agent Float" partial collision [RISK-ACCEPTED 2026-05-08]
 
-- **Level:** High
-- **Probability:** 30%
-- **Owner:** Claude (collision check)
-- **Description:** Existing project, token, or company called "Float" or "Agent Float" could cause investor confusion or trademark issues.
-- **Mitigation:** Run full collision check across GitHub, npm, ENS, X, domains, web search. Backup names pre-approved (AgentRunway, AgentPier, AgentDrydock, AgentBerth).
-- **Trigger to escalate:** Active competitor or active token contract → pivot to backup name.
+- **Level:** Medium (downgraded from High after collision check completed)
+- **Probability:** Materialized partially; remaining tail risk ~15% of post-hack brand cost
+- **Owner:** Daniel (decision-maker)
+- **Status:** Resolved by risk acceptance, not full mitigation. Daniel call 2026-05-08: *"na rebrand zatial kašleme"*.
+- **Description:** Collision check (see `docs/08-naming-research.md`) found:
+  - **No active project collision** — "Agent Float" is unique among AI agent launchpads / Web3 products
+  - **`agentfloat.eth` mainnet ENS likely taken** (metadata configured, address null) — handicaps canonical mainnet ENS for the brand
+  - **`agentfloat.com` and `agentfloat.xyz` squatted** by domain resellers (DropCatch, Onamae); parked, not active brands
+  - GitHub / npm / PyPI / `.app` / `.io` all clean
+- **Mitigation (accepted state):** Proceed with "Agent Float" brand. Use `.app` / `.io` for web domain; Sepolia ENS for hackathon; alternate `agent-float.eth` (hyphenated) mainnet parent if free.
+- **Residual risk:** Post-hack brand expansion may require: (a) acquiring `agentfloat.eth` from current owner, (b) negotiating with `.com` / `.xyz` squatters, or (c) accepting alternate canonical domain.
+- **Trigger to escalate to forced rebrand:** Active competing product launches under same name OR `agentfloat.eth` owner publicly opposes our use OR Umia mentor flags brand confusion. Backup candidates (AgentBerth, AgentSlipway, AgentMooring) recorded in `docs/08`.
 
 ### R-003 — SpaceComputer KMS/cTRNG dependency
 

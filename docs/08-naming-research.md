@@ -105,9 +105,52 @@ If Agent Float fails:
 
 ## Final decision
 
-(to be locked here once collision check completes)
+**Locked name:** **Agent Float**
+**Locked at:** 2026-05-08 (Daniel call: "na rebrand zatial kašleme")
+**Decision type:** Risk-accepted (not collision-free; trade-off explicitly chosen)
 
-**Locked name:** _____________________
-**Locked at:** _____________________
-**Channels confirmed available:** _____________________
-**Notes:** _____________________
+### Channels confirmed available
+
+- ✅ GitHub org `agentfloat` and `agent-float` — free
+- ✅ GitHub repo `B2JK-Industry/agent-float-ethprague-2026` — already live
+- ✅ npm `agentfloat`, `agent-float`, `@agentfloat/sdk` — free
+- ✅ PyPI `agentfloat`, `agent-float` — free
+- ✅ Domains `agentfloat.app`, `agentfloat.io`, `agent-float.app`, `agent-float.io` — free
+- ✅ No competing AI agent / launchpad / Web3 product called "Agent Float" exists
+
+### Channels with collisions (risk-accepted)
+
+- ⚠️ **`agentfloat.eth` mainnet ENS** — has metadata configured (displayName + avatar); likely owned by a third party. Implication: we cannot register the canonical mainnet ENS for our brand. Mitigation: use Sepolia for hackathon; alternate parent `agent-float.eth` (hyphenated) appears to resolve `false` per ensideas API and may be free, but not yet locked. Daniel may verify and register the hyphenated parent if needed.
+- ⚠️ **`agentfloat.com`** — registered 2026-05-06 by DropCatch.com 1404 LLC (domain reseller / squatter). Empty page. Not an active brand collision, but blocks the canonical .com.
+- ⚠️ **`agentfloat.xyz`** — squatted via Onamae.com (Japan); parking page. Same posture as .com.
+
+### Why we proceed despite the partial collisions
+
+1. No active product collision — "Agent Float" as a brand is unique among AI agent launchpads / fundraising platforms.
+2. Brand investment (repo, docs, pitch language) is already deep; full rename would cost more than the collisions cost us at the hackathon.
+3. .app / .io / GitHub / npm / PyPI are all free — sufficient infrastructure to ship and pitch.
+4. ENS Most Creative track does not strictly require mainnet parent; Sepolia mirror is acceptable per our earlier mentor question (pending confirmation in `docs/09`).
+5. Squatted .com / .xyz are speculative holdings, not active brand competition — manageable post-hack.
+
+### Trade-offs explicitly accepted
+
+- We may not be able to acquire `agentfloat.eth` mainnet without buying from current owner.
+- Post-hack, if we want canonical .com or .xyz domains, we deal with squatters.
+- Public brand search may surface squatter parking pages alongside our project until we own a primary domain.
+
+### What we own / can register tonight if needed
+
+- GitHub repo (live)
+- npm scope `@agentfloat` (registerable)
+- PyPI `agentfloat` (registerable)
+- `agentfloat.app` (registerable, ~$15/yr)
+- `agent-float.eth` mainnet (likely — needs Daniel's manual verify on app.ens.domains before register)
+
+### Backup names — kept as record only
+
+If the partial collisions become real blockers (Big Corp buys squatter portfolio, ENS mainnet owner refuses sale, judge confusion), pivot candidates remain available. Cleanest fully-free alternatives identified during collision check:
+- AgentBerth (npm + GitHub + .app + .com all free)
+- AgentSlipway (same)
+- AgentMooring (same)
+
+These are not active candidates — recorded in case a forced rebrand becomes necessary post-hack.
