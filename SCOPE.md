@@ -210,40 +210,62 @@ Investor flow:
 - MilestoneRegistry slashing trigger
 - Multi-agent variety + reputation layer + leaderboard
 
-### Builder commits pri registrácii (single registerAgent() tx)
+### Builder onboarding (two-step, Umia-first)
+
+**Step 1 — Umia venture init (handled entirely by Umia):**
+```
+$ umia venture init <agent-name>
+→ Umia creates legal entity wrapper
+→ Umia issues venture token (their template)
+→ Umia configures Tailored Auction (Uniswap CCA)
+→ Umia deploys noncustodial treasury
+→ returns: ventureAddress, tokenAddress, treasuryAddress, auctionAddress
+```
+
+**Step 2 — Agent Float registerAgent (our value-add layer):**
 ```solidity
-registerAgent({
-    ensName: string,                    // e.g., "grantscout.agentfloat.eth"
-    builderRetention: uint16,           // % out of 2M tokens (Q3)
-    bondingCurveParams: { ... },        // initial price + slope (Q2)
-    usdcSplit: { upfront: uint16, treasury: uint16 },  // % split (Q4)
-    milestones: Milestone[],            // commitments (Q7a trigger)
-    builderBond: uint256,               // USDC collateral (Q7a)
-    metadata: AgentMetadata             // capabilities, endpoints, etc.
+agentRegistry.registerAgent({
+    ensLabel: string,                       // e.g., "grantscout"
+    umiaVenture: address,                   // from `umia venture init` output
+    milestones: Milestone[],                // commitments (slashing triggers)
+    builderBond: uint256,                   // USDC collateral, locked in BuilderBondVault
+    silenceThresholdSeconds: uint256,       // bond slash trigger window
+    agentMetadata: AgentMetadata            // ENSIP-26 record payload
 })
 ```
 
-### Investor flow
+This single Agent Float tx:
+- Issues `<ensLabel>.agentfloat.eth` subname with ENSIP-26 records + namespaced extensions
+- Locks builder's USDC collateral in `BuilderBondVault`
+- Registers committed milestones in `MilestoneRegistry`
+- Maps the Umia venture address into our registry for cross-referencing
+
+**No token mint, no bonding curve setup, no USDC split parameters** — those live on Umia's side.
+
+### Investor flow (Umia-native)
 ```
-1. Browse agents → vidí token price na bonding curve
-2. Buy X tokens → posts USDC, gets tokens
-3. USDC routes per Q4 split (upfront builder, treasury rest)
-4. Hold tokens → daily revenue accrual visible v UI (ale nie on-chain transfer)
-5. Click "Claim" anytime → RevenueDistributor.claim() → USDC v investor wallet
-6. Optional: secondary trade na Umia UI (Q8)
+1. Browse Agent Float → sees agent grid with ENS passport, receipts feed, milestones, bond status
+2. Click agent profile → sees Umia Tailored Auction state (live or post-auction) embedded/linked
+3. Click "Fund via Umia" → redirected to Umia auction page for that venture
+4. Bid in Tailored Auction (Uniswap CCA settles clearing prices)
+5. Tokens credited to investor via Umia
+6. Returns to Agent Float profile — sees token holdings, agent receipts continuing live
+7. Secondary trading via Umia UI when desired
+8. Investor exposure (revenue, governance) handled per Umia venture wrapper
 ```
 
-### Revenue cycle
+### Revenue / exposure cycle
 ```
-Agent earns USDC (via paid queries → ReceiptLog event)
-USDC routes:
-  - X% → AgentTreasury (replenish runway)
-  - (100-X)% → RevenueDistributor (for token holders)
-RevenueDistributor accumulates per-holder claimable
-Investor claims when desired
+Agent earns USDC (via paid queries → ReceiptLog event on Agent Float side)
+USDC flows to addresses configured at Umia venture init time
+Token holder economic exposure is determined by Umia's venture model
+  (NOT by Agent Float-level RevenueDistributor unless Umia treasury
+   does not natively support holder distribution)
 ```
 
-### Default failure trigger logic (Q7a slashing)
+> [PENDING UMIA MENTOR] Whether Agent Float deploys an auxiliary `RevenueDistributor.sol` is conditional on what Umia's noncustodial treasury exposes. Default assumption: Umia handles holder economics; we do not.
+
+### Default failure trigger logic (Q7a slashing — Agent Float's accountability layer)
 ```
 EITHER:
   - MilestoneRegistry.checkMilestone(milestoneId) returns FAILED

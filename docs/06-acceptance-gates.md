@@ -16,9 +16,9 @@ The gates also force pre-demo discipline: if a gate fails during dry-run, we kno
 | **HIGH** | Significantly weakens credibility | Fix or label `mock: true` and acknowledge in voiceover |
 | **MEDIUM** | Polish-tier; degrades but does not break | Acceptable to ship with `mock: true` label |
 
-Gates 1, 3, 7, 9, 10, 11 are **CRITICAL** — they verify the core honest-over-slick promise.
-Gates 2, 6, 12 are **HIGH** — credibility-degrading.
-Gates 4, 5, 8 are **MEDIUM** — polish.
+Gates 1, 3, 7, 8, 9, 10 are **CRITICAL** — they verify the core honest-over-slick promise (real Sepolia tx, ENS resolves, real receipts, real Umia venture, live auction state, builder bond locked).
+Gates 2, 6, 11, 12 are **HIGH** — credibility-degrading (live ENS resolution, reproducibility, milestone state, ENSIP-26 record resolution).
+Gates 4, 5 are **MEDIUM** — polish (proposal text, mock labeling).
 
 ---
 
@@ -103,94 +103,87 @@ Gates 4, 5, 8 are **MEDIUM** — polish.
 
 ---
 
-## GATE-7 — Token mint on registration
+## GATE-7 — Umia venture linked
 
-**Claim:** Registering an agent mints 2,000,000 tokens.
+**Claim:** Each Agent Float-registered agent points to a real Umia venture.
 
 **Verify:**
-- Trigger `AgentRegistry.registerAgent()` for a fresh agent
-- Sepolia explorer shows `AgentVentureToken` deployed
-- `totalSupply()` returns `2_000_000e18`
-- `balanceOf(builder)` matches builder retention %
-- `balanceOf(BondingCurveSale)` matches public allocation
+- Resolve `<agent>.agentfloat.eth` → read text record `agentfloat:umia_venture`
+- Verify the address is a valid Umia venture (matches Umia's known venture pattern, returns expected metadata when called)
+- `AgentRegistry.getAgent(ensNode).umiaVenture` returns the same address
 
-**Pass criteria:** Total supply exactly 2M; split correct.
+**Pass criteria:** ENS record and on-chain registry agree on the Umia venture address; address is non-zero and belongs to Umia.
 
 ---
 
-## GATE-8 — Bonding curve math correctness
+## GATE-8 — Umia auction visible from agent profile
 
-**Claim:** Bonding curve quote matches expected math.
+**Claim:** Investors can see Umia Tailored Auction state directly from the Agent Float profile.
 
 **Verify:**
-- Call `BondingCurveSale.quoteBuy(1000)` with default linear curve
-- Compare returned USDC cost to expected calculation:
-  ```
-  expected = startPrice * 1000 + slope * (currentSold * 1000 + 1000^2 / 2)
-  ```
-- For multiple buy sizes (100, 1000, 10000), verify quotes follow the curve
+- Open `/agent/<ens-name>` profile in browser
+- Auction state visible: live (with current clearing price progression) or post-auction (with final clearing data)
+- "Fund via Umia" CTA present and resolves to a real Umia auction page
+- No mocked auction data unless explicitly labeled `mock: true`
 
-**Pass criteria:** All quotes within 1 wei of expected math.
+**Pass criteria:** Auction data is fetched from Umia (not fabricated), state correctly reflected, CTA functional.
 
 ---
 
-## GATE-9 — USDC split on token purchase
+## GATE-9 — Receipts feed verified (signed + USDC-cross-validated)
 
-**Claim:** USDC from token sale routes correctly: X% upfront builder, (100-X)% AgentTreasury.
+**Claim:** Receipts shown on agent profile are real on-chain events, signed by agent wallet, tied to actual USDC transfers.
 
 **Verify:**
-- Investor calls `BondingCurveSale.buy(1000)` paying USDC
-- After tx, check builder wallet balance increased by `usdc * upfrontBps / 10000`
-- Check AgentTreasury balance increased by `usdc * treasuryBps / 10000`
-- Sum equals total USDC paid (no leakage)
+- Receipts feed reads `ReceiptLog` events filtered by agent address
+- For each receipt: ECDSA recover from `signature` matches the agent's ENS-resolved wallet
+- For each receipt: corresponding USDC `Transfer(from=payer, to=agent, amount=paymentAmount)` event exists in same block range
+- `ReceiptLog.emitReceipt()` reverts on signature mismatch or USDC mismatch (test path)
 
-**Pass criteria:** Split exactly per builder's setup. No USDC unaccounted for.
+**Pass criteria:** All visible receipts pass both signature and USDC cross-validation.
 
 ---
 
-## GATE-10 — RevenueDistributor accrual
+## GATE-10 — Builder bond locked at registration
 
-**Claim:** Agent revenue accrues to per-holder claimable balance proportionally.
+**Claim:** `BuilderBondVault` holds builder's USDC collateral immediately after registration.
 
 **Verify:**
-- Trigger agent paid query → revenue routes to RevenueDistributor
-- Call `RevenueDistributor.pendingFor(investor)` before and after
-- Calculate expected: `revenue * holderBalance / totalSupply`
-- Verify increment matches expected within 1 wei
+- After `AgentRegistry.registerAgent()` tx, inspect `BuilderBondVault` balance
+- Equals `builderBond` USDC parameter passed at registration
+- Builder cannot withdraw without slash trigger or end-of-life payout
 
-**Pass criteria:** Pro-rata math correct.
+**Pass criteria:** Bond locked at correct amount; non-extractable absent trigger.
 
 ---
 
-## GATE-11 — Claim transfer
+## GATE-11 — Milestone state queryable
 
-**Claim:** Investor `claim()` transfers correct USDC to investor wallet.
+**Claim:** Milestones committed at registration are visible and individually queryable from the agent profile.
 
 **Verify:**
-- Investor calls `RevenueDistributor.claim()`
-- USDC `Transfer` event fires from RevenueDistributor → investor
-- Amount matches pre-claim `pendingFor(investor)`
-- Post-claim `pendingFor(investor)` is zero
+- `MilestoneRegistry.getMilestones(ensNode)` returns full milestone array
+- Each milestone has `(id, description, deadline, met, failed, releaseAmount)`
+- UI surfaces milestones with current status (pending/met/failed)
+- Trigger silence or expiry → check `checkExpired()` correctly marks failed
+- Failed milestone triggers BuilderBondVault slash flow
 
-**Pass criteria:** Exact amount transferred, no residual.
+**Pass criteria:** Milestones queryable, statuses correctly tracked, slash trigger fires on miss.
 
 ---
 
-## GATE-12 — BuilderBondVault locked + slashable
+## GATE-12 — ENS records resolve correctly (ENSIP-26 + namespaced extensions)
 
-**Claim:** Builder bond is locked at registration and slashable per trigger.
+**Claim:** `<agent>.agentfloat.eth` resolves with both ENSIP-26 standard records and Agent Float namespaced extensions.
 
-**Verify (lock):**
-- Inspect `BuilderBondVault` contract balance after registration
-- Should equal `builderBond` USDC parameter
+**Verify:**
+- Live ENS resolution via wagmi/viem in browser
+- Read records: `agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]` (ENSIP-26)
+- Read records: `agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer` (namespaced)
+- All records return non-empty values; addresses are valid contracts
+- No hard-coded values in UI; everything resolved from ENS
 
-**Verify (slash):**
-- Trigger silence (skip emitting receipts for N days — fast-forward in test environment)
-- Anyone calls `BuilderBondVault.slash()`
-- Bond balance distributes pro-rata via pull pattern
-- Token holders can call `claimSlashPayout()` to receive their share
-
-**Pass criteria:** Bond exists at correct amount; slashing distributes correctly.
+**Pass criteria:** All listed records resolve live; values correct and addresses verifiable.
 
 ---
 

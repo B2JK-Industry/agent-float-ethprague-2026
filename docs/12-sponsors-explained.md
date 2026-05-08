@@ -37,11 +37,27 @@ Umia tento workflow **kompresuje a tokenizuje** cez 5 core produktov:
 - Umia Tailored Auctions docs
 
 **Implications pre Agent Float:**
-- Naša pôvodná `BondingCurveSale.sol` ide do **fallback-only** kategórie (Umia auction je primary)
-- Naša `AgentTreasury.sol` ide na **likely replaced** (Umia treasury je primary)
-- Naše `AgentVentureToken.sol` je **conditional** (Umia template ak provided, inak ours feed-into-theirs)
-- Naša `RevenueDistributor.sol` je **conditional** na Umia treasury features
-- Agent Float je layer NA UMIA, nie substitution Umia features
+
+Agent Float je **discovery + proof + accountability layer NAD Umia**, nie substitúcia Umia features. Náš deployment scope sa zúžil na 4 core contracts (po pivote):
+
+**Agent Float core (čo deployujeme my):**
+- `AgentRegistry.sol` — links Umia venture + ENS + bond + milestones
+- `ReceiptLog.sol` — signed receipts, USDC-cross-validated (proof gate)
+- `BuilderBondVault.sol` — personal collateral, slashable on default
+- `MilestoneRegistry.sol` — commitments, slash trigger
+
+**Conditional / fallback (deployujeme len ak Umia integration vyžaduje):**
+- `AgentVentureToken.sol` — len ak Umia neposkytne template
+- `AgentTreasury.sol` — pravdepodobne nepotrebujeme (Umia ma noncustodial treasury)
+- `RevenueDistributor.sol` — len ak Umia treasury netreba external distribution helper
+- `BondingCurveSale.sol` — fallback only, internal simulator pre demo continuity
+
+**Skipped from old plan (presunuté do fallback):**
+- ❌ Custom bonding curve as primary sale (was main mechanism, now fallback only)
+- ❌ Custom multi-sig treasury (Umia provides)
+- ❌ Custom 2M token mint with builder retention/USDC split parameters (Umia handles via venture init)
+
+Pri pitchovaní pre Umia mentor vždy hovorme "Agent Float = layer na Umia ventures" — nikdy "Agent Float = substitut alebo competing launchpad".
 
 ### Pozícia v Web3 ekosystéme
 

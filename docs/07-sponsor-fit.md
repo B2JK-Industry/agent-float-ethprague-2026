@@ -78,16 +78,18 @@ Three of seven Open Agents finalists/winners hit similar primitives.
 ### Submission checklist
 
 - [ ] Submit primary track on Devfolio
-- [ ] Demo video features Umia integration prominently in §150-210 and §250-280
-- [ ] README references Umia as primary sponsor
-- [ ] One-line venture pitch ready: *"Agent Float turns working AI agents into investable ventures via Umia."*
-- [ ] Post-hackathon plan: 5 working agents floated within 90 days; Umia partnership formalized; success fee revenue model launched
+- [ ] Demo video features Umia auction prominently — investor flow goes through Umia, not our shadow contracts
+- [ ] README references Umia as primary sponsor; core loop describes Umia-native flow
+- [ ] One-line venture pitch ready: *"Agent Float is the discovery and accountability layer for Umia ventures — no receipts, no float."*
+- [ ] Post-hackathon plan: 5 working agents floated within 90 days through Umia ventures; Umia partnership formalized; success fee revenue model launched
 - [ ] Mentor session attended; mentor name documented for follow-up
+- [ ] All Agent Float contracts that overlap with Umia (BondingCurveSale, AgentTreasury, RevenueDistributor) clearly marked as fallback/conditional in docs
 
 ### Risks specific to this track
 
 - **Umia integration depth could be shallow** if their API/SDK isn't accessible during hackathon. Mitigation: Umia simulator with `mock: true` label, but explicit follow-up commitment for real integration post-hack.
-- **Venture pitch could feel underdeveloped** if demo focuses too much on tech and not enough on business model. Mitigation: dedicated demo segment on revenue/runway/ROI.
+- **Perception of competing with Umia** if our docs over-emphasize Agent Float-side contracts that overlap (token, treasury, sale). Mitigation: aggressive demotion of overlap contracts to fallback/conditional appendix; primary docs lead with Umia integration.
+- **Venture pitch could feel underdeveloped** if demo focuses too much on tech and not enough on business model. Mitigation: dedicated demo segment on agent productivity (receipts) + builder accountability (bond + milestones), not micro-revenue math.
 
 ---
 

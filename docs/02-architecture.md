@@ -4,99 +4,137 @@
 
 ## System overview
 
+Agent Float sits as a **discovery, proof, and accountability layer ABOVE** Umia. Funding, token issuance, treasury, and secondary market are Umia core products. Agent Float adds ENS passport, on-chain receipts gate, builder bond, and milestone slashing.
+
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          AGENT FLOAT                                    │
-└─────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         FUNDING CORE — UMIA                                  │
+│                                                                              │
+│   umia venture init   →   Tailored Auction (Uniswap CCA)                     │
+│                       →   Noncustodial treasury                              │
+│                       →   Decision markets (governance)                      │
+│                       →   Secondary market                                   │
+│                       →   Legal wrapper (securities/jurisdictional)          │
+└──────────────────────────────────────────────────────────────────────────────┘
+                            ▲                                ▲
+                            │ funds                          │ token holdings
+                            │                                │
+   ┌────────────────────────┴───────────────────────┐        │
+   │                                                │        │
+   │   AGENT FLOAT — discovery/proof/accountability │        │
+   │                                                │        │
+   │   Web platform (Next.js + Vercel)              │        │
+   │   ───────────────────────────────              │        │
+   │   landing │ agent profile │ investor browse    │        │
+   │   builder dashboard │ leaderboard              │        │
+   │                                                │        │
+   │            │ wagmi/viem                        │        │
+   │            ▼                                   │        │
+   │   Foundry contracts (Sepolia/mainnet)          │        │
+   │   ───────────────────────────────              │        │
+   │   AgentRegistry          (links Umia + ENS)    │        │
+   │   ReceiptLog             (signed proofs)       │        │
+   │   BuilderBondVault       (slashable collateral)│        │
+   │   MilestoneRegistry      (commitments)         │        │
+   │                                                │        │
+   │   ENS subname registry (ENSIP-26 records)      │        │
+   │      <agent>.agentfloat.eth                    │        │
+   │                                                │        │
+   │   [conditional/fallback only — see docs/04]:   │        │
+   │   AgentVentureToken / BondingCurveSale /       │        │
+   │   AgentTreasury / RevenueDistributor           │        │
+   └────────────────────────┬───────────────────────┘        │
+                            │                                │
+                            │ resolves                       │
+                            │                                │
+   ┌────────────────────────┴───────────────────────┐        │
+   │                                                │        │
+   │    Builder ─────────▶ runs `umia venture init` │        │
+   │                       (creates Umia venture)   │────────┘
+   │                                                │
+   │    Builder ─────────▶ AgentRegistry.register   │
+   │                       (links Umia + ENS,       │
+   │                        locks bond, commits     │
+   │                        milestones)             │
+   │                                                │
+   │    Investor ────────▶ browses Agent Float      │
+   │                ────▶ "Fund via Umia"           │────────┐
+   │                       redirects to auction     │        │
+   │                                                │        │
+   └────────────────────────┬───────────────────────┘        │
+                            │                                │
+                            │                                ▼
+                            │                       ┌──────────────────┐
+                            │                       │ Investor wallet  │
+                            │                       │ holds Umia       │
+                            │                       │ venture tokens   │
+                            │                       └──────────────────┘
+                            │
+                            ▼
+   ┌────────────────────────────────────────────────┐
+   │  Demo agents (Vercel Functions + AI Gateway)   │
+   │  GrantScout / DataMonitor / TenderEye          │
+   │      │                                         │
+   │      ▼ paid query                              │
+   │  End user (USDC payer)                         │
+   │      │                                         │
+   │      ▼ emit signed receipt                     │
+   │  ReceiptLog ──────────────▶ visible in profile │
+   └────────────────────────────────────────────────┘
 
-  ┌──────────────┐         ┌────────────────────────┐         ┌──────────┐
-  │   Builder    │         │   Web Platform         │         │ Investor │
-  │              │  ─────▶ │   (Next.js + Vercel)   │ ◀─────  │          │
-  │   wallet     │  reg    │                        │  buy    │  wallet  │
-  └──────────────┘         │   landing              │         └──────────┘
-                           │   agent profile        │              │
-                           │   investor browse      │              │
-                           │   builder dashboard    │              │
-                           │   leaderboard          │              │
-                           │   float interface      │              │
-                           └───────────┬────────────┘              │
-                                       │                           │
-                                       │ wagmi/viem                │
-                                       ▼                           │
-                           ┌────────────────────────┐              │
-                           │   Sepolia / Mainnet    │              │
-                           │   (Foundry contracts)  │              │
-                           │                        │              │
-                           │   AgentRegistry        │              │
-                           │   AgentVentureToken    │              │
-                           │   BondingCurveSale ◀───┼──────────────┘
-                           │   AgentTreasury        │
-                           │   MilestoneRegistry    │
-                           │   BuilderBondVault     │
-                           │   RevenueDistributor ──┼──────────┐
-                           │   ReceiptLog ◀─────────┼──┐       │ claim()
-                           └────────────────────────┘  │       │
-                                                        │       ▼
-                           ┌────────────────────────┐  │  ┌──────────┐
-                           │   ENS                  │  │  │ Investor │
-                           │   agentfloat.eth       │  │  │  USDC    │
-                           │   subname registry     │  │  │          │
-                           └────────────────────────┘  │  └──────────┘
-                                                        │
-                           ┌────────────────────────┐  │
-                           │   Demo Agents          │  │
-                           │   (Vercel Functions)   │  │
-                           │                        │  │
-                           │   GrantScout ──────────┼──┘ emit receipt
-                           │   DataMonitor          │
-                           │   TenderEye            │
-                           └───────────┬────────────┘
-                                       │
-                                       ▼ paid query
-                           ┌────────────────────────┐
-                           │   End User             │
-                           │   (USDC payer)         │
-                           └────────────────────────┘
-
-                           ┌────────────────────────┐
-                           │   Umia                 │
-                           │   - legal wrapper      │
-                           │   - secondary market   │
-                           │   - treasury delegate  │
-                           └────────────────────────┘
-
-                           ┌────────────────────────┐
-                           │   Sourcify             │
-                           │   - source verify      │
-                           │   - public audit       │
-                           └────────────────────────┘
+   ┌────────────────────────┐    ┌────────────────────────┐
+   │  ENS                   │    │  Sourcify              │
+   │  agentfloat.eth        │    │  source verify for     │
+   │  subname registry      │    │  Agent Float contracts │
+   │  (ENSIP-26 records)    │    │                        │
+   └────────────────────────┘    └────────────────────────┘
 ```
 
 ## Layered components
 
-### Layer 1 — Identity (ENS)
+### Layer 1 — Identity (ENS, ENSIP-26 standards-aligned)
 
 - Parent ENS: `agentfloat.eth` (mainnet primary, Sepolia mirror for iteration)
-- Custom resolver supports text records: `wallet`, `endpoints`, `capabilities`, `receipts_pointer`, `treasury`, `venture_token`, `bond_vault`
 - Subnames issued programmatically: `<agent>.agentfloat.eth`
 - Live resolve via wagmi/viem in UI; no hard-coded addresses
 
+**Records — ENSIP-26 standards first, namespaced extensions only where needed:**
+
+ENSIP-26 standard records (canonical):
+- `agent-context` — primary agent metadata (description, capabilities, model info)
+- `agent-endpoint[web]` — agent's web URL endpoint
+- `agent-endpoint[mcp]` — agent's MCP (Model Context Protocol) endpoint
+- `agent-registration[...]` — registration metadata (per ENSIP-25/26 conventions, used where applicable)
+
+Agent Float namespaced extensions (only where ENSIP-26 doesn't cover Agent Float-specific data):
+- `agentfloat:umia_venture` — Umia venture address (canonical pointer to funding/treasury/token)
+- `agentfloat:bond_vault` — `BuilderBondVault` contract address
+- `agentfloat:milestones` — `MilestoneRegistry` contract address
+- `agentfloat:receipts_pointer` — `ReceiptLog` contract address (or shared registry locator)
+
 ### Layer 2 — Onchain core (Foundry, Sepolia + selected mainnet)
 
-The contract suite is intentionally modular — each contract has a single responsibility.
+Agent Float deploys a small set of contracts that act as **layer above Umia**. Funding mechanics (token issuance, primary sale, treasury, secondary market) are Umia-native and not deployed by us.
+
+**Agent Float core contracts (we deploy and verify on Sourcify):**
 
 | Contract | Responsibility | Cross-references |
 |---|---|---|
-| `AgentRegistry.sol` | Single entry point for `registerAgent()`. Orchestrates token mint, bond lock, curve setup, treasury deploy, milestone registration. | All other contracts |
-| `AgentVentureToken.sol` | ERC20, fixed 2M supply. Minted at registration. Standard transfer semantics. | RevenueDistributor reads balance |
-| `BondingCurveSale.sol` | Primary sale via bonding curve. Buyer posts USDC, gets tokens at curve price. | AgentVentureToken, AgentTreasury, builder wallet |
-| `AgentTreasury.sol` | Holds USDC (from sale + revenue). Multi-sig signers: builder + Umia delegate + investor delegate. Releases tranches per MilestoneRegistry. | MilestoneRegistry, RevenueDistributor |
-| `MilestoneRegistry.sol` | Builder commits milestones at registration. Oracle/multi-sig releases tranches when met. Triggers BuilderBondVault slashing if missed. | AgentTreasury, BuilderBondVault |
-| `BuilderBondVault.sol` | Locks builder's USDC collateral. Slashes pro-rata to investors if milestones missed OR receipts silent for N days. | AgentVentureToken (snapshot), MilestoneRegistry, ReceiptLog |
-| `RevenueDistributor.sol` | Receives agent USDC revenue. Tracks per-holder claimable balance based on token holdings at distribution snapshot. `claim()` for investor withdrawal. | AgentVentureToken (balance), AgentTreasury |
-| `ReceiptLog.sol` | Append-only events for agent activity. Each receipt: `(agent, timestamp, queryId, reportHash, paymentAmount, signer)`. | Read by RevenueDistributor + UI |
+| `AgentRegistry.sol` | `registerAgent()` entry point. Links Umia venture address + ENS subname + bond vault + milestone registry + receipt log. Does not mint tokens, set up auctions, or hold sale proceeds. | ENS resolver, BuilderBondVault, MilestoneRegistry, ReceiptLog, Umia venture (read-only) |
+| `ReceiptLog.sol` | Append-only events for agent paid work. Each receipt: `(agent, timestamp, queryId, reportHash, paymentAmount, payer, signature)`. Signed by agent's ENS-registered wallet, USDC-cross-validated against actual `Transfer` event. **Wash-trading mitigation core.** | Read by UI + BuilderBondVault silence detector |
+| `BuilderBondVault.sol` | Locks builder's USDC collateral at registration. Slashes pro-rata to current Umia venture token holders if milestone missed OR receipts silent for N days. Pull-claim payout. | MilestoneRegistry, ReceiptLog, Umia venture token (snapshot read) |
+| `MilestoneRegistry.sol` | Builder commits milestones at registration (e.g., "50 paid reports in 30 days"). Oracle/multi-sig marks met or failed. Failed → BuilderBondVault slash trigger. | BuilderBondVault, ReceiptLog (for auto-mark logic if applicable) |
 
-See [04-contracts.md](./04-contracts.md) for per-contract API.
+**Conditional / fallback contracts (deployed only if Umia integration requires them — see [04-contracts.md](./04-contracts.md) for status):**
+
+| Contract | Status | Purpose if deployed |
+|---|---|---|
+| `AgentVentureToken.sol` | CONDITIONAL — only if Umia does not provide a token template | ERC20 fed into Umia auction as the auctioned asset |
+| `BondingCurveSale.sol` | FALLBACK only — internal simulator if Umia auction unavailable for demo | Substitute primary sale path for fallback demo only |
+| `AgentTreasury.sol` | LIKELY UNNECESSARY — Umia provides noncustodial treasury | If kept, light wrapper holding only Agent Float-specific extension state |
+| `RevenueDistributor.sol` | CONDITIONAL — only if Umia treasury does not natively distribute to holders | Pull-claim per-holder payout |
+
+See [04-contracts.md](./04-contracts.md) for full per-contract spec.
 
 ### Layer 3 — Demo agents (Vercel Functions + AI Gateway)
 
@@ -106,7 +144,7 @@ Each demo agent is a small Vercel Function workspace that:
 3. Executes work using AI Gateway (Claude Sonnet) + Apify Actor for data
 4. Returns a signed report
 5. Emits a `Receipt` event to `ReceiptLog`
-6. Routes USDC: portion to AgentTreasury (replenish), rest to RevenueDistributor (distribute to token holders)
+6. USDC routes per Umia venture configuration (we don't define the routing — Umia treasury does)
 
 **Primary demo agent: GrantScout**
 - Apify Actor scrapes Gitcoin / Octant / Drips active rounds

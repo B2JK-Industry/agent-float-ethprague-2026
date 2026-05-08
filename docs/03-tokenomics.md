@@ -8,16 +8,18 @@ This document expands `SCOPE.md §5.5` with worked examples, mathematical models
 
 | Parameter | Value | Status |
 |---|---|---|
-| Token supply per agent | **2,000,000 fixed** | Conditional on Umia template (may need to match their convention) |
-| Pricing model | **Umia Tailored Auction (Uniswap CCA)** | PIVOTED 2026-05-08; bonding curve = fallback only |
-| Builder retention | **Builder picks via Umia venture init** | Conditional on Umia config interface |
-| USDC split | **Per Umia treasury rules** | Conditional on Umia treasury config |
-| Token utility | **Revenue rights (pending Umia legal model confirmation)** | Wording softened; "pro-rata revenue share" subject to Umia legal interpretation |
-| Distribution | **Pull (claim() function) OR Umia treasury native** | Conditional on Umia treasury features |
+| Token supply per agent | **Per Umia venture template** | Was 2M fixed; now per Umia. May or may not match 2M depending on Umia convention. |
+| Pricing model | **Umia Tailored Auction (Uniswap CCA)** | Bonding curve = fallback only, not pitched |
+| Builder retention | **Per Umia venture init config** | Builder controls via Umia CLI, not our params |
+| USDC routing | **Per Umia treasury config** | Umia handles; we don't define split |
+| Token economic exposure | **Per Umia venture wrapper** | We do not redefine. *"Pro-rata revenue share"* and similar wording is **deferred to Umia legal model**. |
+| Distribution mechanism | **Per Umia treasury features** | If Umia distributes natively, no Agent Float helper. If not, conditional `RevenueDistributor.sol`. |
 | Failure mode | **Builder personal obligation via BuilderBondVault collateral** | UNCHANGED — Agent Float innovation, independent of Umia |
 | Secondary market | **Umia** | UNCHANGED |
-| Legal wrapper | **Umia** | UNCHANGED |
-| Governance | **Umia decision markets (pending)** | Per Umia venture governance layer |
+| Legal wrapper | **Umia (`umia venture init`)** | UNCHANGED |
+| Governance | **Umia decision markets** | Per Umia venture governance layer |
+
+> **Wording discipline (post-review):** Until Umia mentor confirms the exact legal/economic model, all Agent Float-side documentation **avoids** claims like "investors receive pro-rata revenue share", "X% of agent revenue goes to token holders", "claim accumulated USDC". Replace with: "investor exposure follows Umia's venture wrapper", "agent earns USDC; routing per Umia treasury", "token holders see receipts feed (proof of agent productivity)".
 
 ## Bonding curve (FALLBACK / EDUCATIONAL — not primary sale path post-pivot)
 

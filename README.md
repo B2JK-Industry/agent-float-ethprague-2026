@@ -39,29 +39,30 @@ A **funding layer for working AI agents.** Operative word: *working* — proof g
 
 | Stakeholder | Wants | Gets |
 |---|---|---|
-| **Builder** | Capital to grow agent | Public fundraising page, Umia launch, treasury, investor base |
+| **Builder** | Capital to grow agent | Umia venture wrapper, Tailored Auction, treasury, investor base; Agent Float adds public profile + accountability bond |
 | **Agent** | Compute, API credits, data, distribution | Runway and a credible growth plan |
-| **Investor** | Early exposure to agentic ventures | Pro-rata revenue share via per-agent venture token |
+| **Investor** | Early exposure to agentic ventures | Venture token via Umia Tailored Auction; economic exposure per Umia legal model |
 | **User of the agent** | A useful service | A better agent after funding |
 | **Umia** | Quality agentic deal flow | Discovery + onboarding funnel for agentic ventures |
+
+> Investor exposure structure (revenue rights, governance, secondary trading) follows Umia's venture wrapper — we do not redefine token economics on top of Umia.
 
 ---
 
 ## Core loop
 
+Agent Float is the **discovery, proof, and accountability layer above Umia ventures**. It does not replace Umia's funding mechanism; it gates access to it with on-chain proof of work and adds builder accountability primitives.
+
 1. Builder operates an agent that already does meaningful work
-2. Agent gets an ENS passport: identity, wallet, capability records, receipts pointer
-3. Builder registers the agent on Agent Float — a single transaction:
-   - Mints 2,000,000 venture tokens (ERC20, fixed supply)
-   - Sets a bonding curve for primary sale
-   - Locks builder collateral (personal obligation bond)
-   - Commits funding milestones
-   - Opens a per-agent treasury and revenue distributor
-4. Investors browse, see receipts feed + bonding curve price + milestones, and buy tokens
-5. USDC from token sale splits per builder's setup: a share goes upfront to builder, the remainder is locked in agent treasury, milestone-released
-6. Agent earns USDC. Revenue routes to a Revenue Distributor. Token holders accrue per-token claimable balance
-7. Investors `claim()` accumulated USDC anytime
-8. If milestones miss or the agent goes silent, the builder bond slashes pro-rata to current token holders
+2. Agent gets an ENS passport: `<agent>.agentfloat.eth` resolved via **ENSIP-26 standard records** (`agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`) plus namespaced Agent Float extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`)
+3. Agent emits **on-chain receipts** (signed by agent's ENS-registered wallet, USDC-cross-validated). These are the proof gate — *no receipts, no float*.
+4. Builder runs `umia venture init` (Umia CLI) to create the venture: legal entity wrapper, venture token issuance, Tailored Auction setup (Uniswap CCA), noncustodial treasury
+5. Builder registers the agent with Agent Float — links Umia venture to ENS passport, locks personal accountability bond (`BuilderBondVault`), commits funding milestones (`MilestoneRegistry`)
+6. Investors browse Agent Float, see agent profile: ENS passport + receipts feed + Umia Tailored Auction state + milestones + builder bond status
+7. Investors fund via **Umia Tailored Auction** (Uniswap CCA mechanism); proceeds route to Umia noncustodial treasury per Umia governance
+8. Agent earns USDC from end-user payments; receipts continue to emit on-chain; agent profile updates live
+9. Token holders see receipt activity continuously; investor exposure (revenue, governance, secondary trading) handled through Umia's venture wrapper
+10. If builder misses committed milestones OR agent goes silent for the configured threshold, `BuilderBondVault` slashes builder's personal collateral pro-rata to current Umia venture token holders
 
 ---
 
