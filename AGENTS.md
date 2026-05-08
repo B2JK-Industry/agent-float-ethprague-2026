@@ -1,63 +1,58 @@
 # AGENTS.md — guidance for Claude, Codex, and other agentic collaborators
 
-## Current phase
+## Current Phase
 
-**Pre-build → scaffolding.** Scope locked (`SCOPE.md`). Tokenomics locked (`SCOPE.md §5.5`). Repo initialized. Documentation complete in `docs/`. Code scaffolding pending naming-collision check and Umia mentor sweep.
+**Pivot pre-build.** Documentation has moved from Agent Float to **Upgrade Siren**. Code remains blocked until Daniel explicitly confirms this scope as final.
 
-Working dir is the repo root. `BRAINSTORM.md` records historical ideation.
+Workspace root: `/Users/danielbabjak/Desktop/ETHPrague2026`
 
-## Hard rules
+## Hard Rules
 
-1. **No code commits without scope alignment.** Read `SCOPE.md` first; if a change conflicts, raise it before coding.
-2. **All non-trivial changes via PR**, not direct push to `main`. Branch naming: `feat/<scope>`, `fix/<scope>`, `docs/<scope>`, `brainstorm/<scope>`.
-3. **Tag authors in collaboration markdowns:** `[Daniel]`, `[Claude]`, `[Codex]`. Brief, factual.
-4. **Brutally critical.** Reject signals are good. Don't flatter generic ideas.
-5. **No SBO3L derivatives.** "Policy boundary / mandate gate / agent OS" framings are anti-pattern here. (See project memory.)
-6. **No time-driven scope cuts.** Time is not a constraint Claude imposes. Daniel calls cuts during execution. (See `feedback_no_time_cuts.md`.)
-7. **No day/hour labels in plans.** Workstreams + dependencies only.
-8. **Honest-over-slick.** Mocked components labeled `mock: true` in UI. Every claim reproducible from `git checkout && pnpm dev`.
+1. **No code until scope lock.** Documentation edits are allowed; contracts/apps/dependencies are blocked until Daniel confirms Upgrade Siren as final build scope.
+2. **All non-trivial changes via branch + PR**, not direct push to `main`. Branch naming: `brainstorm/<scope>`, `docs/<scope>`, `feat/<scope>`.
+3. **Tag authors in collaboration markdowns:** `[Daniel]`, `[Claude]`, `[Codex]`.
+4. **Brutally critical.** Reject signals are useful.
+5. **No SBO3L derivatives.** Do not pitch "policy boundary", "mandate gate", "agent OS", or similar.
+6. **Do not resurrect Agent Float unless Daniel asks.** Old funding/tokenization docs are archived by git history.
+7. **No time-driven scope cuts.** Daniel calls scope cuts during execution.
+8. **No day/hour labels in plans.** Use workstreams and dependencies.
+9. **Honest-over-slick.** Mocked data must be visibly labeled `mock: true`.
+10. **No emoji.**
 
-## Hard contextual constraints
+## Current Product
 
-- Submission via Devfolio by 2026-05-10 12:00 PM (external fact, not scope driver).
-- Theme: **Solarpunk Future** — anti-extractive, civic, regenerative, public goods, privacy.
-- Sponsor lock: Umia (primary) + ENS (secondary) + Sourcify (bonus). Max 1+1+1.
-- No hardware-heavy paths. No ZK circuits beyond off-shelf libs. No multi-chain in v1.
+**Upgrade Siren** is a public alarm for risky smart contract upgrades.
 
-## Add new idea or component — workflow
+Stage tagline:
 
-1. `git checkout -b <type>/<scope-slug>`
-2. For ideas/discussion: edit `BRAINSTORM.md`. For locked-scope changes: propose via `SCOPE.md` PR.
-3. For docs additions: add to `docs/`. Cross-link from `README.md`.
-4. For code: align with `SCOPE.md` workstream tracks.
-5. PR with clear description. Daniel approves before merge.
+> No source, no upgrade.
 
-## Add comment under existing idea
+Sponsor strategy:
 
-1. Find the section in `BRAINSTORM.md`.
-2. Append `- [Author] <comment>` under the `#### Comments` heading.
-3. Commit + push (via PR if not Daniel).
+| Priority | Target |
+|---|---|
+| Primary sponsor | Sourcify |
+| Secondary sponsor | ENS Most Creative Use |
+| Organizer track | ETHPrague Future Society |
+| Optional alternate | Umia, only as Siren Agent due-diligence venture |
 
-## Memory location (read-only context)
+## What Must Stay True
 
-`~/.claude/projects/-Users-danielbabjak-Desktop-ETHPrague2026/memory/MEMORY.md` — index of all strategic decisions, learnings, sponsor info, anti-patterns, reuse stack, Open Agents 2026 finalist DNA.
+- ENS must do real work: contract identity, version naming, report discovery, live records.
+- Sourcify must do real work: verification, ABI, source metadata, storage layout, bytecode evidence.
+- The product must not become a generic scanner.
+- The user-facing output is an alarm: `SAFE`, `REVIEW`, `SIREN`.
+- The demo must show at least one safe and one dangerous upgrade.
 
-## Sponsor summary
+## Memory Location
 
-| Sponsor | Total | Status |
-|---|---|---|
-| Umia | $12K | Primary track (Best Agentic Venture) |
-| ETHPrague organizer | $9K | Network Economy track targeted |
-| SpaceComputer | $6K | Skipped (no hardware fit) |
-| Sourcify | $4K | Bonus track (treasury contract verification) |
-| ENS | $4K | Secondary track ($2K Most Creative) |
-| Apify | $3.7K | Used as infrastructure only, NOT track |
-| Swarm | $2.45K | Skipped |
+`~/.claude/projects/-Users-danielbabjak-Desktop-ETHPrague2026/memory/MEMORY.md`
+
+Use memory for strategic learnings, but do not copy old Agent Float scope forward.
 
 ## Communication
 
 - Daniel = Slovak primary, English technical terms.
 - Brutally direct, no fluff.
-- No emoji.
-- Tables for comparisons, bullet lists for ranks.
-- "Decision needed" callouts when input required.
+- Tables for comparisons, bullets for rankings.
+- If a decision is needed, say **Decision needed** and name the tradeoff.
