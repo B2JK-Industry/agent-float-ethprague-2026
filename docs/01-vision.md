@@ -21,7 +21,7 @@ ETHPrague 2026's theme is *"Building Ethereum's Solarpunk Future"* — optimisti
 Agent Float fits this frame in five concrete ways:
 
 1. **Public capital market over closed VC.** Anyone can fund a working agent in any amount. There are no accredited-investor gates, no warm intros, no closed cap tables.
-2. **Proof-first over hype-first.** Every fundable agent must show on-chain receipts before fundraising opens. The token cannot exist without working evidence.
+2. **Proof-first over hype-first.** Every fundable agent must show on-chain receipts before fundraising opens. A venture cannot float through Agent Float without working evidence — token issuance itself happens on Umia's side; we gate the path to it.
 3. **Builder accountability through bond.** Builders post personal collateral that slashes pro-rata to investors if milestones are missed. This is the inverse of typical token launchpads where builders take cash and disappear.
 4. **Open architecture.** The repo is open-source (MIT). Anyone can fork, audit, or build a competing platform. Treasury contracts are verified on Sourcify so investors can read the source.
 5. **Network economy primitive.** Per-agent ENS passports + Umia venture tokens (economic exposure per Umia's wrapper) + on-chain receipts = transparent economic coordination at the agent level. Solarpunk doesn't reject markets; it rejects opaque, extractive ones.
