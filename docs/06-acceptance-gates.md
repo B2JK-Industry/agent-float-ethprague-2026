@@ -8,6 +8,18 @@ Without gates, "demo works" is subjective. With gates, every claim made during d
 
 The gates also force pre-demo discipline: if a gate fails during dry-run, we know which feature is not honest.
 
+## Severity tiers
+
+| Tier | Meaning | Action if fails |
+|---|---|---|
+| **CRITICAL** | Without this, the entire pitch is undermined | DO NOT submit; fix or pivot |
+| **HIGH** | Significantly weakens credibility | Fix or label `mock: true` and acknowledge in voiceover |
+| **MEDIUM** | Polish-tier; degrades but does not break | Acceptable to ship with `mock: true` label |
+
+Gates 1, 3, 7, 9, 10, 11 are **CRITICAL** — they verify the core honest-over-slick promise.
+Gates 2, 6, 12 are **HIGH** — credibility-degrading.
+Gates 4, 5, 8 are **MEDIUM** — polish.
+
 ---
 
 ## GATE-1 — Real Sepolia tx during agent paid query

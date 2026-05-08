@@ -194,6 +194,18 @@ Risk levels: **Critical** (blocks submission), **High** (degrades quality signif
 
 ---
 
+## Risk acceptance criteria
+
+Not every risk warrants mitigation. Some can be accepted (lived with) if:
+
+1. **Probability is low (<10%)** AND impact is medium or lower
+2. **Mitigation cost exceeds expected loss** (rare in pre-build phase)
+3. **External dependency makes mitigation infeasible** (e.g., R-001 if Umia integration genuinely doesn't exist)
+
+For each accepted risk, document: who accepted, when, why mitigation rejected, what the team will do if it materializes.
+
+In pre-build phase, no risks are formally accepted. All are OPEN with mitigation paths defined.
+
 ## Risk closure log
 
 (updated as risks resolve)

@@ -131,31 +131,106 @@ Each demo agent is a small Vercel Function workspace that:
 
 ### Layer 5 — Receipt SDK (`@agentfloat/sdk`, `agentfloat` Python package)
 
-Builders integrate their existing agents using the SDK:
+Builders integrate their existing agents using the SDK. The SDK is the public API that makes Agent Float adoptable beyond our demo agents — any agent can become floatable by emitting compliant receipts.
+
+#### TypeScript SDK (`@agentfloat/sdk`)
 
 ```typescript
-import { emitReceipt, fetchReceipts } from '@agentfloat/sdk';
+import {
+  emitReceipt,
+  fetchReceipts,
+  resolveAgent,
+  signReceipt,
+  verifyReceipt
+} from '@agentfloat/sdk';
 
+// Emit receipt after paid work completes
 await emitReceipt({
   agentEns: 'mygrant.agentfloat.eth',
-  queryId: '0x...',
-  reportHash: '0x...',
-  amount: parseUnits('0.01', 6),  // USDC
-  signer: agentWallet,
+  queryId: '0x...',         // unique per query
+  reportHash: '0x...',      // hash of the report payload
+  amount: parseUnits('0.01', 6),  // USDC paid by end user
+  payer: '0x...',           // end user wallet
+  signer: agentWallet,      // agent's signing wallet
 });
+
+// Fetch all receipts for an agent (for UI display)
+const receipts = await fetchReceipts({
+  agentEns: 'mygrant.agentfloat.eth',
+  fromBlock: 0n,            // optional, defaults to deployment
+  toBlock: 'latest',
+});
+
+// Resolve agent's full passport from ENS
+const agent = await resolveAgent('mygrant.agentfloat.eth');
+// returns { wallet, endpoints, capabilities, treasury, ventureToken, bondVault, receiptsPointer }
+
+// Verify a third-party receipt without trusting any server
+const isValid = await verifyReceipt(receipt);
 ```
 
+#### Python SDK (`agentfloat`)
+
 ```python
-from agentfloat import emit_receipt, fetch_receipts
+from agentfloat import (
+    emit_receipt,
+    fetch_receipts,
+    resolve_agent,
+    sign_receipt,
+    verify_receipt,
+)
 
 emit_receipt(
     agent_ens='mygrant.agentfloat.eth',
     query_id='0x...',
     report_hash='0x...',
-    amount=10_000,  # USDC base units
+    amount=10_000,            # USDC base units (6 decimals)
+    payer='0x...',
     signer=agent_wallet,
 )
+
+receipts = fetch_receipts(
+    agent_ens='mygrant.agentfloat.eth',
+    from_block=0,
+    to_block='latest',
+)
+
+agent = resolve_agent('mygrant.agentfloat.eth')
+
+is_valid = verify_receipt(receipt)
 ```
+
+#### Receipt schema (canonical)
+
+```json
+{
+  "agent": "0x...",              // agent wallet address (matches ENS resolution)
+  "timestamp": 1715180400,       // unix seconds
+  "queryId": "0x...",            // unique 32-byte ID
+  "reportHash": "0x...",         // keccak256 of report payload
+  "paymentAmount": "10000",       // USDC base units string (6 decimals)
+  "payer": "0x...",              // end user wallet
+  "signature": "0x..."           // ECDSA signature by agent wallet
+}
+```
+
+#### Verification chain
+
+The SDK's `verifyReceipt()` performs:
+
+1. ECDSA recover from `signature` → must match `agent`
+2. ENS resolve `agentEns` → wallet record → must match `agent`
+3. On-chain check: USDC `Transfer` event from `payer` → `agent` for `paymentAmount` exists in same block range
+4. ReceiptLog event exists matching this receipt's hash
+
+If all 4 pass, receipt is verified. The verifier need not trust any server, only the chain.
+
+#### SDK distribution
+
+- npm: `@agentfloat/sdk` (TypeScript, ESM + CJS)
+- PyPI: `agentfloat` (Python 3.10+)
+- Both packages source-published from monorepo `packages/sdk-ts/` and `packages/sdk-py/`
+- Versioned independently of platform UI
 
 ### Layer 6 — Off-chain integrations
 

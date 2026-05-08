@@ -118,6 +118,36 @@ Terms used across the Agent Float documentation, defined precisely.
 
 ---
 
+## Implementation terms
+
+**Foundry.** Solidity development toolkit. Includes `forge` (build/test/deploy), `cast` (RPC tools), `anvil` (local Ethereum node fork). Primary smart contract toolchain for Agent Float.
+
+**OpenZeppelin.** Standard library of audited smart contract patterns (ERC20, ERC721, AccessControl, ReentrancyGuard). Agent Float contracts extend OpenZeppelin v5+ implementations.
+
+**Tranche.** A portion of capital released from `AgentTreasury` upon milestone completion. Multi-tranche release prevents builder from getting all capital upfront.
+
+**Snapshot.** Mechanism for fixing token holder balances at a specific point in time. Used in `RevenueDistributor` to compute pro-rata claims based on `balanceOf(holder)` at distribution time.
+
+**RBAC** (Role-Based Access Control). Pattern where contract functions are restricted to specific roles (e.g., `ORACLE_ROLE` for milestone marking). Implemented via OpenZeppelin `AccessControl`.
+
+**Reentrancy guard.** Mutex preventing recursive contract calls during sensitive state changes. Critical for `claim()` and `buy()` functions.
+
+**ECDSA recover.** Function that derives a signer's address from a signed message + signature. Used to verify receipts came from agent's ENS-registered wallet.
+
+**Custom error.** Solidity 0.8.4+ pattern for revert reasons. More gas-efficient than revert strings. Used throughout Agent Float contracts.
+
+**Wagmi / viem.** Web3 React libraries for Ethereum frontend integration. `viem` is the low-level RPC client; `wagmi` wraps it for React hooks. Used in Next.js platform UI.
+
+**ENSIP** (ENS Improvement Proposal). Standard for ENS extensions (resolvers, off-chain lookup, etc.). Examples: ENSIP-25 CCIP-Read for off-chain resolvers.
+
+**0xSplits.** Reference implementation of pro-rata revenue split for token holders. Inspiration for `RevenueDistributor` accounting model.
+
+**Bonding curve.** Mathematical function `price(n) = startPrice + slope * n` (linear) where `n` is tokens already sold. Defines token price as a function of supply consumed.
+
+**Vercel AI Gateway.** Vercel's unified API to multiple AI providers (Anthropic, OpenAI, etc.) with provider/model strings. Default LLM access pattern in Agent Float.
+
+**Fluid Compute.** Vercel's 2026 default function compute model. Reuses function instances across concurrent requests. Better cold-start than Edge Functions.
+
 ## Process artifacts
 
 **SCOPE.md.** Single source of truth for what's locked. Read first.

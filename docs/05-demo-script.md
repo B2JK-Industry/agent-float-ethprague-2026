@@ -157,6 +157,48 @@ In-person Prague, Devfolio judging, ~5 minutes per project.
 
 ---
 
+## Anticipated post-demo Q&A
+
+In-person judging usually has 1-3 minutes for questions after the 5-min demo. Likely questions and prepared answers:
+
+### Q: "How is this different from a token launchpad?"
+A: *"No receipts, no float — every fundable agent must show on-chain proof of paid work before the token mints. Token launchpads issue tokens against promises; we require evidence."*
+
+### Q: "What stops a builder from rugpulling?"
+A: *"Two layers. First, USDC split forces majority into AgentTreasury (multi-sig with Umia delegate signature for non-milestone releases). Second, BuilderBondVault locks builder's personal collateral that auto-distributes to investors if agent goes silent for N days or misses a milestone."*
+
+### Q: "How do you prevent fake receipts to pump token price?"
+A: *"Receipts must be signed by the agent's ENS-registered wallet — distinct from builder's wallet. Each receipt's `paymentAmount` cross-checks against an actual USDC `Transfer` event from end user. To fake receipts, builder would have to send their own USDC to the agent — defeats the purpose."*
+
+### Q: "Why Umia and not [other launchpad]?"
+A: *"Umia is agentic-first. They understand AI agent revenue streams, on-chain receipts, and milestone-gated capital. General-purpose launchpads (CoinList, Binance) aren't structured for per-agent venture mechanics. Plus, Umia handles the legal wrapper — securities classification, jurisdictional compliance — at the protocol level."*
+
+### Q: "Why ENS and not a custom registry?"
+A: *"ENS is canonical Ethereum identity. Wallets, dApps, indexers all support it natively. Custom registry would mean vendor lock-in. Subnames are hierarchical and programmatic — perfect for agent passport patterns."*
+
+### Q: "What if the agent stops earning?"
+A: *"Two outcomes. If agent goes silent for 7 days, BuilderBondVault auto-slashes builder bond pro-rata to current token holders. If revenue just declines without going to zero, token price decays naturally on the bonding curve as new buys slow — investors can exit on Umia secondary at the lower price. Investor risk is real but transparent."*
+
+### Q: "Is this a security?"
+A: *"That's Umia's domain — they handle legal wrapper, securities classification, and jurisdictional compliance. We rely on their compliance layer. We don't promote tokens as investments outside Umia's permitted jurisdictions."*
+
+### Q: "What's the post-hackathon plan?"
+A: *"Open-source codebase, Umia partnership, 5 working agents floated within 90 days. Revenue model: success fee on raised capital (1-3%) + premium analytics for institutional investors. We see Agent Float as the discovery funnel for Umia's venture pipeline."*
+
+### Q: "Why 2 million tokens fixed supply?"
+A: *"Default for v1 — gives meaningful precision (per-token revenue share visible at micro-scale) while keeping arithmetic clean. Fixed supply means no dilution surprise for investors. Builders can choose to issue a follow-on (post-MVP) but v1 is one-shot."*
+
+### Q: "What happens if Umia integration is delayed?"
+A: *"Umia simulator with `mock: true` label visible in UI for the demo. Honest-over-slick rule. Real integration commitment post-hack."*
+
+### Q: "How does revenue actually distribute?"
+A: *"Pull-claim model. RevenueDistributor accumulates per-holder claimable balance based on token holdings at distribution time. Investor calls `claim()` when they want — gas-efficient, no daily push spam. UI shows live accumulating balance."*
+
+### Q: "Why MIT license?"
+A: *"Solarpunk-aligned. Open architecture. Anyone can fork, audit, or build a competing platform. Permissionless capital market should have permissionless code."*
+
+---
+
 ## What judges should remember after 5 minutes
 
 1. **Hard rule:** "No receipts, no float" — the only thing that separates Agent Float from a token casino

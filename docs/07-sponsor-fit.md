@@ -221,6 +221,49 @@ Each agent profile includes a "Verify on Sourcify" link. Clicking opens the Sour
 
 ---
 
+## Competitor analysis — what would beat us in each track
+
+### Umia (Best Agentic Venture)
+
+**What could beat Agent Float:**
+- A team that already has a real Umia integration partnership (we have only mentor-level engagement)
+- A project with **paying customers at demo time** (we have demo-scale receipts only)
+- A project with simpler venture mechanics that judges find easier to grasp (e.g., "AI agent X earns Y via clear product, here's the token")
+
+**Our defense:**
+- Multi-agent variety (GrantScout + DataMonitor + TenderEye) showcases category breadth
+- "No receipts, no float" rule is a memorable differentiator
+- Builder bond mechanism is novel — most launchpads don't have it
+
+### ENS (Most Creative)
+
+**What could beat us:**
+- A project with novel ENS use that creates a NEW user pattern (e.g., ENSign won 2026 with "ENS as wallet", which redefined account UX)
+- A project with mainnet deployment + significant usage at demo time
+
+**Our defense:**
+- Per-agent passport with structured records (`wallet`, `endpoints`, `capabilities`, `receipts_pointer`, `treasury`, `venture_token`, `bond_vault`) is novel hierarchical pattern
+- Passport entry-point into 8-contract ecosystem makes ENS structurally integral
+
+### Sourcify (bonus track)
+
+**What could beat us:**
+- A project that uses Sourcify dataset itself (BigQuery, similarity search, pattern detection across 27M contracts) — depth-of-data use vs our verification-only use
+
+**Our defense:**
+- We pursue Sourcify as bonus, not primary; expectations correctly calibrated
+- Open governance proof angle aligns with Solarpunk theme
+
+### Network Economy (organizer)
+
+**What could beat us:**
+- A pure privacy-focused project (we are financially transparent, opposite of privacy-first)
+- A project with deeper economic coordination (e.g., novel AMM, lending market, derivatives)
+
+**Our defense:**
+- Combination of identity + onchain coordination + user control hits 3 of 4 track criteria
+- Builder bond + milestone + bonding curve = three coordination primitives in one
+
 ## Cross-track sponsor-native test
 
 Anti-pattern #2 says max 2 sponsor tracks + 1 organizer track. We hit exactly that boundary: Umia + ENS + Sourcify (bonus) + Network Economy (organizer).

@@ -414,6 +414,64 @@ Fuzz tests:
 - Bonding curve math invariants (price monotonic, sum cost = integral)
 - Distribution math invariants (sum of claimable ≤ totalDistributed)
 
+## Custom errors (per OpenZeppelin v5+ pattern)
+
+Each contract uses custom errors instead of revert strings for gas efficiency and explicit failure modes:
+
+```solidity
+// AgentRegistry
+error AgentAlreadyRegistered(bytes32 ensNode);
+error InvalidBuilderRetention(uint16 bps);
+error InvalidUSDCSplit(uint16 upfront, uint16 treasury);
+error MilestonesEmpty();
+error BondTooSmall(uint256 provided, uint256 minimum);
+
+// BondingCurveSale
+error InsufficientUSDC(uint256 required, uint256 provided);
+error TokensExhausted(uint256 requested, uint256 available);
+error CurveParamsInvalid();
+
+// AgentTreasury
+error NotSigner(address caller);
+error AlreadyConfirmed(uint256 proposalId, address signer);
+error ProposalAlreadyExecuted(uint256 proposalId);
+error InsufficientConfirmations(uint8 has, uint8 required);
+
+// MilestoneRegistry
+error MilestoneNotFound(bytes32 milestoneId);
+error MilestoneAlreadyMarked(bytes32 milestoneId);
+error NotOracle(address caller);
+
+// BuilderBondVault
+error AlreadySlashed();
+error TriggerNotMet();
+error NoPayoutAvailable(address holder);
+
+// RevenueDistributor
+error NothingToClaim(address holder);
+error InvalidDistributionAmount();
+
+// ReceiptLog
+error SignatureMismatch(address expectedSigner, address recoveredSigner);
+error USDCTransferNotFound(bytes32 queryId, uint256 expectedAmount);
+error AgentNotRegistered(address agent);
+```
+
+## Upgradeability stance
+
+**v1 contracts are non-upgradeable.** No proxy pattern. Reasons:
+
+1. Hackathon-scale: 8 contracts × proxy overhead = unnecessary complexity
+2. Honest-over-slick: investors verify exact source on Sourcify; upgradeable contracts add trust assumption
+3. Bond + treasury security: immutable contracts can't be retroactively changed to drain funds
+
+If post-MVP we need upgrades:
+- Deploy v2 contracts with migration path
+- Old agents stay on v1 (existing token holders unaffected)
+- New agents register on v2
+
+Trade-off: bug discovered post-deploy means ship v2 + migrate. Acceptable for MVP scope.
+
 ## Gas considerations
 
 | Operation | Estimated gas (Sepolia) |

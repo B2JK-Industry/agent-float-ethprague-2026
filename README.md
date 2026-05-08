@@ -113,6 +113,37 @@ ETHPrague2026/
 
 ## Status
 
-Pre-build. Scope locked. Tokenomics locked. Repo initialized. Documentation complete. Code scaffolding pending naming-collision check and Umia mentor sweep.
+**Pre-build.** No working code yet. This repo currently contains documentation and scope artifacts only.
 
-See [SCOPE.md](./SCOPE.md) for the locked source of truth and `[pending]` items in §13.
+What is locked:
+- Project vision and value proposition
+- Tokenomics (see [SCOPE.md §5.5](./SCOPE.md))
+- Sponsor stack (Umia primary + ENS secondary + Sourcify bonus)
+- Demo script ([docs/05-demo-script.md](./docs/05-demo-script.md))
+- 12 acceptance gates ([docs/06-acceptance-gates.md](./docs/06-acceptance-gates.md))
+
+What is pending:
+- Naming collision check ([docs/08-naming-research.md](./docs/08-naming-research.md))
+- Umia mentor sweep ([docs/09-sponsor-mentor-questions.md](./docs/09-sponsor-mentor-questions.md))
+- Code scaffolding (Next.js + Foundry + pnpm workspaces)
+- Smart contract implementation (8 contracts in [docs/04-contracts.md](./docs/04-contracts.md))
+- Demo agent build (GrantScout)
+
+## How to read this repo
+
+| If you want to | Read |
+|---|---|
+| Understand the pitch | This README, then [docs/01-vision.md](./docs/01-vision.md) |
+| See what's locked vs pending | [SCOPE.md](./SCOPE.md) |
+| Understand the tokenomics | [docs/03-tokenomics.md](./docs/03-tokenomics.md) |
+| Understand the architecture | [docs/02-architecture.md](./docs/02-architecture.md) |
+| Understand each sponsor | [docs/12-sponsors-explained.md](./docs/12-sponsors-explained.md) |
+| Understand sponsor-fit strategy | [docs/07-sponsor-fit.md](./docs/07-sponsor-fit.md) |
+| See the demo plan | [docs/05-demo-script.md](./docs/05-demo-script.md) |
+| Understand the contracts | [docs/04-contracts.md](./docs/04-contracts.md) |
+| Verify project credibility | [docs/06-acceptance-gates.md](./docs/06-acceptance-gates.md) |
+| See risks | [docs/10-risks.md](./docs/10-risks.md) |
+| Look up a term | [docs/11-glossary.md](./docs/11-glossary.md) |
+| See historical ideation | [BRAINSTORM.md](./BRAINSTORM.md) |
+| Contribute as Codex / agent | [AGENTS.md](./AGENTS.md) |
+| Continue as Claude | [CLAUDE.md](./CLAUDE.md) |

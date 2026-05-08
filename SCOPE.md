@@ -296,7 +296,9 @@ ETHPrague2026/
 
 ---
 
-## 9. Risks + mitigations
+## 9. Risks + mitigations (summary)
+
+> **Full register:** [docs/10-risks.md](./docs/10-risks.md) (21 catalogued risks with owners, levels, probabilities, and mitigation paths). This section is the in-SCOPE summary of the highest-impact items.
 
 | Risk | Probability | Impact | Mitigation |
 |---|---|---|---|

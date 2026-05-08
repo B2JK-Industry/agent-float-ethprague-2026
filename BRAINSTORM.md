@@ -406,13 +406,24 @@
 
 ## Open questions / TODO (anyone fills in)
 
-- [ ] Apify bounty scope detail — verify with mentor Day 1 (čo presne sa zarátava?)
-- [ ] Swarm Verified Fetch — má niekto referenčnú implementáciu k pozretiu?
-- [ ] SpaceComputer hardware — má Daniel USB Armory / Pi pripravené alebo to musíme vynechať?
-- [ ] Umia venture criteria — koľko revenue narrative je potrebné? Live MRR? Pilot users?
-- [ ] Naming — provisional kandidát "Glasnost" má politické nuansy; alternatívy: Probono, Tendero, Sunbeam, TenderEye
-- [ ] ENS subname registry — máme v SBO3L codebase vzor, môžeme ho extrahovať bez SBO3L brand kontaminácie?
-- [ ] Tým — pôjde s tebou len ty, alebo aj Maxwell012 / iný spoluhráč?
+> **Status update post-Agent-Float-lock (2026-05-08):** Many original questions are now resolved by the locked Agent Float scope. Remaining open items only.
+
+### Active (still open)
+
+- [ ] Apify bounty scope detail — verify with mentor (does infrastructure use of Apify SDK count for the bounty, even when not pitched as primary track?)
+- [ ] Umia integration depth — mentor sweep priority #1, blocks Track E
+- [ ] Naming "Agent Float" collision check — see [docs/08-naming-research.md](../docs/08-naming-research.md)
+- [ ] Tým — Daniel sám alebo Maxwell012 / iný spoluhráč? (mení paralelizáciu workstream tracks A-H)
+- [ ] Bonding curve params lock — linear vs exponential, starting price (default rec: linear, 0.001 USDC)
+- [ ] Silence-detector threshold — N days for BuilderBondVault.slash() trigger (default rec: 7 days)
+
+### Resolved (kept for trail)
+
+- ~~Swarm Verified Fetch reference implementation~~ — Swarm skipped per scope decision
+- ~~SpaceComputer hardware availability~~ — SpaceComputer skipped per scope decision
+- ~~Naming candidate "Glasnost" political nuance~~ — pivoted to "Agent Float"
+- ~~ENS subname registry pattern from SBO3L~~ — building fresh per anti-pattern (no SBO3L derivatives)
+- ~~Umia venture criteria (revenue narrative depth)~~ — interpreted from manual; reconfirmed via mentor sweep
 
 ---
 
