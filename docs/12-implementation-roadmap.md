@@ -21,6 +21,7 @@ Tasks:
 5. Deploy unverified-implementation scenario (P0; required for SIREN-on-mismatch demo).
 6. Verify implementations on Sourcify (P0).
 7. Document deployed addresses and ENS record values (P0).
+8. Provision ENS records, including stable `siren:*` records, ENSIP-26 records, and atomic `siren:upgrade_manifest` after fixture deploy (P0).
 
 ## Stream B — Evidence Engine (Dev B)
 
@@ -38,6 +39,9 @@ Tasks:
 5. Compare ABI and risky selectors (P0).
 6. Compare storage layouts where available for fixture contracts (P0).
 7. Produce deterministic Siren Report JSON (P0).
+8. Parse `siren:upgrade_manifest` atomically and validate manifest hash chain (P0).
+9. Verify EIP-712 report signature against `siren:owner` (P0).
+10. Read ENSIP-26 `agent-context` and `agent-endpoint[web]` records (P0).
 
 ## Stream C — Web UX + Optional Siren Agent (Dev C)
 
@@ -56,17 +60,18 @@ Owned paths after lock:
 5. Sourcify link panel.
 6. Demo mode with three scenarios (safe / dangerous / unverified).
 7. Governance comment generator.
+8. Signature status badge (`signed`, `unsigned`, `signature-invalid`) in report UI.
 
 ### P1 — Web UX polish
 
-8. Plain-language explanation of verdict.
-9. Demo animation / presentation polish.
+9. Plain-language explanation of verdict.
+10. Demo animation / presentation polish.
 
 ### P2 — Optional Siren Agent (stretch, Umia-conditional)
 
 9. Watchlist config.
 10. Recurring evidence checks runner.
-11. Signed report (EIP-712).
+11. Siren Agent signed report automation (P0 report signature verification already lives in Stream B/C core).
 12. Optional Umia-style due-diligence panel.
 
 > Siren Agent + Umia panel land **only if** Daniel decides to pursue the Umia track after mentor feedback. If time tightens, these are the first cuts.
@@ -137,6 +142,7 @@ Before clicking submit, verify each of these against `docs/06-acceptance-gates.m
 - [ ] GATE-13 Missing data lowers confidence (no fake claims)
 - [ ] GATE-14 Mocks labeled `mock: true`
 - [ ] GATE-15 Local run reproduces demo
+- [ ] GATE-24 Production report signed by `siren:owner`
 - [ ] Kill conditions all clear (no AI auditor / generic scanner pitch)
 
 ### Submission timing
@@ -193,7 +199,7 @@ Before clicking submit, verify each of these against `docs/06-acceptance-gates.m
 
 | Priority | Must ship | Streams |
 |---|---|---|
-| P0 | ENS live resolution, Sourcify evidence, verdict UI, ABI risk diff, storage-layout result for fixtures, governance comment, safe/dangerous/unverified demo | A + B + C |
+| P0 | ENS live resolution, ENSIP-26 records, atomic upgrade manifest, EIP-712 report signature verification, Sourcify evidence, verdict UI, ABI risk diff, storage-layout result for fixtures, governance comment, safe/dangerous/unverified demo | A + B + C |
 | P1 | Plain-language verdict explanation, demo animation, cache/fallback polish | B + C |
 | P2 | Siren Agent watchlist, signed report, optional Umia panel | C |
 | P3 | API, wallet/explorer integrations | post-hack |
@@ -206,4 +212,4 @@ If time is tight, cut in this order:
 2. P2 Siren Agent + Umia panel
 3. P1 polish
 
-**Never cut:** ENS live resolution, Sourcify evidence, ABI risk diff, storage-layout result for fixture contracts, governance comment, verdict UI, dangerous demo. These are the product core for submission.
+**Never cut:** ENS live resolution, ENSIP-26 context/web endpoint records, atomic upgrade manifest, EIP-712 report signature verification, Sourcify evidence, ABI risk diff, storage-layout result for fixture contracts, governance comment, verdict UI, dangerous demo. These are the product core for submission.

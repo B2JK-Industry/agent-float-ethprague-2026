@@ -70,7 +70,7 @@ Five-second moment:
 - Sourcify API
 - ENS live resolution (Alchemy RPC — Sepolia + mainnet)
 - Sepolia demo contracts
-- Optional signed reports via EIP-712
+- Mandatory EIP-712 report signature verification against `siren:owner`
 
 ## Production Deployment
 

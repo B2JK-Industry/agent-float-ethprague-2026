@@ -43,17 +43,28 @@ The answer is not a long audit report first. The answer is a verdict first, with
 
 ## ENS Contract Map
 
-ENS is the public identity and routing layer. Demo records:
+ENS is the public identity and routing layer. Stable records live directly in ENS:
 
 | Record | Example | Use |
 |---|---|---|
 | `siren:chain_id` | `11155111` | Select RPC and Sourcify chain |
 | `siren:proxy` | `0x...` | Contract to inspect |
-| `siren:previous_impl` | `0x...` | Baseline implementation |
-| `siren:current_impl` | `0x...` | Expected current implementation |
-| `siren:report_uri` | `https://...` | Latest public report |
-| `siren:report_hash` | `0x...` | Report integrity |
+| `siren:owner` | `0x...` | Address authorized to sign reports |
 | `siren:schema` | `ipfs://...` or `https://...` | Record schema |
+
+Upgrade-changing data uses one atomic record:
+
+| Record | Example | Use |
+|---|---|---|
+| `siren:upgrade_manifest` | JSON object | Previous/current implementation, report URI/hash, version, effective timestamp, previous manifest hash |
+
+ENSIP-26-compatible records are also published:
+
+| Record | Example | Use |
+|---|---|---|
+| `agent-context` | `Upgrade Siren risk report for vault.demo.upgradesiren.eth` | Standards-based context |
+| `agent-endpoint[web]` | `https://upgradesiren.app/r/vault.demo.upgradesiren.eth` | Web report endpoint |
+| `agent-endpoint[mcp]` | `https://...` | P2 Siren Agent endpoint |
 
 ## Sourcify Evidence
 
@@ -71,7 +82,8 @@ Sourcify provides the proof that a contract is understandable:
 | Signal | Result |
 |---|---|
 | New implementation unverified | `SIREN` |
-| Proxy slot disagrees with ENS current implementation | `SIREN` |
+| Proxy slot disagrees with manifest current implementation | `SIREN` |
+| Production report missing valid EIP-712 signature from `siren:owner` | `SIREN` |
 | Dangerous privileged selector added | `REVIEW` or `SIREN` |
 | Storage layout incompatible | `SIREN` |
 | Admin/timelock got weaker | `REVIEW` or `SIREN` |

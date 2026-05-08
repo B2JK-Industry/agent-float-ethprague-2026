@@ -12,11 +12,12 @@
 ## ENS
 
 1. Does `siren:*` make sense as a prototype namespace for upgrade-risk metadata?
-2. Would text records be enough, or should report discovery use `contenthash`?
-3. Is a hierarchy like `v1.vault.demo.upgradesiren.eth` and `latest.vault.demo.upgradesiren.eth` compelling?
-4. Would wildcard/offchain subnames make this more creative, or too risky for the timeframe?
-5. What should we avoid putting in public ENS records?
-6. What would make this bounty submission feel central to ENS rather than decorative?
+2. Should `siren:upgrade_manifest` be a text record, `contenthash`, or CCIP-Read response?
+3. Is ENSIP-26 `agent-context` + `agent-endpoint[web]` appropriate as the standards-compatible layer?
+4. Is a hierarchy like `v1.vault.demo.upgradesiren.eth` and `latest.vault.demo.upgradesiren.eth` compelling?
+5. Would wildcard/offchain subnames make this more creative, or too risky for the timeframe?
+6. What should we avoid putting in public ENS records?
+7. What would make this bounty submission feel central to ENS rather than decorative?
 
 ## ETHPrague / Future Society
 

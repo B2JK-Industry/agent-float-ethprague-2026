@@ -28,16 +28,16 @@ vault.demo.upgradesiren.eth
 
 Explain:
 
-"ENS is not cosmetic here. It is the public contract map: proxy, expected implementation, report pointer, and schema."
+"ENS is not cosmetic here. It is the public contract map: stable proxy and owner records, ENSIP-26 discovery, and one atomic upgrade manifest."
 
 ### 0:45 Live Chain Check
 
 Show:
 
 - proxy address
-- previous implementation
+- manifest-declared previous implementation
 - current implementation from EIP-1967 slot
-- ENS expected implementation
+- manifest-declared current implementation
 - match or mismatch
 
 ### 1:10 Sourcify Evidence
@@ -46,6 +46,8 @@ Open the evidence drawer:
 
 - previous implementation verified
 - current implementation verified or unverified
+- report hash matches fetched bytes
+- EIP-712 signature recovers to `siren:owner`
 - ABI diff
 - storage-layout result
 - Sourcify links
@@ -90,7 +92,7 @@ Line:
 
 Keep one intentionally bad case:
 
-- ENS says expected implementation is `0xA`
+- ENS manifest says current implementation is `0xA`
 - live proxy slot points to `0xB`
 - Sourcify cannot verify `0xB`
 - UI returns `SIREN`

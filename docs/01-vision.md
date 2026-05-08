@@ -65,3 +65,13 @@ If Sourcify is removed, the product loses the proof behind the verdict.
 3. Sourcify proves what code is actually behind the upgrade (deterministic evidence, not LLM prose).
 4. The UX is built for non-auditors (DAO voters, delegates, wallet users).
 5. The demo has a visible green-to-red moment within 5 seconds — `vault.demo.upgradesiren.eth` resolves, proxy implementation changes, Sourcify evidence loads, screen flips to `SIREN`.
+
+## Future Directions
+
+The hackathon scope uses ENS records, an atomic upgrade manifest, Sourcify evidence, and EIP-712 report signatures. Post-hackathon directions:
+
+- ERC-3668 / CCIP-Read resolver path for contract-readable verification of the same signed report data.
+- ZK proof that a verdict engine ran deterministically over a given Sourcify/ENS input set.
+- ZK or signed-origin proofs for external evidence responses where a direct API response is not enough.
+
+These are not P0. The P0 trust path is: live ENS records, atomic manifest, Sourcify evidence, and EIP-712 signature by `siren:owner`.

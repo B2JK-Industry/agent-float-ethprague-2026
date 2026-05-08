@@ -59,6 +59,7 @@ The backlog must be deep enough that no dev stream ever runs out of work while w
 10. No emoji.
 11. **Each stream must have at least 4 items with `Dependencies | none`** so the stream can always work while waiting on cross-stream merges.
 12. Each item is small enough to be one PR (effort ≤ M for most items; XL items must be split).
+13. Production Siren Reports are never trusted from hash alone. The P0 path must verify an EIP-712 signature from `siren:owner`; unsigned or invalid production reports return `SIREN`.
 
 ## Required Backlog Coverage
 
@@ -73,10 +74,13 @@ Create items for at least every topic below. Stream owner shown in parentheses.
 - Sourcify verification scripts for V1, V2Safe, V2Dangerous (A)
 - Foundry tests: storage-layout assertion, dangerous-selector behavior, upgrade flow (A)
 - deploy script with documented addresses, Sepolia targeted (A)
-- documentation of deployed addresses + ENS record values (A)
+- ENS subname provisioning script that writes stable `siren:*` records, ENSIP-26 context/web endpoint records, and one atomic `siren:upgrade_manifest` after each fixture deploy (A)
+- documentation of deployed addresses + stable ENS records + atomic manifest values (A)
 
 **Stream B (Evidence Engine):**
-- ENS record live resolution (siren:* records) (B)
+- ENS record live resolution: stable `siren:*` records, `siren:upgrade_manifest`, and ENSIP-26 records (B)
+- atomic `siren:upgrade_manifest` parsing and validation (B)
+- manifest hash-chain validation using `previousManifestHash` (B)
 - EIP-1967 implementation slot reader (B)
 - `Upgraded(address)` event reader (B)
 - Sourcify verification/status fetch (`/server/v2/contract/{chainId}/{address}?fields=all`) (B)
@@ -84,6 +88,7 @@ Create items for at least every topic below. Stream owner shown in parentheses.
 - ABI risky-selector diff (`sweep`, `withdraw`, `setOwner`, `setAdmin`, `mint`, `pause`, arbitrary `call`) (B)
 - storage-layout compatibility diff (B)
 - Siren Report JSON schema in `packages/shared/` (B)
+- EIP-712 Siren Report signature verification against `siren:owner` (B)
 - verdict engine: SAFE / REVIEW / SIREN rules (B)
 - shared types package for cross-stream consumption (B)
 - Sourcify response cache layer with TTL (B)
@@ -99,12 +104,13 @@ Create items for at least every topic below. Stream owner shown in parentheses.
 - ABI diff renderer (C)
 - storage diff renderer (C)
 - ENS records resolved live panel (C)
+- signature status badge (`signed`, `unsigned`, `signature-invalid`) (C)
 - governance comment generator (C)
 - demo mode runner with three scenarios (safe / dangerous / unverified) (C)
 - mock-path visible badge component (C)
 - five-second-rule performance check (C)
 - **P2:** Siren Agent watchlist config (C)
-- **P2:** signed report (EIP-712) helper (C)
+- **P2:** report signing helper UX for operators (C)
 - **P2:** Umia-style due-diligence panel (C)
 
 **Tracker (Daniel + Orch):**
@@ -275,7 +281,7 @@ The danger is two-pronged: storage incompat AND new privileged selector. Both ar
 
 #### Scope
 
-Implement `fetchSourcifyMetadata(chainId, address)` in `packages/evidence/src/sourcify/metadata.ts`. It calls `https://sourcify.dev/server/v2/contract/{chainId}/{address}?fields=all` and parses the returned contract lookup payload, including match status, ABI, compiler metadata, and storage layout where available. It returns a typed `SourcifyMetadata` or a discriminated `SourcifyError` describing one of: `not_found`, `partial_or_nonperfect_match`, `server_error`, `malformed_metadata`, `missing_storage_layout`. No silent fallbacks. Caching is out of scope (US-024). The verdict engine (US-030) consumes the result; missing data must downgrade verdict, never produce false confidence.
+Implement `fetchSourcifyMetadata(chainId, address)` in `packages/evidence/src/sourcify/metadata.ts`. It calls `https://sourcify.dev/server/v2/contract/{chainId}/{address}?fields=all` and parses the returned contract lookup payload, including match status, ABI, compiler metadata, and storage layout where available. It returns a typed `SourcifyMetadata` or a discriminated `SourcifyError` describing one of: `not_found`, `partial_or_nonperfect_match`, `server_error`, `malformed_metadata`, `missing_storage_layout`. No silent fallbacks. Caching is out of scope (US-024). The verdict engine (US-030) consumes the result together with the ENS atomic manifest and signed report; missing data must downgrade verdict, never produce false confidence.
 
 #### Acceptance Criteria
 
@@ -307,7 +313,7 @@ pnpm --filter @upgrade-siren/evidence test:integration sourcify/metadata
 
 #### Notes
 
-Use Node 22 global `fetch` (undici under the hood); no axios. TTL/caching layer is US-024 - keep this function pure (no side effects beyond the fetch). Discriminated union beats throwing because the verdict engine needs to inspect the error reason. The integration test depends on US-016 being merged so a real verified contract address exists.
+Use Node 22 global `fetch` (undici under the hood); no axios. TTL/caching layer is US-024 - keep this function pure (no side effects beyond the fetch). Discriminated union beats throwing because the verdict engine needs to inspect the error reason. The integration test depends on US-016 being merged so a real verified contract address exists. This item does not authenticate the offchain Siren Report; a separate P0 item must verify the EIP-712 signature against `siren:owner`.
 ````
 
 ### Example: Stream C item
@@ -328,16 +334,17 @@ Use Node 22 global `fetch` (undici under the hood); no axios. TTL/caching layer 
 
 #### Scope
 
-Build the verdict card component at `apps/web/components/VerdictCard.tsx`. Renders the verdict (SAFE / REVIEW / SIREN) as the largest visual element above the fold. Color and glyph are paired (color-blind safe). Includes the protocol name, proxy address (truncated), and a one-sentence summary. Page-load to verdict-visible must be measurable and under five seconds for the three demo fixtures. Out of scope: evidence drawer (US-043), governance comment (US-048).
+Build the verdict card component at `apps/web/components/VerdictCard.tsx`. Renders the verdict (SAFE / REVIEW / SIREN) as the largest visual element above the fold. Color and glyph are paired (color-blind safe). Includes the protocol name, proxy address (truncated), report signature status, and a one-sentence summary. Page-load to verdict-visible must be measurable and under five seconds for the three demo fixtures. Out of scope: evidence drawer (US-043), governance comment (US-048).
 
 #### Acceptance Criteria
 
-- [ ] `VerdictCard` accepts `{verdict, name, proxy, summary, mock?}` typed props
+- [ ] `VerdictCard` accepts `{verdict, name, proxy, summary, signatureStatus, mock?}` typed props
 - [ ] SAFE renders green bg + check glyph + "SAFE" label
 - [ ] REVIEW renders amber bg + warning glyph + "REVIEW" label
 - [ ] SIREN renders red bg + alarm glyph + "SIREN" label
+- [ ] Signature status renders as `signed`, `unsigned`, or `signature-invalid`
 - [ ] When `mock: true` prop set, badge `MOCK` renders in card corner
-- [ ] Component test covers all three verdicts + mock variant
+- [ ] Component test covers all three verdicts + all three signature states + mock variant
 - [ ] Playwright test asserts verdict text visible within 5000ms of navigation for the three demo fixtures
 - [ ] Lighthouse performance score >= 90 on the demo page
 - [ ] No `text-green` or `text-red` outside verdict component (audit grep)
@@ -372,6 +379,16 @@ When you set dependencies:
 - **A -> C (rare):** C's demo scenario runner needs deployed addresses; this is one item only.
 - **Within stream:** keep sequential dependencies short. Most A items can run in parallel after the proxy + V1 are deployed.
 - **Independent items first:** the first 4 items in each stream's index must have `Dependencies | none` so all three streams can start immediately.
+
+## Security Invariant Items
+
+The backlog must include explicit P0 items for:
+
+- parsing `siren:upgrade_manifest` as one atomic object, not separate mutable ENS fields
+- verifying `reportHash` against fetched report bytes
+- verifying the Siren Report EIP-712 signature against `siren:owner`
+- rendering unsigned or signature-invalid production reports as `SIREN`
+- reading ENSIP-26 `agent-context` and `agent-endpoint[web]` records
 
 ## Reviewer Contract
 

@@ -20,6 +20,8 @@
 | Vercel env/config failure | Medium | Production deploy can be live but unable to resolve RPC/API data | Add env checklist, `/health` endpoint, and preview deploy smoke test |
 | Shared schema race | Medium | Evidence engine and web UI may diverge on Siren Report JSON | Make `packages/shared` schema a P0 cross-stream item before UI integration |
 | Reviewer bottleneck | Medium | PR reviewer can over-block or miss critical issues | Daniel spot-checks high-risk PRs and can override with explicit comment |
+| Unsigned report spoofing | High | Hash-only report validation proves integrity but not authority | Require EIP-712 signature by `siren:owner`; reject unsigned production reports |
+| Multi-record ENS desync | Medium | Separate upgrade records can temporarily disagree and create false `SIREN` or false confidence | Use one atomic `siren:upgrade_manifest` JSON record with hash-chain |
 
 ## Kill Signals
 
@@ -27,6 +29,7 @@
 - Product works without Sourcify.
 - Verdict is only an LLM summary.
 - No live chain read.
+- Production report lacks valid EIP-712 signature from `siren:owner`.
 - Demo cannot show an unverified implementation.
 - Pitch says "AI auditor".
 - UI is too dense for non-auditors.
