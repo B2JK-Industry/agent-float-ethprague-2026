@@ -8,14 +8,17 @@ Risk levels: **Critical** (blocks submission), **High** (degrades quality signif
 
 ## Build/integration risks
 
-### R-001 — Umia API/SDK integration unknown
+### R-001 — Umia Tailored Auction integration unknown (POST-PIVOT 2026-05-08)
 
-- **Level:** Critical
-- **Probability:** 50%
+- **Level:** Critical (elevated post-pivot)
+- **Probability:** 40% (slightly lowered after pivot to Umia core products gives clearer mentor conversation)
 - **Owner:** Daniel (mentor sweep) → Claude (implementation)
-- **Description:** Umia integration depth depends on what they expose (SDK, REST API, smart contract templates). If their interface is unclear or unfinished, we can't ship a real Track E.
-- **Mitigation:** Mentor sweep priority #1. If integration not feasible during build, deploy Umia simulator with `mock: true` label visible in UI. Submit with explicit follow-up commitment for real integration post-hack.
-- **Trigger to escalate:** Mentor session reveals no concrete integration path → consider switching primary track to ENS or pivoting project to bench fallback (Probono / PGRoll).
+- **Description:** Per external review, primary funding mechanism shifted to Umia **Tailored Auctions (Uniswap CCA)**. Integration depth depends on what Umia exposes: CLI flags, contract addresses, event signatures, frontend widgets. If Tailored Auctions are not accessible during the hackathon (mainnet-only requiring real KYC, or unfinished public API, or restricted access), demo cannot use real Umia primary sale path.
+- **Mitigation:** Mentor sweep priority #1 with specific Tailored Auctions questions (`docs/09-sponsor-mentor-questions.md` Q1-11). Fallback paths in priority order:
+  1. **Best:** Sepolia Tailored Auction supported → use real Umia integration
+  2. **Acceptable:** Demo-only Umia simulator (their own mock environment if provided)
+  3. **Last resort:** Our `BondingCurveSale.sol` fallback with explicit `mock: true` label + voiceover acknowledging Umia integration is post-hack
+- **Trigger to escalate:** Mentor reveals Tailored Auctions are mainnet-only and demo-impractical → use fallback path 3 with explicit honest framing in demo.
 
 ### R-002 — Naming "Agent Float" collision
 

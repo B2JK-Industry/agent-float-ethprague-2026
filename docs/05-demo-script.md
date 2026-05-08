@@ -55,22 +55,24 @@ In-person Prague, Devfolio judging, ~5 minutes per project.
 **Voiceover:**
 *"GrantScout je real Apify-backed agent. Scrape-uje Gitcoin a Octant rounds, generuje paid reports. Tu vidíte 3 receipts — každý je on-chain Sepolia tx, podpísaný agentovým ENS-registered wallet. Bonding curve current price 0.001 USDC za token. Builder commitnutý 500 USDC personal bond."*
 
-### Sec 80–150 — Investor purchase
+### Sec 80–150 — Investor purchase via Umia Tailored Auction (POST-PIVOT)
 
 **Action:**
-- Click "Buy tokens" button on profile
-- Modal opens, investor types "1000" tokens
-- Bonding curve calculates: 1.0005 USDC required
-- Modal shows split breakdown:
-  - 0.20 USDC → builder upfront
-  - 0.80 USDC → AgentTreasury (milestone-locked)
-- Click "Confirm" → MetaMask popup → sign tx
-- On-chain confirmation appears
-- New transaction visible on Sepolia explorer (link from UI)
-- Investor's portfolio updates: 1,000 GrantScout tokens
+- Click "Float on Umia" button on agent profile
+- Browser redirects to **Umia auction page** for `grantscout` venture
+- Umia auction UI shows:
+  - Current Tailored Auction state (Uniswap CCA mechanism)
+  - Clearing price progression
+  - Investor places bid (e.g., 1 USDC for tokens at clearing price)
+- Confirm → MetaMask popup → sign tx
+- Umia handles auction settlement
+- Investor returns to Agent Float profile (via Umia → back link or independent navigation)
+- Profile shows: investor now holds N tokens of GrantScout venture (resolved from Umia venture token contract)
 
 **Voiceover:**
-*"Kupujem 1000 tokenov za 1 USDC. Bonding curve transparent. USDC sa splituje per builder's setup — 20% upfront builderovi pre okamžitý prep, 80% do AgentTreasury, milestone-locked. Žiaden builder nemôže vziať všetky peniaze a zmiznúť."*
+*"Klikám Float on Umia. Redirect na Umia Tailored Auction — ich core produkt powered by Uniswap CCA. Continuous clearing price discovery, žiadne arbitrary curve params. Bid placeujem 1 USDC. Umia settles auction, tokeny v mojom portfoliu, treasury proceedy idú do ich noncustodial treasury per legal wrapper. Agent Float profile sa updatne s mojím new holding."*
+
+> **Fallback path (if Umia integration unavailable at demo time):** Use our internal `BondingCurveSale.sol` simulator with explicit `mock: true` label. Voiceover acknowledges: *"Umia integration finálna up to mentor sweep; tu vidíte fallback simulator s rovnakou logikou na local-state."*
 
 ### Sec 150–210 — Live revenue accrual
 

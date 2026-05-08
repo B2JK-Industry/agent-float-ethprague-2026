@@ -17,19 +17,31 @@ Cielime 4 výherné kategórie:
 
 Umia je **launch / venture infrastructure pre AI agentov**. Kombinuje fundraising mechanizmus, legal wrapper, treasury governance a sekundárny trh do jedného produktu špecificky pre agentic startupy.
 
-> ⚠️ **Honest gap:** Detail Umia produktu k 2026-05-08 nemáme overený. Tento popis je **rekonštrukcia z bounty kritérií + Daniel-ovho briefu + Open Agents 2026 patternov**. Konkrétny API/SDK/integration path lock-neme cez mentor sweep priority #1 (`docs/09-sponsor-mentor-questions.md`).
+> ⚠️ **Honest gap (updated 2026-05-08):** Po external review máme overené 5 core produktov (CLI, Tailored Auctions, treasury, decision markets, secondary market). Konkrétny **integration path** (CLI flags, contract addresses, event signatures, sequencing s naším AgentRegistry) lock-neme cez mentor sweep priority #1 (`docs/09-sponsor-mentor-questions.md`).
 
-### Čo Umia robí (rekonštruovane)
+### Čo Umia robí (per public docs + reviewer research 2026-05-08)
 
 Štandardný launch workflow pre VC-backed startupy je drahý a uzavretý: registrácia firmy v offshore jurisdikcii, právnik-y, accredited investor checks, cap table cez Carta, secondary v ďalekej budúcnosti. Pre AI agent venture je to overkill a často nesedí (agent nie je human-led startup).
 
-Umia tento workflow **kompresuje a tokenizuje**:
+Umia tento workflow **kompresuje a tokenizuje** cez 5 core produktov:
 
-1. **Tokenized agent equity** — namiesto privátnej cap table sa equity vyjadrí v ERC20 tokenoch (alebo podobnom standarde) per agent venture
-2. **Legal wrapper** — Umia poskytuje compliance vrstvu, takže tokeny nie sú "wild west"; jurisdikčná štruktúra rieši securities classification
-3. **Treasury governance** — multi-sig alebo DAO-style governance pre kapitál pridelený agent venture
-4. **Primary sale + secondary market** — Umia poskytuje fundraising mechanizmus aj P2P trading post-launch
-5. **Investor onboarding** — KYC/KYB ak treba, ale s minimálnym frikciou
+1. **`umia venture init` (CLI)** — bootstrap command pre vytvorenie agent venture: legal entity, token issuance setup, treasury config
+2. **Tailored Auctions (Uniswap CCA)** — primary sale mechanism powered by Uniswap Continuous Clearing Auctions. Transparentný price discovery cez clearing-price progression namiesto fixed-price alebo arbitrary curves.
+3. **Noncustodial treasury** — auction proceedy idú do treasury ktorú Umia nedrží (decentralized custody); builder + token holders majú access per Umia governance config
+4. **Decision markets** — governance layer pre venture decisions; token holders vplyvajú na key decisions cez prediction-market-style mechanism
+5. **Secondary market** — post-auction P2P token trading
+
+**Sources (per reviewer):**
+- Umia About page
+- Umia Venture CLI docs
+- Umia Tailored Auctions docs
+
+**Implications pre Agent Float:**
+- Naša pôvodná `BondingCurveSale.sol` ide do **fallback-only** kategórie (Umia auction je primary)
+- Naša `AgentTreasury.sol` ide na **likely replaced** (Umia treasury je primary)
+- Naše `AgentVentureToken.sol` je **conditional** (Umia template ak provided, inak ours feed-into-theirs)
+- Naša `RevenueDistributor.sol` je **conditional** na Umia treasury features
+- Agent Float je layer NA UMIA, nie substitution Umia features
 
 ### Pozícia v Web3 ekosystéme
 
@@ -90,7 +102,9 @@ ENS mapuje:
 - **Reverse records** — adresa → primary `.eth` meno (pre UX "kto si")
 
 Ďalšie capabilities:
-- **ENSIPs** — Ethereum Name Service Improvement Proposals; štandardizujú nové features (napr. ENSIP-25 CCIP-Read pre off-chain resolvers)
+- **ENSIPs** — Ethereum Name Service Improvement Proposals; štandardizujú nové features
+  - **ENSIP-25** — CCIP-Read pre off-chain resolvers
+  - **ENSIP-26** — Agent records standardization (`agent-context`, `agent-endpoint[*]`, `agent-registration[...]`); kľúčové pre Agent Float ENS schema
 - **Off-chain resolvers** — môžeš servovať ENS data zo svojho serveru s cryptographic proofs (Durin, custom resolvers)
 - **L2 podpora** — recently rozšírené na Base, Optimism, atď. (no, primary still mainnet)
 - **ENSv2** — vývoj novej verzie s lepším subname management, namedTransfer, atď.

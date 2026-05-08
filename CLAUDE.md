@@ -48,17 +48,26 @@ These are project-specific reinforcements. Project memory is at `~/.claude/proje
 - Bonus: Sourcify $4K (treasury contract verification)
 - Skip: SpaceComputer (no hardware), Apify (infrastructure only, not track), Swarm (cost not optimal)
 
-## Tokenomics (locked, see SCOPE.md §5.5)
+## Tokenomics (POST-PIVOT 2026-05-08, see SCOPE.md §5.5)
 
-- Token supply: 2,000,000 fixed per agent
-- Pricing: bonding curve (params builder-set)
-- Builder retention: builder picks at registration
-- USDC split: builder picks (upfront vs treasury)
-- Token utility: revenue share only
-- Distribution: pull (claim() function)
-- Failure mode: builder personal obligation via BuilderBondVault collateral
+**Per external review, primary funding mechanism shifted to Umia Tailored Auctions (Uniswap CCA). Pending Umia mentor confirmation.**
+
+- Token supply: 2,000,000 fixed per agent (conditional on Umia template)
+- **Pricing: Umia Tailored Auction primary; bonding curve fallback only**
+- Builder retention: per Umia venture init config
+- USDC split: per Umia treasury rules
+- **Token utility: revenue rights (PENDING Umia legal model confirmation; "pro-rata" wording softened)**
+- Distribution: pull (claim() function) OR Umia treasury native (TBD)
+- **Failure mode: builder personal obligation via BuilderBondVault — UNCHANGED, Agent Float innovation**
 - Secondary market: Umia
-- Legal wrapper: Umia
+- Legal wrapper: Umia (`umia venture init`)
+- Governance: Umia decision markets (post-MVP)
+
+## Agent Float value-add layer (vs. pure Umia ventures)
+
+Pure Umia venture lacks: receipts-gate before fundraising, builder personal accountability bond, milestone-based slashing, multi-agent reputation layer, ENS passport pattern.
+
+Agent Float adds these as complementary layer NA UMIA, not substitution.
 
 ## Demo agent
 

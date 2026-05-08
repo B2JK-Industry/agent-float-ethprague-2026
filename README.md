@@ -65,13 +65,13 @@ A **funding layer for working AI agents.** Operative word: *working* — proof g
 
 ---
 
-## Sponsor stack
+## Sponsor stack (POST-PIVOT)
 
 | Tier | Sponsor | Use |
 |---|---|---|
-| **Primary** | **Umia** ($12K Best Agentic Venture) | Funding / legal wrapper / treasury governance / secondary market |
-| **Secondary** | **ENS** ($2K Most Creative) | Per-agent passport: `<agent>.agentfloat.eth` subname pattern with text records for wallet, endpoints, capabilities, receipts pointer, treasury, venture token |
-| **Bonus** | **Sourcify** ($4K) | Verified source code for every agent treasury contract — open governance proof |
+| **Primary** | **Umia** ($12K Best Agentic Venture) | **Tailored Auctions (Uniswap CCA)** for primary sale + legal wrapper (`umia venture init`) + noncustodial treasury + decision markets + secondary market. We integrate Umia core products natively, do not substitute them. |
+| **Secondary** | **ENS** ($2K Most Creative) | Per-agent passport: `<agent>.agentfloat.eth` using **ENSIP-26 standard records** (`agent-context`, `agent-endpoint[*]`) plus namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`) |
+| **Bonus** | **Sourcify** ($4K) | Verified source code for every Agent Float contract we deploy (registry, receipts, bond, milestones) — open governance proof |
 
 **Organizer track:** Network Economy (privacy + identity + onchain economic coordination + user control). Best UX Flow as secondary if polish allows.
 

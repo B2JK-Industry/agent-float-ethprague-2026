@@ -1,5 +1,7 @@
 # 02 — Architecture
 
+> **PIVOT NOTICE (2026-05-08):** Architecture below has been refactored post-external-review. **Umia provides** Tailored Auctions (Uniswap CCA), noncustodial treasury, legal wrapper, decision markets, secondary market. **Agent Float adds** ENS passport (ENSIP-26), receipts gate, builder bond, milestone slashing. Several previously-listed contracts (`BondingCurveSale.sol`, `AgentTreasury.sol`, possibly `AgentVentureToken.sol`) are reclassified — see `docs/04-contracts.md`.
+
 ## System overview
 
 ```

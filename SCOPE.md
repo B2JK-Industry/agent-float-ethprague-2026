@@ -87,18 +87,32 @@
 
 > **Time is not a constraint** (per Daniel's 2026-05-08 directive). Build the full target. Schedule = pacing reference, NOT scope driver.
 
-### Onchain stack
+### Onchain stack (POST-PIVOT)
+
+**Umia-provided (we integrate, not deploy):**
+- Umia venture legal entity wrapper (per `umia venture init`)
+- Umia venture token (template or our ERC20 fed into Umia)
+- Umia Tailored Auction (Uniswap CCA-based primary sale)
+- Umia noncustodial treasury (proceeds destination)
+- Umia decision markets (governance layer)
+- Umia secondary market
+
+**Agent Float-provided (our value-add layer):**
+
 | Component | Detail |
 |---|---|
-| **AgentRegistry.sol** | Maps ENS subname → agent metadata + owner EOA + venture token + treasury + bond vault. Jedna registration tx mintuje 2M venture tokens, locks builder bond, sets up bonding curve, deploys per-agent treasury. |
-| **AgentVentureToken.sol** (ERC20, fixed 2M supply per agent — Q1) | Standard ERC20; total supply 2,000,000; minted at registration; transferable; per-holder balance tracked pre revenue distribution. |
-| **BondingCurveSale.sol** (Q2 — bonding curve primary sale) | Investor posts USDC → mints/transfers tokens at curve price. Builder retention (Q3) pre-allocated. Curve params builder-set at registration. |
-| **AgentTreasury.sol** | Holds USDC od token sale + agent revenue. Capital release governed by MilestoneRegistry. Multi-sig signer set: builder + Umia delegate + investor delegate. |
-| **MilestoneRegistry.sol** | Builder commits milestones pri registrácii. Oracle/multi-sig uvoľňuje tranches keď splnené. Triggers BuilderBondVault slashing keď missed. |
-| **BuilderBondVault.sol** (Q7a — builder personal obligation) | Locks builder's collateral pri registrácii. Slashes pro-rata investorom ak milestone missed ALEBO agent ide silent N+ dní (žiadne receipts). |
-| **RevenueDistributor.sol** (Q5 — pull-claim) | Receives agent USDC revenue. Tracks per-holder claimable balance based na token holdings pri distribution snapshot. Investor calls `claim()` na withdraw accumulated USDC. |
-| **ReceiptLog.sol** | Append-only events `(agent, timestamp, queryId, reportHash, paymentAmount, signer)`. Signature-bound na agent's ENS-registered wallet. |
-| **ENS subname registry** | Mainnet parent `agentfloat.eth`; programmatic subname `<agent>.agentfloat.eth` s text records: `wallet`, `endpoints`, `capabilities`, `receipts_pointer`, `treasury`, `venture_token`, `bond_vault`. |
+| **AgentRegistry.sol** | Maps ENS subname → Umia venture address + our extensions (bond vault, milestones, receipt log). Registration is **two-step**: (1) Umia venture init via their CLI, (2) Agent Float register via our contract that anchors to the Umia venture. |
+| **ReceiptLog.sol** | Append-only events `(agent, timestamp, queryId, reportHash, paymentAmount, signer)`. Signature-bound to agent's ENS-registered wallet. USDC-Transfer cross-validation. **Our innovation** — Umia doesn't gate fundraising on receipts. |
+| **BuilderBondVault.sol** (Q7a — builder personal obligation) | Locks builder's USDC collateral at registration. Slashes pro-rata to current Umia venture token holders if milestone missed OR agent silent N+ days. **Our innovation** — Umia doesn't have personal accountability bond. |
+| **MilestoneRegistry.sol** | Builder commits milestones at registration. Oracle/multi-sig marks met or failed. Triggers `BuilderBondVault.slash()` on miss. **Our innovation**. |
+| **BondingCurveSale.sol** [FALLBACK ONLY] | Optional internal simulator. Used **only** if Umia auction integration unavailable during demo. Not the primary pitch. May be deployed for testing without affecting headline architecture. |
+| **RevenueDistributor.sol** [CONDITIONAL] | If Umia treasury supports native revenue distribution → skip ours. If not → ours wraps Umia treasury as USDC source and tracks per-holder claimable from Umia venture token holdings. |
+| **ENS subname registry** | Mainnet parent `agentfloat.eth`; programmatic subname `<agent>.agentfloat.eth` with **ENSIP-26 standard records**: `agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`. Plus namespaced extensions: `agentfloat:umia_venture`, `agentfloat:treasury`, `agentfloat:venture_token`, `agentfloat:bond_vault`, `agentfloat:receipts_pointer`. |
+
+**Skipped from previous plan:**
+- ❌ AgentVentureToken.sol as primary (Umia issues; ours conditional fallback)
+- ❌ AgentTreasury.sol custom multi-sig (Umia provides noncustodial treasury)
+- ❌ Custom bonding curve as primary sale path
 
 ### Demo agents (variety strengthens venture pitch)
 | Agent | Category | What it does |
@@ -138,19 +152,63 @@
 
 ---
 
-## 5.5 Tokenomics (LOCKED)
+## 5.5 Tokenomics (LOCKED — POST-PIVOT 2026-05-08)
+
+> **PIVOT:** Po review (`docs/12-sponsors-explained.md` Umia gap + external research) sa primary funding mechanism mení z našej `BondingCurveSale.sol` na **Umia Tailored Auctions powered by Uniswap CCA** (Continuous Clearing Auctions). Reason: sponsor-native test. Bez Umia auction je Umia sponsor decoration; s ich auction je core. **PENDING UMIA MENTOR CONFIRMATION** — ak mentor potvrdí že sa dá použiť aj custom curve, môžeme revertnúť, ale default je teraz Umia auction.
 
 | Parameter | Value | Q | Notes |
 |---|---|---|---|
-| Token supply per agent | **2,000,000 fixed** | Q1 | Žiadne dilution v MVP; post-hack môže pribudnúť re-issuance mechanism |
-| Pricing model | **Bonding curve** | Q2 | Transparentný price discovery; curve params builder-set pri registrácii (default linear/exponential) |
-| Builder token retention | **Builder určí pri registrácii** | Q3 | Napr. 20% builderovi, 80% pre primary sale. Volí builder pri registerAgent() call. |
-| USDC split z token sale | **Builder určí pri registrácii (split %: upfront vs treasury)** | Q4 | Napr. 20% upfront builder wallet, 80% AgentTreasury. Treasury holds milestone-locked. |
-| Token utility | **Revenue share only** | Q6 | Žiadne governance v MVP. Token = právo na pro-rata podiel z agent revenue. |
-| Revenue distribution | **Pull (claim)** | Q5 | RevenueDistributor.sol drží USDC + tracks per-holder claimable; investor klikne `claim()`. UI ukáže akumulovaný balance. |
-| Failure mode | **Builder personal obligation (collateral)** | Q7a | BuilderBondVault.sol drží builder's USDC collateral; slashes pro-rata investorom ak milestone missed alebo agent silent N dní. |
-| Secondary market | **Umia poskytuje secondary market UI** | Q8 | Umia handles P2P trading; my sa fokus-ujeme na primary + revenue distribution. |
-| Securities/legal wrapper | **Umia zodpovednosť** | Q9 | Mimo nášho code scope. |
+| Token supply per agent | **2,000,000 fixed** | Q1 | Pending Umia template — ak Umia poskytuje vlastný token contract (s ich vlastnou supply convention), prispôsobíme. Inak deploy our own ERC20 + feed do Umia auction. |
+| Pricing model | **Umia Tailored Auction (Uniswap CCA-based)** | Q2 PIVOT | Bola: bonding curve. Teraz: Umia auction primary. Naša `BondingCurveSale.sol` zostáva ako **internal fallback simulator** ak Umia integration nedôjde / ako pre-demo state populator. |
+| Builder token retention | **Builder určí pri Umia venture init** | Q3 | Stále builder volí, ale interface je Umia CLI / dashboard, nie naše params |
+| USDC split z token sale | **Per Umia treasury rules** | Q4 PIVOT | Bolo: builder určí upfront vs treasury. Teraz: proceeds idú do Umia noncustodial treasury per ich rules. Builder upfront access = subject to Umia treasury config. |
+| Token utility | **Revenue rights (PENDING UMIA LEGAL CONFIRMATION)** | Q6 | "Pro-rata revenue share" wording sa softuje kým Umia mentor nepotvrdí ich legal/token model. Možno: governance + revenue rights, alebo iba ekonomický exposure cez Umia decision markets. |
+| Revenue distribution | **Pull (claim) — pending Umia treasury integration** | Q5 | Ak Umia treasury podporuje native revenue distribution → použijeme ich. Ak nie → naša `RevenueDistributor.sol` ostáva ale sa napája na Umia treasury ako USDC source. |
+| Failure mode | **Builder personal obligation (collateral) — naša innovation NAD Umia** | Q7a | `BuilderBondVault.sol` stays as Agent Float's value-add layer. Slashing trigger nezávisí od Umia. |
+| Secondary market | **Umia secondary market** | Q8 | Beze zmeny |
+| Governance | **Umia decision markets** (PENDING) | Q6 | Umia použiva decision markets pre venture governance. Token holders môžu mať governance rights cez ich layer, nie cez náš token utility. |
+| Securities/legal wrapper | **Umia legal entity wrapper** | Q9 | Per `umia venture init` — Umia vytvára legal entity per agent venture. |
+
+### Architecture shift summary
+
+**Predtým (naša custom mechanika):**
+```
+Builder calls our AgentRegistry.registerAgent()
+→ deploys AgentVentureToken (2M ERC20)
+→ deploys our BondingCurveSale
+→ Investor buys via OUR curve → USDC routes per OUR split
+```
+
+**Teraz (Umia-native):**
+```
+Builder runs `umia venture init` (Umia CLI)
+→ Umia creates legal entity wrapper
+→ Umia issues venture token (their template alebo ours feed-into-theirs)
+→ Umia sets up Tailored Auction
+→ Umia deploys noncustodial treasury
+
+Agent Float layer (our value-add ON TOP):
+→ AgentRegistry maps ENS subname → Umia venture address
+→ ReceiptLog (our innovation, signed receipts)
+→ BuilderBondVault (our innovation, personal collateral slashing)
+→ MilestoneRegistry (our innovation, milestone tracking + slashing trigger)
+→ Optional: BondingCurveSale (FALLBACK ONLY — internal simulator, not pitched)
+
+Investor flow:
+→ Browses Agent Float, sees agent profile (ENS passport + receipts + bond + milestones)
+→ Clicks "Float on Umia" → redirected to Umia auction page
+→ Buys via Umia Tailored Auction (CCA mechanism)
+→ Tokens credited via Umia
+→ Returns to Agent Float profile to track receipts + claim revenue
+```
+
+**Naša diferenciácia (čo Umia sám nemá):**
+- ENS passport pattern (per-agent identity layer)
+- "No receipts, no float" rule (proof-first gate)
+- ReceiptLog with USDC cross-validation (wash-trading mitigation)
+- BuilderBondVault personal collateral (accountability primitive)
+- MilestoneRegistry slashing trigger
+- Multi-agent variety + reputation layer + leaderboard
 
 ### Builder commits pri registrácii (single registerAgent() tx)
 ```solidity
@@ -432,7 +490,8 @@ Demo passes ONLY ak:
 ## 13. Decision log
 
 - **[LOCKED by Daniel]:** Agent Float ako primary direction pre ETHPrague 2026. Umia + ENS sponsor lock. Network Economy organizer track primary.
-- **[LOCKED — Tokenomics]:** 2M tokens fixed per agent (Q1) + bonding curve primary sale (Q2) + builder-set retention% (Q3) + builder-set USDC split upfront/treasury (Q4) + pull-claim revenue distribution (Q5) + revenue-only utility (Q6) + builder personal obligation via BuilderBondVault collateral (Q7a) + Umia secondary market (Q8) + Umia legal wrapper (Q9).
+- **[LOCKED — Tokenomics v1]:** 2M tokens fixed per agent (Q1) + bonding curve primary sale (Q2) + builder-set retention% (Q3) + builder-set USDC split upfront/treasury (Q4) + pull-claim revenue distribution (Q5) + revenue-only utility (Q6) + builder personal obligation via BuilderBondVault collateral (Q7a) + Umia secondary market (Q8) + Umia legal wrapper (Q9).
+- **[PIVOTED — Tokenomics v2 — 2026-05-08]:** Primary sale changes from custom `BondingCurveSale.sol` to **Umia Tailored Auctions** (Uniswap CCA). Token issuance, treasury, secondary all delegated to Umia. Naše inovácie (ReceiptLog, BuilderBondVault, MilestoneRegistry, ENS passport) zostávajú ako Agent Float value-add layer NAD Umia ventures. **PENDING UMIA MENTOR CONFIRMATION** — pivot je default direction. Mentor potvrdí buď (a) Tailored Auction integration path = pivot finalizuje sa, alebo (b) custom curve OK = revert na v1. Reviewer flagged that bypassing Umia core product is sponsor-fit risk for $12K Best Agentic Venture.
 - **[pending]:** Naming "Agent Float" collision check.
 - **[pending]:** Umia integration path — mentor sweep priority #1.
 - **[pending]:** Bonding curve params (linear vs exponential, starting price) — fix at scaffold time.

@@ -1,22 +1,27 @@
 # 03 — Tokenomics
 
+> **PIVOT NOTICE (2026-05-08):** Per external review + sponsor-native test analysis, primary funding mechanism shifted from custom `BondingCurveSale.sol` to **Umia Tailored Auctions** (Uniswap CCA-based). The bonding curve math below remains documented as either **internal fallback simulator** (if Umia integration unavailable) or **educational reference**. Final lock pending Umia mentor sweep confirmation. See `SCOPE.md §13` Decision log.
+
 This document expands `SCOPE.md §5.5` with worked examples, mathematical models, and edge-case behavior. The locked parameters in SCOPE.md remain the source of truth.
 
-## Locked parameters (recap)
+## Locked parameters (recap, post-pivot)
 
-| Parameter | Value |
-|---|---|
-| Token supply per agent | **2,000,000 fixed** |
-| Pricing model | **Bonding curve** (params builder-set) |
-| Builder retention | **Builder picks at registration** |
-| USDC split | **Builder picks at registration (upfront vs treasury)** |
-| Token utility | **Revenue share only** |
-| Distribution | **Pull (claim() function)** |
-| Failure mode | **Builder personal obligation via BuilderBondVault collateral** |
-| Secondary market | **Umia** |
-| Legal wrapper | **Umia** |
+| Parameter | Value | Status |
+|---|---|---|
+| Token supply per agent | **2,000,000 fixed** | Conditional on Umia template (may need to match their convention) |
+| Pricing model | **Umia Tailored Auction (Uniswap CCA)** | PIVOTED 2026-05-08; bonding curve = fallback only |
+| Builder retention | **Builder picks via Umia venture init** | Conditional on Umia config interface |
+| USDC split | **Per Umia treasury rules** | Conditional on Umia treasury config |
+| Token utility | **Revenue rights (pending Umia legal model confirmation)** | Wording softened; "pro-rata revenue share" subject to Umia legal interpretation |
+| Distribution | **Pull (claim() function) OR Umia treasury native** | Conditional on Umia treasury features |
+| Failure mode | **Builder personal obligation via BuilderBondVault collateral** | UNCHANGED — Agent Float innovation, independent of Umia |
+| Secondary market | **Umia** | UNCHANGED |
+| Legal wrapper | **Umia** | UNCHANGED |
+| Governance | **Umia decision markets (pending)** | Per Umia venture governance layer |
 
-## Bonding curve
+## Bonding curve (FALLBACK / EDUCATIONAL — not primary sale path post-pivot)
+
+> Bonding curve mechanics below describe **our internal `BondingCurveSale.sol`** which is now a **fallback** path. Primary path is Umia Tailored Auction. This section retained for: (1) fallback if Umia integration unavailable in demo, (2) educational understanding of price-discovery mechanics, (3) revert path if Umia mentor confirms custom curve acceptable.
 
 ### Default shape
 
@@ -53,7 +58,41 @@ totalUSDC = ∫₀^1.6M (0.001 + 0.000001 * n) dn
 
 Builder selects at registration. MVP defaults to linear.
 
-## Worked examples
+## Umia Tailored Auction (PRIMARY post-pivot)
+
+### What it is
+
+Umia provides **Tailored Auctions powered by Uniswap CCA (Continuous Clearing Auctions)**. This is the canonical mechanism for primary token sale in their venture flow.
+
+> **Honest gap:** Specific mechanics of Umia's Tailored Auction (curve shape, time windows, fill priority, slippage parameters) are not yet verified at our level. Mentor sweep priority #1 (`docs/09-sponsor-mentor-questions.md`) confirms.
+
+### Expected flow (rekonštruovane z Umia public docs + reviewer findings)
+
+1. Builder runs `umia venture init` (Umia CLI)
+2. Umia creates legal entity wrapper for the agent venture
+3. Umia deploys / configures venture token (their template OR our ERC20 imported)
+4. Umia configures Tailored Auction parameters (likely: clearing-price target, time bounds, supply allocation)
+5. Auction goes live; investors bid; Uniswap CCA settles continuous clearing prices
+6. Proceeds route to Umia noncustodial treasury per their config
+7. Tokens credited to investor wallets via Umia mechanism
+
+### Our integration
+
+Agent Float surfaces:
+- `<agent>.agentfloat.eth` ENS passport (with `agentfloat:umia_venture` namespaced text record pointing to the Umia venture address)
+- "Float on Umia" CTA on agent profile → redirects to Umia auction page
+- Receipts feed visible from Agent Float profile (independent of Umia auction state)
+- Builder bond vault status (independent of Umia)
+- Milestone progress (independent of Umia)
+- Post-auction: token holdings visible on agent profile via Umia venture token contract
+
+### Why this is the right call
+
+Sponsor-native test: bez Umia auction by Umia bola decoration. Ich Tailored Auctions sú **ich core produkt** ($12K Best Agentic Venture rewards using their core, nie bypassing).
+
+## Worked examples (using fallback bonding curve numbers)
+
+> Below examples assume **fallback bonding curve** path. Once Umia auction integration is locked, examples will be re-cast using Umia's actual auction parameters.
 
 ### Example 1 — Small agent (GrantScout demo)
 

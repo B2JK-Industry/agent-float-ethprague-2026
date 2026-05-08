@@ -4,7 +4,7 @@ Per-sponsor deep dive. Each sponsor analyzed for: stated criteria, our integrati
 
 ---
 
-## Umia — $12,000 Best Agentic Venture (PRIMARY)
+## Umia — $12,000 Best Agentic Venture (PRIMARY) — POST-PIVOT
 
 ### Stated criteria
 
@@ -17,28 +17,44 @@ Per ETHPrague Hacker Manual, Umia rewards venture-shaped projects with:
 - Strong narrative
 - Credible post-hackathon continuation
 
-### Our integration
+### Our integration (POST-PIVOT — Umia core products native)
 
-Agent Float is **literally a launchpad for agentic ventures.** Umia is not added on top — Umia is the funding/legal/governance/secondary-market engine without which the product cannot exist in this shape.
+Agent Float is **a discovery + reputation + accountability layer ON TOP OF Umia ventures.** Per sponsor-native test, we use Umia's actual products as the funding/treasury primitives, not our own substitutes.
 
-**Concrete integration points:**
-- **Funding flow:** when investor clicks "Float on Umia" or "Buy via Umia", USDC routes through Umia's primary sale infrastructure
-- **Legal wrapper:** Umia handles securities classification, jurisdictional compliance, KYB for builders, KYC for investors at scale
-- **Treasury governance:** Umia delegate is signer in `AgentTreasury` multi-sig, enabling milestone-based release with legal accountability
-- **Secondary market:** post-primary-sale, Umia provides P2P trading UI for token holders
-- **Discovery funnel:** Agent Float surfaces working agents to Umia's investor base; Umia surfaces fundable agents to its existing users
+**Concrete integration points (Umia core products):**
 
-### Sponsor-native test
+| Umia primitive | How Agent Float uses it |
+|---|---|
+| **`umia venture init` CLI** | Triggered as part of agent registration flow; creates legal entity wrapper |
+| **Tailored Auctions (Uniswap CCA)** | Primary sale mechanism per agent venture; investor bids on Umia auction page |
+| **Noncustodial treasury** | Auction proceeds destination; replaces our previously-planned `AgentTreasury.sol` |
+| **Decision markets** | Governance layer for venture decisions (post-MVP feature; explored if time) |
+| **Secondary market** | Post-auction P2P token trading — Umia handles UI |
+| **Legal wrapper** | Umia handles securities classification, jurisdictional compliance, KYB/KYC at the protocol level |
+
+**Agent Float adds (above and beyond Umia):**
+- ENS passport pattern (`<agent>.agentfloat.eth` with ENSIP-26 records)
+- ReceiptLog (signed, USDC-cross-validated agent receipts) — **proof gates fundraising**
+- BuilderBondVault (personal collateral that slashes on default) — **accountability primitive Umia doesn't have**
+- MilestoneRegistry (oracle-checked commitments triggering bond slashing)
+- Multi-agent variety, leaderboard, profile pages
+- "No receipts, no float" rule
+
+### Sponsor-native test (POST-PIVOT — fortified)
 
 > *Could Agent Float exist in this shape without Umia?*
 
-**No.** Without Umia:
+**No, decisively.** Without Umia:
+- No Tailored Auction → no transparent CCA-based primary sale
 - No legal wrapper → tokens are unregulated securities → product is high-risk
-- No treasury governance → builder can drain agent treasury → no investor protection
+- No noncustodial treasury → builder can drain agent treasury → no investor protection
 - No secondary market → investors are locked → primary sale demand collapses
 - No KYC/KYB → hostile actors can register fake agents
+- No decision markets → no governance layer
 
-**Pass.** Umia is structurally core, not decorative.
+**Pass — strongly.** Umia provides 5+ core products (auction + legal + treasury + secondary + decision markets); Agent Float is a layer on top, not a substitute.
+
+**Pre-pivot version of this test had only "Pass" with weaker reasoning** — we were planning to substitute custom curve + custom treasury + custom revenue distribution. Reviewer correctly flagged: *"obchádzate náš core produkt"*. Pivot fixes this.
 
 ### What judges will look for
 
@@ -75,7 +91,7 @@ Three of seven Open Agents finalists/winners hit similar primitives.
 
 ---
 
-## ENS — $4,000 ($2K AI Agents + $2K Most Creative) (SECONDARY)
+## ENS — $4,000 ($2K AI Agents + $2K Most Creative) (SECONDARY) — POST-PIVOT
 
 ### Stated criteria
 
@@ -85,21 +101,29 @@ ENS rewards integrations where:
 - Integration is obvious and functional
 - No secrets in public text records
 
-### Our integration
+### Our integration (ENSIP-26 standards-aligned)
 
-ENS is the **agent passport.** Every agent gets `<agent>.agentfloat.eth` with a structured set of text records that drive the product.
+ENS is the **agent passport.** Every agent gets `<agent>.agentfloat.eth`. We align with **ENSIP-26 standardized agent records** (rather than inventing custom keys), with namespaced extensions where ENSIP-26 doesn't cover Agent Float-specific data.
 
-**Text records used:**
+**ENSIP-26 standard records (use these per ENS forum guidance):**
 
 | Record | Purpose |
 |---|---|
-| `wallet` | Agent's signing wallet address |
-| `endpoints` | JSON list of agent's API endpoints |
-| `capabilities` | Tags describing what the agent does (research, monitoring, civic, etc.) |
-| `receipts_pointer` | Address of `ReceiptLog` contract for this agent |
-| `treasury` | `AgentTreasury` contract address |
-| `venture_token` | `AgentVentureToken` contract address |
-| `bond_vault` | `BuilderBondVault` contract address |
+| `agent-context` | Primary agent metadata (capabilities, model info, description) |
+| `agent-endpoint[web]` | Agent's web URL endpoint |
+| `agent-endpoint[mcp]` | Agent's MCP (Model Context Protocol) endpoint |
+| `agent-registration[...]` | Optional registration metadata per ENSIP-25 / 26 |
+
+**Agent Float namespaced extensions (only where ENSIP-26 doesn't cover):**
+
+| Record | Purpose |
+|---|---|
+| `agentfloat:umia_venture` | Umia venture address (POST-PIVOT — points to Umia, not our token) |
+| `agentfloat:receipts_pointer` | Address of `ReceiptLog` contract for this agent |
+| `agentfloat:bond_vault` | `BuilderBondVault` contract address |
+| `agentfloat:milestones` | `MilestoneRegistry` contract address |
+
+**Pre-pivot version invented custom records** (`wallet`, `endpoints`, `capabilities`, `treasury`, `venture_token`). Reviewer correctly flagged: *"Treba použiť ENSIP-26 agent-context + agent-endpoint[...], nie len custom"*. Updated.
 
 **Why this matters:**
 - An agent's ENS subname is **the canonical identifier** — UI, contracts, SDK all dereference through ENS

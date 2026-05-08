@@ -1,5 +1,13 @@
 # 04 — Contracts
 
+> **PIVOT NOTICE (2026-05-08):** Per sponsor-native review, primary funding mechanism is **Umia Tailored Auctions** (Uniswap CCA), not our custom `BondingCurveSale.sol`. Several contracts below are reclassified post-pivot:
+>
+> - `AgentVentureToken.sol` → **conditional** (use Umia template if provided; else deploy ours and feed into Umia auction)
+> - `BondingCurveSale.sol` → **fallback only** (internal simulator; not deployed for primary pitch)
+> - `AgentTreasury.sol` → **likely replaced by Umia noncustodial treasury** (we may keep light wrapper for our extension data)
+>
+> Our innovations remain unchanged: `AgentRegistry.sol`, `ReceiptLog.sol`, `BuilderBondVault.sol`, `MilestoneRegistry.sol`, optionally `RevenueDistributor.sol`. Lock pending Umia mentor sweep.
+
 Per-contract specification. All contracts in Solidity 0.8.24+, OpenZeppelin imports for ERC20/SafeERC20/AccessControl/ReentrancyGuard. Foundry workspace.
 
 ## AgentRegistry.sol
@@ -64,7 +72,9 @@ event AgentDeactivated(bytes32 indexed ensNode, string reason);
 
 ---
 
-## AgentVentureToken.sol
+## AgentVentureToken.sol [CONDITIONAL post-pivot]
+
+> **Status (post-pivot 2026-05-08):** Use Umia's venture token template if they provide one. Otherwise deploy our ERC20 and feed into Umia Tailored Auction as the auctioned asset. Spec below accurate for our-deployed case; may be replaced entirely by Umia template.
 
 **Purpose:** ERC20 token, fixed 2M supply, minted once at agent registration. Deployed per-agent.
 
@@ -91,7 +101,9 @@ Standard ERC20 events.
 
 ---
 
-## BondingCurveSale.sol
+## BondingCurveSale.sol [FALLBACK ONLY post-pivot]
+
+> **Status (post-pivot 2026-05-08):** Not the primary sale path. Umia Tailored Auctions are primary. This contract retained as **internal fallback simulator** for cases where: (1) Umia integration unavailable during demo, (2) local pre-deploy testing, (3) revert path if mentor confirms custom curve acceptable. Spec below remains accurate for fallback usage; not pitched as headline mechanism.
 
 **Purpose:** Primary sale via bonding curve. Investors buy tokens with USDC; sale proceeds split per builder's USDCSplit.
 
@@ -148,7 +160,9 @@ Reentrancy guard on `buy()`. SafeERC20 for USDC transfers.
 
 ---
 
-## AgentTreasury.sol
+## AgentTreasury.sol [LIKELY REPLACED post-pivot]
+
+> **Status (post-pivot 2026-05-08):** Umia provides noncustodial treasury per their venture flow. Our `AgentTreasury.sol` may be unnecessary OR may stay as light wrapper holding only Agent Float-specific extension state (e.g., bond vault references, milestone data). Final scope pending Umia mentor confirmation on what their treasury exposes.
 
 **Purpose:** Holds USDC (from sale + revenue). Multi-sig signers: builder + Umia delegate + investor delegate. Releases tranches per MilestoneRegistry.
 
