@@ -124,6 +124,8 @@ In this order:
 
 ## Hard rules (do not violate)
 
+0. **Path B positioning lock (latest, 2026-05-08 evening).** Pitch is *"Agent Float turns working public-good AI agents into fundable Umia ventures."* Stage tagline is *"No impact proof, no funding."* The product is **public-good agents only** (civic / research / climate / transparency / open-knowledge). Trading bots, yield agents, generic AI assistants are explicitly out of scope and must REVERT at `registerAgent()`. Standards adopted: **ERC-8004 Trustless Agents** + **ENSIP-25 binding** + **ENSIP-26 discovery**. We integrate, we do not reinvent.
+
 1. **Umia-native primary.** Bonding curve, RevenueDistributor, AgentTreasury, AgentVentureToken are **conditional or fallback only**. Backlog items for these contracts must be tagged P2 (or below) and explicitly marked `[CONDITIONAL]` or `[FALLBACK]`.
 2. **No SBO3L derivatives.** Receipts as primitive is fine; "policy boundary / mandate gate / agent OS" framing is forbidden.
 3. **No time-driven scope cuts.** Do not write "Day 1 / Day 2 / Day 3", "morning", "evening", or hour estimates with deadlines. Use **effort sizes** (XS / S / M / L / XL) and **dependencies** (DAG), not schedules.
@@ -144,9 +146,9 @@ For every track (A–H per SCOPE.md), produce:
 - Tasks under each story (atomic, single-stream-ownable)
 
 Cover:
-- **Track A — Identity layer (ENS)**: parent registration on mainnet (with naming risk-acceptance honored), Sepolia mirror, custom resolver if namespaced extensions need it, programmatic subname issuance helpers, wagmi/viem live-resolve helpers. Onchain bits → Dev A; UI bits → Dev B.
-- **Track B — Smart contracts**: 4 core contracts with full spec; deploy scripts; Sourcify verify pipeline; Foundry test suite (unit + fuzz + integration). Conditional/fallback contracts as P2/P3. → Dev A.
-- **Track C — Demo agents**: GrantScout (P0), DataMonitor (P1 stretch), TenderEye (P1 stretch). → Dev C.
+- **Track A — Identity layer (ERC-8004 + ENS)**: parent ENS registration, Sepolia mirror, ENSIP-26 records, ENSIP-25 binding to ERC-8004 `agentId`, custom resolver if needed for namespaced extensions, programmatic subname issuance helpers, wagmi/viem live-resolve helpers + ERC-8004 IdentityRegistry / ReputationRegistry read helpers. Onchain bits (resolver + ERC-8004 integration interfaces) → Dev A; UI bits → Dev B.
+- **Track B — Smart contracts**: 4 core contracts with full spec including `erc8004AgentId` field on AgentRegistry struct + `publicGoodCategory` enforcement at `registerAgent()` (revert on non-allow-list category); deploy scripts; Sourcify verify pipeline; Foundry test suite. Conditional/fallback contracts as P2/P3. → Dev A.
+- **Track C — Demo agents**: **GrantScout (P0, FUNDABLE — public-goods grant scout)**, **yield-alpha (P0, REJECTED-EXAMPLE — financialization-first agent for demo contrast)**, DataMonitor (P1 stretch — civic on-chain alerts), TenderEye (P1 stretch — civic procurement). The yield-alpha REJECTED demo is critical for Path B dual-agent framing in `docs/05`. → Dev C.
 - **Track D — Platform UI**: every route + every UI element from `docs/02` Layer 4. → Dev B.
 - **Track E — Umia integration**: mentor session prep (Daniel-owned, but with a backlog tracker item), integration scaffold, simulator fallback. Scaffold + simulator → Dev C.
 - **Track F — Receipt SDK**: TS package → Dev B; Python package → Dev C; canonical receipt schema as cross-stream coordination item.

@@ -4,7 +4,7 @@ Per-sponsor deep dive. Each sponsor analyzed for: stated criteria, our integrati
 
 ---
 
-## Umia — $12,000 Best Agentic Venture (PRIMARY) — POST-PIVOT
+## Umia — $12,000 Best Agentic Venture (PRIMARY) — Path B sharpened
 
 ### Stated criteria
 
@@ -33,12 +33,13 @@ Agent Float is **a discovery + reputation + accountability layer ON TOP OF Umia 
 | **Legal wrapper** | Umia handles securities classification, jurisdictional compliance, KYB/KYC at the protocol level |
 
 **Agent Float adds (above and beyond Umia):**
-- ENS passport pattern (`<agent>.agentfloat.eth` with ENSIP-26 records)
-- ReceiptLog (signed, USDC-cross-validated agent receipts) — **proof gates fundraising**
-- BuilderBondVault (personal collateral that slashes on default) — **accountability primitive Umia doesn't have**
+- **Public-good restriction** — only civic / research / climate / transparency / open-knowledge agents pass `registerAgent()`. Reverts on financialization-first categories. (Path B differentiator vs Slopstock, AgentMandate, AgentPass, Obolos, etc. — none of those restrict by impact category.)
+- **ERC-8004 standards adoption** — we use Trustless Agents identity, not invent our own
+- ENS passport pattern with ENSIP-25 binding to ERC-8004 + ENSIP-26 discovery records
+- ReceiptLog (signed, USDC-cross-validated) — **proof gate**
+- BuilderBondVault (personal collateral that slashes on default) — **accountability Umia doesn't have**
 - MilestoneRegistry (oracle-checked commitments triggering bond slashing)
-- Multi-agent variety, leaderboard, profile pages
-- "No receipts, no float" rule
+- "No impact proof, no funding" hard rule
 
 ### Sponsor-native test (POST-PIVOT — fortified)
 

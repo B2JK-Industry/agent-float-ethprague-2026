@@ -14,9 +14,9 @@ After all three sweeps complete, scope updates locked in SCOPE.md and execution 
 
 ## Umia mentor — Priority #1
 
-### Pitch first (60s) — POST-PIVOT
+### Pitch first (60s) — Path B (public-good restriction + ERC-8004 standards)
 
-> Hi, we're building **Agent Float** — a discovery and accountability layer ON TOP OF Umia ventures. Builders run `umia venture init` to create the venture, then register their agent with Agent Float — we add ENS passport, on-chain receipts feed (proof gate before fundraising), and a personal builder collateral bond that slashes on default. Investors buy via your Tailored Auctions; we surface working agents to them. We're targeting Best Agentic Venture track.
+> Hi, we're building **Agent Float** — a proof-gated funding rail for **public-good AI agents** (civic transparency, research, climate, open knowledge), restricted by category at registration. Builders run `umia venture init` to create the venture, then register their agent with Agent Float — we add ENS passport (ENSIP-26 records bound to ERC-8004 `agentId` via ENSIP-25), on-chain receipts feed (proof gate before fundraising), and a personal builder collateral bond that slashes on default. We adopt ERC-8004 Trustless Agents — we don't reinvent identity. Investors fund via your Tailored Auctions; we surface only fundable public-good agents to them. We're targeting Best Agentic Venture.
 
 ### Critical questions (POST-PIVOT — Umia core integration focus)
 
@@ -59,7 +59,8 @@ After all three sweeps complete, scope updates locked in SCOPE.md and execution 
 
 | # | Question | Why we ask |
 |---|---|---|
-| 1 | We plan to use **ENSIP-26 standard records** (`agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`) plus namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, etc.). Is this the right interpretation of ENSIP-26 conventions? | Avoid reinventing schema |
+| 1 | We plan to use **ENSIP-26 standard records** (`agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`) plus **ENSIP-25-style binding** to ERC-8004 `agentId` plus namespaced Agent Float extensions. Is this the right interpretation of ENSIP-25/26 conventions? | Avoid reinventing schema; align with ERC-8004 standards adoption |
+| 1b | We adopt **ERC-8004 Trustless Agents** as canonical agent identity primitive. ENS subname binds to ERC-8004 `agentId`. Is ENSIP-25 the right binding pattern, or is there a more specific ERC-8004↔ENS pattern in flight? | Standards alignment |
 | 2 | We register `agentfloat.eth` on mainnet as parent and issue subnames programmatically. Is mainnet parent expected for Most Creative track, or is Sepolia mirror acceptable? | Determines deployment cost + Track A approach |
 | 3 | For programmatic subname issuance with ENSIP-26 records, what's the recommended resolver? Is `PublicResolver` sufficient, or should we deploy a custom resolver supporting our namespaced records? | Determines Track A implementation |
 | 4 | ENSIP-25 (CCIP-Read) — applicable to our agent registry use case for off-chain resolved data, or is on-chain enough? | Off-chain resolution decision |

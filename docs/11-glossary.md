@@ -6,7 +6,17 @@ Terms used across the Agent Float documentation, defined precisely.
 
 ## Core concepts
 
-**Agent Float.** The platform/product. A capital market for working AI agents.
+**Agent Float.** The platform/product. A **proof-gated funding rail for public-good AI agents** — integrating ERC-8004, ENSIP-25/26, and Umia Tailored Auctions. We do not invent identity, discovery, or fundraising; we gate access to existing standards by requiring on-chain proof of public-good work.
+
+**Public-good agent.** An AI agent whose work output benefits a community, common resource, or open-knowledge surface — civic transparency monitors, public-goods grant scouts, climate metric reporters, open knowledge curators, anti-corruption watchdogs. Excluded: trading bots, yield optimizers, generic AI assistants, financialization-first agents. Enforced structurally at Agent Float `registerAgent()` via category allow-list.
+
+**ERC-8004 Trustless Agents.** Onchain standard for agent identity (IdentityRegistry), reputation (ReputationRegistry), and validation (ValidationRegistry). Agent Float adopts ERC-8004 as canonical identity primitive — every fundable agent has an `agentId` registered there.
+
+**ENSIP-25.** ENS standard for binding ENS names to external identity systems. Agent Float uses ENSIP-25-style binding from `<agent>.agent-float.eth` to the agent's ERC-8004 `agentId`.
+
+**ENSIP-26.** ENS records convention for AI agents — `agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`, `agent-registration[...]`. Agent Float adopts ENSIP-26 as canonical agent discovery schema.
+
+**Proof gate.** The product's hard rule: an agent cannot reach Umia funding via Agent Float unless ENS resolves correctly, ERC-8004 identity exists, signed receipts of paid public-good work are present, public-good category is verified, and a builder bond is posted. *No impact proof, no funding.*
 
 **Agent.** An autonomous or semi-autonomous AI program that performs paid work (e.g., research, monitoring, summarization, scraping). Has its own crypto wallet for receipts and earnings.
 

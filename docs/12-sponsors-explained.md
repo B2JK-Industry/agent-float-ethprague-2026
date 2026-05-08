@@ -2,12 +2,15 @@
 
 Tento dokument je referenčný — vysvetľuje **čo jednotliví sponzori sú a čo robia**, mimo špecifickej fit-analýzy v `docs/07-sponsor-fit.md`. Účelom je aby každý člen tímu (a Codex, a budúce Claude sessiony) chápal sponzorský kontext bez google-ovania uprostred buildu.
 
-Cielime 4 výherné kategórie:
+Cielime 4 výherné kategórie + adoptujeme 1 externý štandard:
 
 1. **Umia** — $12K Best Agentic Venture (primary)
 2. **ENS** — $2K Most Creative (secondary)
 3. **Sourcify** — $4K Sourcify Bounty (bonus)
 4. **ETHPrague organizer** — Network Economy track (z $9K pool)
+
+Plus standards adopted (not direct sponsor):
+- **ERC-8004 Trustless Agents** — agent identity / reputation / validation registry. We use, we don't reinvent. Strengthens our pitch as standards-aligned, not vanity-infra.
 
 ---
 
