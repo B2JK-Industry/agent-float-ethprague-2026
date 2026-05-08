@@ -1,159 +1,150 @@
-# Agent Float
+# Upgrade Siren
 
-> *Agent Float turns working public-good AI agents into fundable Umia ventures.*
+> **No source, no upgrade.**
 
-**Stage tagline:** *No impact proof, no funding.*
-**Hard rule:** **No receipts, no float.**
+Upgrade Siren is a public upgrade-risk alarm for named Ethereum contracts. It resolves a protocol's ENS contract map, detects proxy implementation changes, compares old and new implementations with Sourcify data, and turns the result into a clear verdict for DAO voters, investors, wallets, and venture launch reviewers.
 
-Agent Float is a **proof-gated funding rail for public-good AI agents**. We do not invent identity, discovery, or fundraising — we integrate established standards (ERC-8004 + ENSIP-25/26 + Umia Tailored Auctions) and add a sharp gate: an agent cannot reach Umia funding unless its ENS identity, ERC-8004 registration, signed receipts, and milestone commitments check out. The agent must demonstrate **public-good impact**, not just activity.
+Built at **ETHPrague 2026** for *Building Ethereum's Solarpunk Future*.
 
-Built at **ETHPrague 2026** — *"Building Ethereum's Solarpunk Future"*.
+## Why This Exists
 
----
+Upgradeable contracts are one of Ethereum's quietest trust assumptions. A protocol can look stable, audited, and widely used, while the implementation behind its proxy changes underneath users. Most people do not read storage layouts, ABI diffs, admin rights, proxy slots, timelocks, or unverified bytecode before voting for an upgrade or funding an onchain venture.
 
-## Why this exists
+Upgrade Siren makes that moment visible.
 
-Working AI agents are real. Many already earn revenue — they scrape, summarize, alert, monitor, transact. Their builders have a problem: the agents need API credits, compute, data, and distribution to grow, but no clean fundraising path exists. Pitching VCs takes months. Token launchpads are hype-shaped, not work-shaped. There's no way to say *"this agent already works, here's the proof, here's what better data would unlock"* and have someone fund it.
+The product answers one question:
 
-Investors have the symmetric problem. AI agent tokens are mostly hype. There's no easy way to distinguish a working agent from a landing page, no public identity, no verifiable receipts, no treasury governance.
+> Should this named protocol upgrade be trusted, reviewed, or rejected?
 
-Agent Float bridges these by enforcing one rule above all: **no receipts, no float.** Before an agent can fundraise, it must show a public ENS passport and on-chain proof of work. Investors fund real upgrades to real agents through Umia's legal/treasury/governance engine. The result is a cleaner capital market for AI agents: proof first, funding second.
+It is not a generic audit tool. It is not an AI scanner. It is an alarm for the exact moment when an implementation changes.
 
----
+## Core Verdicts
 
-## What we are NOT
+| Verdict | Meaning |
+|---|---|
+| `SAFE` | New implementation is verified, upgrade path is expected, no high-risk structural changes detected |
+| `REVIEW` | Upgrade may be legitimate, but contains changes that require human review |
+| `SIREN` | Do not approve or fund until the risk is resolved |
 
-- ❌ NOT Slopstock (we do not financialize generic agents into a stock market)
-- ❌ NOT Obolos (we do not run agent-to-agent commerce or job marketplaces)
-- ❌ NOT AgentPass / AgentMandate / AgentVault (we do not build a generic trust passport)
-- ❌ NOT SBO3L (we do not pitch a generic policy boundary)
-- ❌ NOT a token casino / meme launchpad
-- ❌ NOT an agent OS / runtime / framework
-- ❌ NOT a generic AI agent marketplace
+## What We Are Building
 
-## What we ARE
+1. **ENS Contract Map**
+   - Resolve protocol-owned names such as `vault.demo.upgradesiren.eth`
+   - Read live records for proxy, previous implementation, current implementation, report pointer, owner, and version labels
+   - ENS is the identity and version surface, not decoration
 
-A **proof-gated funding rail for public-good AI agents.** Operative phrases:
+2. **Proxy Upgrade Detector**
+   - Read EIP-1967 implementation slots
+   - Detect `Upgraded(address)` events
+   - Compare current implementation against ENS-declared `latest`
+   - Surface owner/admin/timelock status when available
 
-- **Public-good** — civic, research, climate, transparency, open knowledge agents only. Not yield bots, not trading agents, not generic AI assistants.
-- **Proof-gated** — agent must show on-chain receipts of paid public-good work before its venture can float.
-- **Standards-based** — ERC-8004 for agent identity/reputation, ENSIP-25/26 for discovery, Umia for venture funding. We integrate, we do not reinvent.
+3. **Sourcify Evidence Engine**
+   - Fetch verification status, source metadata, ABI, compiler metadata, and storage layout
+   - Compare old vs. new implementations
+   - Flag unverified implementations, added privileged selectors, removed safety functions, storage-layout hazards, and risky delegatecall/external-call patterns
 
-Tagline for stage: *No impact proof, no funding.*
+4. **Siren Report**
+   - Human verdict first
+   - Evidence drawer for technical judges
+   - Governance-ready comment generator
+   - Optional signed report for Umia-style venture due diligence
 
----
+5. **Siren Agent**
+   - A monitoring agent that watches a contract or venture watchlist
+   - Runs analysis when implementation, ENS records, or verification state changes
+   - Produces signed risk reports for DAO voters, wallets, investors, and venture launch reviewers
 
-## Stakeholders
+## Sponsor Strategy
 
-| Stakeholder | Wants | Gets |
+| Priority | Target | Why |
 |---|---|---|
-| **Builder** | Capital to grow agent | Umia venture wrapper, Tailored Auction, treasury, investor base; Agent Float adds public profile + accountability bond |
-| **Agent** | Compute, API credits, data, distribution | Runway and a credible growth plan |
-| **Investor** | Early exposure to agentic ventures | Venture token via Umia Tailored Auction; economic exposure per Umia legal model |
-| **User of the agent** | A useful service | A better agent after funding |
-| **Umia** | Quality agentic deal flow | Discovery + onboarding funnel for agentic ventures |
+| 1 | **Sourcify Bounty** | Sourcify data is the core evidence source: verified source, ABI, compiler metadata, storage layouts, bytecode, similarity search |
+| 2 | **ENS Most Creative Use** | ENS provides contract identity, version naming, report discovery, and live resolution |
+| 3 | **ETHPrague Future Society** | Public-good safety tooling for users, DAO voters, and onchain communities |
+| Optional | **Umia Best Agentic Venture** | Only if framed as Siren Agent: a due-diligence and post-launch monitoring agent for tokenized onchain ventures |
 
-> Investor exposure structure (revenue rights, governance, secondary trading) follows Umia's venture wrapper — we do not redefine token economics on top of Umia.
+We do **not** submit Swarm, SpaceComputer, or Apify unless Daniel explicitly swaps the strategy. Swarm can be a future report-storage integration, but it is not core to the current product.
 
----
+## What This Is Not
 
-## Core loop
+- Not Agent Float
+- Not a generic smart contract scanner
+- Not an AI auditor
+- Not a token launchpad
+- Not an agent marketplace
+- Not an ENS profile page
+- Not a replacement for audits
+- Not a claim that verified equals safe
 
-Agent Float is the **proof-gated funding rail above Umia ventures, restricted to public-good AI agents**. We do not replace Umia's funding mechanism; we gate access to it.
+## Demo Flow
 
-1. Builder operates an agent doing real **public-good work** (grant scouting, civic monitoring, climate metrics, transparency reporting, open knowledge curation)
-2. Agent registers under the **ERC-8004 Trustless Agents standard** — gets an `agentId` with onchain identity + reputation surface
-3. Agent gets an ENS passport: `<agent>.agent-float.eth` (or chosen parent) — uses **ENSIP-26** standard records (`agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`) and **ENSIP-25**-style binding to the ERC-8004 `agentId`. Plus namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`).
-4. Agent emits **on-chain receipts** for paid public-good work — signed by agent's ENS-registered wallet, USDC-cross-validated. Receipts are the proof gate.
-5. Builder runs `umia venture init` to create the Umia venture (legal wrapper, venture token, Tailored Auction, noncustodial treasury)
-6. Builder registers the agent with Agent Float — links Umia venture + ENS + ERC-8004 agentId + builder bond + milestones in one tx
-7. Investors browse Agent Float and see only **fundable** agents (those passing the proof gate). Each profile shows: ERC-8004 identity + ENS records + receipts feed + Umia auction state + builder bond + milestones
-8. Investors fund via **Umia Tailored Auction**; proceeds to Umia noncustodial treasury
-9. Agent keeps emitting receipts; ERC-8004 reputation accumulates; profile updates live
-10. If builder misses milestones OR agent goes silent, `BuilderBondVault` slashes builder collateral pro-rata to current Umia venture token holders. Failed agent loses fundable status.
+The five-minute demo has three prepared upgrades:
 
----
+1. **Safe upgrade**
+   - Both implementations verified
+   - Storage layout compatible
+   - No new privileged selectors
+   - Verdict: `SAFE`
 
-## Sponsor stack (Path-B sharpened, ERC-8004 integrated)
+2. **Dangerous upgrade**
+   - New implementation verified
+   - Adds `sweep(address token, address to)` and changes storage layout
+   - Verdict: `SIREN`
 
-| Tier | Sponsor | Use |
-|---|---|---|
-| **Primary** | **Umia** ($12K Best Agentic Venture) | Tailored Auctions (Uniswap CCA) + legal wrapper (`umia venture init`) + noncustodial treasury + decision markets + secondary market — Umia is the funding mechanism Agent Float gates access to |
-| **Secondary** | **ENS** ($2K Most Creative) | Per-agent passport using **ENSIP-26** standard records (`agent-context`, `agent-endpoint[web|mcp]`) + **ENSIP-25**-style binding to ERC-8004 `agentId` + namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`) |
-| **Bonus** | **Sourcify** ($4K) | Verified source code for every Agent Float contract — open governance proof |
-| **Standards used (not direct sponsor)** | **ERC-8004** Trustless Agents | Agent identity + reputation registry — we adopt, not reinvent |
+3. **Unverified upgrade**
+   - Proxy points to implementation not verified on Sourcify
+   - ENS `latest` pointer and live slot disagree
+   - Verdict: `SIREN`
 
-**Organizer track:** Network Economy (privacy + identity + onchain economic coordination + user control). Best UX Flow as secondary if polish allows.
+Five-second moment:
 
----
+> A protocol name resolves through ENS, a proxy implementation changes, and the screen turns from green to red: **No source, no upgrade.**
 
-## Repository layout
+## Repository Layout
 
 ```
 ETHPrague2026/
-├── README.md                  # This file
-├── SCOPE.md                   # Single source of truth — locked scope + tokenomics
-├── BRAINSTORM.md              # Historical record of ideation
-├── AGENTS.md                  # Guidance for agentic collaborators (Codex, future Claude sessions)
-├── CLAUDE.md                  # Project-specific Claude memory pointers
-├── LICENSE                    # MIT
+├── README.md
+├── SCOPE.md
+├── BRAINSTORM.md
+├── AGENTS.md
+├── CLAUDE.md
 ├── docs/
-│   ├── 01-vision.md           # Solarpunk framing, value prop, anti-positioning
-│   ├── 02-architecture.md     # System overview, components, data flow
-│   ├── 03-tokenomics.md       # Token mechanics with worked examples
-│   ├── 04-contracts.md        # Per-contract specification
-│   ├── 05-demo-script.md      # 5-minute walkthrough
-│   ├── 06-acceptance-gates.md # Honest-over-slick verification protocol
-│   ├── 07-sponsor-fit.md      # Per-sponsor deep dive + submission checklist
-│   ├── 08-naming-research.md  # Collision check template
-│   ├── 09-sponsor-mentor-questions.md  # Mentor sweep scripts
-│   ├── 10-risks.md            # Risk register
-│   └── 11-glossary.md         # Terminology
-├── apps/                      # (to scaffold)
-│   ├── web/                   # Next.js 16 platform
-│   └── agent-grantscout/      # Demo agent (Vercel Functions)
-├── contracts/                 # (to scaffold) Foundry workspace
-├── packages/                  # (to scaffold)
-│   ├── shared/                # Types, ENS helpers, receipt schema
-│   └── sdk/                   # @agentfloat/sdk for builders
-└── scripts/                   # (to scaffold) deploy + verify scripts
+│   ├── 01-vision.md
+│   ├── 02-product-architecture.md
+│   ├── 03-business-model.md
+│   ├── 04-technical-design.md
+│   ├── 05-demo-script.md
+│   ├── 06-acceptance-gates.md
+│   ├── 07-sponsor-fit.md
+│   ├── 08-competitive-landscape.md
+│   ├── 09-mentor-questions.md
+│   ├── 10-risks.md
+│   ├── 11-glossary.md
+│   └── 12-implementation-roadmap.md
+├── wiki/
+│   ├── Home.md
+│   ├── Project-Overview.md
+│   ├── Product-Architecture.md
+│   ├── Business-Architecture.md
+│   ├── Sponsor-Strategy.md
+│   ├── Demo-Script.md
+│   └── Risk-Register.md
+└── prompts/
+    ├── write-backlog.md
+    ├── run-dev-stream.md
+    └── review-prs.md
 ```
 
----
+## Current Status
 
-## Status
+Documentation pivot complete in this branch. Code remains blocked until Daniel confirms this as the build scope.
 
-**Pre-build.** No working code yet. This repo currently contains documentation and scope artifacts only.
+Read order:
 
-What is locked:
-- Project vision and value proposition
-- Tokenomics (see [SCOPE.md §5.5](./SCOPE.md))
-- Sponsor stack (Umia primary + ENS secondary + Sourcify bonus)
-- Demo script ([docs/05-demo-script.md](./docs/05-demo-script.md))
-- 12 acceptance gates ([docs/06-acceptance-gates.md](./docs/06-acceptance-gates.md))
-
-What is pending:
-- Naming collision check ([docs/08-naming-research.md](./docs/08-naming-research.md))
-- Umia mentor sweep ([docs/09-sponsor-mentor-questions.md](./docs/09-sponsor-mentor-questions.md))
-- Code scaffolding (Next.js + Foundry + pnpm workspaces)
-- Smart contract implementation (4 Agent Float core contracts + up to 4 conditional/fallback — see [docs/04-contracts.md](./docs/04-contracts.md))
-- Demo agent build (GrantScout)
-
-## How to read this repo
-
-| If you want to | Read |
-|---|---|
-| Understand the pitch | This README, then [docs/01-vision.md](./docs/01-vision.md) |
-| See what's locked vs pending | [SCOPE.md](./SCOPE.md) |
-| Understand the tokenomics | [docs/03-tokenomics.md](./docs/03-tokenomics.md) |
-| Understand the architecture | [docs/02-architecture.md](./docs/02-architecture.md) |
-| Understand each sponsor | [docs/12-sponsors-explained.md](./docs/12-sponsors-explained.md) |
-| Understand sponsor-fit strategy | [docs/07-sponsor-fit.md](./docs/07-sponsor-fit.md) |
-| See the demo plan | [docs/05-demo-script.md](./docs/05-demo-script.md) |
-| Understand the contracts | [docs/04-contracts.md](./docs/04-contracts.md) |
-| Verify project credibility | [docs/06-acceptance-gates.md](./docs/06-acceptance-gates.md) |
-| See risks | [docs/10-risks.md](./docs/10-risks.md) |
-| Look up a term | [docs/11-glossary.md](./docs/11-glossary.md) |
-| See historical ideation | [BRAINSTORM.md](./BRAINSTORM.md) |
-| Contribute as Codex / agent | [AGENTS.md](./AGENTS.md) |
-| Continue as Claude | [CLAUDE.md](./CLAUDE.md) |
+1. [SCOPE.md](./SCOPE.md)
+2. [docs/01-vision.md](./docs/01-vision.md)
+3. [docs/04-technical-design.md](./docs/04-technical-design.md)
+4. [docs/05-demo-script.md](./docs/05-demo-script.md)
+5. [docs/07-sponsor-fit.md](./docs/07-sponsor-fit.md)

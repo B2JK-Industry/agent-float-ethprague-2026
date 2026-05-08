@@ -1,96 +1,81 @@
 # CLAUDE.md — project-specific guidance
 
-This file orients Claude (any session) when working in this repo.
+## Project State
 
-## Project state
+The repo has pivoted from **Agent Float** to **Upgrade Siren**.
 
-Agent Float — **proof-gated funding rail for public-good AI agents**, integrating ERC-8004 + ENSIP-25/26 + Umia. Built for ETHPrague 2026 (in-person, *"Building Ethereum's Solarpunk Future"*).
+Current status: **pivot pre-build**. Documentation may change. Code remains blocked until Daniel explicitly confirms final scope.
 
-**Sponsor-facing pitch:** *"Agent Float turns working public-good AI agents into fundable Umia ventures."*
-**Stage tagline:** *"No impact proof, no funding."*
-**Submission deadline:** 2026-05-10 12:00 PM via Devfolio.
+## Current Product
 
-**Path B positioning lock (2026-05-08 evening):** Sharpened from generic "funding rail for working AI agents" to "public-good agents only" + standards-based (ERC-8004 + ENSIP-25/26). Reason: external review identified crowded competitive landscape for generic agent trust/passport (AgentMandate, AgentPass, Slopstock, Obolos, etc.). Defensible niche = Solarpunk + Umia + public-good restriction.
+**Upgrade Siren** warns users, DAO voters, and venture reviewers when a named Ethereum contract upgrade changes what they are trusting.
 
-## Source of truth
+Stage tagline:
 
-**`SCOPE.md`** is the single locked source of truth for what we're building. Read first. Always.
+> No source, no upgrade.
 
-`BRAINSTORM.md` is historical ideation record (Idea 15 = Agent Float). Useful for context, not for current decisions.
+Product agent:
 
-`docs/` contains deep dives — architecture, tokenomics, contract specs, demo script, sponsor fit, risks, glossary.
+> **Siren Agent** watches ENS-named contracts or venture contract sets, runs Sourcify-backed upgrade analysis, and signs risk reports.
 
-## Standing rules (memory-locked)
+## Source of Truth
 
-These are project-specific reinforcements. Project memory is at `~/.claude/projects/-Users-danielbabjak-Desktop-ETHPrague2026/memory/`.
+Read first:
 
-1. **Time is not a scope driver.** No day labels, no hour labels, no morning/evening, no `Day 1/2/3`. Workstreams + dependencies, not schedule. (Per `feedback_no_time_cuts.md`.)
-2. **No SBO3L derivatives.** Receipts overlap is acceptable; "policy boundary / mandate gate / agent OS" framing is not. (Per `feedback_no_sbo3l_carryover.md`.)
-3. **Pre-build gate.** 5-sek meta + memorable jednolinkovka are deal-breakers. Auto-reject "platform / OS / framework / boundary / layer / engine" in pitch sentence. (Per `feedback_pre_build_gate.md`.)
-4. **Sponsor-native test.** Every sponsor track must pass *"could not exist without this technology"*. Decoration → drop. (Per `feedback_sponsor_native_test.md`.)
-5. **Honest-over-slick.** Every claim reproducible from `git checkout && pnpm dev`. Mocked components labeled `mock: true` visibly in UI.
-6. **No emoji.** Daniel hasn't used them; don't introduce.
-7. **Slovak primary, English technical terms.** Brutally direct, tabular, no fluff, no motivational frasing.
-8. **Full permissions.** Don't ask "shall I" — execute. Daniel reverses if needed.
-9. **Robustné > quick-fix.** No green-test hacks. If something is broken, fix root cause.
+1. `SCOPE.md`
+2. `docs/01-vision.md`
+3. `docs/04-technical-design.md`
+4. `docs/05-demo-script.md`
+5. `docs/07-sponsor-fit.md`
 
-## Tech stack defaults
+`BRAINSTORM.md` records the pivot decision and rejected alternatives.
 
-- Next.js 16 App Router + Vercel + Tailwind 4 + shadcn/ui
-- Vercel AI Gateway for LLM calls (provider/model strings, not provider-specific SDKs)
-- Vercel Functions (Fluid Compute) for backend
-- Foundry for Solidity
-- pnpm workspaces monorepo
-- `vercel.ts` for project config (not vercel.json)
-- Single-branch (`main`) workflow with PR review
-- Sepolia for fast iteration; mainnet ENS where it strengthens ENS Most Creative submission
+## Sponsor Strategy
 
-## Sponsor stack (locked)
+| Priority | Target |
+|---|---|
+| Primary | Sourcify Bounty |
+| Secondary | ENS Most Creative Use |
+| Organizer | ETHPrague Future Society |
+| Optional alternate | Umia Best Agentic Venture, only if framed as Siren Agent due diligence |
 
-- Primary: Umia $12K (Best Agentic Venture)
-- Secondary: ENS $2K (Most Creative — `<agent>.agentfloat.eth` passport pattern)
-- Bonus: Sourcify $4K (treasury contract verification)
-- Skip: SpaceComputer (no hardware), Apify (infrastructure only, not track), Swarm (cost not optimal)
+Do not claim Swarm, Apify, or SpaceComputer unless Daniel explicitly changes the target.
 
-## Tokenomics (POST-PIVOT 2026-05-08, see SCOPE.md §5.5)
+## Standing Rules
 
-**Per external review, primary funding mechanism shifted to Umia Tailored Auctions (Uniswap CCA). Pending Umia mentor confirmation.**
+1. No code until Daniel confirms scope lock.
+2. No SBO3L derivative framing.
+3. No Agent Float resurrection.
+4. No "generic scanner" pitch.
+5. No "AI auditor" pitch.
+6. No day/hour labels in plans.
+7. Mocked paths labeled `mock: true`.
+8. Slovak primary, English technical terms.
+9. No emoji.
 
-- Token supply: per Umia venture template (was 2M fixed in v1; now Umia controls)
-- **Pricing: Umia Tailored Auction primary; bonding curve fallback only**
-- Builder retention: per Umia venture init config
-- USDC split: per Umia treasury rules
-- **Token utility: economic exposure per Umia venture wrapper (PENDING Umia legal model confirmation; "pro-rata revenue share" wording avoided in pitch/demo)**
-- Distribution: pull (claim() function) OR Umia treasury native (TBD)
-- **Failure mode: builder personal obligation via BuilderBondVault — UNCHANGED, Agent Float innovation**
-- Secondary market: Umia
-- Legal wrapper: Umia (`umia venture init`)
-- Governance: Umia decision markets (post-MVP)
+## Winning Shape
 
-## Agent Float value-add layer (vs. pure Umia ventures)
+The product must feel like a smoke alarm, not a developer dashboard.
 
-Pure Umia venture lacks: receipts-gate before fundraising, builder personal accountability bond, milestone-based slashing, multi-agent reputation layer, ENS passport pattern.
+Five-second moment:
 
-Agent Float adds these as complementary layer NA UMIA, not substitution.
+> ENS name resolves, proxy implementation changes, Sourcify evidence loads, screen turns red: SIREN.
 
-## Demo agent
+## Tech Defaults Once Scope Is Locked
 
-**GrantScout** — Apify-backed Gitcoin/Octant grant summarizer. Charges 0.01 USDC per paid report. Real receipts. Stretch agents: DataMonitor, TenderEye.
+- Next.js 16 App Router
+- Tailwind 4
+- wagmi + viem
+- Foundry
+- Sourcify API
+- ENS live resolution
+- Sepolia demo contracts
+- Optional signed reports via EIP-712
 
-## Workstreams
+## Past Project Memory
 
-See `SCOPE.md §11` — Track A through Track H, parallel-able where dependencies allow.
+Strategic memory lives at:
 
-## What NOT to do
+`~/.claude/projects/-Users-danielbabjak-Desktop-ETHPrague2026/memory/MEMORY.md`
 
-- Don't propose schedules with day labels, hours, morning/evening
-- Don't preemptively MVP-ize or mark features "post-hack"
-- Don't add SBO3L derivative framings
-- Don't suggest hardware-heavy paths (no SpaceComputer)
-- Don't mix infrastructure use (Apify for scraping) with sponsor track claims
-- Don't use emoji, don't write motivational fluff
-- Don't ask "shall I"; execute and report
-
-## Past project memory
-
-For cross-reference patterns from Watt City win, SBO3L lessons, Open Agents 2026 finalists/winners — see `~/.claude/projects/-Users-danielbabjak-Desktop-ETHPrague2026/memory/MEMORY.md`.
+Use it for lessons, not for copying old architecture.

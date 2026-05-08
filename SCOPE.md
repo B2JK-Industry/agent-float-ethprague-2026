@@ -1,540 +1,244 @@
-# Agent Float — SCOPE (locked 2026-05-08)
+# Upgrade Siren — Scope
 
-> **Status:** LOCKED by Daniel 2026-05-08. Naming "Agent Float" provisional, collision check tonight.
+> **Status:** Pivot scope prepared 2026-05-08. Code blocked until Daniel explicitly confirms this as the final build scope.
 > **Hackathon:** ETHPrague 2026 in-person.
-> **Submission:** 2026-05-10 12:00 PM via Devfolio.
-
----
+> **Submission deadline:** 2026-05-10 12:00 PM via Devfolio.
 
 ## 1. Identity
 
 | Field | Value |
 |---|---|
-| Project name | **Agent Float** (risk-accepted, see `docs/08`) |
-| Pitch sentence (sponsor-facing) | *"Agent Float turns working public-good AI agents into fundable Umia ventures."* |
-| Stage tagline (5-sec hook) | *"No impact proof, no funding."* |
-| Marketing tagline (alternate) | *"Your agent has receipts. Now give it runway."* |
-| Hard product rule | **No receipts, no float.** |
-| Category | Proof-gated funding rail for public-good AI agents |
-| Standards adopted | ERC-8004 Trustless Agents (identity + reputation), ENSIP-25 (binding), ENSIP-26 (discovery), EIP-712 (signed receipts) |
+| Project name | **Upgrade Siren** |
+| Product agent | **Siren Agent** |
+| Pitch sentence | *Upgrade Siren warns DAO voters and venture investors when a named protocol upgrade changes what they are trusting.* |
+| Stage tagline | **No source, no upgrade.** |
+| Category | Public upgrade-risk alarm for Ethereum contracts |
+| Primary sponsor target | Sourcify |
+| Secondary sponsor target | ENS Most Creative Use |
+| Organizer target | Future Society |
+| Optional alternate sponsor | Umia, only as Siren Agent for venture due diligence |
 
-**What we are NOT:**
-- ❌ NOT Slopstock — we do not financialize generic agents into a stock market
-- ❌ NOT Obolos — we do not run agent-to-agent commerce or job marketplaces
-- ❌ NOT AgentPass / AgentMandate / AgentVault — we do not build a generic agent passport
-- ❌ NOT SBO3L — we do not pitch a generic policy boundary as primary
-- ❌ NOT a token casino, meme launchpad, agent OS, generic agent marketplace, or DAO tooling
-- ❌ NOT for trading bots, yield agents, or generic AI assistants — those are explicitly out of scope
+## 2. Problem
 
-**What we ARE:**
-- ✅ A **proof-gated funding rail** for **public-good AI agents only** — via Umia
-- ✅ **Public-good** = civic transparency, research / grant scouting, climate metrics, open knowledge curation, anti-corruption monitoring. NOT financialization-first agents.
-- ✅ **Standards-based**: ERC-8004 for identity, ENSIP-25/26 for discovery, Umia for funding. We integrate, we do not reinvent.
-- ✅ **Accountability primitives** above Umia: receipts gate (ReceiptLog), builder bond (BuilderBondVault), milestone slashing (MilestoneRegistry)
+Ethereum users, DAO voters, funds, and launch platforms often trust upgradeable contracts without seeing what changed. Proxy upgrades can introduce new privileged functions, storage-layout hazards, unsafe admin paths, unverified implementations, or treasury-control changes.
 
----
+The current tooling is fragmented:
 
-## 2. Stakeholders + product loop
+- Explorers show addresses and events, but not a user-facing upgrade verdict.
+- Audit tools are developer-oriented and often pre-deployment.
+- Monitoring tools alert teams, not public DAO voters.
+- ENS contract naming exists, but is rarely used as a safety surface for versioned contracts.
+- Sourcify exposes rich verified-contract data, but normal users do not read source metadata or storage layouts.
 
-| Stakeholder | Wants | Gets |
+Upgrade Siren turns these fragments into a public alarm.
+
+## 3. Product Rule
+
+**No source, no upgrade.**
+
+An upgrade that points users to an unverified implementation must be treated as unsafe until proven otherwise. Verification is not enough to prove safety, but lack of verification is enough to block trust.
+
+## 4. Target Users
+
+| User | Need | Upgrade Siren output |
 |---|---|---|
-| **Builder** | Capital pre rozvoj agenta | Fundraising page, Umia launch, treasury, investor base |
-| **Agent** | Compute, API credits, data, distribúcia | Runway + jasný growth plan |
-| **Investor** | Early exposure na agentic business | Token / venture exposure cez Umia |
-| **User agenta** | Užitočná služba | Lepší agent po financovaní |
-| **Umia** | Quality agentic deal flow | Discovery + onboarding funnel |
+| DAO voter | Know whether to approve a protocol upgrade | Verdict + governance-ready comment |
+| Delegate | Fast technical summary before voting | Sourcify-backed evidence report |
+| Fund / investor | Due diligence before funding an onchain venture | Contract transparency and upgrade-risk score |
+| Umia-style launch reviewer | Screen venture contracts before launch and monitor after funding | Siren Agent report and watchlist |
+| Wallet / explorer | Display upgrade warnings in user flow | API-ready risk result |
+| Protocol team | Publish transparent upgrade evidence | ENS contract map and public report |
 
-**Loop (one cycle):**
+## 5. Sponsor Strategy
 
-1. Builder má agenta ktorý už niečo robí
-2. Agent dostane ENS passport: identity + wallet + endpoints + receipts
-3. Profil ukáže: čo robí + kto prevádzkuje + kolkо zarobil + náklady + funding goal
-4. Builder vytvorí funding proposal (e.g., "2,000 USDC → better data sources + compute → 3x paid reports/wk")
-5. Investori financujú cez Umia
-6. Money → agent venture treasury
-7. Agent upgrade → nové receipts ukážu impact
-8. Lepší agent → viac users → viac revenue → ďalší funding cycle možný
-
----
-
-## 3. Sponsor lock (1 primary + 1 secondary + 1 bonus, per anti-pattern #2)
-
-| Tier | Sponsor | Bounty | Use | Sponsor-native test |
-|---|---|---|---|---|
-| **Primary** | **Umia** | $12K Best Agentic Venture | Funding / legal wrapper / treasury / governance engine | ✅ ABSOLUTE — bez Umia nie je funding mechanism, nie je čo float-ovať |
-| **Secondary** | **ENS** | $2K Most Creative | Per-agent passport: `<agent>.agentfloat.eth` using **ENSIP-26 standard records** (`agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`) plus namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`) | ✅ ENS subnames sú live identity backbone — bez ENS nie je passport |
-| **Tertiary bonus** | Sourcify | $4K (if shipped) | Verify agent treasury contract sources publicly (open governance proof) | ⚠️ Iba ak treasury contracts deployed + verified; nie deal-breaker pre primary scope |
-
-**Skip explicit:**
-- ❌ SpaceComputer — no hardware in scope
-- ❌ Apify — use ako infrastructure pre demo agent (GrantScout) ale **NIE ako sponsor track** (anti-pattern: nemiešaj infra a track)
-- ❌ Swarm — cost/value pre receipts storage nie je optimálny v 3-day window
-
-**Total target:** $14K (Umia + ENS) baseline; $18K best-case s Sourcify bonus.
-**Realistic estimate:** $4-10K (Umia 1st place je stretch goal; Most Creative ENS achievable).
-
----
-
-## 4. Organizer tracks
-
-| Track | Fit | Action |
-|---|---|---|
-| **Network Economy** | ✅ PRIMARY (privacy + identity + onchain economic coordination + user control) | Submit |
-| **Best UX Flow** | ⚠️ Secondary ak polish dosiahneme | Submit ak demo je čistý |
-| Future Society | ⚠️ Possible (transparent capital allocation) ale slabší fit než Glasnost-shape | Submit ak narrative angle leans into "public capital market vs closed VC" |
-| Best Privacy by Design | ❌ Skip — financial transparency je opak privacy |
-| Ethereum Core | ❌ Skip |
-| Best Hardware Usage | ❌ Skip |
-
----
-
-## 5. Scope (target shipping list)
-
-> **Time is not a constraint** (per Daniel's 2026-05-08 directive). Build the full target. Schedule = pacing reference, NOT scope driver.
-
-### Onchain stack (POST-PIVOT)
-
-**Umia-provided (we integrate, not deploy):**
-- Umia venture legal entity wrapper (per `umia venture init`)
-- Umia venture token (template or our ERC20 fed into Umia)
-- Umia Tailored Auction (Uniswap CCA-based primary sale)
-- Umia noncustodial treasury (proceeds destination)
-- Umia decision markets (governance layer)
-- Umia secondary market
-
-**Agent Float-provided (our value-add layer):**
-
-| Component | Detail |
-|---|---|
-| **AgentRegistry.sol** | Maps ENS subname → Umia venture address + our extensions (bond vault, milestones, receipt log). Registration is **two-step**: (1) Umia venture init via their CLI, (2) Agent Float register via our contract that anchors to the Umia venture. |
-| **ReceiptLog.sol** | Append-only events `(agent, timestamp, queryId, reportHash, paymentAmount, signer)`. Signature-bound to agent's ENS-registered wallet. USDC-Transfer cross-validation. **Our innovation** — Umia doesn't gate fundraising on receipts. |
-| **BuilderBondVault.sol** (Q7a — builder personal obligation) | Locks builder's USDC collateral at registration. Slashes pro-rata to current Umia venture token holders if milestone missed OR agent silent N+ days. **Our innovation** — Umia doesn't have personal accountability bond. |
-| **MilestoneRegistry.sol** | Builder commits milestones at registration. Oracle/multi-sig marks met or failed. Triggers `BuilderBondVault.slash()` on miss. **Our innovation**. |
-| **BondingCurveSale.sol** [FALLBACK ONLY] | Optional internal simulator. Used **only** if Umia auction integration unavailable during demo. Not the primary pitch. May be deployed for testing without affecting headline architecture. |
-| **RevenueDistributor.sol** [CONDITIONAL] | If Umia treasury supports native revenue distribution → skip ours. If not → ours wraps Umia treasury as USDC source and tracks per-holder claimable from Umia venture token holdings. |
-| **ENS subname registry** | Mainnet parent `agentfloat.eth`; programmatic subname `<agent>.agentfloat.eth` with **ENSIP-26 standard records**: `agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`. Plus namespaced extensions: `agentfloat:umia_venture`, `agentfloat:treasury`, `agentfloat:venture_token`, `agentfloat:bond_vault`, `agentfloat:receipts_pointer`. |
-
-**Skipped from previous plan:**
-- ❌ AgentVentureToken.sol as primary (Umia issues; ours conditional fallback)
-- ❌ AgentTreasury.sol custom multi-sig (Umia provides noncustodial treasury)
-- ❌ Custom bonding curve as primary sale path
-
-### Demo agents (variety strengthens venture pitch)
-| Agent | Category | What it does |
-|---|---|---|
-| **GrantScout** | Research / public-goods scout | Apify-backed Gitcoin / Octant / Drips active-round summarizer; charges 0.01 USDC per paid report; emits real receipts |
-| **DataMonitor** | B2B ops | Watches public on-chain feed (e.g., specific protocol events), pushes paid alerts to subscribers; recurring revenue |
-| **TenderEye** | Civic transparency | Flags suspicious EU procurement patterns; charges per investigation report |
-
-(Prvotne shippneme aspoň 1 a stretch ku 3 — variety ukazuje category diversity pre Umia venture story.)
-
-### Platform UI
-| View | Detail |
-|---|---|
-| **Landing** | "Discover working AI agents seeking capital." + featured agent grid + "no receipts, no float" rule prominently |
-| **Agent profile** `/agent/[ens-name]` | ENS passport (live resolved) + receipts feed (real on-chain events) + revenue chart + cost chart + runway counter + funding proposal + builder identity + treasury status + venture token (if shipped) |
-| **Investor view** | Browse agents, sort by revenue / runway / category; portfolio view tracks investor's holdings |
-| **Builder dashboard** | Onboarding (register agent + ENS + deploy treasury + set up receipt emission); manage milestones; view investors |
-| **Float interface** | "Float Agent" button → Umia flow → real on-chain settlement → runway counter updates live |
-| **Public agent leaderboard** | Top revenue agents, top runway agents, top fundraises |
-
-### Builder onboarding (real flow, not hardcoded)
-- Connect wallet (Privy embedded)
-- Register agent — assign ENS subname, deploy treasury contract, generate receipt-emission credentials
-- Configure agent metadata — capabilities, endpoints, pricing
-- Optional: deploy venture token (per Umia template if available)
-- Set first funding milestone
-
-### Receipt emission SDK (for builders to integrate own agents)
-- TypeScript SDK + Python SDK
-- `emitReceipt({queryId, reportHash, amount, signer})` → signs + posts to ReceiptLog contract
-- Verification helper: `fetchReceipts(agentEns)` → returns chain-of-evidence
-
-### Open-source positioning
-- Repo public po naming + scaffold lock (NIE time-driven)
-- License Apache 2.0 alebo MIT
-- README ako pitch + architecture + run instructions
-
----
-
-## 5.5 Tokenomics (LOCKED — POST-PIVOT 2026-05-08)
-
-> **PIVOT:** Po review (`docs/12-sponsors-explained.md` Umia gap + external research) sa primary funding mechanism mení z našej `BondingCurveSale.sol` na **Umia Tailored Auctions powered by Uniswap CCA** (Continuous Clearing Auctions). Reason: sponsor-native test. Bez Umia auction je Umia sponsor decoration; s ich auction je core. **PENDING UMIA MENTOR CONFIRMATION** — ak mentor potvrdí že sa dá použiť aj custom curve, môžeme revertnúť, ale default je teraz Umia auction.
-
-| Parameter | Value | Q | Notes |
+| Priority | Track | Fit | Submission stance |
 |---|---|---|---|
-| Token supply per agent | **Per Umia venture template** | Q1 | Was 2M fixed (v1). Now: Umia controls token issuance via `umia venture init`. We do not redefine. |
-| Pricing model | **Umia Tailored Auction (Uniswap CCA-based)** | Q2 PIVOT | Bola: bonding curve. Teraz: Umia auction primary. Naša `BondingCurveSale.sol` zostáva ako **internal fallback simulator** ak Umia integration nedôjde / ako pre-demo state populator. |
-| Builder token retention | **Builder určí pri Umia venture init** | Q3 | Stále builder volí, ale interface je Umia CLI / dashboard, nie naše params |
-| USDC split z token sale | **Per Umia treasury rules** | Q4 PIVOT | Bolo: builder určí upfront vs treasury. Teraz: proceeds idú do Umia noncustodial treasury per ich rules. Builder upfront access = subject to Umia treasury config. |
-| Token utility | **Economic exposure per Umia venture wrapper (PENDING UMIA LEGAL CONFIRMATION)** | Q6 | We do not redefine token economics. Specific structure (revenue rights vs governance vs other) deferred to Umia legal model. "Pro-rata revenue share" wording avoided in pitch + demo until mentor confirms. |
-| Revenue distribution | **Pull (claim) — pending Umia treasury integration** | Q5 | Ak Umia treasury podporuje native revenue distribution → použijeme ich. Ak nie → naša `RevenueDistributor.sol` ostáva ale sa napája na Umia treasury ako USDC source. |
-| Failure mode | **Builder personal obligation (collateral) — naša innovation NAD Umia** | Q7a | `BuilderBondVault.sol` stays as Agent Float's value-add layer. Slashing trigger nezávisí od Umia. |
-| Secondary market | **Umia secondary market** | Q8 | Beze zmeny |
-| Governance | **Umia decision markets** (PENDING) | Q6 | Umia použiva decision markets pre venture governance. Token holders môžu mať governance rights cez ich layer, nie cez náš token utility. |
-| Securities/legal wrapper | **Umia legal entity wrapper** | Q9 | Per `umia venture init` — Umia vytvára legal entity per agent venture. |
+| 1 | **Sourcify Bounty** | Core evidence source: verified source, ABI, metadata, storage layout, bytecode, similarity search | Submit |
+| 2 | **ENS Most Creative Use** | ENS names and records become contract/version/report discovery, not cosmetic labels | Submit |
+| 3 | **ETHPrague Future Society** | Public-good security for users and DAO governance | Submit |
+| Optional | **Umia Best Agentic Venture** | Siren Agent as due-diligence and monitoring agent for tokenized onchain ventures | Submit only if Daniel swaps strategy after mentor feedback |
 
-### Architecture shift summary
+Hard cap: **2 sponsor tracks + 1 organizer track** unless Daniel explicitly overrides.
 
-**Predtým (naša custom mechanika):**
-```
-Builder calls our AgentRegistry.registerAgent()
-→ deploys AgentVentureToken (2M ERC20)
-→ deploys our BondingCurveSale
-→ Investor buys via OUR curve → USDC routes per OUR split
-```
+## 6. What We Are Not
 
-**Teraz (Umia-native):**
-```
-Builder runs `umia venture init` (Umia CLI)
-→ Umia creates legal entity wrapper
-→ Umia issues venture token (their template alebo ours feed-into-theirs)
-→ Umia sets up Tailored Auction
-→ Umia deploys noncustodial treasury
+- Not a generic smart contract scanner
+- Not an AI auditor
+- Not a replacement for audits
+- Not an explorer clone
+- Not an agent marketplace
+- Not a launchpad
+- Not an ENS profile manager
+- Not Agent Float
+- Not SBO3L or a policy-boundary derivative
 
-Agent Float layer (our value-add ON TOP):
-→ AgentRegistry maps ENS subname → Umia venture address
-→ ReceiptLog (our innovation, signed receipts)
-→ BuilderBondVault (our innovation, personal collateral slashing)
-→ MilestoneRegistry (our innovation, milestone tracking + slashing trigger)
-→ Optional: BondingCurveSale (FALLBACK ONLY — internal simulator, not pitched)
+## 7. Core Product
 
-Investor flow:
-→ Browses Agent Float, sees agent profile (ENS passport + receipts + bond + milestones)
-→ Clicks "Float on Umia" → redirected to Umia auction page
-→ Buys via Umia Tailored Auction (CCA mechanism)
-→ Tokens credited via Umia
-→ Returns to Agent Float profile to track receipts + claim revenue
+### ENS Contract Map
+
+Protocol contract identity is anchored in ENS. Demo names use a controlled parent such as:
+
+```text
+demo.upgradesiren.eth
+vault.demo.upgradesiren.eth
+v1.vault.demo.upgradesiren.eth
+v2.vault.demo.upgradesiren.eth
+latest.vault.demo.upgradesiren.eth
+report.vault.demo.upgradesiren.eth
 ```
 
-**Naša diferenciácia (čo Umia sám nemá):**
-- ENS passport pattern (per-agent identity layer)
-- "No receipts, no float" rule (proof-first gate)
-- ReceiptLog with USDC cross-validation (wash-trading mitigation)
-- BuilderBondVault personal collateral (accountability primitive)
-- MilestoneRegistry slashing trigger
-- Multi-agent variety + reputation layer + leaderboard
+> **ENS parent name is provisional.** `upgradesiren.eth` mainnet availability has not been verified yet (open decision in `BRAINSTORM.md`). Default plan: register on Sepolia first for fast iteration; mainnet parent locked after collision check. Acceptable alternates if `upgradesiren.eth` is taken: `upgrade-siren.eth`, `upgrade-siren-demo.eth`. Daniel approves final choice.
 
-### Builder onboarding (two-step, Umia-first)
+Required live records:
 
-**Step 1 — Umia venture init (handled entirely by Umia):**
+| Record | Purpose |
+|---|---|
+| `siren:chain_id` | Chain where contracts live |
+| `siren:proxy` | Proxy address |
+| `siren:previous_impl` | Previous implementation address |
+| `siren:current_impl` | Current implementation address |
+| `siren:report_uri` | Latest report pointer |
+| `siren:report_hash` | Integrity hash for latest report |
+| `siren:owner` | Operator or protocol owner reference |
+| `siren:schema` | JSON schema pointer for records |
+
+ENS must be live-resolved in the app. No hardcoded demo values in the product path.
+
+### Proxy Upgrade Detector
+
+Must support:
+
+- EIP-1967 implementation slot lookup
+- `Upgraded(address)` event detection
+- Current implementation vs ENS-declared current implementation check
+- Previous implementation selection from event history or ENS record
+- Admin / owner / timelock heuristics where available
+
+### Sourcify Evidence Engine
+
+For old and new implementations:
+
+- Fetch verification status
+- Fetch source metadata
+- Fetch ABI
+- Fetch compiler metadata
+- Fetch storage layout if available
+- Fetch bytecode metadata
+- Optionally use Sourcify 4byte API and similarity search for unverified or partially-known contracts
+
+Diff checks:
+
+| Check | SIREN condition |
+|---|---|
+| Verification | New implementation unverified |
+| ABI | New privileged selector added |
+| Storage | Incompatible slot/type/order change |
+| Admin power | New `upgradeTo`, `setOwner`, `setAdmin`, `sweep`, `withdraw`, `mint`, `pause`, arbitrary `call` |
+| Timelock | Upgrade admin not timelocked or timelock disappeared |
+| ENS consistency | ENS `latest` record does not match live proxy slot |
+| Source risk | Dangerous low-level calls added without clear guard |
+
+### Siren Report
+
+Report fields:
+
+```json
+{
+  "name": "vault.demo.upgradesiren.eth",
+  "chainId": 11155111,
+  "proxy": "0x...",
+  "previousImplementation": "0x...",
+  "currentImplementation": "0x...",
+  "verdict": "SAFE | REVIEW | SIREN",
+  "summary": "Human-readable explanation",
+  "findings": [],
+  "sourcify": {
+    "previousVerified": true,
+    "currentVerified": false,
+    "links": []
+  },
+  "ens": {
+    "recordsResolvedLive": true,
+    "recordHash": "0x..."
+  },
+  "recommendedAction": "approve | review | reject | wait",
+  "generatedAt": "ISO-8601",
+  "signature": "optional EIP-712 signature"
+}
 ```
-$ umia venture init <agent-name>
-→ Umia creates legal entity wrapper
-→ Umia issues venture token (their template)
-→ Umia configures Tailored Auction (Uniswap CCA)
-→ Umia deploys noncustodial treasury
-→ returns: ventureAddress, tokenAddress, treasuryAddress, auctionAddress
-```
 
-**Step 2 — Agent Float registerAgent (our value-add layer):**
-```solidity
-agentRegistry.registerAgent({
-    ensLabel: string,                       // e.g., "grantscout"
-    umiaVenture: address,                   // from `umia venture init` output
-    milestones: Milestone[],                // commitments (slashing triggers)
-    builderBond: uint256,                   // USDC collateral, locked in BuilderBondVault
-    silenceThresholdSeconds: uint256,       // bond slash trigger window
-    agentMetadata: AgentMetadata            // ENSIP-26 record payload
-})
-```
+### Siren Agent
 
-This single Agent Float tx:
-- Issues `<ensLabel>.agentfloat.eth` subname with ENSIP-26 records + namespaced extensions
-- Locks builder's USDC collateral in `BuilderBondVault`
-- Registers committed milestones in `MilestoneRegistry`
-- Maps the Umia venture address into our registry for cross-referencing
+The agentic component watches a list of ENS contract maps or venture contract sets, triggers analysis on changes, and signs reports.
 
-**No token mint, no bonding curve setup, no USDC split parameters** — those live on Umia's side.
+For Umia framing, Siren Agent becomes:
 
-### Investor flow (Umia-native)
-```
-1. Browse Agent Float → sees agent grid with ENS passport, receipts feed, milestones, bond status
-2. Click agent profile → sees Umia Tailored Auction state (live or post-auction) embedded/linked
-3. Click "Fund via Umia" → redirected to Umia auction page for that venture
-4. Bid in Tailored Auction (Uniswap CCA settles clearing prices)
-5. Tokens credited to investor via Umia
-6. Returns to Agent Float profile — sees token holdings, agent receipts continuing live
-7. Secondary trading via Umia UI when desired
-8. Investor exposure (revenue, governance) handled per Umia venture wrapper
-```
+> A due-diligence and post-launch monitoring agent for onchain ventures.
 
-### Revenue / exposure cycle
-```
-Agent earns USDC (via paid queries → ReceiptLog event on Agent Float side)
-USDC flows to addresses configured at Umia venture init time
-Token holder economic exposure is determined by Umia's venture model
-  (NOT by Agent Float-level RevenueDistributor unless Umia treasury
-   does not natively support holder distribution)
-```
+It checks whether a venture is ready to fund, needs review, or should be blocked until contract risks are resolved.
 
-> [PENDING UMIA MENTOR] Whether Agent Float deploys an auxiliary `RevenueDistributor.sol` is conditional on what Umia's noncustodial treasury exposes. Default assumption: Umia handles holder economics; we do not.
+## 8. Demo Scope
 
-### Default failure trigger logic (Q7a slashing — Agent Float's accountability layer)
-```
-EITHER:
-  - MilestoneRegistry.checkMilestone(milestoneId) returns FAILED
-    AND grace period expired
-OR:
-  - ReceiptLog has no events for agent in N consecutive days (silence detector)
-THEN:
-  BuilderBondVault.slash() → distributes bond pro-rata to current token holders
-```
+Prepare three demo upgrade scenarios:
 
----
-
-## 6. Non-goals (product-scope decisions, NOT time-cuts)
-
-Toto sú vyradené veci z produktových dôvodov, nie kvôli času. Time-cut decisions Daniel call-uje v exekúcii.
-
-- ❌ **Trading agents category** — anti-Solarpunk; extractive vibe; Daniel explicit exclude. Produkt-decision.
-- ❌ **Token launchpad / hype tokens** — porušuje "no receipts, no float" rule. Produkt-decision.
-- ❌ **Featured launches paid feature** — paid features dilute trust signal v capital market. Produkt-decision.
-- ❌ **Agent OS / runtime / framework tooling** — anti-pattern #1; scope creep do platformy. Produkt-decision.
-- ❌ **Mobile native app** — web-first, web is responsive. Produkt-decision.
-- ❌ **DAO governance tooling layer** — out of category; Aragon/Snapshot už pokrývajú. Produkt-decision.
-- ❌ **Token casino mechanics** (random drops, gamified exposure) — anti-trust signal. Produkt-decision.
-- ❌ **Wash-trading agent revenue protection** — open question; punted to post-hack design.
-- ❌ **Multi-chain v Day 1** — Ethereum primary; ostatné chains zámerne mimo focus pre clarity, NIE pre čas. Produkt-decision.
-
-## 6.5 Full target (ambicious — žiadne self-imposed time cuts)
-
-Items ktoré v skoršej drafte boli markované ako "post-hack" alebo "MVP cuts" — všetky späť in-scope:
-
-- ✅ **Multiple demo agents** (3 categories: research / B2B ops / civic) — variety silnejší venture pitch + showcases category diversity
-- ✅ **Real builder onboarding flow** — investor vidí end-to-end builder journey, nie len pre-loaded demos
-- ✅ **Funding milestones** — phased capital release, nie single-shot raise
-- ✅ **Per-agent venture token** (ERC20) — reflektuje Umia "token / venture exposure" mechanic
-- ✅ **Investor portfolio view** — track multiple investments
-- ✅ **Public agent leaderboard** — discovery + social proof
-- ✅ **Mainnet ENS** parent + subnames (kde sa dá; Sepolia ako iteration sandbox) — silnejší ENS Most Creative submission
-- ✅ **Full receipt schema** — payload + signature + IPFS metadata + attestation chain
-- ✅ **Builder dashboard** — agent settings, propose milestones, view investor list, claim funded amounts
-- ✅ **Open-source SDK** pre builderov (TS + Python) na receipt emission
-- ✅ **Live Umia funding flow s real on-chain settlement** (nie simulator pokiaľ Umia umožňuje real flow)
-- ✅ **Sourcify-verified treasury contracts** (bonus track $4K) — open governance proof
-- ✅ **Polish + UX** — agent profile design ako Stripe Atlas pre AI agents
-
----
-
-## 7. Demo script (5-min, post-tokenomics lock)
-
-**Persona:** Investor browsing Agent Float pre prvý-krát.
-
-| Sec | Action | Voiceover |
+| Scenario | Description | Expected verdict |
 |---|---|---|
-| 0–25 | Landing page → "Discover working AI agents seeking capital" + 3 agents grid + prominent **"No receipts, no float"** rule banner | *"Väčšina AI agent tokens je hype. Agent Float je iný — každý agent tu má on-chain receipts."* |
-| 25–80 | Klik na GrantScout → profile: ENS passport (`grantscout.agentfloat.eth` resolved live, ENSIP-26 records visible) + receipts feed (3 real Sepolia events, signed + USDC-cross-validated) + Umia Tailored Auction state + builder bond locked + milestones list | *"GrantScout: real Apify-backed grant scout. 3 paid reports, podpísané agent walletom, USDC cross-validated. ENS resolution live cez ENSIP-26 records. Umia Tailored Auction in progress."* |
-| 80–150 | Investor klikne "Fund via Umia" → redirect na Umia auction page → Tailored Auction (Uniswap CCA) UI → bid placeuje 1 USDC → settle → tokens v investor wallete | *"Klikám Fund via Umia. Umia Tailored Auction — Uniswap CCA. Continuous clearing price discovery. Bid placeujem 1 USDC. Umia settles, tokeny v mojom portfoliu, treasury proceedy idú do ich noncustodial treasury per legal wrapper."* |
-| 150–210 | Investor sa vráti na Agent Float profile → vidí svoje token holdings + agent activity log → live demo: agent vykoná 1 paid query → ReceiptLog emit → receipts feed updates s novým eventom | *"Späť na Agent Float profile. Držím tokeny od Umia. Agent práve zarobil reálnu USDC za reálnu query. Receipt podpísaný + USDC cross-validated. Toto je proof čo gateuje fundraising."* |
-| 210–250 | Split-screen: agent receipts ticking + investor portfolio + builder bond status (500 USDC locked) + milestone progress (8% → 10% počas demo) | *"Po investícii vidím agent productivity rastie. Builder bond intact. Milestone postupuje on-chain. Toto je investor confidence postavená na proof, nie na sľuboch."* |
-| 250–280 | Pohľad na milestones panel: "Milestone 1: 50 paid reports — 10% complete. Builder bond locked: 500 USDC. Slashing trigger: 7 days silence ALEBO milestone fail." | *"Builder má 500 USDC personal collateral. Ak agent ide silent alebo nesplní milestones, bond sa rozdelí Umia venture token holderom pro-rata. Toto je accountability layer ktorý čisté token launchpadi nemajú."* |
-| 280–300 | Tagline screen: **"Your agent has receipts. Now give it runway."** + Umia / ENS / Sourcify logos + GitHub link | *"Agent Float. Discovery + accountability layer pre Umia ventures. Postavené na ETHPrague 2026."* |
+| Safe upgrade | Verified v1 to verified v2, compatible storage, no dangerous selectors | `SAFE` |
+| Dangerous upgrade | Verified v2 adds `sweep()` and incompatible storage layout | `SIREN` |
+| Unverified upgrade | Proxy points to unverified implementation or ENS record mismatch | `SIREN` |
 
-**5-sek meta moment:** Receipt feed grows live during demo + bond visible + milestone progressing. Investor confidence built on on-chain proof.
+Demo UI must show:
 
-**Backup wow moment** (ak primary nedôjde): adversarial fail-trigger — show silence detector firing on test agent → bond auto-distribution preview.
+- ENS lookup field
+- Big verdict card
+- Before/after implementation comparison
+- Human diff
+- Evidence drawer
+- Sourcify links
+- ENS records resolved live
+- Governance comment generator
+- Optional Siren Agent watchlist / Umia due-diligence panel
 
----
+## 9. Acceptance Gates (summary)
 
-## 8. Architecture (locked stack)
+> **Full register:** [`docs/06-acceptance-gates.md`](./docs/06-acceptance-gates.md) defines the canonical 23-gate register (GATE-1..GATE-23 across Product / Technical / Sponsor / UX / Kill Conditions). The 8 points below are the in-SCOPE summary; every backlog P0 item must map to one or more `GATE-N` references from `docs/06`.
 
-**Frontend:**
-- Next.js 16 App Router + Vercel
-- Tailwind 4 + shadcn/ui
-- ENS resolve via wagmi
-- Vercel AI Gateway pre LLM (claude-sonnet-4-6 with prompt caching)
+| # | Summary requirement | Maps to docs/06 |
+|---|---|---|
+| 1 | ENS is live-resolved, not hardcoded | GATE-3 |
+| 2 | Sourcify is the source of verification and metadata evidence | GATE-5, GATE-9, GATE-16 |
+| 3 | Demo includes at least one safe and one dangerous upgrade | GATE-6 |
+| 4 | Report includes deterministic findings, not only LLM text | GATE-11, GATE-13 + Kill Conditions |
+| 5 | UI shows `SAFE`, `REVIEW`, or `SIREN` within five seconds | GATE-1, GATE-2, GATE-20 |
+| 6 | Every mock path is labeled `mock: true` | GATE-14 |
+| 7 | Pitch does not say "generic scanner", "AI auditor", "trust layer", or "agent OS" | Kill Conditions |
+| 8 | Run instructions reproduce the demo locally | GATE-15 |
 
-**Backend:**
-- Vercel Functions (Fluid Compute)
-- Receipts ingestion endpoint pre demo agent
-- Umia integration (TBD Day 1 mentor)
-- Optional Apify Actor pre GrantScout
+## 10. Workstreams
 
-**Smart contracts (Foundry, Sepolia + selected mainnet):**
+Three parallel dev streams + two tracker categories. This matches the 4-agent pipeline in `prompts/` (Dev A + Dev B + Dev C + PR Reviewer).
 
-Core (always deployed):
-- `AgentRegistry.sol` — links Umia venture address + ENS subname + bond + milestones
-- `ReceiptLog.sol` — append-only signed receipt events with USDC cross-validation
-- `BuilderBondVault.sol` — locks builder collateral; slashes pro-rata to current Umia venture token holders on default
-- `MilestoneRegistry.sol` — milestone tracking + slashing trigger
-
-Conditional / fallback only (deployed only if Umia integration requires; otherwise omitted):
-- `AgentVentureToken.sol`, `AgentTreasury.sol`, `RevenueDistributor.sol`, `BondingCurveSale.sol`
-
-**Identity:**
-- Parent ENS: `agentfloat.eth` (Sepolia) — registrácia tonight
-- Subnames: programmatic via ENS Resolver
-
-**Demo agent (GrantScout):**
-- Apify Actor scraping Gitcoin/Octant API → JSON
-- Vercel Function: `/api/agent/grantscout/query` → AI Gateway summarize → 0.01 USDC paywall (Sepolia)
-- Receipt emit po každom paid query
-
-**Repo structure:**
-```
-ETHPrague2026/
-├── apps/web/                # Next.js platforma
-├── apps/agent-grantscout/   # demo agent (Vercel Function set)
-├── contracts/               # Foundry contracts + deploy scripts
-├── packages/shared/         # types, ENS helpers, receipt schema
-├── docs/
-│   ├── naming-research.md
-│   ├── demo-acceptance.md
-│   └── sponsor-mentor-questions.md
-└── SCOPE.md (this file)
-```
-
----
-
-## 9. Risks + mitigations (summary)
-
-> **Full register:** [docs/10-risks.md](./docs/10-risks.md) (21 catalogued risks with owners, levels, probabilities, and mitigation paths). This section is the in-SCOPE summary of the highest-impact items.
-
-| Risk | Probability | Impact | Mitigation |
+| Stream | Owner | Scope | Owned paths after lock |
 |---|---|---|---|
-| **Umia API/SDK unclear** | 50% | High | Mentor sweep priority #1. Fallback: Umia simulator s explicit `mock: true` label per honest-over-slick rule. |
-| **Naming "Agent Float" collision** | 30% | Medium | Tonight check: GitHub org, npm, `agentfloat.eth` mainnet, X handle, .com/.app domain. Backup names: AgentRunway, AgentPier, AgentDrydock, AgentBerth. |
-| **GrantScout demo agent stuck** | 40% | High | Use Apify pre-built Gitcoin scraper if available; fallback minimal Cheerio script. Pre-cache 3 receipts pre safe demo. |
-| **Multi-stakeholder demo confusion** | 50% | Medium | Lock investor POV ako primary thread; builder POV iba in voiceover. ONE narrative, ONE persona during 5 min. |
-| **Solarpunk fit weakness (financialization undertone)** | 40% | Medium | Lean into "public capital market vs closed VC" + "transparent vs hype" framing v voiceover; emphasize "no receipts, no float" rule prominently. |
-| **Token-casino perception** | 35% | High | Demo MUSI prominently zobraziť "no receipts, no float" rule; explicitly contrast against meme launchpads v opening. |
-| **Wash-trading by builder** (fakuje receipts → pump token price) | 30% | High | Receipts musia byť signed by agent's ENS-registered wallet AND tied to actual user-paid USDC tx (paymentAmount field cross-checks against on-chain transfer). Cannot fake receipt without burning own USDC. |
-| **Builder default / rugpull** | 20% | High | BuilderBondVault.sol locks personal collateral; auto-slashes ak agent ide silent OR milestone missed. Q7a personal obligation enforced on-chain. |
-| **Umia auction state stale during demo** | 25% | Medium | Pre-warm via 1-2 mock bids on Umia testnet auction (or Sepolia simulator if Umia auction is mainnet-only). Verify state propagates to agent profile in <2s. |
-| **Conditional `RevenueDistributor` accounting bugs (only if deployed)** | 15% | High | Only relevant if Umia treasury does not natively distribute. If we must deploy, Foundry fuzz tests for invariants; reuse 0xSplits accounting model. |
-| **Live ENS resolve fails on stage** | 20% | High | Pre-resolve + cache; fallback display "loading from cache" if RPC blip. |
-| **Sepolia gas/RPC issues** | 15% | High | Pre-fund wallets; have Anvil local fork as deep fallback. |
+| **A** | **Dev A — Contract Fixtures** | Demo proxy, safe implementation, dangerous implementation, unverified-implementation scenario, deploy/verify scripts, Sourcify verification | `contracts/`, `scripts/deploy*`, `test/` |
+| **B** | **Dev B — Evidence Engine** | ENS live resolution, EIP-1967 slot reads, `Upgraded` event reads, Sourcify fetch, ABI/storage diff logic, Siren Report JSON schema | `packages/evidence/`, `packages/shared/` |
+| **C** | **Dev C — Web UX (+ optional Siren Agent)** | Next.js app, verdict UI, evidence drawer, Sourcify links, governance comment, demo scenario runner. **Optional P2:** Siren Agent watchlist + signed report + optional Umia due-diligence panel | `apps/web/`, `apps/siren-agent/` (P2 only) |
 
----
+| Tracker | Owner | Scope (not picked up by dev agents) |
+|---|---|---|
+| **Daniel** | Daniel | Mentor sweeps (Sourcify, ENS, optional Umia), final sponsor decisions, PR merges, scope cuts |
+| **Orch** | Claude (orchestrator) | Documentation maintenance (SCOPE.md / docs / wiki / prompts), backlog file post-merge updates, mentor-finding translation |
 
-## 10. Pre-event prep checklist (parallel-able)
+**Siren Agent positioning:** Owned by Stream C. Marked **P2 stretch**. Activated only if Daniel decides to pursue Umia track after mentor feedback. If time pressure, Siren Agent + Umia panel are the **first cuts** (per Build Priority in `docs/12`).
 
-- [ ] **Naming research "Agent Float"** + alternates:
-  - GitHub: `B2JK-Industry/agent-float-ethprague-2026` (live, public)
-  - npm: `@agentfloat/*`
-  - ENS: `agentfloat.eth` mainnet (Alchemy key z memory)
-  - X handle: `@agentfloat`
-  - Domains: `agentfloat.app` / `.io` / `.xyz`
-  - Backup names: AgentRunway, AgentPier, AgentDrydock, AgentBerth
-- [x] **GitHub repo init** `B2JK-Industry/agent-float-ethprague-2026` (public, wiki + discussions + issues enabled)
-- [ ] **Vercel project link** + AI Gateway env (`AI_GATEWAY_API_KEY`)
-- [ ] **Sepolia wallet status check** — funded (Alchemy memory pointer)
-- [ ] **Umia documentation deep-read** — find any publicly available API/SDK info pred mentor session
-- [ ] **`docs/naming-research.md`** — log collision checks
-- [ ] **`docs/demo-acceptance.md`** — demo script + acceptance gates (§7 + §12)
-- [ ] **`docs/sponsor-mentor-questions.md`** — mentor sweep scripts:
-  - **Umia (priority):** *"What's the actual integration path? SDK? REST API? Token contract template? Per-agent venture token templates? Mainnet expected pre venture flow alebo Sepolia OK?"*
-  - **ENS:** *"Programmatic subname issuance under our `agentfloat.eth` parent — acceptable for Most Creative track? Mainnet expected alebo Sepolia OK?"*
-  - **Sourcify:** *"Verifying multiple treasury contracts (per-agent) on Sourcify — counts as core component? Breadth (multi-contract) vs depth?"*
+**Docs / submission work** (sponsor pitch, demo script, risk register, video script) is owned by **Daniel + Orch**, not by a dev stream. Dev agents do not edit `SCOPE.md`, `docs/01-12`, `wiki/`, or `prompts/`.
 
----
+## 11. Product Decisions
 
-## 11. Work tracks (parallel-able where dependencies allow)
-
-> Žiadny time-based ordering. Tracks majú dependencies (čo blokuje čo), nie schedule. Daniel pace-uje priebeh; Claude nepredpisuje sequencing.
-
-### Track A — Identity layer (ENS)
-- Register `agentfloat.eth` parent (mainnet primary; Sepolia ako iteration sandbox)
-- ENS Resolver supporting **ENSIP-26 standard records** (`agent-context`, `agent-endpoint[web]`, `agent-endpoint[mcp]`) plus namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`)
-- Programmatic subname registration helpers
-- Wagmi/viem live resolve helpers pre UI
-- **Blocks:** Track C, Track D
-- **Blocked by:** Mentor sweep #2 (ENS — confirms mainnet vs Sepolia approach)
-
-### Track B — Smart contracts (Foundry, Sepolia + selected mainnet)
-
-**Agent Float core (always deployed):**
-- `AgentRegistry.sol` — registerAgent() entry point; links Umia venture address + ENS subname + bond + milestones (does NOT mint tokens or set up auction; Umia handles)
-- `ReceiptLog.sol` — append-only signed receipt events with USDC cross-validation
-- `BuilderBondVault.sol` — builder collateral; slashes pro-rata to current Umia venture token holders on default
-- `MilestoneRegistry.sol` — milestone tracking + slashing trigger
-
-**Conditional / fallback (deployed only if needed):**
-- `AgentVentureToken.sol` [CONDITIONAL] — only if Umia does not provide a token template
-- `AgentTreasury.sol` [LIKELY UNNECESSARY] — Umia provides noncustodial treasury
-- `RevenueDistributor.sol` [CONDITIONAL] — only if Umia treasury does not natively distribute to holders
-- `BondingCurveSale.sol` [FALLBACK ONLY] — internal simulator if Umia auction unavailable for demo
-
-**Deploy + Sourcify verification pipeline** for every deployed contract (Sourcify bonus track requirement).
-- **Blocks:** Track C, Track D, Track E
-- **Blocked by:** Mentor sweep #1 (Umia — confirms venture token shape) + #3 (Sourcify — confirms verification path)
-
-### Track C — Demo agents
-- **GrantScout** (research / public-goods scout) — Apify-backed Gitcoin/Octant summarizer; 0.01 USDC/query; emits real receipts
-- **DataMonitor** (B2B ops alerts) — stretch
-- **TenderEye** (civic procurement) — stretch
-- Real receipts emission for each (žiadne mock)
-- **Blocks:** Demo + submission
-- **Blocked by:** Track A, Track B
-
-### Track D — Platform UI (Next.js 16 + shadcn + Vercel)
-- Landing page
-- Agent profile `/agent/[ens-name]`
-- Investor browse + portfolio view
-- Builder dashboard + onboarding flow
-- Public agent leaderboard
-- "Float Agent" funding interface
-- **Blocks:** Demo + submission
-- **Blocked by:** Track A, Track B (read-only); Track E (for live funding)
-
-### Track E — Umia integration
-- Live integration if mentor confirms; Umia simulator s `mock: true` label ako fallback iba ak Umia explicit nepustí real flow
-- Per-agent venture token templates (if Umia provides)
-- **Blocks:** "Float" interface, Demo
-- **Blocked by:** Mentor sweep #1 (Umia — priority #1 conversation)
-
-### Track F — Receipt SDK
-- TypeScript package (`@agentfloat/sdk`)
-- Python package (`agentfloat`)
-- Sign + emit + verify helpers
-- Example integration v GrantScout
-- **Blocks:** Builder onboarding adoption story
-
-### Track G — Mentor sweeps (priority order, NOT time order)
-- **Priority #1 — Umia** (blocks Track E + venture token shape v Track B)
-- **Priority #2 — ENS** (blocks Track A mainnet vs Sepolia decision)
-- **Priority #3 — Sourcify** (blocks Track B Sourcify verification pipeline)
-
-### Track H — Demo + submission
-- 5-min demo script lock (per §7)
-- Recording fallback (in case live demo fails)
-- Devfolio submission s tracks selected: Umia primary, ENS secondary, Sourcify bonus, Network Economy organizer
-- Acceptance gates §12 verified before submit
-- **Blocks:** nothing (final track)
-- **Blocked by:** Track A-F
-
----
-
-## 12. Honest-over-slick acceptance gates
-
-Demo passes ONLY ak:
-
-- [ ] GATE-1: GrantScout makes 1 real Sepolia tx during demo (paid query, not pre-recorded)
-- [ ] GATE-2: ENS subname resolves live during demo (no cached display)
-- [ ] GATE-3: Receipts feed shows REAL on-chain events (filtered from Sepolia)
-- [ ] GATE-4: Funding proposal text reflects what builder ACTUALLY needs (not Lorem ipsum)
-- [ ] GATE-5: Any mocked component labeled `mock: true` visibly v UI (e.g., Umia simulator badge)
-- [ ] GATE-6: Demo doesn't make claims that aren't reproducible from `git checkout && pnpm dev`
-- [ ] GATE-7: Umia venture address linked from `<agent>.agentfloat.eth` ENS record (`agentfloat:umia_venture`); on-chain registry agrees
-- [ ] GATE-8: Umia Tailored Auction state visible from agent profile (live or post-auction); "Fund via Umia" CTA resolves to a real Umia auction
-- [ ] GATE-9: ReceiptLog events signed by agent's ENS-resolved wallet AND USDC `Transfer` cross-validation present for each receipt
-- [ ] GATE-10: BuilderBondVault holds builder's USDC collateral at correct amount immediately after registration
-- [ ] GATE-11: MilestoneRegistry milestones queryable from agent profile; status (pending/met/failed) tracked; failed → slash trigger fires
-- [ ] GATE-12: ENS subname resolves with both ENSIP-26 standard records (`agent-context`, `agent-endpoint[*]`) and namespaced extensions (`agentfloat:umia_venture`, `agentfloat:bond_vault`, `agentfloat:milestones`, `agentfloat:receipts_pointer`)
-
-> Detailed gate spec with verification protocol: [docs/06-acceptance-gates.md](./docs/06-acceptance-gates.md). All v1-shaped gates (token mint, bonding curve quote, USDC split, RevenueDistributor claim) explicitly removed post-pivot.
-
----
-
-## 13. Decision log
-
-- **[LOCKED by Daniel]:** Agent Float ako primary direction pre ETHPrague 2026. Umia + ENS sponsor lock. Network Economy organizer track primary.
-- **[LOCKED — Tokenomics v1]:** 2M tokens fixed per agent (Q1) + bonding curve primary sale (Q2) + builder-set retention% (Q3) + builder-set USDC split upfront/treasury (Q4) + pull-claim revenue distribution (Q5) + revenue-only utility (Q6) + builder personal obligation via BuilderBondVault collateral (Q7a) + Umia secondary market (Q8) + Umia legal wrapper (Q9).
-- **[PIVOTED — Tokenomics v2 — 2026-05-08]:** Primary sale changes from custom `BondingCurveSale.sol` to **Umia Tailored Auctions** (Uniswap CCA). Token issuance, treasury, secondary all delegated to Umia. Naše inovácie (ReceiptLog, BuilderBondVault, MilestoneRegistry, ENS passport) zostávajú ako Agent Float value-add layer NAD Umia ventures. **PENDING UMIA MENTOR CONFIRMATION** — pivot je default direction. Mentor potvrdí buď (a) Tailored Auction integration path = pivot finalizuje sa, alebo (b) custom curve OK = revert na v1. Reviewer flagged that bypassing Umia core product is sponsor-fit risk for $12K Best Agentic Venture.
-- **[SHARPENED — Path B — 2026-05-08 evening]:** Positioning sharpened from "funding rail for working AI agents" to **"proof-gated funding rail for public-good AI agents only"**. Reasons: (1) external review (codex) found "agent trust/passport" space is crowded globally (AgentMandate, AgentPass, A2A, Execution Market, Jurex, Obolos, Aegis, x402-Guardrails) — Agent Float as generic agent infra would lose comparative analysis. (2) Solarpunk theme + Umia ETHPrague-specific fit + public-good restriction creates locally defensible niche. (3) Adopting **ERC-8004 Trustless Agents** + **ENSIP-25 binding** + **ENSIP-26 discovery** as identity primitives makes us standards-based ("we use trustless-agents standard, not invent our own"). (4) Demo flow becomes dual-agent: generic yield agent **rejected** (no public-good impact, no receipts), GrantScout **fundable** (ENS + ERC-8004 + receipts + Umia-ready). New stage tagline: **"No impact proof, no funding."** Sponsor-facing pitch: **"Agent Float turns working public-good AI agents into fundable Umia ventures."**
-- **[RESOLVED — risk-accepted 2026-05-08]:** Naming "Agent Float" collision check completed. No active project collision found. Partial collisions (`agentfloat.eth` mainnet likely taken, `agentfloat.com`/`agentfloat.xyz` squatted) accepted by Daniel. Proceeding with brand. Detail in `docs/08-naming-research.md`.
-- **[pending]:** Umia integration path — mentor sweep priority #1.
-- **[pending]:** Silence-detector N days threshold pre BuilderBondVault slashing trigger (default rec: 7 days).
-- **[obsolete post-pivot]:** ~~Bonding curve params (linear vs exponential, starting price)~~ — only relevant if fallback path activates; not a v2 primary decision.
-- **Backup pivot:** ak Umia mentor session reveals integration block, fallback: Probono (civic procurement) alebo PGRoll (SpaceComputer cTRNG public goods).
+- Sourcify and ENS are primary.
+- Umia is a business integration story, not the default sponsor target.
+- Swarm is not in current scope.
+- SpaceComputer is skipped.
+- Apify is not needed.
+- No tokenomics document; this is not a token project.
+- No custom marketplace or launchpad.
