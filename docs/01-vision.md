@@ -24,7 +24,7 @@ Agent Float fits this frame in five concrete ways:
 2. **Proof-first over hype-first.** Every fundable agent must show on-chain receipts before fundraising opens. The token cannot exist without working evidence.
 3. **Builder accountability through bond.** Builders post personal collateral that slashes pro-rata to investors if milestones are missed. This is the inverse of typical token launchpads where builders take cash and disappear.
 4. **Open architecture.** The repo is open-source (MIT). Anyone can fork, audit, or build a competing platform. Treasury contracts are verified on Sourcify so investors can read the source.
-5. **Network economy primitive.** Per-agent ENS passports + revenue-share tokens + on-chain receipts = transparent economic coordination at the agent level. Solarpunk doesn't reject markets; it rejects opaque, extractive ones.
+5. **Network economy primitive.** Per-agent ENS passports + Umia venture tokens (economic exposure per Umia's wrapper) + on-chain receipts = transparent economic coordination at the agent level. Solarpunk doesn't reject markets; it rejects opaque, extractive ones.
 
 ## What we are NOT
 
@@ -47,7 +47,8 @@ A **funding layer for working AI agents.** Operative word: *working* — proof g
 - Browses Agent Float, sees a grid of working agents
 - Reads a profile: receipts feed (signed + USDC-cross-validated), milestones, Umia auction state, builder bond, builder identity
 - Buys tokens through Umia Tailored Auction (Uniswap CCA)
-- Holds tokens, watches receipts feed, claims accumulated USDC anytime
+- Holds tokens, watches receipts feed (live proof of agent productivity)
+- Economic exposure (revenue rights, governance, distribution mechanics) follows Umia's venture wrapper — not redefined by Agent Float
 - Optionally trades on Umia secondary market
 
 ### 2. Builder (secondary demo POV)
@@ -98,7 +99,7 @@ Three of seven Open Agents finalists/track-winners hit similar primitives. Stron
 
 ## What success looks like
 
-- A judge watches the demo and immediately understands: *agent has receipts → tokens mint → investor buys → revenue flows → investor claims*.
+- A judge watches the demo and immediately understands: *agent has receipts → builder runs `umia venture init` + Agent Float register (bond + milestones locked) → investor funds via Umia Tailored Auction → agent keeps emitting receipts → bond slashes pro-rata to token holders if builder defaults*.
 - The judge can verify on Sepolia explorer that every step they saw was a real on-chain event.
 - The judge thinks: *this is the cleanest agent-financialization model I've seen this hackathon.*
 - Umia views Agent Float as a credible discovery funnel for their venture pipeline.

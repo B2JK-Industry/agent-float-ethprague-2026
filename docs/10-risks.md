@@ -51,21 +51,21 @@ Risk levels: **Critical** (blocks submission), **High** (degrades quality signif
 - **Description:** Foundry build metadata may mismatch when uploaded to Sourcify, blocking verification.
 - **Mitigation:** Test verification on Sepolia first with single contract. Use `forge verify-contract` with Sourcify provider. Have manual verify-via-API fallback.
 
-### R-006 — RevenueDistributor accounting bugs
+### R-006 — RevenueDistributor accounting bugs [CONDITIONAL — only if deployed]
 
-- **Level:** High
-- **Probability:** 15%
+- **Level:** High (conditional)
+- **Probability:** 15% (only triggers if Umia treasury does not natively distribute and we deploy `RevenueDistributor.sol`)
 - **Owner:** Claude (contract author)
-- **Description:** Pro-rata math bugs could send wrong USDC amounts. Token transfers between distributions are an edge case.
-- **Mitigation:** Foundry fuzz tests on math invariants. Reuse battle-tested 0xSplits accounting model. Property: sum of per-holder claimable ≤ total distributed.
+- **Description:** If we end up deploying `RevenueDistributor.sol` because Umia treasury does not expose holder distribution, pro-rata math bugs could send wrong USDC amounts. Token transfers between distributions are an edge case.
+- **Mitigation:** Default path is to use Umia's native distribution and skip this contract entirely. If deploy is required, Foundry fuzz tests on math invariants. Reuse battle-tested 0xSplits accounting model. Property: sum of per-holder claimable ≤ total distributed.
 
-### R-007 — Bonding curve quote mismatch
+### R-007 — Bonding curve quote mismatch [FALLBACK ONLY — does not apply on Umia auction path]
 
-- **Level:** Medium
-- **Probability:** 10%
+- **Level:** Medium (fallback only)
+- **Probability:** 10% (only triggers if Umia auction integration unavailable and we deploy `BondingCurveSale.sol` for fallback demo)
 - **Owner:** Claude (contract author)
-- **Description:** UI quote and on-chain quote could diverge due to integer math precision.
-- **Mitigation:** Always quote on-chain at buy time. UI shows estimated quote with disclaimer "actual price computed at tx time". Slippage protection in `buy()` function.
+- **Description:** If fallback `BondingCurveSale.sol` is the active path (Umia auction unavailable), UI quote and on-chain quote could diverge due to integer math precision. Does not apply on the Umia Tailored Auction primary path — Umia's auction handles its own quoting.
+- **Mitigation:** Default path is Umia auction; this contract not deployed. If fallback path activates, always quote on-chain at buy time. UI shows estimated quote with disclaimer "actual price computed at tx time". Slippage protection in `buy()` function.
 
 ---
 

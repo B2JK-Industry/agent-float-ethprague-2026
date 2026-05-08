@@ -164,7 +164,7 @@ In-person Prague, Devfolio judging, ~5 minutes per project.
 In-person judging usually has 1-3 minutes for questions after the 5-min demo. Likely questions and prepared answers:
 
 ### Q: "How is this different from a token launchpad?"
-A: *"No receipts, no float — every fundable agent must show on-chain proof of paid work before the token mints. Token launchpads issue tokens against promises; we require evidence."*
+A: *"No receipts, no float — every fundable agent must show on-chain proof of paid work before its venture goes live for fundraising. Token launchpads issue tokens against promises; we require evidence before Umia's Tailored Auction opens for that agent."*
 
 ### Q: "What stops a builder from rugpulling?"
 A: *"Two layers. First, the auction proceeds route to Umia's noncustodial treasury — builder doesn't custody investor USDC. Second, our BuilderBondVault locks builder's own USDC collateral that auto-distributes to current Umia venture token holders if agent goes silent for N days or misses a milestone. So builder can't drain treasury (Umia controls it) and can't walk away clean (we hold their bond)."*
