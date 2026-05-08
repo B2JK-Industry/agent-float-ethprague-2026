@@ -1,0 +1,227 @@
+# 06 — Acceptance gates
+
+Honest-over-slick verification protocol. Demo passes only if every gate verified.
+
+## Why gates exist
+
+Without gates, "demo works" is subjective. With gates, every claim made during demo can be reproduced from `git checkout && pnpm dev`. Judges who want to verify can.
+
+The gates also force pre-demo discipline: if a gate fails during dry-run, we know which feature is not honest.
+
+---
+
+## GATE-1 — Real Sepolia tx during agent paid query
+
+**Claim:** Demo agent (GrantScout) executes a real paid query during demo, not pre-recorded.
+
+**Verify:**
+- During demo §150-210, query triggers a real Sepolia tx
+- New tx hash appears in agent receipts feed
+- Tx is visible on Sepolia explorer (Etherscan, Blockscout)
+- Tx timestamp matches demo time (within 60s)
+
+**Pass criteria:** Sepolia explorer link shows fresh tx with matching `Receipt` event emitted.
+
+---
+
+## GATE-2 — Live ENS subname resolution
+
+**Claim:** `grantscout.agentfloat.eth` resolves to current agent metadata at demo time.
+
+**Verify:**
+- During demo §25-80, ENS resolution happens client-side via wagmi/viem
+- Browser DevTools → Network tab shows ENS RPC calls
+- Resolution returns agent wallet, endpoints, capabilities, receipts pointer
+
+**Pass criteria:** No cached/hardcoded display. RPC call visible in network log.
+
+---
+
+## GATE-3 — Real receipts feed (filtered Sepolia events)
+
+**Claim:** Receipts shown on agent profile are real on-chain events, not mocked.
+
+**Verify:**
+- Receipts feed reads `ReceiptLog` events filtered by agent address
+- Each receipt links to its Sepolia tx
+- Click any receipt → opens Sepolia explorer to verify event
+
+**Pass criteria:** Every visible receipt has a matching on-chain `ReceiptEmitted` event with same fields.
+
+---
+
+## GATE-4 — Real funding proposal (not Lorem ipsum)
+
+**Claim:** Funding proposal text reflects what builder actually needs.
+
+**Verify:**
+- Proposal references concrete spend categories (Apify credits, AI Gateway tokens, compute)
+- Numbers are reasonable for agent's stated use case
+- No Lorem ipsum, no "TODO", no placeholder text
+
+**Pass criteria:** Manual review confirms proposal is plausible and specific.
+
+---
+
+## GATE-5 — Mocked components labeled
+
+**Claim:** Any feature simulated for demo purposes is labeled `mock: true` visibly in UI.
+
+**Verify:**
+- Walk through demo flow
+- Identify any simulated component (e.g., Umia simulator if real Umia API not integrated)
+- Confirm label is visible (badge, watermark, or inline text)
+
+**Pass criteria:** No simulated component is presented as real.
+
+---
+
+## GATE-6 — Reproducibility from `git checkout`
+
+**Claim:** Anyone can clone the repo and reproduce the demo.
+
+**Verify:**
+- Fresh clone on different machine
+- `pnpm install` succeeds
+- Environment variables documented in `.env.example`
+- `pnpm dev` starts platform without errors
+- Local agent query flow works end-to-end with documented Sepolia keys
+
+**Pass criteria:** Independent reviewer can run the demo within 30 minutes of cloning.
+
+---
+
+## GATE-7 — Token mint on registration
+
+**Claim:** Registering an agent mints 2,000,000 tokens.
+
+**Verify:**
+- Trigger `AgentRegistry.registerAgent()` for a fresh agent
+- Sepolia explorer shows `AgentVentureToken` deployed
+- `totalSupply()` returns `2_000_000e18`
+- `balanceOf(builder)` matches builder retention %
+- `balanceOf(BondingCurveSale)` matches public allocation
+
+**Pass criteria:** Total supply exactly 2M; split correct.
+
+---
+
+## GATE-8 — Bonding curve math correctness
+
+**Claim:** Bonding curve quote matches expected math.
+
+**Verify:**
+- Call `BondingCurveSale.quoteBuy(1000)` with default linear curve
+- Compare returned USDC cost to expected calculation:
+  ```
+  expected = startPrice * 1000 + slope * (currentSold * 1000 + 1000^2 / 2)
+  ```
+- For multiple buy sizes (100, 1000, 10000), verify quotes follow the curve
+
+**Pass criteria:** All quotes within 1 wei of expected math.
+
+---
+
+## GATE-9 — USDC split on token purchase
+
+**Claim:** USDC from token sale routes correctly: X% upfront builder, (100-X)% AgentTreasury.
+
+**Verify:**
+- Investor calls `BondingCurveSale.buy(1000)` paying USDC
+- After tx, check builder wallet balance increased by `usdc * upfrontBps / 10000`
+- Check AgentTreasury balance increased by `usdc * treasuryBps / 10000`
+- Sum equals total USDC paid (no leakage)
+
+**Pass criteria:** Split exactly per builder's setup. No USDC unaccounted for.
+
+---
+
+## GATE-10 — RevenueDistributor accrual
+
+**Claim:** Agent revenue accrues to per-holder claimable balance proportionally.
+
+**Verify:**
+- Trigger agent paid query → revenue routes to RevenueDistributor
+- Call `RevenueDistributor.pendingFor(investor)` before and after
+- Calculate expected: `revenue * holderBalance / totalSupply`
+- Verify increment matches expected within 1 wei
+
+**Pass criteria:** Pro-rata math correct.
+
+---
+
+## GATE-11 — Claim transfer
+
+**Claim:** Investor `claim()` transfers correct USDC to investor wallet.
+
+**Verify:**
+- Investor calls `RevenueDistributor.claim()`
+- USDC `Transfer` event fires from RevenueDistributor → investor
+- Amount matches pre-claim `pendingFor(investor)`
+- Post-claim `pendingFor(investor)` is zero
+
+**Pass criteria:** Exact amount transferred, no residual.
+
+---
+
+## GATE-12 — BuilderBondVault locked + slashable
+
+**Claim:** Builder bond is locked at registration and slashable per trigger.
+
+**Verify (lock):**
+- Inspect `BuilderBondVault` contract balance after registration
+- Should equal `builderBond` USDC parameter
+
+**Verify (slash):**
+- Trigger silence (skip emitting receipts for N days — fast-forward in test environment)
+- Anyone calls `BuilderBondVault.slash()`
+- Bond balance distributes pro-rata via pull pattern
+- Token holders can call `claimSlashPayout()` to receive their share
+
+**Pass criteria:** Bond exists at correct amount; slashing distributes correctly.
+
+---
+
+## Pre-demo verification checklist
+
+Before submitting to Devfolio:
+
+- [ ] All 12 gates run through dry-run successfully
+- [ ] Recording fallback exists for each demo segment
+- [ ] All deployed contracts verified on Sourcify
+- [ ] Demo wallets pre-funded
+- [ ] Bonding curve pre-warmed (1-2 small buys)
+- [ ] Receipts feed has 3+ real events
+- [ ] ENS subname resolves on first try
+- [ ] `.env.example` complete
+- [ ] README has run instructions
+- [ ] Sourcify links visible on agent profile
+
+## In-demo verification
+
+During the live demo, mention key gates verbally:
+
+- §25-80: *"ENS resolves live — you can see this in the network tab"* (GATE-2)
+- §150-210: *"This is a real Sepolia tx — here's the explorer link"* (GATE-1, GATE-3)
+- §150-210: *"USDC split happens on-chain — verify in the tx"* (GATE-9)
+- §250-280: *"Builder bond is locked here — link to contract on explorer"* (GATE-12)
+
+## Post-demo verification (judges)
+
+Judges who want to dig deeper can:
+
+1. Open Sepolia explorer with provided contract addresses
+2. Verify token total supply is exactly 2,000,000
+3. Click any receipt → verify Receipt event matches displayed data
+4. Verify all contracts source-verified on Sourcify
+5. Clone repo and run locally
+
+## Honest-over-slick discipline
+
+If during dry-run a gate fails, do not paper over it. Either:
+
+1. Fix the underlying mechanism so the gate passes honestly
+2. Remove that part of the demo entirely
+3. Add `mock: true` label and acknowledge in voiceover
+
+Never claim a gate passes if it doesn't. The discipline is the moat.
