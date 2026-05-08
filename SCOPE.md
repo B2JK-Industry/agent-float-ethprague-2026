@@ -158,7 +158,7 @@
 
 | Parameter | Value | Q | Notes |
 |---|---|---|---|
-| Token supply per agent | **2,000,000 fixed** | Q1 | Pending Umia template — ak Umia poskytuje vlastný token contract (s ich vlastnou supply convention), prispôsobíme. Inak deploy our own ERC20 + feed do Umia auction. |
+| Token supply per agent | **Per Umia venture template** | Q1 | Was 2M fixed (v1). Now: Umia controls token issuance via `umia venture init`. We do not redefine. |
 | Pricing model | **Umia Tailored Auction (Uniswap CCA-based)** | Q2 PIVOT | Bola: bonding curve. Teraz: Umia auction primary. Naša `BondingCurveSale.sol` zostáva ako **internal fallback simulator** ak Umia integration nedôjde / ako pre-demo state populator. |
 | Builder token retention | **Builder určí pri Umia venture init** | Q3 | Stále builder volí, ale interface je Umia CLI / dashboard, nie naše params |
 | USDC split z token sale | **Per Umia treasury rules** | Q4 PIVOT | Bolo: builder určí upfront vs treasury. Teraz: proceeds idú do Umia noncustodial treasury per ich rules. Builder upfront access = subject to Umia treasury config. |

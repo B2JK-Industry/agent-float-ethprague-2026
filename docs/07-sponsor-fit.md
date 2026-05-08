@@ -186,7 +186,7 @@ We use Sourcify in **two complementary ways:**
 
 **1. Source verification of every Agent Float contract.**
 
-Every contract we deploy (`AgentRegistry`, `AgentVentureToken`, `BondingCurveSale`, `AgentTreasury`, `MilestoneRegistry`, `BuilderBondVault`, `RevenueDistributor`, `ReceiptLog`) is source-verified on Sourcify as part of the deployment script. This is **open governance proof** — investors can read the source of every contract they're interacting with, without trusting our team.
+Every Agent Float **core** contract we deploy (`AgentRegistry`, `ReceiptLog`, `BuilderBondVault`, `MilestoneRegistry`) is source-verified on Sourcify as part of the deployment script. Conditional/fallback contracts (`AgentVentureToken`, `BondingCurveSale`, `AgentTreasury`, `RevenueDistributor`) are also verified if deployed in a given configuration. This is **open governance proof** — investors can read the source of every contract they're interacting with, without trusting our team.
 
 **2. Sourcify lookup in agent profile.**
 

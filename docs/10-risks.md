@@ -129,7 +129,7 @@ Risk levels: **Critical** (blocks submission), **High** (degrades quality signif
 - **Probability:** 20% (without mitigation), <5% (with mitigation)
 - **Owner:** Claude (contract author)
 - **Description:** Builder takes USDC from token sale and disappears.
-- **Mitigation:** USDC split forces majority into AgentTreasury (multi-sig with Umia delegate signature requirement for non-milestone releases). BuilderBondVault locks personal collateral that slashes if agent goes silent or milestone missed. Two-layer protection.
+- **Mitigation:** Auction proceeds route to Umia noncustodial treasury (builder doesn't custody investor USDC). BuilderBondVault separately locks builder's personal collateral that slashes pro-rata to current Umia venture token holders if agent goes silent or milestone missed. Two-layer protection: Umia treasury controls + Agent Float bond accountability.
 
 ### R-015 — Token speculation decouples from agent reality
 

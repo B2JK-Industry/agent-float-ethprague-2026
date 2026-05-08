@@ -276,7 +276,7 @@ function checkSilenceTrigger() external view returns (bool)
 function checkMilestoneTrigger() external view returns (bool)
 ```
 
-`slash()` is permissionless — anyone can call it once trigger conditions are met. Distributes USDC pro-rata to current `AgentVentureToken` holders by snapshotting balances.
+`slash()` is permissionless — anyone can call it once trigger conditions are met. Distributes USDC pro-rata to current Umia venture token holders (read from the Umia venture token contract referenced via `agentfloat:umia_venture` ENS record) by snapshotting balances.
 
 ### Events
 

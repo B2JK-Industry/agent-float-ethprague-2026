@@ -361,7 +361,7 @@ OR:
 THEN:
   BuilderBondVault.slash() triggered
     │
-    ├─▶ Snapshots current AgentVentureToken holders
+    ├─▶ Snapshots current Umia venture token holders
     ├─▶ Distributes locked bond pro-rata
     └─▶ Marks agent as defaulted (UI shows badge)
 ```

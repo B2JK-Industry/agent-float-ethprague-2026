@@ -128,9 +128,9 @@ Terms used across the Agent Float documentation, defined precisely.
 
 **OpenZeppelin.** Standard library of audited smart contract patterns (ERC20, ERC721, AccessControl, ReentrancyGuard). Agent Float contracts extend OpenZeppelin v5+ implementations.
 
-**Tranche.** A portion of capital released from `AgentTreasury` upon milestone completion. Multi-tranche release prevents builder from getting all capital upfront.
+**Tranche.** A portion of capital released from the Umia noncustodial treasury upon milestone completion. Multi-tranche release prevents builder from getting all capital upfront. Release rules per Umia governance + Agent Float milestone triggers.
 
-**Snapshot.** Mechanism for fixing token holder balances at a specific point in time. Used in `RevenueDistributor` to compute pro-rata claims based on `balanceOf(holder)` at distribution time.
+**Snapshot.** Mechanism for fixing token holder balances at a specific point in time. Used by `BuilderBondVault.slash()` to compute pro-rata payouts to current Umia venture token holders, and (conditionally, if deployed) by `RevenueDistributor` for pro-rata revenue claims.
 
 **RBAC** (Role-Based Access Control). Pattern where contract functions are restricted to specific roles (e.g., `ORACLE_ROLE` for milestone marking). Implemented via OpenZeppelin `AccessControl`.
 
