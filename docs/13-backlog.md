@@ -92,15 +92,15 @@ Tracker-only owners (not picked up by dev agents):
 | US-038 | ENS lookup form component | C | P0 | S | open | none |
 | US-039 | Public-read address / ENS-address-record input component | C | P0 | S | open | none |
 | US-040 | Mock-path visible badge component | C | P0 | S | open | none |
-| US-041 | Signature status badge component | C | P0 | S | open | US-014 |
+| US-041 | Signature status badge component | C | P0 | S | merged | US-014 |
 | US-042 | Verdict card component (SAFE / REVIEW / SIREN) | C | P0 | M | open | US-037, US-041 |
-| US-043 | Progressive loading checklist (ENS, chain, Sourcify, diff, signature) | C | P0 | M | open | US-037 |
-| US-044 | Before/after implementation comparison view | C | P0 | M | open | US-014, US-037 |
-| US-045 | Evidence drawer with Sourcify links | C | P0 | M | open | US-014, US-025, US-037 |
-| US-046 | ABI diff renderer | C | P0 | M | open | US-026, US-037 |
-| US-047 | Storage diff renderer | C | P0 | M | open | US-027, US-037 |
-| US-048 | ENS records resolved live panel | C | P0 | M | open | US-017, US-037 |
-| US-049 | Governance comment generator (short, forum, vote-reason) | C | P0 | M | open | US-014, US-037 |
+| US-043 | Progressive loading checklist (ENS, chain, Sourcify, diff, signature) | C | P0 | M | merged | US-037 |
+| US-044 | Before/after implementation comparison view | C | P0 | M | merged | US-014, US-037 |
+| US-045 | Evidence drawer with Sourcify links | C | P0 | M | merged | US-014, US-025, US-037 |
+| US-046 | ABI diff renderer | C | P0 | M | merged | US-026, US-037 |
+| US-047 | Storage diff renderer | C | P0 | M | merged | US-027, US-037 |
+| US-048 | ENS records resolved live panel | C | P0 | M | merged | US-017, US-037 |
+| US-049 | Governance comment generator (short, forum, vote-reason) | C | P0 | M | merged | US-014, US-037 |
 | US-050 | Demo mode runner with four scenarios | C | P0 | M | open | US-009, US-010, US-011, US-029, US-037, US-042 |
 | US-051 | Empty/error states for absent records, RPC, Sourcify, malformed manifest, unsigned report | C | P0 | M | open | US-019, US-020, US-037 |
 | US-052 | Five-second-rule performance check | C | P0 | S | open | US-042, US-043 |
@@ -1852,7 +1852,7 @@ GATE-14 enforcement: every mock path renders this badge. Reviewer must verify it
 | Sponsor | ENS |
 | Dependencies | US-014 |
 | Acceptance gates | GATE-24 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -1942,7 +1942,7 @@ The five-second moment depends on this card. Color-blind safe is non-negotiable 
 | Sponsor | Future Society |
 | Dependencies | US-037 |
 | Acceptance gates | GATE-20, GATE-26 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -1985,7 +1985,7 @@ Five-second-rule mitigation per `docs/05-demo-script.md` and the audit recommend
 | Sponsor | Sourcify |
 | Dependencies | US-014, US-037 |
 | Acceptance gates | GATE-21 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -2026,7 +2026,7 @@ Stack on mobile is the responsive contract. The judge demo viewport is desktop, 
 | Sponsor | Sourcify |
 | Dependencies | US-014, US-025, US-037 |
 | Acceptance gates | GATE-9, GATE-21 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -2070,7 +2070,7 @@ Drawer is for the technical judge moment. The non-technical user sees the verdic
 | Sponsor | Sourcify |
 | Dependencies | US-026, US-037 |
 | Acceptance gates | GATE-11 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -2113,7 +2113,7 @@ Dangerous selector highlighting maps to GATE-11 (deterministic ABI risk diff vis
 | Sponsor | Sourcify |
 | Dependencies | US-027, US-037 |
 | Acceptance gates | GATE-12 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -2155,7 +2155,7 @@ pnpm --filter @upgrade-siren/web test StorageDiffRenderer
 | Sponsor | ENS |
 | Dependencies | US-017, US-037 |
 | Acceptance gates | GATE-3, GATE-17 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -2198,7 +2198,7 @@ Live records being shown explicitly is the GATE-3 demonstration: the judge sees 
 | Sponsor | Future Society |
 | Dependencies | US-014, US-037 |
 | Acceptance gates | GATE-7, GATE-22, GATE-23 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
