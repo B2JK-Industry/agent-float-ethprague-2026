@@ -141,7 +141,7 @@ function SideColumn({
     return (
       <article
         data-testid={testId}
-        className="flex flex-col gap-2 rounded border border-[color:var(--color-border)] bg-[color:var(--color-raised)] p-3"
+        className="flex flex-col gap-2 border border-[color:var(--color-border)] bg-[color:var(--color-raised)] p-3"
       >
         <h3 className="text-sm font-bold">{heading}</h3>
         <p className="text-sm text-[color:var(--color-t2)]">none</p>
@@ -153,7 +153,7 @@ function SideColumn({
     <article
       data-testid={testId}
       data-address={side.address}
-      className="flex flex-col gap-2 rounded border border-[color:var(--color-border)] bg-[color:var(--color-raised)] p-3"
+      className="flex flex-col gap-2 border border-[color:var(--color-border)] bg-[color:var(--color-raised)] p-3"
     >
       <h3 className="text-sm font-bold">{heading}</h3>
       <div className="flex items-center gap-2">

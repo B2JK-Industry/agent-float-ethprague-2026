@@ -39,7 +39,7 @@ export function ErrorStateMalformedManifest({
       data-state="error-malformed-manifest"
       data-mode={mode}
       data-verdict={verdictWord}
-      className="flex flex-col items-start gap-3 rounded-md border border-verdict-siren bg-verdict-siren-surf p-6"
+      className="flex flex-col items-start gap-3 border border-verdict-siren bg-verdict-siren-surf p-6"
     >
       <span className="font-mono text-xs uppercase tracking-[0.18em] text-verdict-siren">
         Manifest · {reason}
@@ -55,7 +55,7 @@ export function ErrorStateMalformedManifest({
       </p>
       <details
         data-record="upgrade-siren:upgrade_manifest"
-        className="w-full max-w-prose rounded border border-border bg-bg"
+        className="w-full max-w-prose border border-border bg-bg"
       >
         <summary className="cursor-pointer px-3 py-2 font-mono text-xs uppercase tracking-wider text-t2">
           Show raw record content

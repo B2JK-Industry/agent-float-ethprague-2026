@@ -77,7 +77,7 @@ export function ShareVerdictLink({
       data-action="share-verdict"
       data-verdict={verdict}
       aria-label={`Copy share URL with precomputed ${verdict} verdict for ${name} to clipboard`}
-      className="rounded border border-t1 px-3 py-1 font-mono text-xs uppercase tracking-wider text-t1 hover:bg-bg"
+      className="border border-t1 px-3 py-1 font-mono text-xs uppercase tracking-wider text-t1 hover:bg-bg"
     >
       {copied ? "Copied" : "Share verdict"}
     </button>

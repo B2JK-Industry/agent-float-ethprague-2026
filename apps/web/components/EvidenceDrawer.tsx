@@ -143,7 +143,7 @@ export function EvidenceDrawer({
         aria-controls="evidence-drawer"
         // min-h/-w 44px enforces the iOS HIG / WCAG 2.5.5 minimum tap-target
         // size on touch viewports — asserted by the US-054 mobile e2e spec.
-        className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded border border-[color:var(--color-t1)] px-4 py-2 text-sm"
+        className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center border border-[color:var(--color-t1)] px-4 py-2 text-sm"
       >
         Evidence
       </button>
@@ -161,7 +161,7 @@ export function EvidenceDrawer({
             type="button"
             onClick={() => setOpen(false)}
             aria-label="Close evidence drawer"
-            className="absolute right-4 top-4 rounded text-2xl leading-none"
+            className="absolute right-4 top-4 text-2xl leading-none"
           >
             ×
           </button>
@@ -248,7 +248,7 @@ export function EvidenceDrawer({
                   aria-expanded={showSourceDiff}
                   aria-controls="source-diff-panel"
                   data-action="toggle-source-diff"
-                  className="rounded border border-[color:var(--color-t1)] px-2 py-0.5 font-mono text-xs uppercase tracking-wider"
+                  className="border border-[color:var(--color-t1)] px-2 py-0.5 font-mono text-xs uppercase tracking-wider"
                 >
                   {showSourceDiff ? "Hide diff" : "Show diff"}
                 </button>
@@ -298,7 +298,7 @@ export function EvidenceDrawer({
             <a
               href={reportUrl}
               download
-              className="inline-block rounded border border-[color:var(--color-t1)] px-3 py-1 text-sm"
+              className="inline-block border border-[color:var(--color-t1)] px-3 py-1 text-sm"
             >
               Download report JSON
             </a>

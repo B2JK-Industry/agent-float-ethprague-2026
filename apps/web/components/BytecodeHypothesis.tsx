@@ -196,7 +196,7 @@ export function BytecodeHypothesis({
       aria-label="Bytecode hypothesis"
       data-section="bytecode-hypothesis"
       data-hypothesis={hypothesis ?? "absent"}
-      className="flex flex-col gap-3 rounded-md border border-verdict-review bg-verdict-review-surf p-4"
+      className="flex flex-col gap-3 border border-verdict-review bg-verdict-review-surf p-4"
     >
       <header className="flex flex-wrap items-center gap-2">
         <h3 className="font-mono text-xs uppercase tracking-[0.18em] text-verdict-review">
