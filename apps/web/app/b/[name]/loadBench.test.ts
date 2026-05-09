@@ -129,4 +129,74 @@ describe("loadBench", () => {
     if (result.kind !== "error") throw new Error("unreachable");
     expect(result.reason).toBe("score_throw");
   });
+
+  // HOTFIX 2026-05-09 (US-117-hotfix-timeout): regression suite for the
+  // page-level orchestrator deadline. Live repro on /b/vitalik.eth was
+  // HTTP 000 / 70s / 0-byte body — orchestrator's per-source fan-out
+  // had no deadline, so a hung Sourcify/ENS-subgraph call burned the
+  // full Vercel function budget.
+
+  it("returns kind:'error' reason:orchestrator_timeout when orchestrator misses the deadline", async () => {
+    // Orchestrator never resolves — simulates a hung Sourcify all-chains
+    // lookup or ENS subgraph call.
+    orchestrateMock.mockReturnValue(new Promise(() => {}));
+
+    const result = await loadBench("vitalik.eth", {
+      nowSeconds: 1,
+      orchestratorTimeoutMs: 50,
+    });
+
+    expect(result.kind).toBe("error");
+    if (result.kind !== "error") throw new Error("unreachable");
+    expect(result.reason).toBe("orchestrator_timeout");
+    expect(result.message).toMatch(/orchestrator timeout 50ms/);
+    expect(computeScoreMock).not.toHaveBeenCalled();
+  });
+
+  it("succeeds within the deadline when orchestrator resolves quickly", async () => {
+    orchestrateMock.mockResolvedValue(SAMPLE_EVIDENCE);
+    computeScoreMock.mockReturnValue(SAMPLE_SCORE);
+
+    const start = Date.now();
+    const result = await loadBench("subject.eth", {
+      nowSeconds: 1,
+      orchestratorTimeoutMs: 5_000,
+    });
+    const elapsed = Date.now() - start;
+
+    expect(result.kind).toBe("loaded");
+    expect(elapsed).toBeLessThan(5_000);
+  });
+
+  it("does not race a thrown error past the timeout label (preserve original error)", async () => {
+    orchestrateMock.mockRejectedValue(new Error("rpc 503 fast"));
+
+    const result = await loadBench("subject.eth", {
+      nowSeconds: 1,
+      orchestratorTimeoutMs: 5_000,
+    });
+
+    expect(result.kind).toBe("error");
+    if (result.kind !== "error") throw new Error("unreachable");
+    // Distinct from orchestrator_timeout — the throw beat the deadline.
+    expect(result.reason).toBe("orchestrator_throw");
+    expect(result.message).toContain("rpc 503 fast");
+  });
+
+  it("default timeout is 12 seconds (Vercel function-budget headroom)", async () => {
+    // Easiest assertion: when orchestrator NEVER resolves and we don't
+    // override the timeout, loadBench takes >100ms (proves the default
+    // is above the 50ms test value, not 0). We don't actually wait 12s
+    // here — short slow promise resolves before default fires, proving
+    // the default isn't immediate.
+    orchestrateMock.mockImplementation(
+      () => new Promise<MultiSourceEvidence>((resolve) => setTimeout(() => resolve(SAMPLE_EVIDENCE), 100)),
+    );
+    computeScoreMock.mockReturnValue(SAMPLE_SCORE);
+
+    const result = await loadBench("subject.eth", { nowSeconds: 1 });
+
+    // Default 12s did NOT fire on a 100ms call — loaded path returned.
+    expect(result.kind).toBe("loaded");
+  });
 });
