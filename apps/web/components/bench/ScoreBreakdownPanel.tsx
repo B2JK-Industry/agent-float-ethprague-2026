@@ -199,10 +199,10 @@ function AxisBar({
               data-component={comp.id}
               data-status={comp.status}
               data-trust={comp.trust}
-              className="grid items-center gap-3"
+              className="grid items-center gap-x-4 gap-y-1"
               style={{
                 gridTemplateColumns:
-                  "minmax(120px, 1fr) 64px 64px 72px 72px",
+                  "minmax(170px, 1.4fr) 56px 56px 64px 72px",
                 padding: "6px 0",
                 fontFamily: "var(--font-mono)",
                 fontSize: "10px",

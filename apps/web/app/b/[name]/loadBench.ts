@@ -68,6 +68,25 @@ function rpcUrlForChain(chainId: number): string | undefined {
   return process.env.ENS_RPC_URL;
 }
 
+// ENS subgraph IDs are per-network. The default constant
+// (ENS_SUBGRAPH_ID in packages/evidence/src/sources/ens-internal/types.ts)
+// targets mainnet. For Sepolia subjects we need a Sepolia subgraph ID;
+// it ships via env override so prod can flip it without a code change.
+// When the per-chain env is unset we fall back to the mainnet default —
+// in that case Sepolia ENS-internal queries return empty domains
+// (mainnet subgraph has no record of Sepolia names) and the source
+// surfaces as kind:'absent' / null_no_data, which the score engine
+// already tolerates.
+function ensSubgraphIdForChain(chainId: number): string | undefined {
+  if (chainId === SEPOLIA_CHAIN_ID) {
+    return process.env.ENS_SUBGRAPH_ID_SEPOLIA;
+  }
+  if (chainId === MAINNET_CHAIN_ID) {
+    return process.env.ENS_SUBGRAPH_ID_MAINNET;
+  }
+  return undefined;
+}
+
 /**
  * Race a promise against a deadline. Throws an Error labelled
  * `<label> timeout <ms>ms` when the deadline fires first. The pending
@@ -158,6 +177,7 @@ export async function loadBench(
   // can hang for >60s. Wrap with a page-level 12s deadline so the
   // /b/[name] route surfaces a typed error rather than a 70s blank
   // page when any source upstream is wedged.
+  const subgraphIdOverride = ensSubgraphIdForChain(chainId);
   let evidence: MultiSourceEvidence;
   try {
     evidence = await withTimeout(
@@ -166,6 +186,14 @@ export async function loadBench(
         rpcUrl: rpcUrlForChain(chainId),
         githubPat: process.env.GITHUB_PAT,
         graphApiKey: process.env.GRAPH_API_KEY,
+        ...(subgraphIdOverride
+          ? {
+              ensInternalOptions: {
+                apiKey: process.env.GRAPH_API_KEY ?? "",
+                subgraphId: subgraphIdOverride,
+              },
+            }
+          : {}),
       }),
       orchestratorTimeoutMs,
       "orchestrator",
