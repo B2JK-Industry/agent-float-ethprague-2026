@@ -443,3 +443,20 @@ export {
 } from './score/components.js';
 
 export type { ComponentValue } from './score/components.js';
+
+export {
+  classifyImplementationPair,
+  classifySlot,
+  computeProxyHygiene,
+  computeSubjectHygiene,
+} from './diff/storageHygiene.js';
+
+export type {
+  ImplementationLayoutInput,
+  ProxyHygiene,
+  ProxyHygienePair,
+  ProxyHygienePairKind,
+  SlotHygieneClass,
+  SlotHygieneEntry,
+  SubjectHygiene,
+} from './diff/storageHygiene.js';
