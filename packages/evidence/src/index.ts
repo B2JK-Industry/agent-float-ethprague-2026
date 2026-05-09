@@ -332,3 +332,13 @@ export type {
   SubjectPublicReadOk,
   SubjectPublicReadResolutionResult,
 } from './subject/publicRead.js';
+
+export { discoverCrossChainPresence } from './sourcify/crossChainDiscovery.js';
+
+export type {
+  CrossChainDiscoveryEntry,
+  CrossChainDiscoveryFailure,
+  CrossChainDiscoveryFailureReason,
+  CrossChainDiscoveryResult,
+  DiscoverCrossChainOptions,
+} from './sourcify/crossChainDiscovery.js';
