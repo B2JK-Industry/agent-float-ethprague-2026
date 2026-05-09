@@ -9,3 +9,15 @@ export type {
   Eip1967ReadOk,
   Eip1967ReadError,
 } from './chain/eip1967.js';
+
+export {
+  UPGRADED_EVENT,
+  readUpgradeEvents,
+} from './chain/upgradeEvents.js';
+
+export type {
+  UpgradeEvent,
+  UpgradeEventsReadResult,
+  UpgradeEventsReadOk,
+  UpgradeEventsReadError,
+} from './chain/upgradeEvents.js';
