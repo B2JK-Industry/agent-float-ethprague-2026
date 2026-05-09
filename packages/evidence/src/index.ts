@@ -351,3 +351,17 @@ export type {
   LicenseCompilerSummary,
   LicenseCount,
 } from './sourcify/licenseCompiler.js';
+
+export { fetchGithubP0Source } from './sources/github/fetch.js';
+
+export type { FetchGithubP0SourceOptions } from './sources/github/fetch.js';
+
+export type {
+  GithubFailureReason,
+  GithubP0Error,
+  GithubP0Ok,
+  GithubP0Result,
+  GithubP0Signals,
+  GithubRepoP0,
+  GithubUser,
+} from './sources/github/types.js';
