@@ -42,7 +42,9 @@ export {
   ZERO_ADDRESS,
   buildSirenReportDomain,
   buildSirenReportTypedData,
+  computeFindingsHash,
   computeSirenReportContentHash,
+  computeSourcifyLinksHash,
 } from './eip712/sirenReportTypedData.js';
 
 export type { SignReportResult } from './eip712/signReport.js';
