@@ -1,7 +1,8 @@
-import { descriptionEngine } from './description.js';
-import type { RecordEngine, RecordKey } from './types.js';
 import { addrEthEngine } from './addr-eth.js';
+import { comGithubEngine } from './com-github.js';
+import { descriptionEngine } from './description.js';
 import { urlEngine } from './url.js';
+import type { RecordEngine, RecordKey } from './types.js';
 
 const REGISTRY = new Map<RecordKey, RecordEngine>();
 
@@ -29,5 +30,6 @@ export function clearRegistry(): void {
 }
 
 register(addrEthEngine);
+register(comGithubEngine);
 register(descriptionEngine);
 register(urlEngine);
