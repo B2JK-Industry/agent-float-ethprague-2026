@@ -1,0 +1,1 @@
+{"url":"https://example.com/","method":"HEAD","status":200,"statusText":"OK","headers":{"allow":"GET, HEAD","cf-cache-status":"HIT","content-type":"text/html","date":"Sat, 09 May 2026 20:19:25 GMT","last-modified":"Wed, 06 May 2026 14:17:14 GMT","server":"cloudflare"}}
