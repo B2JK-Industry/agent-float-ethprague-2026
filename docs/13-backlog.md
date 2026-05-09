@@ -198,7 +198,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-137 | On-chain source drawer (first tx, totals, recent activity, primary address chip) | C | P1 | S | open | US-115 |
 | US-138 | ENS source drawer (registration date, subname / record counts, raw `agent-bench:bench_manifest` JSON viewer) | C | P1 | S | merged | US-116 |
 | US-139 | Honest-claims disclaimer copy reviewed by Daniel/Orch; integrated into score banner | C | P0 | XS | merged | US-132 |
-| US-140 | Bytecode similarity-submit button + optimistic re-render after Sourcify confirms | C | P1 | S | open | US-121 |
+| US-140 | Bytecode similarity-submit button + optimistic re-render after Sourcify confirms | C | P1 | S | merged | US-121 |
 
 ### Bench Mode — Tracker
 
@@ -4282,7 +4282,7 @@ EPIC reference: US-104. Renumbered to US-139.
 | Sponsor | Sourcify |
 | Dependencies | US-121 |
 | Acceptance gates | GATE-33 |
-| Status | open (Epic 2) |
+| Status | merged |
 
 #### Scope
 
