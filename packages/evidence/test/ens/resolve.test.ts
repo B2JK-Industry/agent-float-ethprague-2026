@@ -68,6 +68,9 @@ describe('resolveEnsRecords', () => {
         ownerPresent: true,
         schemaPresent: true,
         upgradeManifestPresent: true,
+        agentContextPresent: false,
+        agentEndpointWebPresent: false,
+        agentEndpointMcpPresent: false,
       });
       expect(result.anyUpgradeSirenRecordPresent).toBe(true);
       expect(result.chainId).toBe(sepolia.id);
@@ -136,7 +139,7 @@ describe('resolveEnsRecords', () => {
     }
   });
 
-  it('queries every upgrade-siren key exactly once', async () => {
+  it('queries every upgrade-siren and ENSIP-26 key exactly once', async () => {
     const seen: string[] = [];
     const client = makeClient(async (key) => {
       seen.push(key);
@@ -148,9 +151,13 @@ describe('resolveEnsRecords', () => {
       client,
     });
 
-    expect(seen.sort()).toEqual(
-      Object.values(UPGRADE_SIREN_RECORD_KEYS).slice().sort(),
-    );
+    const expectedKeys = [
+      ...Object.values(UPGRADE_SIREN_RECORD_KEYS),
+      'agent-context',
+      'agent-endpoint[web]',
+      'agent-endpoint[mcp]',
+    ].sort();
+    expect(seen.sort()).toEqual(expectedKeys);
   });
 
   it('uses the injected client without instantiating a default RPC transport', async () => {
@@ -160,6 +167,6 @@ describe('resolveEnsRecords', () => {
       chainId: 424242, // unknown chain — but injected client should bypass the resolver
       client,
     });
-    expect(seen).toHaveBeenCalledTimes(5);
+    expect(seen).toHaveBeenCalledTimes(8);
   });
 });
