@@ -50,7 +50,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-010 | ENS subname provisioning script with stable records and atomic upgrade_manifest | A | P0 | L | merged | US-009 |
 | US-011 | Signed and hosted Siren Reports for safe, dangerous, unverified, live public-read | A | P0 | M | merged | US-009, US-010, US-014, US-015 |
 | US-012 | ENSIP-26 agent-context and agent-endpoint records for demo subnames | A | P1 | S | merged | US-010 |
-| US-013 | Documentation of deployed addresses, ENS records, and manifest values | A | P0 | S | open | US-009, US-010, US-011 |
+| US-013 | Documentation of deployed addresses, ENS records, and manifest values | A | P0 | S | merged | US-009, US-010, US-011 |
 
 ### Stream B — Evidence Engine
 
@@ -68,7 +68,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-021 | Schema version policy for upgrade-siren-manifest@1 | B | P0 | S | open | US-014, US-018 |
 | US-022 | EIP-1967 implementation slot reader | B | P0 | S | merged | none |
 | US-023 | Upgraded(address) event reader | B | P0 | S | merged | none |
-| US-024 | Sourcify verification status fetch | B | P0 | M | open | none |
+| US-024 | Sourcify verification status fetch | B | P0 | M | merged | none |
 | US-025 | Sourcify metadata fetch (source, ABI, compiler, storage layout) | B | P0 | M | open | none |
 | US-026 | ABI risky-selector diff | B | P0 | M | merged | US-025 |
 | US-027 | Storage-layout compatibility diff | B | P0 | M | open | US-025 |
@@ -672,7 +672,7 @@ ENSIP-26 reuse is the explicit ENS sponsor argument: existing standards extended
 | Sponsor | - |
 | Dependencies | US-009, US-010, US-011 |
 | Acceptance gates | GATE-15 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -1134,7 +1134,7 @@ Used to derive the `previousImpl` when an ENS manifest is absent and we need to 
 | Sponsor | Sourcify |
 | Dependencies | none |
 | Acceptance gates | GATE-5, GATE-16 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
