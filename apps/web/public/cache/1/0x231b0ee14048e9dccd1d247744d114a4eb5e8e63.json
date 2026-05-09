@@ -1,0 +1,12 @@
+{
+  "fetchedAt": "2026-05-09T14:24:15.592Z",
+  "chainId": 1,
+  "proxyAddress": "0x231b0Ee14048e9dCcD1d247744d114a4EB5E8E63",
+  "ensName": null,
+  "note": "ENS Public Resolver — reflexive demo (ENS itself)",
+  "eip1967Slot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "sourcify": {
+    "match": "exact_match",
+    "implementationMatch": "not_found"
+  }
+}

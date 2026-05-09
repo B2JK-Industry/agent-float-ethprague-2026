@@ -26,6 +26,12 @@
 
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+// `import.meta.dirname` is unreliable under tsx in some Node configurations
+// (returns undefined). Fall back to deriving the script directory from
+// `import.meta.url` so the repo-root resolution below works regardless.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const SEPOLIA_CHAIN_ID = 11155111;
 const MAINNET_CHAIN_ID = 1;
@@ -102,7 +108,11 @@ async function rpcCall<T>(rpcUrl: string, method: string, params: unknown[]): Pr
 }
 
 async function fetchSourcify(chainId: number, address: string): Promise<unknown> {
-  const url = `https://sourcify.dev/server/v2/contract/${chainId}/${address}?fields=match,abi,compilation,sources`;
+  // Note: do not pass `?fields=match,...` — Sourcify v2 rejects `match` as a
+  // field selector with HTTP 400 invalid_parameter. The `match` field is
+  // returned by default in the canonical response. We don't need ABI/sources
+  // at prewarm time; loadReport reads only `entry.sourcify.match`.
+  const url = `https://sourcify.dev/server/v2/contract/${chainId}/${address}`;
   const res = await fetch(url);
   if (res.status === 404) return { status: "not_found" };
   if (!res.ok) {
@@ -117,9 +127,25 @@ async function readEip1967Slot(rpcUrl: string, address: string): Promise<string 
     EIP1967_IMPLEMENTATION_SLOT,
     "latest",
   ]);
-  // last 20 bytes are the implementation address; if zero, return null
-  const impl = `0x${slotValue.slice(-40)}`;
-  return /^0x0+$/.test(impl) ? null : impl;
+  // Return the FULL 32-byte slot value as 0x + 64 hex. loadReport.ts's
+  // cachedSlotImplementation() does the .slice(-40) extraction itself, and
+  // returning the raw slot lets it distinguish an empty slot (all-zero) from
+  // a populated one. Returning the truncated address here breaks loadReport.
+  if (typeof slotValue !== "string" || !slotValue.startsWith("0x")) return null;
+  return slotValue;
+}
+
+function extractMatchLevel(sourcifyResp: unknown): "exact_match" | "match" | "not_found" | null {
+  if (!sourcifyResp || typeof sourcifyResp !== "object") return null;
+  const r = sourcifyResp as Record<string, unknown>;
+  // 404 path the sourcify fetcher already normalises to { status: "not_found" }
+  if (r.status === "not_found") return "not_found";
+  if (typeof r.match === "string") {
+    if (r.match === "exact_match" || r.match === "match" || r.match === "not_found") {
+      return r.match;
+    }
+  }
+  return null;
 }
 
 async function prewarmTarget(target: Target): Promise<void> {
@@ -133,20 +159,34 @@ async function prewarmTarget(target: Target): Promise<void> {
     );
   }
 
-  // 1. EIP-1967 slot (proxy implementation)
-  let implementation: string | null = null;
+  // 1. EIP-1967 slot — store the full 32-byte slot value, not an extracted
+  //    address. loadReport.ts (apps/web/app/r/[name]/loadReport.ts) reads
+  //    `entry.eip1967Slot` and does the .slice(-40) extraction itself.
+  let eip1967Slot: string | null = null;
   try {
-    implementation = await readEip1967Slot(rpcUrl, target.address);
+    eip1967Slot = await readEip1967Slot(rpcUrl, target.address);
   } catch (err) {
     console.warn(`  eip1967 read failed for ${target.name}:`, err);
   }
 
-  // 2. Sourcify metadata for proxy AND its current implementation
-  const sourcifyProxy = await fetchSourcify(target.chainId, target.address);
-  let sourcifyImpl: unknown = null;
-  if (implementation) {
+  const implementation = eip1967Slot && eip1967Slot.length >= 42
+    ? `0x${eip1967Slot.slice(-40)}`
+    : null;
+
+  // 2. Sourcify metadata for the proxy. loadReport.ts reads
+  //    `entry.sourcify.match` (one of "exact_match" | "match" | "not_found"),
+  //    not the full Sourcify response object. Store just the match level so
+  //    cachedSourcifyMatch() resolves correctly.
+  const sourcifyProxyResp = await fetchSourcify(target.chainId, target.address);
+  const proxyMatch = extractMatchLevel(sourcifyProxyResp);
+
+  // The current implementation's match level is also useful for diagnostic
+  // observability though loadReport doesn't read it directly.
+  let implMatch: "exact_match" | "match" | "not_found" | null = null;
+  if (implementation && /^0x[0-9a-fA-F]{40}$/.test(implementation)) {
     try {
-      sourcifyImpl = await fetchSourcify(target.chainId, implementation);
+      const sourcifyImplResp = await fetchSourcify(target.chainId, implementation);
+      implMatch = extractMatchLevel(sourcifyImplResp);
     } catch (err) {
       console.warn(`  sourcify impl fetch failed for ${target.name}:`, err);
     }
@@ -158,14 +198,17 @@ async function prewarmTarget(target: Target): Promise<void> {
     proxyAddress: target.address,
     ensName: target.ensName ?? null,
     note: target.note,
-    eip1967Implementation: implementation,
+    eip1967Slot,
     sourcify: {
-      proxy: sourcifyProxy,
-      currentImpl: sourcifyImpl,
+      // loadReport.cachedSourcifyMatch() reads `match`. We surface the proxy's
+      // match level here because the cache file is keyed by the proxy address.
+      match: proxyMatch,
+      // implementation match level is observational, not consumed by loadReport.
+      implementationMatch: implMatch,
     },
   };
 
-  const repoRoot = path.resolve(import.meta.dirname, "..", "..");
+  const repoRoot = path.resolve(__dirname, "..", "..");
   const outDir = path.join(
     repoRoot,
     "apps",

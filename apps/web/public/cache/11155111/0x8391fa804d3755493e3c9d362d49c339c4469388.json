@@ -1,0 +1,12 @@
+{
+  "fetchedAt": "2026-05-09T14:24:11.286Z",
+  "chainId": 11155111,
+  "proxyAddress": "0x8391fa804d3755493e3C9D362D49c339C4469388",
+  "ensName": "vault.upgrade-siren-demo.eth",
+  "note": "Demo proxy (Stream A US-009 broadcast)",
+  "eip1967Slot": "0x0000000000000000000000009a9dcb4ce0f03acb6aa8e26905d6abb93c95b774",
+  "sourcify": {
+    "match": "not_found",
+    "implementationMatch": "exact_match"
+  }
+}

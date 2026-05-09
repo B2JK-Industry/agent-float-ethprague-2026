@@ -50,7 +50,7 @@ type Deployments = {
 type Subname = { name: string; label: string };
 
 const ENS_PARENT = process.env.ENS_PARENT ?? "demo.upgradesiren.eth";
-const REPORT_BASE_URL = process.env.REPORT_BASE_URL ?? "https://upgradesiren.app/r";
+const REPORT_BASE_URL = process.env.REPORT_BASE_URL ?? "https://upgrade-siren.vercel.app/reports";
 
 const SUBNAMES: Subname[] = [
     { name: `vault.${ENS_PARENT}`, label: "vault baseline (V1)" },

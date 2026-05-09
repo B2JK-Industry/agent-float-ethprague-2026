@@ -11,7 +11,7 @@
   "scripts": {
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
-    "lint": "pnpm -r lint",
+    "lint": "pnpm -r --if-present lint",
     "provision-ens": "tsx scripts/provision-ens.ts"
   },
   "devDependencies": {

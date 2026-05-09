@@ -1,0 +1,12 @@
+{
+  "fetchedAt": "2026-05-09T14:24:13.358Z",
+  "chainId": 1,
+  "proxyAddress": "0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1",
+  "ensName": null,
+  "note": "Optimism L1StandardBridge — frequent OPCM upgrades",
+  "eip1967Slot": "0x00000000000000000000000061525eaacddb97d9184afc205827e6a4fd0bf62a",
+  "sourcify": {
+    "match": "exact_match",
+    "implementationMatch": "not_found"
+  }
+}

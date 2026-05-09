@@ -56,7 +56,7 @@ Manifest JSON shape (per `docs/04-technical-design.md`):
   "proxy": "0x...",
   "previousImpl": "0x...",
   "currentImpl": "0x...",
-  "reportUri": "https://upgradesiren.app/r/<subname>.json",
+  "reportUri": "https://upgrade-siren.vercel.app/reports/<subname>.json",
   "reportHash": "0x...",
   "version": 1,
   "effectiveFrom": "2026-05-09T..Z",
@@ -69,21 +69,21 @@ ENSIP-26 records (US-012, P1):
 | Record | Value (per subname `<name>`) |
 |---|---|
 | `agent-context` | `Upgrade Siren risk report for <name> (<label>)` |
-| `agent-endpoint[web]` | `https://upgradesiren.app/r/<name>` |
+| `agent-endpoint[web]` | `https://upgrade-siren.vercel.app/reports/<name>` |
 
 `agent-endpoint[mcp]` is intentionally not set yet; it ships with the P2 Siren Agent watchlist (US-056).
 
 ## 3. Siren Report URIs and hashes
 
-Reports are committed at `reports/<scenario>.json` and (post Stream C deploy) hosted at `https://upgradesiren.app/r/<subname>.json`. Each report's `keccak256(file bytes)` is the `reportHash` written into the corresponding ENS manifest.
+Reports are committed at `reports/<scenario>.json` and (post Stream C deploy) hosted at `https://upgrade-siren.vercel.app/reports/<subname>.json`. Each report's `keccak256(file bytes)` is the `reportHash` written into the corresponding ENS manifest.
 
 The hashes below are the keccak256 of the **unsigned templates** committed in US-011. Once the operator signs the reports, the hashes change; re-running `scripts/sign-reports.ts` and `scripts/provision-ens.ts` updates both the report files and the ENS manifest record (idempotent).
 
 | Scenario | Verdict | Report URI | reportHash (signed) |
 |---|---|---|---|
-| `safe` | `SAFE` | `https://upgradesiren.app/r/safe.upgrade-siren-demo.eth.json` | `0xb90816fdd11f446b26266b1f019da648747ffde3cec020cd892991e56ae7008f` |
-| `dangerous` | `SIREN` | `https://upgradesiren.app/r/dangerous.upgrade-siren-demo.eth.json` | `0x5edabf661ccd20f868afc3e0c4f580467f47da0bf8a0322ee62db4b5687a26c2` |
-| `unverified` | `SIREN` | `https://upgradesiren.app/r/unverified.upgrade-siren-demo.eth.json` | `0x022867f57b600c5c1dc259773edd324ad3c3c7284ec2e285ef44dffce62d0ea9` |
+| `safe` | `SAFE` | `https://upgrade-siren.vercel.app/reports/safe.upgrade-siren-demo.eth.json` | `0xb49ca74b1c5d993e3f00970b8e34dac6a3cfac1069240100493ead315242dff8` |
+| `dangerous` | `SIREN` | `https://upgrade-siren.vercel.app/reports/dangerous.upgrade-siren-demo.eth.json` | `0xa37decb347d8257293b8b1f307f253833a292f5b29620ad6d151a88845e87142` |
+| `unverified` | `SIREN` | `https://upgrade-siren.vercel.app/reports/unverified.upgrade-siren-demo.eth.json` | `0xe2df3cd878fb34a8c299163ef13bba1c43bfc1cb8d53c3e9d63bfdf856942717` |
 | `vault` (live public-read) | `REVIEW` or `SIREN` | `<TBD: target chosen in US-062>` | `<populated when US-062 picks target>` |
 
 All three signable scenarios are signed by `0x747E453F13B5B14313E25393Eb443fbAaA250cfC` (matches `upgrade-siren:owner`). `auth.status="valid"`, `signatureType="EIP-712"`. Source-of-truth files are committed at `reports/<scenario>.json`; the live HTTPS URIs above are populated by Stream C's web deploy (when `apps/web/public/r/` ships). The committed report bytes hash to the values above; see `pnpm tsx scripts/verify-reports.ts reports/safe.json --owner 0x747E453F13B5B14313E25393Eb443fbAaA250cfC`.
