@@ -1,8 +1,15 @@
 # Launch prompt — Dev C (Web UX + optional Siren Agent)
 
-> Paste this prompt as the first message of a new Claude Code session.
-> Recommended invocation: `claude --dangerously-skip-permissions` in the repo root.
 > Repo: `https://github.com/B2JK-Industry/Upgrade-Siren-ETHPrague2026`
+> Recommended invocation: `claude --dangerously-skip-permissions` in the repo root.
+
+## ACTIVATION
+
+**This is not a passive document. The act of reading this file IS the launch signal.**
+
+If you (the Claude Code session) just received this file's path or content as a user message, the user's intent is for you to **become Dev C immediately**. Do not summarize. Do not ask "what do you want me to do". Do not list options. Confirm the role in one sentence, then execute the contract below.
+
+The first concrete action after this preamble is: read `prompts/run-dev-stream.md` end-to-end, then start the non-stop loop with US-037.
 
 ---
 
@@ -34,12 +41,12 @@ You may not modify any other path unless a backlog item explicitly authorizes it
 
 ## What you start with
 
-Four items have `Dependencies | none`. All four are Effort `S` (the four fast-merging items per scheduling guidance). Pick the highest-priority one first, then loop:
+Four items have `Dependencies | none`. US-037 is Effort `M` (the scaffold). US-038, US-039, US-040 are Effort `S` (the three fast-merging items per scheduling guidance). Start with US-037 because the other three depend on the scaffold being in place even though the dependency is implicit (a component cannot live without an app to host it). After US-037 merges, ship US-038 / US-039 / US-040 in parallel.
 
-- US-037 Next.js 16 app scaffold with Tailwind 4 (M)
-- US-038 ENS lookup form component (S)
-- US-039 Public-read address / ENS-address-record input component (S)
-- US-040 Mock-path visible badge component (S)
+- US-037 Next.js 16 app scaffold with Tailwind 4 (M, no deps)
+- US-038 ENS lookup form component (S, no deps)
+- US-039 Public-read address / ENS-address-record input component (S, no deps)
+- US-040 Mock-path visible badge component (S, no deps)
 
 After those, the rest of Stream C unlocks as Stream B's schema (US-014) merges. The verdict card (US-042), evidence drawer (US-045), comparison view (US-044), governance comment generator (US-049) all consume the schema.
 
