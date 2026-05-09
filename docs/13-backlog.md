@@ -142,9 +142,9 @@ Tracker-only owners (not picked up by dev agents):
 | US-065 | 3-minute booth script rehearsal | Daniel | P0 | S | open | US-050 |
 | US-066 | Devfolio logo and cover asset | Daniel + Orch | P1 | S | open | none |
 
-## Bench Mode (Epic 2 — DRAFT, blocked on Section 21 lock-in)
+## Bench Mode (Epic 2 — LOCKED 2026-05-09)
 
-> Source-of-truth document: `EPIC_BENCH_MODE.md` (v1, 2026-05-08). All P0 items here block on Daniel resolving Section 21 decisions D-A through D-J. EPIC numbering (US-076..US-110) was renumbered to **US-111..US-145** to avoid collisions with already-merged stories US-076..US-084.
+> Source-of-truth document: `EPIC_BENCH_MODE.md` (v1, locked 2026-05-09 — Section 21 D-A..D-J resolved by Daniel). Stories renumbered from EPIC's draft US-076..US-110 to **US-111..US-145** to avoid collision with already-merged Epic 1 stories US-076..US-084. Three additional stories added 2026-05-09 per audit findings: US-114b (GitHub P1 enrichment), US-115b (on-chain transfer-count P1), US-146 (owned ai-agent demo subject).
 >
 > Acceptance gates GATE-27..GATE-34 are new (defined in EPIC Section 15) and must be appended to `docs/06-acceptance-gates.md` before the first P0 item starts. That update is itself US-145 dependency surface.
 >
@@ -3368,7 +3368,7 @@ EPIC reference: US-078. Renumbered to US-113. Use cases for the new fields are l
 | Sponsor | - |
 | Dependencies | US-111 |
 | Acceptance gates | GATE-29 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -3485,7 +3485,7 @@ EPIC reference: US-081. Renumbered to US-116.
 | Sponsor | - |
 | Dependencies | US-111, US-113, US-114, US-115, US-116 |
 | Acceptance gates | GATE-27 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -3523,7 +3523,7 @@ EPIC reference: US-082. Renumbered to US-117.
 | Sponsor | - |
 | Dependencies | US-117 |
 | Acceptance gates | GATE-28, GATE-30 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -3570,7 +3570,7 @@ EPIC reference: US-083. Renumbered to US-118. Daniel's relevance-weight override
 | Sponsor | Sourcify |
 | Dependencies | US-027, US-113 |
 | Acceptance gates | GATE-31 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -3650,7 +3650,7 @@ EPIC reference: US-085. Renumbered to US-120.
 | Sponsor | Sourcify |
 | Dependencies | US-113 |
 | Acceptance gates | GATE-33 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -3728,7 +3728,7 @@ EPIC reference: US-087. Renumbered to US-122.
 | Sponsor | Sourcify |
 | Dependencies | US-113 |
 | Acceptance gates | - |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -3789,7 +3789,7 @@ EPIC reference: US-089. Renumbered to US-124.
 | Sponsor | - |
 | Dependencies | US-117 |
 | Acceptance gates | GATE-34 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -3826,7 +3826,7 @@ EPIC reference: US-090. Renumbered to US-125.
 | Sponsor | - |
 | Dependencies | US-125, US-118 |
 | Acceptance gates | GATE-34 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -3858,7 +3858,7 @@ EPIC reference: US-091. Renumbered to US-126. Note: trust-discount caps unverifi
 | Sponsor | - |
 | Dependencies | US-125, US-118 |
 | Acceptance gates | GATE-34 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -3890,7 +3890,7 @@ EPIC reference: US-092. Renumbered to US-127.
 | Sponsor | - |
 | Dependencies | US-125, US-112 |
 | Acceptance gates | GATE-32, GATE-34 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -3921,7 +3921,7 @@ EPIC reference: US-093. Renumbered to US-128.
 | Sponsor | - |
 | Dependencies | US-125, US-119 |
 | Acceptance gates | GATE-31, GATE-34 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -3954,7 +3954,7 @@ EPIC reference: US-094. Renumbered to US-129. Validates the differentiator end-t
 | Sponsor | Sourcify |
 | Dependencies | US-001, US-002, US-003, US-004, US-005 |
 | Acceptance gates | GATE-31 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -3986,7 +3986,7 @@ EPIC reference: US-095. Renumbered to US-130.
 | Sponsor | - |
 | Dependencies | US-117 |
 | Acceptance gates | GATE-1, GATE-27 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -4025,7 +4025,7 @@ EPIC reference: US-096. Renumbered to US-131. Mirrors `/r/[name]` orchestration 
 | Sponsor | - |
 | Dependencies | US-118 |
 | Acceptance gates | GATE-28 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -4058,7 +4058,7 @@ EPIC reference: US-097. Renumbered to US-132.
 | Sponsor | - |
 | Dependencies | US-117, US-118 |
 | Acceptance gates | GATE-29, GATE-30 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -4092,7 +4092,7 @@ EPIC reference: US-098. Renumbered to US-133.
 | Sponsor | - |
 | Dependencies | US-118 |
 | Acceptance gates | GATE-30 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -4124,7 +4124,7 @@ EPIC reference: US-099. Renumbered to US-134.
 | Sponsor | Sourcify |
 | Dependencies | US-068, US-119 |
 | Acceptance gates | GATE-31 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -4158,7 +4158,7 @@ EPIC reference: US-100. Renumbered to US-135. Largest UI item — reuse-heavy.
 | Sponsor | - |
 | Dependencies | US-114 |
 | Acceptance gates | - |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -4190,7 +4190,7 @@ EPIC reference: US-101. Renumbered to US-136.
 | Sponsor | - |
 | Dependencies | US-115 |
 | Acceptance gates | - |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -4220,7 +4220,7 @@ EPIC reference: US-102. Renumbered to US-137.
 | Sponsor | ENS |
 | Dependencies | US-116 |
 | Acceptance gates | - |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -4251,7 +4251,7 @@ EPIC reference: US-103. Renumbered to US-138.
 | Sponsor | - |
 | Dependencies | US-132 |
 | Acceptance gates | - |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -4282,7 +4282,7 @@ EPIC reference: US-104. Renumbered to US-139.
 | Sponsor | Sourcify |
 | Dependencies | US-121 |
 | Acceptance gates | GATE-33 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -4316,7 +4316,7 @@ EPIC reference: US-105. Renumbered to US-140. **First cut** behind US-121 if Day
 | Sponsor | - |
 | Dependencies | US-132 |
 | Acceptance gates | - |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -4346,7 +4346,7 @@ EPIC reference: US-106. Renumbered to US-141.
 | Sponsor | - |
 | Dependencies | US-117 |
 | Acceptance gates | - |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -4381,7 +4381,7 @@ EPIC reference: US-107. Renumbered to US-142.
 | Sponsor | - |
 | Dependencies | none |
 | Acceptance gates | - |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -4413,7 +4413,7 @@ EPIC reference: US-108. Renumbered to US-143. **Section 21 D-C lock** — withou
 | Sponsor | Sourcify, ENS |
 | Dependencies | US-117 |
 | Acceptance gates | - |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 
@@ -4444,7 +4444,7 @@ EPIC reference: US-109. Renumbered to US-144.
 | Sponsor | - |
 | Dependencies | US-117, US-132 |
 | Acceptance gates | - |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | open (Epic 2) |
 
 #### Scope
 

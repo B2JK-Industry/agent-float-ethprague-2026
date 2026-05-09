@@ -1,10 +1,19 @@
 # EPIC: Agent Portfolio Mode
 
-> **Type:** Epic / Scope Extension to Upgrade Siren
-> **Status:** DRAFT v0 — pending Daniel lock-in. Code blocked until Section 18 decisions are resolved.
+> **STATUS: SUPERSEDED 2026-05-09 by `EPIC_BENCH_MODE.md`.**
+>
+> **Do not implement this document.** Sourcify-only portfolio scope was replaced by the multi-source Bench Mode benchmark on 2026-05-09. The route `/a/[name]` proposed here is **scrapped**; the live route is `/b/[name]` per `EPIC_BENCH_MODE.md` Section 11. The locked backlog stories live in `docs/13-backlog.md` as US-111..US-146 (Bench Mode section).
+>
+> This file is retained as a historical record of the rejected single-source design — useful for understanding why Bench's multi-source orchestrator + trust-discount mechanic exist. Do not pull stories, schemas, or routes from below.
+>
+> ---
+>
+> **Type:** Epic / Scope Extension to Upgrade Siren *(historical)*
+> **Status:** DRAFT v0 — superseded before lock-in
 > **Date drafted:** 2026-05-08
+> **Superseded:** 2026-05-09 by `EPIC_BENCH_MODE.md`
 > **Hackathon submission deadline:** 2026-05-10 12:00 PM CET via Devfolio
-> **Related authoritative docs:** `SCOPE.md`, `docs/04-technical-design.md`, `docs/06-acceptance-gates.md`, `docs/12-implementation-roadmap.md`, `docs/13-backlog.md`
+> **Related authoritative docs:** `EPIC_BENCH_MODE.md`, `SCOPE.md`, `docs/04-technical-design.md`, `docs/06-acceptance-gates.md`, `docs/12-implementation-roadmap.md`, `docs/13-backlog.md`
 
 ---
 

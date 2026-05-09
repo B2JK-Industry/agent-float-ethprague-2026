@@ -40,13 +40,12 @@ The per-contract verdict engine already shipping (US-026 ABI diff, US-027 storag
 - Storage-layout hygiene aggregator across implementation history per proxy
 - Playwright e2e suite as the validation surface for scenarios (replaces Stream A demo-subject provisioning)
 
-**Cost / risk:**
+**Risk:**
 
-- Estimated 16–22 dev-hours across all streams
 - Highest risk: storage-layout aggregator (compiler-version-dependent) + GitHub rate-limit budgeting
 - Highest reward: lifts Upgrade Siren from a single-contract checker to a generic on-chain reputation primitive — maps to **Reputation primitive #4** in the winning-primitives playbook
 
-**Daniel decision required (Section 21) before any code is written.**
+**Section 21 LOCKED 2026-05-09.** Code unblocked. Time estimate dropped per audit M-3 finding 2026-05-09 — see `docs/13-backlog.md` for live status; per memory `feedback_no_time_cuts`, Daniel calls scope cuts, not the EPIC.
 
 ---
 
@@ -727,6 +726,12 @@ Backing: Upstash Redis via Vercel Marketplace (existing).
 ## 13. Build Plan
 
 > Assumes Daniel locks Section 21 decisions tonight (2026-05-08 evening). Build window: **Day 1 = Saturday 2026-05-09**, **Day 2 = Sunday 2026-05-10 morning**, submission cut-off **2026-05-10 12:00 PM**.
+>
+> **Agent activation contracts**: each dev stream runs an autonomous loop per its launch prompt:
+> - Stream A: [`prompts/launch/dev-a-bench.md`](./prompts/launch/dev-a-bench.md)
+> - Stream B: [`prompts/launch/dev-b-bench.md`](./prompts/launch/dev-b-bench.md)
+> - Stream C: [`prompts/launch/dev-c-bench.md`](./prompts/launch/dev-c-bench.md)
+> - Release Manager: [`prompts/launch/release-manager-bench.md`](./prompts/launch/release-manager-bench.md)
 
 ### Day 1 (Saturday 2026-05-09)
 
