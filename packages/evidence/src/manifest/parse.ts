@@ -6,6 +6,7 @@ import {
   type ParseManifestResult,
   type UpgradeManifest,
 } from './types.js';
+import { KNOWN_MANIFEST_VERSIONS, isKnownManifestVersion } from './versionPolicy.js';
 
 const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
 const HASH32_RE = /^0x[a-fA-F0-9]{64}$/;
@@ -91,12 +92,12 @@ export function parseUpgradeManifest(raw: string): ParseManifestResult {
   }
 
   const schemaValue = parsed['schema'];
-  if (schemaValue !== MANIFEST_SCHEMA_V1) {
+  if (!isKnownManifestVersion(schemaValue)) {
     return err({
       reason: 'unknown_schema_version',
       field: 'schema',
       got: schemaValue,
-      message: `manifest: unknown schema version ${JSON.stringify(schemaValue)}; expected "${MANIFEST_SCHEMA_V1}"`,
+      message: `manifest: unknown schema version ${JSON.stringify(schemaValue)}; known versions: ${KNOWN_MANIFEST_VERSIONS.join(', ')}`,
     });
   }
 
