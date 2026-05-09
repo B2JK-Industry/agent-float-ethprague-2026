@@ -76,7 +76,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-029 | Verdict engine: SAFE / REVIEW / SIREN rules | B | P0 | L | merged | US-018, US-019, US-020, US-022, US-026, US-027, US-028 |
 | US-030 | Manifest hash-chain validation using previousManifestHash | B | P1 | S | merged | US-018 |
 | US-031 | ENSIP-26 agent-context and agent-endpoint[web] record reading | B | P1 | S | merged | US-017 |
-| US-032 | Sourcify response cache layer with TTL | B | P1 | M | open | US-024, US-025 |
+| US-032 | Sourcify response cache layer with TTL | B | P1 | M | merged | US-024, US-025 |
 | US-033 | ENS resolution cache layer | B | P1 | S | merged | US-017 |
 | US-034 | RPC retry/failover and Sourcify rate-limit handling | B | P1 | M | merged | US-022, US-024 |
 | US-035 | 4byte signature lookup for unverified contracts | B | P1 | S | merged | US-026 |
@@ -101,7 +101,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-047 | Storage diff renderer | C | P0 | M | merged | US-027, US-037 |
 | US-048 | ENS records resolved live panel | C | P0 | M | merged | US-017, US-037 |
 | US-049 | Governance comment generator (short, forum, vote-reason) | C | P0 | M | merged | US-014, US-037 |
-| US-050 | Demo mode runner with four scenarios | C | P0 | M | open | US-009, US-010, US-011, US-029, US-037, US-042 |
+| US-050 | Demo mode runner with four scenarios | C | P0 | M | merged | US-009, US-010, US-011, US-029, US-037, US-042 |
 | US-051 | Empty/error states for absent records, RPC, Sourcify, malformed manifest, unsigned report | C | P0 | M | open | US-019, US-020, US-037 |
 | US-052 | Five-second-rule performance check | C | P0 | S | open | US-042, US-043 |
 | US-053 | Share-verdict link with precomputed result | C | P1 | M | open | US-042 |
@@ -1475,7 +1475,7 @@ ENSIP-26 records are sponsor-positioning material more than verdict signals. The
 | Sponsor | Sourcify |
 | Dependencies | US-024, US-025 |
 | Acceptance gates | - |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -2243,7 +2243,7 @@ Three formats per audit recommendation. Deterministic templates beat LLM at hack
 | Sponsor | Sourcify, ENS, Future Society |
 | Dependencies | US-009, US-010, US-011, US-029, US-037, US-042 |
 | Acceptance gates | GATE-6 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
