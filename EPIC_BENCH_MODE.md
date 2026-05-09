@@ -502,14 +502,20 @@ Both axes range 0..1 internally. **No secondary normalization** — the discount
 
 #### v1 reachable ceilings (this is structural — name it, don't hide it)
 
-| Subject shape | Max seniority | Max relevance | Max score_100 | Best reachable tier |
-|---|---|---|---|---|
-| All-verified ideal (impossible in v1: GitHub trust = 0.6 always) | 1.00 | 1.00 | 100 | S |
-| **v1 typical: claimed GitHub + everything else maxed** | **0.70** | **0.88** | **79** | **A** |
-| Public-read inferred manifest (no opt-in) | 0.70 | 0.88 | 79, capped to A's max 89 | A |
-| No GitHub data at all | 0.55 (no GitHub components) | 0.58 | 57 | C |
+Two snapshots: **v1 P0** (everything except `ciPassRate`, `bugHygiene`, `releaseCadence`, plus partial `repoHygiene` covering only README + LICENSE — i.e. ships when US-114 lands but US-114b hasn't); **v1 full** (after US-114b extends GitHub fetcher with the remaining signals).
+
+| Subject shape | v1 P0 max | v1 full max (US-114b shipped) | Best reachable tier |
+|---|---|---|---|
+| All-verified ideal (impossible in v1: GitHub trust = 0.6 always) | n/a | 1.00 | S |
+| **v1 typical: claimed GitHub + everything else maxed** | **0.66** | **0.79** | A |
+| Public-read inferred manifest (no opt-in) | 0.66, capped to A | 0.79, capped to A | A |
+| No GitHub data at all | 0.48 | 0.48 | C |
+
+The 0.66 figure is honest accounting: with ciPassRate / bugHygiene / releaseCadence as `null_p1` (effective value 0) and repoHygiene at ~0.4 (only README+LICENSE bits available in P0), seniority caps at 0.43 instead of 0.70. Score then maxes at `0.5 * 0.43 + 0.5 * 0.88 = 0.655 → 66`. When US-114b lands, those P1 components flip on and the same engine yields 79. **Engine signature does not change** between P0 and post-P1; only the input values change.
 
 **v1 explicitly cannot reach S.** That is the feature — S is reserved for v2 cross-sign-verified subjects (`github.verified == true`, schema field already in place per Section 7). The UI must label this clearly: "S-tier requires verified GitHub cross-sign — coming v2." Hiding it implies S is reachable; that would mislead judges and users about what the discount actually does.
+
+> **Demo-time honesty rule:** if US-114b has not merged by demo time, the score banner can still legitimately say "v1 max is 66 today; 79 once US-114b ships P1 GitHub signals." Do NOT advertise 79 as the live ceiling while P1 is null. Pitch + UI must match what the engine returns.
 
 ### 10.2 Seniority axis (LOCKED — Section F1 outcome)
 

@@ -76,7 +76,7 @@ After US-111 + US-113 + US-114 + US-115 + US-116 are all merged, ship **US-117**
 ### Score engine (US-118) — non-negotiable rules
 
 - **Raw-discounted axis. No normalization to ceiling.** `seniority = sum(weight × value × trust)` is the axis value (0..0.70 for unverified-GitHub subjects). UI renders `Seniority 60 (max 70 — verify GitHub to lift)`, never `0.601 / 0.700 → 86`. Normalizing cancels the discount and defeats GATE-30. EPIC Section 10.1+10.2 spell this out.
-- **v1 max final score is 79.** Tier S (≥90) is unreachable in v1 because GitHub trust factor is locked at 0.6 (Section 21 D-G). UI tier label must show "S reserved for verified-GitHub v2" — never imply S is reachable now.
+- **v1 P0 max final score is 66; v1 full max is 79 (after US-114b).** Tier S (≥90) is unreachable in v1 because GitHub trust factor is locked at 0.6 (Section 21 D-G). UI tier label must show "S reserved for verified-GitHub v2" — never imply S is reachable now. The 66 vs 79 distinction is honest demo accounting: P1 GitHub signals are `null_p1` stubs until US-114b lands.
 - **`TRUST_DISCOUNT_UNVERIFIED = 0.6`** exported as named constant from `packages/evidence/src/score/weights.ts`. `SENIORITY_WEIGHTS` and `RELEVANCE_WEIGHTS` lifted to the same file. Daniel's relevance override (D-A) targets that one file.
 - **Pure function.** No I/O, no `Date.now()`, no module state. Judges may re-derive scores by hand from breakdown.
 - **Tier ceiling enforcement** lives in score engine, not UI: public-read manifest → cap at A; no-verified-GitHub → cap seniority at 0.70 (already structural via trust-discount).

@@ -72,7 +72,7 @@ Do not submit if:
 | GATE-27 | P0 | `/b/[name]` resolves a real ENS name and renders within 5 seconds (cached) for at least three demo scenarios |
 | GATE-28 | P0 | Score banner displays a single 0–100 number, both axis values (seniority + relevance), tier label (S/A/B/C/D/U), and the honest-claims disclaimer in-band |
 | GATE-29 | P0 | Source grid renders 4 tiles (Sourcify, GitHub, On-chain, ENS) with verified/unverified badges and per-source contribution numbers |
-| GATE-30 | P0 | Trust-discount factor `0.6` is applied to every unverified-source signal AND is visibly rendered in the breakdown panel as a `× 0.6` column. Raw-discounted axis only — no normalization to ceiling. v1 max final score is 79 (tier A); S-tier reserved for verified-GitHub v2 |
+| GATE-30 | P0 | Trust-discount factor `0.6` is applied to every unverified-source signal AND is visibly rendered in the breakdown panel as a `× 0.6` column. Raw-discounted axis only — no normalization to ceiling. **v1 P0 max final score is 66** (until US-114b ships P1 GitHub signals); **v1 full max is 79** after US-114b. Both cap at tier A. S-tier reserved for verified-GitHub v2. |
 | GATE-31 | P0 | Storage-layout hygiene aggregate is shown for at least one proxy with multiple verified implementations in the Sourcify drawer |
 | GATE-32 | P0 | Public-read fallback: a subject without `agent-bench:bench_manifest` produces a labeled `confidence: public-read` report with tier ceiling A |
 | GATE-33 | P1 | Bytecode similarity submit produces a visible score change for at least one unverified-Sourcify scenario |

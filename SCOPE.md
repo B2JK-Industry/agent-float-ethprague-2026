@@ -258,7 +258,7 @@ Both namespaces co-exist on the same ENS name without conflict. Existing `upgrad
 
 - Two axes: `seniority` (code quality, Sourcify + GitHub-derived) + `relevance` (recent activity, all four sources).
 - Each axis is `Σ(weight × value × trust)`. Trust factor `0.6` on every unverified-source signal; verified sources at `1.0`.
-- `score_raw = 0.5 * seniority + 0.5 * relevance`. Tier S (≥90) is intentionally unreachable in v1 because GitHub trust factor is locked at `0.6` (Section 21 D-G); v1 max final score is 79 (tier A).
+- `score_raw = 0.5 * seniority + 0.5 * relevance`. Tier S (≥90) is intentionally unreachable in v1 because GitHub trust factor is locked at `0.6` (Section 21 D-G). **v1 P0 max is 66** (P1 GitHub signals `ciPassRate`/`bugHygiene`/`releaseCadence` are `null_p1` stubs until US-114b ships); **v1 full max is 79** after US-114b lands. Both cap at tier A.
 - Trust-discount is structurally visible in the breakdown panel — every unverified component renders the `× 0.6` factor inline. Hiding the math defeats GATE-30.
 
 **Public-read fallback for un-opted-in subjects:** when an ENS name has no `agent-bench:bench_manifest`, the resolver infers a partial manifest from `addr()` + Sourcify all-chains lookup. Banner shows `confidence: public-read`; tier ceiling A.
