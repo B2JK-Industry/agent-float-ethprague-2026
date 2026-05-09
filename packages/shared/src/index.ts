@@ -49,3 +49,20 @@ export {
 
 export type { SignReportResult } from './eip712/signReport.js';
 export { signReport } from './eip712/signReport.js';
+
+export type {
+  AgentBenchRecordKey,
+  SubjectEnsInternalSource,
+  SubjectGithubSource,
+  SubjectKind,
+  SubjectManifest,
+  SubjectOnchainSource,
+  SubjectSources,
+  SubjectSourcifyEntry,
+} from './subjectManifest.js';
+
+export {
+  AGENT_BENCH_MANIFEST_SCHEMA_V1,
+  AGENT_BENCH_RECORD_KEYS,
+  SUBJECT_KINDS,
+} from './subjectManifest.js';

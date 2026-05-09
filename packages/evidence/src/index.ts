@@ -234,3 +234,20 @@ export type {
   SourcifyCacheOptions,
   SourcifyEndpoint,
 } from './sourcify/cache.js';
+
+export { resolveSubjectFromEns } from './subject/resolver.js';
+export { validateSubjectManifest } from './subject/validate.js';
+
+export type {
+  AgentBenchRecordSet,
+  AgentBenchResolutionFlags,
+  SubjectResolutionError,
+  SubjectResolutionFailureReason,
+  SubjectResolutionNoManifest,
+  SubjectResolutionOk,
+  SubjectResolutionResult,
+  SubjectSchemaError,
+} from './subject/types.js';
+
+export type { ResolveSubjectOptions } from './subject/resolver.js';
+export type { ValidateSubjectManifestResult } from './subject/validate.js';

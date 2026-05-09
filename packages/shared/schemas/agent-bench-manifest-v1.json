@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://upgradesiren.app/schemas/agent-bench-manifest-v1.json",
+  "title": "Upgrade Siren Bench Manifest v1",
+  "description": "Atomic JSON manifest stored in the agent-bench:bench_manifest ENS text record. Source of truth: EPIC_BENCH_MODE.md Section 7.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "kind", "sources", "version", "previousManifestHash"],
+  "properties": {
+    "schema": { "const": "agent-bench-manifest@1" },
+    "kind": { "enum": ["ai-agent", "human-team", "project"] },
+    "sources": { "$ref": "#/$defs/Sources" },
+    "version": { "type": "integer", "minimum": 1 },
+    "previousManifestHash": {
+      "oneOf": [{ "$ref": "#/$defs/Hex32" }, { "type": "null" }]
+    }
+  },
+  "$defs": {
+    "Address": {
+      "type": "string",
+      "pattern": "^0x[a-fA-F0-9]{40}$"
+    },
+    "Hex32": {
+      "type": "string",
+      "pattern": "^0x[a-fA-F0-9]{64}$"
+    },
+    "EnsName": {
+      "type": "string",
+      "pattern": "^(?:[a-z0-9_-]+\\.)+(?:eth|test)$",
+      "minLength": 3,
+      "maxLength": 255
+    },
+    "Sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sourcify": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SourcifyEntry" }
+        },
+        "github": { "$ref": "#/$defs/GithubSource" },
+        "onchain": { "$ref": "#/$defs/OnchainSource" },
+        "ensInternal": { "$ref": "#/$defs/EnsInternalSource" }
+      }
+    },
+    "SourcifyEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chainId", "address", "label"],
+      "properties": {
+        "chainId": { "type": "integer", "minimum": 1 },
+        "address": { "$ref": "#/$defs/Address" },
+        "label": { "type": "string", "minLength": 1 }
+      }
+    },
+    "GithubSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner", "verified", "verificationGist"],
+      "properties": {
+        "owner": { "type": "string", "minLength": 1, "maxLength": 39, "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$" },
+        "verified": { "type": "boolean" },
+        "verificationGist": {
+          "oneOf": [{ "type": "string", "format": "uri" }, { "type": "null" }]
+        }
+      },
+      "allOf": [
+        {
+          "description": "v1 GitHub claims are always unverified; verified=true requires v2 cross-sign per EPIC Section 9.",
+          "if": { "properties": { "verified": { "const": true } } },
+          "then": { "properties": { "verificationGist": { "type": "string", "format": "uri" } } }
+        }
+      ]
+    },
+    "OnchainSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primaryAddress", "claimedFirstTxHash"],
+      "properties": {
+        "primaryAddress": { "$ref": "#/$defs/Address" },
+        "claimedFirstTxHash": {
+          "oneOf": [{ "$ref": "#/$defs/Hex32" }, { "type": "null" }]
+        }
+      }
+    },
+    "EnsInternalSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rootName"],
+      "properties": {
+        "rootName": { "$ref": "#/$defs/EnsName" }
+      }
+    }
+  }
+}
