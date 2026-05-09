@@ -365,3 +365,14 @@ export type {
   GithubRepoP0,
   GithubUser,
 } from './sources/github/types.js';
+
+export { submitSimilarityVerification } from './sourcify/similarity.js';
+
+export type {
+  SimilarityOutcome,
+  SimilarityPendingStatus,
+  SimilarityStatus,
+  SimilaritySubmitInitial,
+  SimilarityTerminalStatus,
+  SubmitSimilarityVerificationOptions,
+} from './sourcify/similarity.js';
