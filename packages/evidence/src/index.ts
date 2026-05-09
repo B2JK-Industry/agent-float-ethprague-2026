@@ -248,6 +248,15 @@ export type {
   SourcifyEndpoint,
 } from './sourcify/cache.js';
 
+export {
+  BENCH_CACHE_KEYS,
+  BENCH_CACHE_TTLS,
+  BenchCache,
+  sourcifyDeepTtlMs,
+} from './cache/benchCache.js';
+
+export type { BenchCacheOptions } from './cache/benchCache.js';
+
 export { resolveSubjectFromEns } from './subject/resolver.js';
 export { validateSubjectManifest } from './subject/validate.js';
 
