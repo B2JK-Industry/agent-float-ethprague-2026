@@ -44,7 +44,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-004 | VaultV2Safe storage-compatible implementation | A | P0 | M | merged | US-003 |
 | US-005 | VaultV2Dangerous implementation with sweep and incompatible storage | A | P0 | M | merged | US-003 |
 | US-006 | Unverified-implementation deployment scenario contract | A | P0 | S | merged | none |
-| US-007 | Sourcify verification scripts for V1, V2Safe, V2Dangerous | A | P0 | M | open | US-009 |
+| US-007 | Sourcify verification scripts for V1, V2Safe, V2Dangerous | A | P0 | M | merged | US-009 |
 | US-008 | Foundry tests: storage-layout assertions, dangerous-selector behavior, upgrade flow | A | P0 | M | merged | US-001, US-002, US-003, US-004, US-005 |
 | US-009 | Sepolia deploy script with documented addresses | A | P0 | M | merged | US-001, US-002, US-003, US-004, US-005, US-006 |
 | US-010 | ENS subname provisioning script with stable records and atomic upgrade_manifest | A | P0 | L | open | US-009 |
@@ -413,7 +413,7 @@ The Sourcify verification scripts (US-007) explicitly exclude this contract. The
 | Sponsor | Sourcify |
 | Dependencies | US-009 |
 | Acceptance gates | GATE-5, GATE-9, GATE-16 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
