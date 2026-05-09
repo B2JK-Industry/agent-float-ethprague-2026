@@ -1,6 +1,6 @@
 import type { Address, Hex32 } from '@upgrade-siren/shared';
 
-export const MANIFEST_SCHEMA_V1 = 'siren-upgrade-manifest@1' as const;
+export const MANIFEST_SCHEMA_V1 = 'upgrade-siren-manifest@1' as const;
 
 export interface UpgradeManifest {
   readonly schema: typeof MANIFEST_SCHEMA_V1;

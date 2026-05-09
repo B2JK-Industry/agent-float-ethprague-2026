@@ -57,12 +57,12 @@ describe('parseUpgradeManifest', () => {
 
   it('returns unknown_schema_version for any schema other than v1', () => {
     const obj = JSON.parse(validRaw);
-    obj.schema = 'siren-upgrade-manifest@2';
+    obj.schema = 'upgrade-siren-manifest@2';
     const result = parseUpgradeManifest(JSON.stringify(obj));
     expect(result.kind).toBe('error');
     if (result.kind === 'error') {
       expect(result.error.reason).toBe('unknown_schema_version');
-      expect(result.error.got).toBe('siren-upgrade-manifest@2');
+      expect(result.error.got).toBe('upgrade-siren-manifest@2');
     }
   });
 
