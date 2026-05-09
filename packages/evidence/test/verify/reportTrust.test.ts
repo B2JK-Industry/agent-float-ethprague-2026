@@ -189,6 +189,37 @@ describe('verifyReportFromManifest — shape failures', () => {
     expect(r.kind).toBe('error');
     if (r.kind === 'error') expect(r.reason).toBe('malformed_report_shape');
   });
+
+  it('malformed_report_shape: passes auth-presence check but throws inside buildSirenReportTypedData', async () => {
+    // Auth is shape-OK (object, non-null), so step 2 accepts the report.
+    // But chainId is a string instead of a number, so
+    // buildSirenReportTypedData throws when constructing the EIP-712 domain.
+    // The fix wraps verifyReportSignature in try/catch and surfaces this as
+    // malformed_report_shape rather than letting it propagate to a 500.
+    const bytes = JSON.stringify({
+      verdict: 'SAFE',
+      chainId: 'not-a-number',
+      proxy: '0x' + '11'.repeat(20),
+      auth: {
+        status: 'valid',
+        signatureType: 'EIP-712',
+        signer: '0x' + '22'.repeat(20),
+        signature: '0x' + 'aa'.repeat(65),
+        signedAt: '2026-05-09T00:00:00Z',
+      },
+    });
+    const manifest = buildManifest(computeReportBytesHash(bytes));
+    const r = await verifyReportFromManifest(
+      manifest,
+      bytes,
+      '0x1111111111111111111111111111111111111111' as Address,
+    );
+    expect(r.kind).toBe('error');
+    if (r.kind === 'error') {
+      expect(r.reason).toBe('malformed_report_shape');
+      expect(r.message).toContain('typed data');
+    }
+  });
 });
 
 describe('verifyReportFromManifest — authority failures', () => {
