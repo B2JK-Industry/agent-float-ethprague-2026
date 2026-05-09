@@ -215,7 +215,7 @@ Use the structure shown below. Reproduce all sections exactly. The worked exampl
 
 ## Dependency DAG (text form)
 
-A list, grouped by stream, showing which items each stream can start on day one (no dependencies) and which unlock later.
+A list, grouped by stream, showing which items each stream can start without dependencies and which unlock later as merges land.
 
 ## Backlog Detail
 

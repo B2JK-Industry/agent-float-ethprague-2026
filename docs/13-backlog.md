@@ -2812,7 +2812,7 @@ bash scripts/booth/prewarm-cache.sh
 
 #### Notes
 
-**Start-at-scope-lock item.** Risks register `docs/10-risks.md` lists booth Wi-Fi, RPC limits, and Sourcify outage as high-severity. This item is the unified mitigation. Recording can come last but Anvil fork + prewarm are critical day-one.
+**Start-at-scope-lock item.** Risks register `docs/10-risks.md` lists booth Wi-Fi, RPC limits, and Sourcify outage as high-severity. This item is the unified mitigation. Recording is the lowest-priority sub-item; Anvil fork + cache pre-warm are the critical first deliverables.
 
 ### US-064 - Devfolio submission materials
 
