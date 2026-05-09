@@ -1,7 +1,7 @@
 # EPIC: Upgrade Siren Bench
 
 > **Type:** Epic / Scope Extension to Upgrade Siren
-> **Status:** DRAFT v1 — pending Daniel lock-in on Section 21 items. Code blocked until those are resolved.
+> **Status:** **LOCKED 2026-05-09** — Daniel accepted all defaults in Section 21 (D-A through D-J). Code unblocked; dev pipeline activates on next polling cycle.
 > **Date drafted:** 2026-05-08
 > **Hackathon submission deadline:** 2026-05-10 12:00 PM CET via Devfolio
 > **Supersedes:** `EPIC_AGENT_PORTFOLIO_MODE.md` (Sourcify-only portfolio scope; replaced by multi-source benchmark)
@@ -941,16 +941,16 @@ In addition to existing `docs/12-implementation-roadmap.md` checklist:
 
 | # | Otázka | Default ak nelock-neš | Tvoja odpoveď |
 |---|---|---|---|
-| D-A | **Provisional relevance weights** v Section 10.3: 0.30 sourcifyRecency / 0.30 githubRecency / 0.25 onchainRecency / 0.15 ensRecency. Akceptuješ ako provisional ship-shape, alebo chceš inú kombináciu pred kódom? | Akceptujem provisional, override pred US-083 merge | |
-| D-B | **Tier ceilings**: subject bez verified GitHub cross-sign maxuje senioritu na 0.70. Subject bez `agent-bench:bench_manifest` (public-read mode) maxuje tier na A. Akceptuješ obe ceilings? | Áno | |
-| D-C | **Sub-brand "Upgrade Siren Bench"**: akceptuješ pre v1, s collision check ako US-108? Alebo iný sub-brand z fallback list ("Profile" / "Score" / "Stand") | "Bench" preferred, fallback na "Profile" ak collision | |
-| D-D | **ENS sponsor track**: AI Agents ($2K) primary; Most Creative ($2K) fallback. Lock? | Lock AI Agents primary | |
-| D-E | **Storage-Layout Hygiene aggregator** je 4h Day 2 ráno P0 bet. Confirm priority P0? | Áno, P0 | |
-| D-F | **Bytecode similarity submit** P1 (must-attempt, first cut). OK? | OK P1 | |
-| D-G | **Trust-discount factor**: lock 0.6 pre unverified Github? Inú hodnotu (0.5 strict, 0.7 lax)? | 0.6 | |
-| D-H | **Demo subjects**: zero provisioning (per F3). Daniel-on-site vyberie 3 existujúce ENS mená. Confirm bez fallback subjektu? | Confirm | |
-| D-I | **Public-read fallback z neopt-in-utých subjektov**: pre demo akceptuješ že "neopt-inutý subject má tier ceiling A"? | Áno | |
-| D-J | **Umia track**: aktívne cieliť alebo nechať optional? | Optional, no change | |
+| D-A | **Provisional relevance weights** v Section 10.3: 0.30 sourcifyRecency / 0.30 githubRecency / 0.25 onchainRecency / 0.15 ensRecency. Akceptuješ ako provisional ship-shape, alebo chceš inú kombináciu pred kódom? | Akceptujem provisional, override pred US-083 merge | **LOCKED 2026-05-09:** Akceptujem default. Provisional weights ship; override window stays open until US-118 (renumbered from EPIC US-083) merges. |
+| D-B | **Tier ceilings**: subject bez verified GitHub cross-sign maxuje senioritu na 0.70. Subject bez `agent-bench:bench_manifest` (public-read mode) maxuje tier na A. Akceptuješ obe ceilings? | Áno |**LOCKED 2026-05-09:** Akceptujem default. Both ceilings enforced in US-118. |
+| D-C | **Sub-brand "Upgrade Siren Bench"**: akceptuješ pre v1, s collision check ako US-108? Alebo iný sub-brand z fallback list ("Profile" / "Score" / "Stand") | "Bench" preferred, fallback na "Profile" ak collision |**LOCKED 2026-05-09:** Akceptujem default. "Upgrade Siren Bench" preferred; fallback "Profile" if US-143 collision check fires. |
+| D-D | **ENS sponsor track**: AI Agents ($2K) primary; Most Creative ($2K) fallback. Lock? | Lock AI Agents primary |**LOCKED 2026-05-09:** Akceptujem default. AI Agents track primary. |
+| D-E | **Storage-Layout Hygiene aggregator** je 4h Day 2 ráno P0 bet. Confirm priority P0? | Áno, P0 |**LOCKED 2026-05-09:** Akceptujem default. US-119 P0; never cut per Section 13. |
+| D-F | **Bytecode similarity submit** P1 (must-attempt, first cut). OK? | OK P1 |**LOCKED 2026-05-09:** Akceptujem default. US-121 P1; first cut if Day 2 morning slips. |
+| D-G | **Trust-discount factor**: lock 0.6 pre unverified Github? Inú hodnotu (0.5 strict, 0.7 lax)? | 0.6 |**LOCKED 2026-05-09:** Akceptujem default. `TRUST_DISCOUNT_UNVERIFIED = 0.6` exported as named constant from `packages/evidence/src/score/weights.ts`. |
+| D-H | **Demo subjects**: zero provisioning (per F3). Daniel-on-site vyberie 3 existujúce ENS mená. Confirm bez fallback subjektu? | Confirm |**LOCKED 2026-05-09:** Akceptujem default. Stream A reduced scope: Playwright e2e only, no demo provisioning. |
+| D-I | **Public-read fallback z neopt-in-utých subjektov**: pre demo akceptuješ že "neopt-inutý subject má tier ceiling A"? | Áno |**LOCKED 2026-05-09:** Akceptujem default. Tier ceiling A for public-read enforced in US-118. |
+| D-J | **Umia track**: aktívne cieliť alebo nechať optional? | Optional, no change |**LOCKED 2026-05-09:** Akceptujem default. Umia stays optional, no proactive targeting. |
 
 Po lock-ine D-A..D-J:
 
@@ -981,4 +981,4 @@ Po lock-ine D-A..D-J:
 
 ---
 
-**End of EPIC v1 DRAFT.** Awaiting Daniel decisions on Section 21.
+**End of EPIC v1 — LOCKED 2026-05-09.** All Section 21 decisions resolved (D-A through D-J accepted as defaults). Code unblocked; dev pipeline activates on next polling cycle.
