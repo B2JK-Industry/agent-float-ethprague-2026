@@ -33,7 +33,11 @@ function CopyButton({ value }: { value: string }): React.JSX.Element {
       type="button"
       onClick={onClick}
       aria-label={`Copy signer address ${value}`}
-      className="ml-1 rounded text-current opacity-60 hover:opacity-100"
+      // No `opacity-60` here: at 60% alpha the green/amber/red foreground
+      // blends with the surf background to ~3.8:1 contrast, below the
+      // WCAG 2.1 AA 4.5:1 floor for ≤ 14px text. Underline-on-hover gives
+      // the affordance signal instead.
+      className="ml-1 rounded text-current underline-offset-2 hover:underline"
     >
       {copied ? "copied" : "copy"}
     </button>
