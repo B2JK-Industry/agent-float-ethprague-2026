@@ -1,0 +1,1994 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Upgrade Siren — Brand Manual v1.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* ============ TOKENS ============ */
+  :root {
+    --safe: #00D67A;
+    --review: #FFB020;
+    --siren: #FF3B30;
+    --safe-on-light: #00703F;
+    --review-on-light: #8E4400;
+    --siren-on-light: #B9140C;
+    --safe-surf: #062A1B;
+    --review-surf: #2A1C00;
+    --siren-surf: #2D0B09;
+
+    --bg: #0A0E10;
+    --surface: #14191C;
+    --raised: #1B2125;
+    --border: #232A2F;
+    --border-strong: #39434A;
+    --t3: #5C6770;
+    --t2: #8B969C;
+    --t1: #E8EDEF;
+    --accent: #00B8D9;
+    --paper: #FAFAF8;
+    --ink: #0A0E10;
+
+    --display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --body: "Inter", ui-sans-serif, system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--body);
+    background: var(--bg);
+    color: var(--t1);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "ss01", "cv11";
+    line-height: 1.5;
+  }
+  a { color: inherit; }
+
+  /* ============ LAYOUT ============ */
+  .shell { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+  nav.sidebar {
+    position: sticky; top: 0; align-self: start;
+    height: 100vh; overflow-y: auto;
+    border-right: 1px solid var(--border);
+    padding: 32px 24px;
+    background: var(--bg);
+  }
+  nav .lockup { margin-bottom: 32px; }
+  nav .lockup .mark { display: inline-flex; align-items: center; gap: 10px; }
+  nav .lockup .name { font-family: var(--display); font-weight: 700; letter-spacing: -0.02em; font-size: 18px; }
+  nav .lockup .tag { font-family: var(--mono); font-size: 10px; color: var(--t2); margin-top: 6px; letter-spacing: 0.04em; }
+  nav .group-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t3); margin: 24px 0 8px; }
+  nav a.nav-link {
+    display: block; padding: 6px 10px; margin: 0 -10px;
+    font-size: 13px; color: var(--t2); text-decoration: none; border-radius: 4px;
+  }
+  nav a.nav-link:hover { color: var(--t1); background: var(--surface); }
+  nav a.nav-link.active { color: var(--t1); background: var(--surface); }
+  nav .meta { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 10px; color: var(--t3); line-height: 1.7; }
+
+  main { padding: 0; min-width: 0; }
+  section.page {
+    max-width: 1100px;
+    padding: 80px 64px 96px;
+    border-bottom: 1px solid var(--border);
+  }
+  section.page.invert { background: var(--paper); color: var(--ink); }
+  section.page.invert .label, section.page.invert .meta-line { color: #4A4A44; }
+  section.page.invert hr { border-color: #D9D9D2; }
+  hr { border: 0; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  /* ============ TYPE PRIMITIVES ============ */
+  .label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--t2); }
+  .label.dot::before { content: ""; display: inline-block; width: 6px; height: 6px; background: var(--siren); margin-right: 8px; transform: translateY(-2px); }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--t2); margin-bottom: 16px; }
+  h1.display { font-family: var(--display); font-weight: 700; font-size: clamp(48px, 6vw, 88px); line-height: 0.95; letter-spacing: -0.035em; margin: 0 0 24px; text-wrap: balance; }
+  h2.section { font-family: var(--display); font-weight: 600; font-size: 36px; line-height: 1.05; letter-spacing: -0.02em; margin: 0 0 12px; }
+  h3.sub { font-family: var(--display); font-weight: 600; font-size: 22px; letter-spacing: -0.01em; margin: 32px 0 12px; }
+  p.lede { font-size: 19px; line-height: 1.45; color: var(--t1); max-width: 70ch; margin: 0 0 24px; text-wrap: pretty; }
+  p { max-width: 68ch; color: var(--t1); margin: 0 0 16px; text-wrap: pretty; }
+  p.dim { color: var(--t2); }
+  .meta-line { font-family: var(--mono); font-size: 11px; color: var(--t2); letter-spacing: 0.08em; }
+  code { font-family: var(--mono); font-size: 13px; background: var(--surface); padding: 1px 6px; border-radius: 2px; border: 1px solid var(--border); }
+  ul.bullets { padding-left: 18px; margin: 0 0 16px; }
+  ul.bullets li { margin-bottom: 6px; max-width: 68ch; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    nav.sidebar { position: relative; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+    section.page { padding: 56px 24px 64px; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  }
+
+  /* ============ COVER ============ */
+  .cover {
+    min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between;
+    padding: 64px;
+    background:
+      radial-gradient(1200px 600px at 20% 110%, rgba(255,59,48,0.10), transparent 60%),
+      radial-gradient(800px 500px at 110% -10%, rgba(0,184,217,0.06), transparent 60%),
+      var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .cover-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .cover-stamp {
+    border: 1px solid var(--border-strong);
+    padding: 12px 16px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--t2);
+    line-height: 1.7;
+  }
+  .cover-stamp b { color: var(--t1); font-weight: 500; }
+  .cover-title { font-family: var(--display); font-weight: 700; font-size: clamp(72px, 12vw, 180px); line-height: 0.88; letter-spacing: -0.04em; margin: 0; }
+  .cover-tag {
+    font-family: var(--mono); font-size: 14px; letter-spacing: 0.1em;
+    color: var(--t2); margin-top: 24px;
+  }
+  .cover-tag b { color: var(--siren); font-weight: 500; }
+  .cover-bottom { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
+  .cover-bottom .meta-block { font-family: var(--mono); font-size: 11px; line-height: 1.7; letter-spacing: 0.06em; color: var(--t2); }
+  .cover-bottom .meta-block b { color: var(--t1); font-weight: 500; }
+
+  /* ============ MARK / LOGO ============ */
+  .mark-tri { width: 28px; height: 28px; display: inline-block; }
+
+  /* ============ VERDICT CARD HERO ============ */
+  .vc-stage {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 32px;
+    margin: 24px 0 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .vc-stage::before {
+    content: "MOCK"; position: absolute; top: 12px; right: 12px;
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em;
+    padding: 3px 6px; border: 1px solid var(--border-strong); color: var(--t3);
+  }
+  .verdict-card {
+    border-radius: 6px;
+    overflow: hidden;
+    transition: background 480ms cubic-bezier(0.2,0.8,0.2,1), border-color 480ms cubic-bezier(0.2,0.8,0.2,1);
+    border: 1px solid var(--border);
+  }
+  .verdict-card .top { padding: 28px 32px 20px; display: flex; gap: 24px; align-items: flex-start; }
+  .verdict-card .glyph-slot {
+    flex-shrink: 0; width: 96px; height: 96px;
+    display: grid; place-items: center;
+    border: 2px solid currentColor;
+    border-radius: 4px;
+    transition: color 480ms cubic-bezier(0.2,0.8,0.2,1);
+  }
+  .verdict-card .glyph-slot svg { width: 64px; height: 64px; transition: opacity 240ms; }
+  .verdict-card .verdict-meta { flex: 1; min-width: 0; }
+  .verdict-word {
+    font-family: var(--display); font-weight: 700;
+    font-size: 88px; line-height: 0.9; letter-spacing: -0.04em;
+    margin: 0;
+    transition: color 480ms cubic-bezier(0.2,0.8,0.2,1);
+  }
+  .protocol {
+    font-family: var(--mono); font-size: 14px; color: var(--t2);
+    margin-top: 12px;
+    word-break: break-all;
+  }
+  .protocol b { color: var(--accent); font-weight: 500; }
+  .verdict-summary { font-size: 17px; line-height: 1.4; margin-top: 16px; max-width: 56ch; }
+  .verdict-card .badges { padding: 16px 32px 24px; display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,0.06); }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
+    padding: 4px 10px; border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    color: var(--t2);
+  }
+  .badge.ok { color: var(--safe); border-color: var(--safe); }
+  .badge.warn { color: var(--review); border-color: var(--review); }
+  .badge.err { color: var(--siren); border-color: var(--siren); }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* state colors */
+  .verdict-card.state-safe { background: var(--safe-surf); border-color: var(--safe); }
+  .verdict-card.state-safe .glyph-slot, .verdict-card.state-safe .verdict-word { color: var(--safe); }
+  .verdict-card.state-review { background: var(--review-surf); border-color: var(--review); }
+  .verdict-card.state-review .glyph-slot, .verdict-card.state-review .verdict-word { color: var(--review); }
+  .verdict-card.state-siren { background: var(--siren-surf); border-color: var(--siren); }
+  .verdict-card.state-siren .glyph-slot, .verdict-card.state-siren .verdict-word { color: var(--siren); }
+
+  .verdict-card.state-siren { animation: sirenPulse 1.1s ease-in-out 1; }
+  @keyframes sirenPulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(255,59,48,0); }
+    50% { box-shadow: 0 0 0 8px rgba(255,59,48,0.2), 0 0 64px rgba(255,59,48,0.4); }
+  }
+
+  /* flip controls */
+  .vc-controls { display: flex; gap: 8px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
+  .vc-controls .btn {
+    background: var(--bg); color: var(--t1); border: 1px solid var(--border-strong);
+    padding: 8px 14px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
+    border-radius: 2px; cursor: pointer; text-transform: uppercase;
+  }
+  .vc-controls .btn:hover { border-color: var(--t1); }
+  .vc-controls .btn.primary { background: var(--t1); color: var(--ink); border-color: var(--t1); }
+  .vc-controls .timer {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--t2);
+    margin-left: auto;
+  }
+
+  /* checklist */
+  .checklist { margin-top: 24px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); }
+  .checklist .row {
+    display: grid; grid-template-columns: 24px 1fr auto;
+    gap: 12px; padding: 12px 16px; align-items: center;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono); font-size: 13px;
+  }
+  .checklist .row:last-child { border-bottom: 0; }
+  .checklist .row .step-glyph { width: 16px; height: 16px; border: 1.5px solid var(--t3); border-radius: 50%; }
+  .checklist .row.done .step-glyph { background: var(--safe); border-color: var(--safe); position: relative; }
+  .checklist .row.done .step-glyph::after { content: ""; position: absolute; inset: 3px 3px 4px 3px; border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(-45deg); }
+  .checklist .row.fail .step-glyph { background: var(--siren); border-color: var(--siren); position: relative; }
+  .checklist .row.fail .step-glyph::after, .checklist .row.fail .step-glyph::before {
+    content: ""; position: absolute; inset: 50% 3px auto 3px; height: 2px; background: var(--ink);
+    transform: rotate(45deg);
+  }
+  .checklist .row.fail .step-glyph::before { transform: rotate(-45deg); }
+  .checklist .row.pending { color: var(--t3); }
+  .checklist .row .ms { color: var(--t3); font-size: 11px; letter-spacing: 0.06em; }
+  .checklist .row .label-cell { color: var(--t1); }
+
+  /* ============ COLOR PALETTE ============ */
+  .swatch {
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .swatch .chip { aspect-ratio: 16/9; display: flex; align-items: flex-end; padding: 14px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; }
+  .swatch .meta { padding: 12px 14px; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 11px; line-height: 1.6; color: var(--t2); }
+  .swatch .meta b { color: var(--t1); font-weight: 500; }
+  .swatch .meta .row { display: flex; justify-content: space-between; }
+
+  .ramp { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+  .ramp .step { padding: 16px 12px; min-height: 80px; display: flex; flex-direction: column; justify-content: space-between; font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; }
+  .ramp .step .name { opacity: 0.7; }
+
+  .contrast-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; margin-top: 12px; }
+  .contrast-table th, .contrast-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  .contrast-table th { font-weight: 500; color: var(--t2); letter-spacing: 0.08em; font-size: 10px; text-transform: uppercase; }
+  .contrast-table .pass { color: var(--safe); }
+  .contrast-table .pass-aa { color: var(--review); }
+  .contrast-table .fail { color: var(--siren); }
+
+  /* ============ TYPE SPECIMENS ============ */
+  .specimen { padding: 32px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; }
+  .specimen + .specimen { margin-top: 16px; }
+  .specimen .demo-display { font-family: var(--display); font-weight: 700; font-size: 84px; letter-spacing: -0.035em; line-height: 0.95; }
+  .specimen .demo-body { font-family: var(--body); font-size: 17px; line-height: 1.5; max-width: 60ch; color: var(--t1); margin-top: 12px; }
+  .specimen .demo-mono { font-family: var(--mono); font-size: 14px; color: var(--t2); margin-top: 12px; }
+  .specimen .spec-meta { font-family: var(--mono); font-size: 11px; color: var(--t2); letter-spacing: 0.08em; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); display: flex; gap: 24px; flex-wrap: wrap; }
+  .scale-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; }
+  .scale-table th { color: var(--t2); font-weight: 500; padding: 8px 12px; text-align: left; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  .scale-table td { padding: 14px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .scale-table .demo-cell { color: var(--t1); }
+
+  /* ============ ICONS ============ */
+  .icon-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .icon-cell { background: var(--surface); padding: 24px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .icon-cell svg { width: 24px; height: 24px; }
+  .icon-cell .icon-name { font-family: var(--mono); font-size: 10px; color: var(--t2); letter-spacing: 0.06em; }
+  @media (max-width: 720px) { .icon-grid { grid-template-columns: repeat(3, 1fr); } }
+
+  /* ============ COMPONENTS ============ */
+  .comp { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 24px; }
+  .comp + .comp { margin-top: 16px; }
+  .comp .comp-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--t2); margin-bottom: 16px; }
+  .comp .states { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+  .state-tile { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 16px; }
+  .state-tile .state-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t3); margin-bottom: 12px; }
+
+  /* buttons */
+  .btn-base { font-family: var(--display); font-weight: 600; font-size: 14px; letter-spacing: 0.02em; padding: 10px 18px; border: 1px solid var(--border-strong); border-radius: 2px; background: var(--bg); color: var(--t1); cursor: pointer; }
+  .btn-base.primary { background: var(--t1); color: var(--ink); border-color: var(--t1); }
+  .btn-base.danger { background: var(--siren); color: white; border-color: var(--siren); }
+  .btn-base.ghost { background: transparent; }
+  .btn-base[disabled] { color: var(--t3); border-color: var(--border); cursor: not-allowed; }
+
+  /* input */
+  .input { display: flex; align-items: center; background: var(--bg); border: 1px solid var(--border-strong); border-radius: 2px; padding: 0 12px; }
+  .input input { flex: 1; background: transparent; border: 0; outline: 0; color: var(--t1); font-family: var(--mono); font-size: 14px; padding: 12px 0; }
+  .input .prefix { color: var(--t3); font-family: var(--mono); font-size: 13px; margin-right: 8px; }
+  .input.focus { border-color: var(--accent); }
+  .input.error { border-color: var(--siren); }
+
+  /* badges (general) */
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; border: 1px solid var(--border-strong); color: var(--t2); }
+  .pill.signed { color: var(--safe); border-color: var(--safe); }
+  .pill.unsigned { color: var(--review); border-color: var(--review); }
+  .pill.invalid { color: var(--siren); border-color: var(--siren); }
+
+  /* mock banner */
+  .mock-banner {
+    background: repeating-linear-gradient(135deg, rgba(255,176,32,0.18) 0 16px, rgba(255,176,32,0.10) 16px 32px);
+    border: 1px solid var(--review);
+    color: var(--review);
+    padding: 8px 16px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    text-align: center;
+  }
+
+  /* governance comment formats */
+  .gov { border: 1px solid var(--border); border-radius: 4px; background: var(--bg); padding: 16px; font-family: var(--mono); font-size: 13px; color: var(--t1); line-height: 1.5; white-space: pre-wrap; }
+  .gov + .gov { margin-top: 12px; }
+  .gov-tabs { display: flex; gap: 0; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .gov-tabs .tab { padding: 8px 14px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--t2); border-bottom: 2px solid transparent; cursor: pointer; }
+  .gov-tabs .tab.active { color: var(--t1); border-bottom-color: var(--t1); }
+
+  /* ============ DEMO SCREENS ============ */
+  .device-bar { display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: start; margin: 24px 0; }
+  .frame-desktop {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.6);
+  }
+  .frame-desktop .titlebar { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--surface); border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 11px; color: var(--t3); }
+  .frame-desktop .titlebar .dots { display: flex; gap: 6px; margin-right: 12px; }
+  .frame-desktop .titlebar .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border-strong); }
+  .frame-mobile {
+    width: 320px; flex-shrink: 0; aspect-ratio: 390/844;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 32px; overflow: hidden;
+    position: relative;
+  }
+  .frame-mobile .notch { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 90px; height: 24px; background: #000; border-radius: 999px; z-index: 5; }
+  .frame-mobile .status { padding: 18px 20px 4px; display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--t2); }
+  .mobile-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+
+  /* landing page hero */
+  .landing-hero { padding: 56px 48px; }
+  .landing-hero h1 { font-family: var(--display); font-weight: 700; font-size: 64px; letter-spacing: -0.035em; line-height: 0.95; margin: 0 0 16px; }
+  .landing-hero h1 .tag { color: var(--siren); }
+  .landing-hero p.lede { font-size: 18px; color: var(--t2); max-width: 60ch; }
+  .landing-hero .input { margin-top: 32px; max-width: 600px; }
+  .recent-row { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+  .recent-chip { padding: 6px 12px; border: 1px solid var(--border-strong); border-radius: 999px; font-family: var(--mono); font-size: 11px; color: var(--t2); cursor: pointer; }
+  .recent-chip:hover { color: var(--t1); border-color: var(--t1); }
+  .recent-chip.safe { color: var(--safe); border-color: var(--safe); }
+  .recent-chip.review { color: var(--review); border-color: var(--review); }
+  .recent-chip.siren { color: var(--siren); border-color: var(--siren); }
+
+  /* evidence drawer */
+  .evidence-drawer { background: var(--raised); border-left: 1px solid var(--border); padding: 24px; min-width: 320px; }
+  .evidence-drawer h4 { font-family: var(--display); font-weight: 600; font-size: 14px; letter-spacing: 0.05em; margin: 0 0 8px; text-transform: uppercase; color: var(--t2); }
+  .evidence-drawer dl { display: grid; grid-template-columns: 120px 1fr; gap: 6px 14px; margin: 0 0 20px; font-family: var(--mono); font-size: 12px; }
+  .evidence-drawer dt { color: var(--t2); }
+  .evidence-drawer dd { margin: 0; color: var(--t1); word-break: break-all; }
+  .diff { background: var(--bg); border: 1px solid var(--border); border-radius: 2px; font-family: var(--mono); font-size: 11px; padding: 10px 12px; line-height: 1.55; }
+  .diff .add { color: var(--safe); }
+  .diff .rem { color: var(--siren); }
+  .diff .ctx { color: var(--t3); }
+
+  /* anti-pattern */
+  .anti-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .anti {
+    border: 1px solid var(--siren); border-radius: 4px; padding: 24px;
+    position: relative; overflow: hidden; min-height: 220px;
+    background: var(--surface);
+  }
+  .anti::before { content: "DO NOT"; position: absolute; top: 12px; right: 12px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; color: var(--siren); border: 1px solid var(--siren); padding: 2px 6px; }
+  .anti::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(135deg, transparent 49.5%, var(--siren) 49.7%, var(--siren) 50.3%, transparent 50.5%);
+    opacity: 0.4;
+  }
+  .anti h4 { font-family: var(--display); margin: 0 0 8px; font-size: 16px; }
+  .anti p { font-size: 13px; color: var(--t2); margin: 0; }
+
+  /* logo direction tile */
+  .logo-tile {
+    border: 1px solid var(--border); border-radius: 4px; padding: 32px;
+    background: var(--surface); display: flex; flex-direction: column; gap: 24px; min-height: 280px;
+  }
+  .logo-tile .lt-render { flex: 1; display: grid; place-items: center; padding: 20px 0; }
+  .logo-tile .lt-meta { font-family: var(--mono); font-size: 11px; color: var(--t2); line-height: 1.6; padding-top: 16px; border-top: 1px solid var(--border); }
+  .logo-tile.recommended { border-color: var(--accent); }
+  .logo-tile.recommended::before { content: "RECOMMENDED PRIMARY"; display: block; font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; color: var(--accent); }
+
+  /* lockups */
+  .lockup-block { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 32px; }
+  .lockup-block + .lockup-block { margin-top: 12px; }
+  .lockup-block .meta { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 11px; color: var(--t2); }
+  .lockup-stacked { display: inline-flex; flex-direction: column; gap: 6px; }
+  .lockup-stacked .name { font-family: var(--display); font-weight: 700; font-size: 36px; letter-spacing: -0.02em; }
+  .lockup-stacked .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; color: var(--t2); }
+  .lockup-horiz { display: inline-flex; align-items: baseline; gap: 16px; }
+  .lockup-horiz .name { font-family: var(--display); font-weight: 700; font-size: 32px; letter-spacing: -0.02em; }
+  .lockup-horiz .sep { width: 1px; height: 18px; background: var(--border-strong); align-self: center; }
+  .lockup-horiz .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; color: var(--t2); }
+  .lockup-condensed { display: inline-flex; align-items: baseline; gap: 8px; }
+  .lockup-condensed .name { font-family: var(--display); font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+  .lockup-condensed .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; color: var(--t2); }
+
+  /* poster */
+  .poster {
+    width: 100%; aspect-ratio: 594/841; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 2px; padding: 48px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    position: relative; overflow: hidden;
+  }
+  .poster .top-bar { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; color: var(--t2); display: flex; justify-content: space-between; }
+  .poster .big-mark { display: grid; place-items: center; flex: 1; }
+  .poster .poster-title { font-family: var(--display); font-weight: 700; font-size: clamp(40px, 6vw, 96px); line-height: 0.85; letter-spacing: -0.04em; }
+  .poster .poster-tag { font-family: var(--mono); font-size: 12px; letter-spacing: 0.18em; color: var(--siren); margin-top: 16px; }
+  .poster .footer { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; color: var(--t2); display: flex; justify-content: space-between; }
+
+  /* deck slides */
+  .slide {
+    aspect-ratio: 16/9; background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+    padding: 48px 56px; display: flex; flex-direction: column; justify-content: space-between;
+    position: relative; overflow: hidden; min-height: 300px;
+  }
+  .slide .slide-num { position: absolute; bottom: 24px; right: 32px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; color: var(--t3); }
+  .slide .slide-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; color: var(--t2); }
+  .slide h2 { font-family: var(--display); font-weight: 700; font-size: clamp(32px, 4vw, 56px); line-height: 0.95; letter-spacing: -0.025em; margin: 12px 0 0; max-width: 16ch; }
+  .slide p { font-size: 14px; color: var(--t2); max-width: 50ch; }
+  .slide.dark { background: var(--bg); }
+  .slide.paper { background: var(--paper); color: var(--ink); }
+  .slide.paper p { color: #4A4A44; }
+  .slide.paper .slide-eyebrow { color: #4A4A44; }
+  .slide.paper .slide-num { color: #7A7A72; }
+  .slide.siren {
+    background: var(--siren-surf);
+    border-color: var(--siren);
+  }
+
+  /* devfolio cover, og, x */
+  .marketing-card {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 40px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    position: relative; overflow: hidden;
+  }
+  .marketing-card .hero {
+    font-family: var(--display); font-weight: 700; line-height: 0.9; letter-spacing: -0.035em;
+  }
+
+  /* asset checklist */
+  .asset-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; }
+  .asset-table th { text-align: left; font-weight: 500; color: var(--t2); padding: 10px 12px; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+  .asset-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--t1); }
+  .asset-table .check { color: var(--safe); }
+
+  /* responsive shrink for shrunk screens */
+  @media (max-width: 700px) {
+    .verdict-card .top { flex-direction: column; }
+    .verdict-card .glyph-slot { width: 80px; height: 80px; }
+    .verdict-word { font-size: 64px; }
+    .cover { padding: 40px 24px; }
+    .cover-title { font-size: 18vw; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ SHELL ============ -->
+<div class="shell">
+
+<nav class="sidebar">
+  <div class="lockup">
+    <div class="mark">
+      <svg class="mark-tri" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="1" y="1" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <!-- check -->
+        <path d="M 6 9 L 9 12 L 14 7" stroke="#00D67A" stroke-width="2" fill="none" stroke-linecap="square"/>
+        <!-- bar (review) -->
+        <rect x="6" y="14" width="8" height="2" fill="#FFB020"/>
+        <rect x="6" y="18" width="8" height="2" fill="#FFB020"/>
+        <!-- siren bar -->
+        <rect x="6" y="23" width="8" height="3" fill="#FF3B30"/>
+        <!-- divider -->
+        <line x1="17" y1="4" x2="17" y2="28" stroke="currentColor" stroke-width="1.5"/>
+        <text x="22" y="20" font-family="Space Grotesk, sans-serif" font-weight="700" font-size="14" fill="currentColor">S</text>
+      </svg>
+      <div>
+        <div class="name">Upgrade Siren</div>
+      </div>
+    </div>
+    <div class="tag">BRAND&nbsp;MANUAL&nbsp;·&nbsp;v1.0</div>
+  </div>
+
+  <div class="group-label">Manual</div>
+  <a class="nav-link" href="#cover">Cover</a>
+  <a class="nav-link" href="#brief">01 · Strategic Brief</a>
+  <a class="nav-link" href="#logo">02 · Logo System</a>
+  <a class="nav-link" href="#lockups">03 · Wordmark + Tagline</a>
+  <a class="nav-link" href="#color">04 · Color</a>
+  <a class="nav-link" href="#type">05 · Typography</a>
+  <a class="nav-link" href="#icons">06 · Iconography</a>
+  <a class="nav-link" href="#components">07 · Components</a>
+  <a class="nav-link" href="#hero">08 · Verdict Card Hero</a>
+  <a class="nav-link" href="#screens">09 · Demo Screens</a>
+  <a class="nav-link" href="#marketing">10 · Marketing Assets</a>
+  <a class="nav-link" href="#deck">11 · Pitch Deck</a>
+  <a class="nav-link" href="#voice">12 · Voice & Tone</a>
+  <a class="nav-link" href="#anti">13 · Anti-Patterns</a>
+  <a class="nav-link" href="#exports">14 · Asset Checklist</a>
+
+  <div class="meta">
+    UPGRADE&nbsp;SIREN<br>
+    BRAND&nbsp;MANUAL&nbsp;v1.0<br>
+    DATE&nbsp;2026-05-09<br>
+    STATUS&nbsp;ETHPRAGUE&nbsp;2026<br>
+    REPO&nbsp;github.com/&hellip;<br>
+    CONTACT&nbsp;<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="107262717e745065607762717475637962757e3e756478">[email&#160;protected]</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- ============ COVER ============ -->
+<section class="cover" id="cover">
+  <div class="cover-top">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <svg width="44" height="44" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="1" y="1" width="30" height="30" fill="none" stroke="#E8EDEF" stroke-width="1.5"/>
+        <path d="M 6 9 L 9 12 L 14 7" stroke="#00D67A" stroke-width="2" fill="none" stroke-linecap="square"/>
+        <rect x="6" y="14" width="8" height="2" fill="#FFB020"/>
+        <rect x="6" y="18" width="8" height="2" fill="#FFB020"/>
+        <rect x="6" y="23" width="8" height="3" fill="#FF3B30"/>
+        <line x1="17" y1="4" x2="17" y2="28" stroke="#E8EDEF" stroke-width="1.5"/>
+        <text x="22" y="20" font-family="Space Grotesk" font-weight="700" font-size="14" fill="#E8EDEF">S</text>
+      </svg>
+      <div style="font-family:var(--mono); font-size:11px; color:var(--t2); letter-spacing:0.16em; line-height:1.6;">
+        <b style="color:var(--t1);font-weight:500">UPGRADE SIREN</b><br>
+        BRAND MANUAL · v1.0
+      </div>
+    </div>
+    <div class="cover-stamp">
+      <b>PUBLIC INFRASTRUCTURE</b><br>
+      Issue 01 · ETHPrague 2026<br>
+      Civic safety tool · No token · No paywall
+    </div>
+  </div>
+
+  <div>
+    <div style="font-family:var(--mono);font-size:13px;color:var(--t2);letter-spacing:0.18em;margin-bottom:24px;">A PUBLIC UPGRADE-RISK ALARM</div>
+    <h1 class="cover-title">Upgrade<br>Siren.</h1>
+    <div class="cover-tag"><b>NO SOURCE,</b> NO UPGRADE.</div>
+  </div>
+
+  <div class="cover-bottom">
+    <div class="meta-block">
+      <b>VERDICT IN UNDER FIVE SECONDS</b><br>
+      ENS → CHAIN → SOURCIFY → DIFF → SIGNATURE
+    </div>
+    <div class="meta-block" style="text-align:right;">
+      <b>SAFE</b>&nbsp;&nbsp;<b style="color:var(--review)">REVIEW</b>&nbsp;&nbsp;<b style="color:var(--siren)">SIREN</b><br>
+      THREE STATES · ONE GLANCE
+    </div>
+  </div>
+</section>
+
+<!-- ============ 01 STRATEGIC BRIEF ============ -->
+<section class="page" id="brief">
+  <div class="eyebrow">01 · Strategic Brief</div>
+  <h1 class="display">A smoke alarm for protocol upgrades.</h1>
+  <p class="lede">Upgrade Siren is not a SaaS product. It is a piece of public infrastructure that warns DAO voters and venture investors when a named Ethereum protocol upgrade changes what they are trusting. The brand exists to make one moment unmistakable: an ENS name resolves, the implementation flips, and the verdict turns from green to red in under five seconds.</p>
+
+  <hr>
+
+  <div class="grid-2">
+    <div>
+      <h3 class="sub">Mission</h3>
+      <p>Make proxy-upgrade risk legible to the people who actually vote and fund. Lead with evidence, not claims. Be loud when it matters, silent otherwise.</p>
+
+      <h3 class="sub">Positioning</h3>
+      <p>A public smoke alarm for Ethereum upgrades — civic, evidence-led, anti-extractive. Not an audit firm. Not a security platform. Not an agent. Just an alarm that tells you whether to trust the next click.</p>
+
+      <h3 class="sub">Audience</h3>
+      <ul class="bullets">
+        <li><b>DAO voters and delegates</b> — non-auditors deciding on upgrade proposals, often on mobile.</li>
+        <li><b>Hackathon judges and sponsors</b> — Sourcify, ENS, ETHPrague Future Society. Three-minute booth glance.</li>
+        <li><b>Wallet and explorer integrators</b> — secondary B2B, must look API-clean and embeddable.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="sub">Lead attributes</h3>
+      <ul class="bullets">
+        <li><b>Alarm clarity.</b> Verdict legible at three meters. Color paired with glyph at every size.</li>
+        <li><b>Public-good civic.</b> Reads like a fire-safety pamphlet a city would publish.</li>
+        <li><b>Security-honest.</b> Never says "trusted" or "secure". Only "verified" and "evidence-backed".</li>
+        <li><b>Live and current.</b> Every screen feels like a real-time signal, not a static report.</li>
+      </ul>
+
+      <h3 class="sub">What the brand must do</h3>
+      <ul class="bullets">
+        <li>Make the verdict triade — SAFE / REVIEW / SIREN — the single most-recognizable primitive.</li>
+        <li>Survive booth Wi-Fi and judge fatigue: the green→red flip must read across the room.</li>
+        <li>Hold up under deuteranopia and protanopia. Color alone is never the signal.</li>
+        <li>Stay civic, not corporate. Treat the manual as a public document, not marketing collateral.</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr>
+
+  <h3 class="sub">The five-second moment</h3>
+  <p>The brand-defining demo beat: a protocol name resolves through ENS, the proxy implementation changes underneath, Sourcify evidence loads, and the screen flips from green SAFE to red SIREN. <b>This is the brand.</b> Every other deliverable — type, icons, components, posters — exists to support that one motion.</p>
+</section>
+
+<!-- ============ 02 LOGO SYSTEM ============ -->
+<section class="page" id="logo">
+  <div class="eyebrow">02 · Logo System</div>
+  <h2 class="section">Three directions. One mark.</h2>
+  <p class="dim">Three logo directions were explored. Each had to answer: does it survive at favicon size, does it read at three meters, and does it carry the verdict triade without becoming a literal cartoon siren? The recommended primary is Direction A — the Triade Stack.</p>
+
+  <div class="grid-3" style="margin-top:32px;">
+
+    <!-- Direction A -->
+    <div class="logo-tile recommended">
+      <div class="lt-render">
+        <svg width="160" height="160" viewBox="0 0 32 32">
+          <rect x="1" y="1" width="30" height="30" fill="none" stroke="#E8EDEF" stroke-width="1.5"/>
+          <path d="M 6 9 L 9 12 L 14 7" stroke="#00D67A" stroke-width="2" fill="none" stroke-linecap="square"/>
+          <rect x="6" y="14" width="8" height="2" fill="#FFB020"/>
+          <rect x="6" y="18" width="8" height="2" fill="#FFB020"/>
+          <rect x="6" y="23" width="8" height="3" fill="#FF3B30"/>
+          <line x1="17" y1="4" x2="17" y2="28" stroke="#E8EDEF" stroke-width="1.5"/>
+          <text x="22" y="20" font-family="Space Grotesk" font-weight="700" font-size="14" fill="#E8EDEF">S</text>
+        </svg>
+      </div>
+      <div class="lt-meta">
+        <b style="color:var(--t1)">A · Triade Stack</b><br>
+        Three glyphs (check / bar / siren-bar) stacked beside an "S". Reads as a public-safety pictogram. Verdict triade is encoded directly in the mark.<br><br>
+        <b style="color:var(--accent)">→ Recommended primary.</b>
+      </div>
+    </div>
+
+    <!-- Direction B -->
+    <div class="logo-tile">
+      <div class="lt-render">
+        <svg width="160" height="160" viewBox="0 0 32 32">
+          <!-- Wave-S -->
+          <path d="M 6 22 Q 10 22 10 16 Q 10 10 14 10 Q 18 10 18 16 Q 18 22 22 22 Q 26 22 26 16"
+                stroke="#E8EDEF" stroke-width="2.5" fill="none" stroke-linecap="square"/>
+          <!-- alarm radiation -->
+          <path d="M 4 8 L 6 10" stroke="#FF3B30" stroke-width="1.5"/>
+          <path d="M 28 8 L 26 10" stroke="#FF3B30" stroke-width="1.5"/>
+          <path d="M 16 4 L 16 6" stroke="#FF3B30" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="lt-meta">
+        <b style="color:var(--t1)">B · Wave-S</b><br>
+        An "S" formed from a soundwave with three spark marks above. Strongest at large sizes, but the spark detail collapses below 24px. Reserved for poster-scale only.
+      </div>
+    </div>
+
+    <!-- Direction C -->
+    <div class="logo-tile">
+      <div class="lt-render">
+        <svg width="160" height="160" viewBox="0 0 32 32">
+          <!-- Beacon: square with a corner cut, signaling state-flip -->
+          <path d="M 4 4 L 28 4 L 28 22 L 22 28 L 4 28 Z" stroke="#E8EDEF" stroke-width="1.5" fill="none"/>
+          <path d="M 22 28 L 22 22 L 28 22" stroke="#FF3B30" stroke-width="1.5" fill="none"/>
+          <circle cx="11" cy="14" r="2.5" fill="#00D67A"/>
+          <circle cx="18" cy="14" r="2.5" fill="#FFB020"/>
+        </svg>
+      </div>
+      <div class="lt-meta">
+        <b style="color:var(--t1)">C · Beacon</b><br>
+        A square with a cut corner showing two lit indicators. The cut signals "state can flip". Strong concept; the concept fights legibility — too many people read it as a sticky-note.
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <h3 class="sub">Why Direction A is primary</h3>
+  <ul class="bullets">
+    <li><b>The mark is the product.</b> The verdict triade is the canonical primitive; encoding it in the mark eliminates the gap between brand and product.</li>
+    <li><b>Holds at 16×16.</b> Tested at favicon size: glyphs reduce to colored bars, the "S" stays legible.</li>
+    <li><b>Civic vocabulary.</b> Reads as a public-safety pictogram (recycle marks, accessibility marks, hazard plates), not as a tech logo.</li>
+    <li><b>Color-blind safe.</b> The three glyph shapes are distinct under deuteranopia and protanopia.</li>
+  </ul>
+
+  <hr>
+
+  <h3 class="sub">Variants</h3>
+  <div class="grid-4">
+    <div class="logo-tile" style="min-height:auto;">
+      <div class="lt-render"><svg width="100" height="100" viewBox="0 0 32 32"><rect x="1" y="1" width="30" height="30" fill="none" stroke="#E8EDEF" stroke-width="1.5"/><path d="M 6 9 L 9 12 L 14 7" stroke="#00D67A" stroke-width="2" fill="none" stroke-linecap="square"/><rect x="6" y="14" width="8" height="2" fill="#FFB020"/><rect x="6" y="18" width="8" height="2" fill="#FFB020"/><rect x="6" y="23" width="8" height="3" fill="#FF3B30"/><line x1="17" y1="4" x2="17" y2="28" stroke="#E8EDEF" stroke-width="1.5"/><text x="22" y="20" font-family="Space Grotesk" font-weight="700" font-size="14" fill="#E8EDEF">S</text></svg></div>
+      <div class="lt-meta"><b style="color:var(--t1)">Mark · square</b><br>For favicons, avatars, app icons. Min 16×16.</div>
+    </div>
+    <div class="logo-tile" style="min-height:auto;background:var(--paper);color:var(--ink);">
+      <div class="lt-render"><svg width="100" height="100" viewBox="0 0 32 32"><rect x="1" y="1" width="30" height="30" fill="none" stroke="#0A0E10" stroke-width="1.5"/><path d="M 6 9 L 9 12 L 14 7" stroke="#00703F" stroke-width="2" fill="none" stroke-linecap="square"/><rect x="6" y="14" width="8" height="2" fill="#8E4400"/><rect x="6" y="18" width="8" height="2" fill="#8E4400"/><rect x="6" y="23" width="8" height="3" fill="#B9140C"/><line x1="17" y1="4" x2="17" y2="28" stroke="#0A0E10" stroke-width="1.5"/><text x="22" y="20" font-family="Space Grotesk" font-weight="700" font-size="14" fill="#0A0E10">S</text></svg></div>
+      <div class="lt-meta" style="color:#4A4A44;border-color:#D9D9D2;"><b style="color:#0A0E10">Mark · light mode</b><br>Verdict colors shift to AA-on-light tokens.</div>
+    </div>
+    <div class="logo-tile" style="min-height:auto;">
+      <div class="lt-render"><svg width="100" height="100" viewBox="0 0 32 32"><rect x="1" y="1" width="30" height="30" fill="none" stroke="#E8EDEF" stroke-width="1.5"/><path d="M 6 9 L 9 12 L 14 7" stroke="#E8EDEF" stroke-width="2" fill="none" stroke-linecap="square"/><rect x="6" y="14" width="8" height="2" fill="#E8EDEF"/><rect x="6" y="18" width="8" height="2" fill="#E8EDEF"/><rect x="6" y="23" width="8" height="3" fill="#E8EDEF"/><line x1="17" y1="4" x2="17" y2="28" stroke="#E8EDEF" stroke-width="1.5"/><text x="22" y="20" font-family="Space Grotesk" font-weight="700" font-size="14" fill="#E8EDEF">S</text></svg></div>
+      <div class="lt-meta"><b style="color:var(--t1)">Mark · monochrome</b><br>Single-ink: print, embossing, single-color etch.</div>
+    </div>
+    <div class="logo-tile" style="min-height:auto;">
+      <div class="lt-render" style="display:flex;justify-content:center;"><div style="font-family:var(--display);font-weight:700;font-size:32px;letter-spacing:-0.02em;">Upgrade Siren</div></div>
+      <div class="lt-meta"><b style="color:var(--t1)">Wordmark · horizontal</b><br>Headers, navigation, footers. Min height 16px.</div>
+    </div>
+  </div>
+
+  <hr>
+
+  <h3 class="sub">Clear space &amp; minimum sizes</h3>
+  <p>Clear space equals one full glyph-row of the mark on every side. Minimum sizes: <code>mark</code> 16px square (digital), 8mm (print). <code>wordmark</code> 16px height (digital), 12mm (print). <code>lockup with tagline</code> 24px height (digital), 18mm (print). Below these, drop to the mark only.</p>
+</section>
+
+<!-- ============ 03 LOCKUPS ============ -->
+<section class="page" id="lockups">
+  <div class="eyebrow">03 · Wordmark + Tagline Lockups</div>
+  <h2 class="section">"No source, no upgrade." is part of the mark.</h2>
+  <p class="dim">The tagline is protected. Do not edit, replace, translate, or shorten it. Three lockup forms are approved. Anything else requires brand review.</p>
+
+  <div class="lockup-block">
+    <div class="lockup-stacked">
+      <div class="name">Upgrade Siren</div>
+      <div class="tag">NO&nbsp;SOURCE,&nbsp;NO&nbsp;UPGRADE.</div>
+    </div>
+    <div class="meta">STACKED · use for posters, social cards, deck title slides. Tagline tracking 0.16em, size = 0.32× wordmark cap-height.</div>
+  </div>
+
+  <div class="lockup-block">
+    <div class="lockup-horiz">
+      <div class="name">Upgrade Siren</div>
+      <div class="sep"></div>
+      <div class="tag">NO&nbsp;SOURCE,&nbsp;NO&nbsp;UPGRADE.</div>
+    </div>
+    <div class="meta">HORIZONTAL · use for headers, email signatures, narrow horizontal banners. 1px divider in <code>--border-strong</code>, 16px gap each side.</div>
+  </div>
+
+  <div class="lockup-block">
+    <div class="lockup-condensed">
+      <div class="name">Upgrade&nbsp;Siren</div>
+      <div class="tag">·&nbsp;NO&nbsp;SOURCE,&nbsp;NO&nbsp;UPGRADE.</div>
+    </div>
+    <div class="meta">CONDENSED · single-line, 18px wordmark + 11px tagline. For dense UI bars and footers only.</div>
+  </div>
+</section>
+
+<!-- ============ 04 COLOR ============ -->
+<section class="page" id="color">
+  <div class="eyebrow">04 · Color</div>
+  <h2 class="section">The verdict triade is the palette.</h2>
+  <p class="dim">Three verdict colors carry the system. Everything else is a quiet neutral whose only job is to let the verdict speak. Dark mode is canonical; light mode is a respectful alternative.</p>
+
+  <h3 class="sub">Verdict tokens</h3>
+  <div class="grid-3">
+    <div class="swatch">
+      <div class="chip" style="background:#00D67A;color:#062A1B;">SAFE</div>
+      <div class="meta">
+        <div class="row"><span>token</span><b>verdict-safe</b></div>
+        <div class="row"><span>hex</span><b>#00D67A</b></div>
+        <div class="row"><span>hsl</span><b>152 100% 42%</b></div>
+        <div class="row"><span>on-light</span><b>#00703F</b></div>
+        <div class="row"><span>vs #0A0E10</span><b class="pass">9.4 : 1 · AAA</b></div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="chip" style="background:#FFB020;color:#2A1C00;">REVIEW</div>
+      <div class="meta">
+        <div class="row"><span>token</span><b>verdict-review</b></div>
+        <div class="row"><span>hex</span><b>#FFB020</b></div>
+        <div class="row"><span>hsl</span><b>39 100% 56%</b></div>
+        <div class="row"><span>on-light</span><b>#8E4400</b></div>
+        <div class="row"><span>vs #0A0E10</span><b class="pass">10.3 : 1 · AAA</b></div>
+      </div>
+    </div>
+    <div class="swatch">
+      <div class="chip" style="background:#FF3B30;color:#2D0B09;">SIREN</div>
+      <div class="meta">
+        <div class="row"><span>token</span><b>verdict-siren</b></div>
+        <div class="row"><span>hex</span><b>#FF3B30</b></div>
+        <div class="row"><span>hsl</span><b>3 100% 59%</b></div>
+        <div class="row"><span>on-light</span><b>#B9140C</b></div>
+        <div class="row"><span>vs #0A0E10</span><b class="pass">6.3 : 1 · AA</b></div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub">Neutrals · dark (canonical)</h3>
+  <div class="ramp">
+    <div class="step" style="background:#0A0E10;color:#E8EDEF;"><span class="name">bg</span><b>#0A0E10</b></div>
+    <div class="step" style="background:#14191C;color:#E8EDEF;"><span class="name">surface</span><b>#14191C</b></div>
+    <div class="step" style="background:#1B2125;color:#E8EDEF;"><span class="name">raised</span><b>#1B2125</b></div>
+    <div class="step" style="background:#232A2F;color:#E8EDEF;"><span class="name">border</span><b>#232A2F</b></div>
+    <div class="step" style="background:#39434A;color:#E8EDEF;"><span class="name">border-strong</span><b>#39434A</b></div>
+  </div>
+  <div class="ramp" style="margin-top:8px;">
+    <div class="step" style="background:#5C6770;color:#0A0E10;"><span class="name">text-tertiary</span><b>#5C6770</b></div>
+    <div class="step" style="background:#8B969C;color:#0A0E10;"><span class="name">text-secondary</span><b>#8B969C</b></div>
+    <div class="step" style="background:#E8EDEF;color:#0A0E10;"><span class="name">text-primary</span><b>#E8EDEF</b></div>
+    <div class="step" style="background:#00B8D9;color:#0A0E10;"><span class="name">accent (cyan)</span><b>#00B8D9</b></div>
+    <div class="step" style="background:#FAFAF8;color:#0A0E10;"><span class="name">paper</span><b>#FAFAF8</b></div>
+  </div>
+
+  <h3 class="sub">WCAG AA contrast — text on background</h3>
+  <table class="contrast-table">
+    <thead><tr><th>Pair</th><th>Ratio</th><th>Normal text</th><th>Large text</th></tr></thead>
+    <tbody>
+      <tr><td>text-primary <code>#E8EDEF</code> on bg <code>#0A0E10</code></td><td>14.7 : 1</td><td class="pass">AAA</td><td class="pass">AAA</td></tr>
+      <tr><td>text-secondary <code>#8B969C</code> on bg <code>#0A0E10</code></td><td>5.6 : 1</td><td class="pass">AA</td><td class="pass">AAA</td></tr>
+      <tr><td>verdict-safe <code>#00D67A</code> on bg <code>#0A0E10</code></td><td>9.4 : 1</td><td class="pass">AAA</td><td class="pass">AAA</td></tr>
+      <tr><td>verdict-review <code>#FFB020</code> on bg <code>#0A0E10</code></td><td>10.3 : 1</td><td class="pass">AAA</td><td class="pass">AAA</td></tr>
+      <tr><td>verdict-siren <code>#FF3B30</code> on bg <code>#0A0E10</code></td><td>6.3 : 1</td><td class="pass">AA</td><td class="pass">AAA</td></tr>
+      <tr><td>accent <code>#00B8D9</code> on bg <code>#0A0E10</code></td><td>9.0 : 1</td><td class="pass">AAA</td><td class="pass">AAA</td></tr>
+      <tr><td>safe-on-light <code>#00703F</code> on paper <code>#FAFAF8</code></td><td>5.3 : 1</td><td class="pass">AA</td><td class="pass">AAA</td></tr>
+      <tr><td>review-on-light <code>#8E4400</code> on paper <code>#FAFAF8</code></td><td>8.4 : 1</td><td class="pass">AAA</td><td class="pass">AAA</td></tr>
+      <tr><td>siren-on-light <code>#B9140C</code> on paper <code>#FAFAF8</code></td><td>8.1 : 1</td><td class="pass">AAA</td><td class="pass">AAA</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="sub">Color-blind simulation report</h3>
+  <p>Verdict colors were checked under simulated <b>deuteranopia</b> (red-green) and <b>protanopia</b> (red-weak). Findings:</p>
+  <ul class="bullets">
+    <li>Under deuteranopia, <code>verdict-safe</code> shifts toward dull yellow-green and <code>verdict-review</code> shifts toward muddy yellow — the two are visually similar at small sizes.</li>
+    <li>Under protanopia, <code>verdict-siren</code> darkens significantly — it remains distinct from <code>verdict-review</code>, but loses alarm "punch" without motion or glyph reinforcement.</li>
+    <li><b>Mitigation (mandatory).</b> Every verdict color is paired with a unique glyph shape: <span style="color:var(--safe)">✓ check</span>, <span style="color:var(--review)">▤ horizontal bars</span>, <span style="color:var(--siren)">▮ vertical alarm bar</span>. The system never renders a verdict color without its glyph.</li>
+    <li>The SIREN state additionally pulses (1.1s ease-in-out, single play) to signal alarm via motion, not just hue.</li>
+  </ul>
+
+  <h3 class="sub">Accent justification — cyan over electric blue</h3>
+  <p>The accent (<code>#00B8D9</code>) is reserved exclusively for resolved ENS names and active links. Cyan was chosen over the more common electric blue for two reasons. First, electric blue is the default "web3" hue; using it would code Upgrade Siren into a category we explicitly reject. Second, cyan sits cleanly outside the red-amber-green verdict triade in hue space, eliminating any chance of misreading a link as a verdict.</p>
+
+  <h3 class="sub">Verdict surface tints</h3>
+  <p>For full-bleed verdict states the body uses a deeply desaturated tint at ~6% lightness:</p>
+  <div class="grid-3">
+    <div class="swatch"><div class="chip" style="background:#062A1B;color:#00D67A;">safe-surface</div><div class="meta"><div class="row"><span>hex</span><b>#062A1B</b></div></div></div>
+    <div class="swatch"><div class="chip" style="background:#2A1C00;color:#FFB020;">review-surface</div><div class="meta"><div class="row"><span>hex</span><b>#2A1C00</b></div></div></div>
+    <div class="swatch"><div class="chip" style="background:#2D0B09;color:#FF3B30;">siren-surface</div><div class="meta"><div class="row"><span>hex</span><b>#2D0B09</b></div></div></div>
+  </div>
+</section>
+
+<!-- ============ 05 TYPOGRAPHY ============ -->
+<section class="page" id="type">
+  <div class="eyebrow">05 · Typography</div>
+  <h2 class="section">Three faces. One job each.</h2>
+  <p class="dim">Display sets the verdict word. Body holds the evidence drawer copy. Mono carries the addresses, hashes, and machine-truth strings. Nothing else gets a typeface.</p>
+
+  <div class="specimen">
+    <div style="font-family:var(--display);font-weight:700;font-size:96px;letter-spacing:-0.04em;line-height:0.95;">SIREN</div>
+    <div class="spec-meta">
+      <span><b style="color:var(--t1)">Display</b> · Space Grotesk</span>
+      <span>Weights · 500 / 600 / 700</span>
+      <span>Optical · 24–120px</span>
+      <span>Tracking · −0.04em at 96px</span>
+      <span>Fallback · ui-sans-serif, system-ui</span>
+    </div>
+  </div>
+
+  <div class="specimen">
+    <div style="font-family:var(--body);font-size:18px;line-height:1.5;color:var(--t1);max-width:60ch;">The implementation behind <span style="color:var(--accent);font-family:var(--mono);">vault.demo.upgradesiren.eth</span> changed from <span style="font-family:var(--mono);">0x9d39…</span> to <span style="font-family:var(--mono);">0x4f01…</span>. Verdict from public chain state: <b style="color:var(--siren)">SIREN</b> — admin role rotation detected, no operator signature attached.</div>
+    <div class="spec-meta">
+      <span><b style="color:var(--t1)">Body</b> · Inter</span>
+      <span>Weights · 400 / 500 / 600</span>
+      <span>Body size · 16px</span>
+      <span>Line-height · 1.5</span>
+      <span>Fallback · ui-sans-serif, system-ui</span>
+    </div>
+  </div>
+
+  <div class="specimen">
+    <div style="font-family:var(--mono);font-size:14px;color:var(--t2);line-height:1.6;">
+      proxy:&nbsp;0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48<br>
+      impl:&nbsp;&nbsp;0x4F01F92Bb2A1e7Cf9B93b9ddee85bf4D0a4cD8b3<br>
+      diff:&nbsp;&nbsp;<span style="color:var(--siren)">+ admin = 0x9d39…</span><br>
+      sig:&nbsp;&nbsp;&nbsp;<span style="color:var(--review)">none</span>
+    </div>
+    <div class="spec-meta">
+      <span><b style="color:var(--t1)">Mono</b> · JetBrains Mono</span>
+      <span>Weights · 400 / 500 / 700</span>
+      <span>Used for · addresses, hashes, code, labels</span>
+      <span>Fallback · ui-monospace, SFMono-Regular, Menlo</span>
+    </div>
+  </div>
+
+  <h3 class="sub">Type scale</h3>
+  <table class="scale-table">
+    <thead><tr><th>token</th><th>size</th><th>line</th><th>tracking</th><th>weight</th><th>specimen</th></tr></thead>
+    <tbody>
+      <tr><td>verdict-display</td><td>96 / 120</td><td>0.95</td><td>−0.04em</td><td>700</td><td><span class="demo-cell" style="font-family:var(--display);font-weight:700;font-size:36px;letter-spacing:-0.04em;">SIREN</span></td></tr>
+      <tr><td>h1</td><td>56</td><td>1.05</td><td>−0.02em</td><td>600</td><td><span class="demo-cell" style="font-family:var(--display);font-weight:600;font-size:24px;letter-spacing:-0.02em;">Verdict in five seconds</span></td></tr>
+      <tr><td>h2</td><td>36</td><td>1.10</td><td>−0.015em</td><td>600</td><td><span class="demo-cell" style="font-family:var(--display);font-weight:600;font-size:18px;">Section header</span></td></tr>
+      <tr><td>h3</td><td>24</td><td>1.20</td><td>−0.01em</td><td>600</td><td><span class="demo-cell" style="font-family:var(--display);font-weight:600;font-size:16px;">Subhead</span></td></tr>
+      <tr><td>subhead</td><td>18</td><td>1.35</td><td>0</td><td>500</td><td><span class="demo-cell" style="font-family:var(--body);font-weight:500;font-size:15px;">Subhead body</span></td></tr>
+      <tr><td>body</td><td>16</td><td>1.50</td><td>0</td><td>400</td><td><span class="demo-cell" style="font-family:var(--body);font-size:14px;">Default reading text</span></td></tr>
+      <tr><td>caption</td><td>13</td><td>1.40</td><td>0.01em</td><td>500</td><td><span class="demo-cell" style="font-family:var(--body);font-weight:500;font-size:12px;">Caption / helper</span></td></tr>
+      <tr><td>mono</td><td>14</td><td>1.45</td><td>0</td><td>400</td><td><span class="demo-cell" style="font-family:var(--mono);font-size:13px;">0x4F01…cD8b3</span></td></tr>
+      <tr><td>label</td><td>11</td><td>1.20</td><td>0.12em</td><td>600 / UPPER</td><td><span class="demo-cell" style="font-family:var(--mono);font-size:11px;letter-spacing:0.12em;font-weight:600;">VERDICT&nbsp;TRIADE</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ 06 ICONS ============ -->
+<section class="page" id="icons">
+  <div class="eyebrow">06 · Iconography</div>
+  <h2 class="section">1.5px stroke. No fill. No duotone.</h2>
+  <p class="dim">Icons are functional, not decorative. 16 / 24 / 32 grid. 1.5px stroke (1px at 16). 1px corner radius. No gradients, no fills (except verdict glyphs), no skeuomorphic shadow.</p>
+
+  <h3 class="sub">Verdict glyphs</h3>
+  <div class="grid-3" style="margin-top:8px;">
+    <div class="comp" style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#00D67A" stroke-width="2" stroke-linecap="square">
+        <path d="M 4 12 L 10 18 L 20 6"/>
+      </svg>
+      <div class="meta-line"><b style="color:var(--safe)">SAFE</b> · check</div>
+    </div>
+    <div class="comp" style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#FFB020" stroke-width="2.5" stroke-linecap="square">
+        <line x1="4" y1="8" x2="20" y2="8"/>
+        <line x1="4" y1="14" x2="20" y2="14"/>
+        <line x1="4" y1="20" x2="20" y2="20"/>
+      </svg>
+      <div class="meta-line"><b style="color:var(--review)">REVIEW</b> · horizontal bars</div>
+    </div>
+    <div class="comp" style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="#FF3B30" stroke="none">
+        <rect x="9" y="4" width="6" height="13"/>
+        <rect x="9" y="19" width="6" height="3"/>
+      </svg>
+      <div class="meta-line"><b style="color:var(--siren)">SIREN</b> · vertical alarm bar</div>
+    </div>
+  </div>
+
+  <h3 class="sub">UI icons</h3>
+  <div class="icon-grid">
+    <!-- ENS -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--t1)">
+        <path d="M 6 4 L 6 20 L 18 12 Z"/><path d="M 6 12 L 18 4 L 18 20"/>
+      </svg>
+      <div class="icon-name">ens-evidence</div>
+    </div>
+    <!-- Sourcify -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--t1)">
+        <rect x="4" y="4" width="16" height="16" rx="1"/>
+        <path d="M 8 9 L 11 12 L 8 15"/><line x1="13" y1="15" x2="16" y2="15"/>
+      </svg>
+      <div class="icon-name">sourcify-evidence</div>
+    </div>
+    <!-- EIP-1967 -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--t1)">
+        <path d="M 12 3 L 21 8 L 12 13 L 3 8 Z"/><path d="M 3 14 L 12 19 L 21 14"/>
+      </svg>
+      <div class="icon-name">eip-1967-slot</div>
+    </div>
+    <!-- Signed -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--safe)">
+        <path d="M 4 13 L 9 18 L 20 6"/><path d="M 4 6 L 8 6"/>
+      </svg>
+      <div class="icon-name">sig-signed</div>
+    </div>
+    <!-- Unsigned -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--review)">
+        <path d="M 4 13 L 9 18 L 20 6" stroke-dasharray="2 2"/>
+      </svg>
+      <div class="icon-name">sig-unsigned</div>
+    </div>
+    <!-- Sig invalid -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--siren)">
+        <path d="M 4 13 L 9 18 L 20 6"/><line x1="4" y1="20" x2="20" y2="4"/>
+      </svg>
+      <div class="icon-name">sig-invalid</div>
+    </div>
+    <!-- signed manifest -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--t1)">
+        <rect x="4" y="3" width="14" height="18"/><path d="M 8 8 L 14 8"/><path d="M 8 12 L 14 12"/><circle cx="18" cy="18" r="3"/>
+      </svg>
+      <div class="icon-name">conf-signed-manifest</div>
+    </div>
+    <!-- public read -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--t1)">
+        <circle cx="12" cy="12" r="9"/><path d="M 3 12 L 21 12"/><path d="M 12 3 Q 17 12 12 21 Q 7 12 12 3"/>
+      </svg>
+      <div class="icon-name">conf-public-read</div>
+    </div>
+    <!-- mock -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--review)">
+        <rect x="4" y="4" width="16" height="16" stroke-dasharray="3 3"/><text x="12" y="16" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="currentColor" stroke="none">M</text>
+      </svg>
+      <div class="icon-name">conf-mock</div>
+    </div>
+    <!-- pending -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--t2)">
+        <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="9" stroke-dasharray="14 4" stroke-linecap="square"/>
+      </svg>
+      <div class="icon-name">step-pending</div>
+    </div>
+    <!-- success -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--safe)">
+        <circle cx="12" cy="12" r="9"/><path d="M 8 12 L 11 15 L 16 9"/>
+      </svg>
+      <div class="icon-name">step-success</div>
+    </div>
+    <!-- failure -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--siren)">
+        <circle cx="12" cy="12" r="9"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/>
+      </svg>
+      <div class="icon-name">step-failure</div>
+    </div>
+    <!-- copy -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--t1)">
+        <rect x="8" y="8" width="12" height="12"/><path d="M 4 16 L 4 4 L 16 4"/>
+      </svg>
+      <div class="icon-name">copy</div>
+    </div>
+    <!-- share -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--t1)">
+        <circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/>
+        <path d="M 8 11 L 16 7"/><path d="M 8 13 L 16 17"/>
+      </svg>
+      <div class="icon-name">share</div>
+    </div>
+    <!-- expand -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--t1)">
+        <path d="M 4 9 L 4 4 L 9 4"/><path d="M 20 9 L 20 4 L 15 4"/><path d="M 4 15 L 4 20 L 9 20"/><path d="M 20 15 L 20 20 L 15 20"/>
+      </svg>
+      <div class="icon-name">expand</div>
+    </div>
+    <!-- external -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--t1)">
+        <path d="M 14 4 L 20 4 L 20 10"/><path d="M 20 4 L 11 13"/><path d="M 18 14 L 18 20 L 4 20 L 4 6 L 10 6"/>
+      </svg>
+      <div class="icon-name">external-link</div>
+    </div>
+    <!-- info -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--t1)">
+        <circle cx="12" cy="12" r="9"/><circle cx="12" cy="8" r="0.6" fill="currentColor"/><line x1="12" y1="11" x2="12" y2="17"/>
+      </svg>
+      <div class="icon-name">info</div>
+    </div>
+    <!-- alert -->
+    <div class="icon-cell">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--siren)">
+        <path d="M 12 3 L 21 20 L 3 20 Z"/><line x1="12" y1="10" x2="12" y2="15"/><circle cx="12" cy="17.5" r="0.6" fill="currentColor"/>
+      </svg>
+      <div class="icon-name">alert</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 07 COMPONENTS ============ -->
+<section class="page" id="components">
+  <div class="eyebrow">07 · Component Library</div>
+  <h2 class="section">Components, every state.</h2>
+  <p class="dim">Default, hover, focus, disabled, loading, error. Where a component has product-specific states (signed / unsigned / invalid; signed-manifest / public-read / mock), each is shown explicitly.</p>
+
+  <!-- Buttons -->
+  <div class="comp">
+    <div class="comp-title">Button · primary / ghost / danger / disabled</div>
+    <div class="states">
+      <div class="state-tile"><div class="state-label">Default</div><button class="btn-base primary">Resolve ENS</button></div>
+      <div class="state-tile"><div class="state-label">Hover</div><button class="btn-base primary" style="filter:brightness(1.05);transform:translateY(-1px);">Resolve ENS</button></div>
+      <div class="state-tile"><div class="state-label">Focus</div><button class="btn-base primary" style="outline:2px solid var(--accent);outline-offset:2px;">Resolve ENS</button></div>
+      <div class="state-tile"><div class="state-label">Disabled</div><button class="btn-base primary" disabled style="background:var(--surface);color:var(--t3);border-color:var(--border);">Resolve ENS</button></div>
+      <div class="state-tile"><div class="state-label">Ghost</div><button class="btn-base ghost">View evidence</button></div>
+      <div class="state-tile"><div class="state-label">Danger</div><button class="btn-base danger">Block upgrade</button></div>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="comp">
+    <div class="comp-title">ENS lookup input · default / focus / loading / error</div>
+    <div class="states">
+      <div class="state-tile"><div class="state-label">Default</div><div class="input"><span class="prefix">→</span><input value="vault.demo.upgradesiren.eth"></div></div>
+      <div class="state-tile"><div class="state-label">Focus</div><div class="input focus"><span class="prefix" style="color:var(--accent)">→</span><input value="vault.demo.upgradesiren.eth"></div></div>
+      <div class="state-tile"><div class="state-label">Loading</div><div class="input"><span class="prefix">→</span><input value="vault.demo.upgradesiren.eth"><span style="font-family:var(--mono);font-size:11px;color:var(--t2)">RESOLVING…</span></div></div>
+      <div class="state-tile"><div class="state-label">Error</div><div class="input error"><span class="prefix" style="color:var(--siren)">→</span><input value="not-a-name"><span style="font-family:var(--mono);font-size:11px;color:var(--siren)">NXDOMAIN</span></div></div>
+    </div>
+  </div>
+
+  <!-- Signature status -->
+  <div class="comp">
+    <div class="comp-title">Signature status badge · signed / unsigned / signature-invalid</div>
+    <div class="states">
+      <div class="state-tile"><div class="state-label">Signed</div><span class="pill signed"><span class="dot" style="background:currentColor;width:6px;height:6px;border-radius:50%;"></span>SIGNED&nbsp;BY&nbsp;0x9d39…</span></div>
+      <div class="state-tile"><div class="state-label">Unsigned</div><span class="pill unsigned">NO&nbsp;OPERATOR&nbsp;SIGNATURE</span></div>
+      <div class="state-tile"><div class="state-label">Invalid</div><span class="pill invalid">SIGNATURE&nbsp;DOES&nbsp;NOT&nbsp;MATCH&nbsp;OWNER</span></div>
+    </div>
+  </div>
+
+  <!-- Confidence mode -->
+  <div class="comp">
+    <div class="comp-title">Confidence mode badge · signed-manifest / public-read / mock</div>
+    <div class="states">
+      <div class="state-tile"><div class="state-label">Signed-manifest</div><span class="pill" style="color:var(--t1);border-color:var(--t1)">SIGNED-MANIFEST</span></div>
+      <div class="state-tile"><div class="state-label">Public-read</div><span class="pill" style="color:var(--accent);border-color:var(--accent)">PUBLIC-READ&nbsp;FALLBACK</span></div>
+      <div class="state-tile"><div class="state-label">Mock</div><span class="pill" style="color:var(--review);border-color:var(--review)">MOCK&nbsp;·&nbsp;DEMO</span></div>
+    </div>
+  </div>
+
+  <!-- Mock banner -->
+  <div class="comp">
+    <div class="comp-title">Mock banner · viewport-wide when any path is mocked</div>
+    <div class="mock-banner">MOCK&nbsp;DATA&nbsp;·&nbsp;NOT&nbsp;A&nbsp;LIVE&nbsp;PRODUCTION&nbsp;VERDICT</div>
+  </div>
+
+  <!-- Progressive checklist -->
+  <div class="comp">
+    <div class="comp-title">Progressive loading checklist · 5-second budget</div>
+    <div class="checklist">
+      <div class="row done"><span class="step-glyph"></span><span class="label-cell">ENS · resolve <code>vault.demo.upgradesiren.eth</code></span><span class="ms">+184 ms</span></div>
+      <div class="row done"><span class="step-glyph"></span><span class="label-cell">CHAIN · read EIP-1967 implementation slot</span><span class="ms">+612 ms</span></div>
+      <div class="row done"><span class="step-glyph"></span><span class="label-cell">SOURCIFY · fetch verified metadata</span><span class="ms">+1 248 ms</span></div>
+      <div class="row done"><span class="step-glyph"></span><span class="label-cell">DIFF · compare ABI &amp; storage layout</span><span class="ms">+2 940 ms</span></div>
+      <div class="row fail"><span class="step-glyph"></span><span class="label-cell">SIGNATURE · operator manifest signature</span><span class="ms">+3 015 ms</span></div>
+    </div>
+  </div>
+
+  <!-- Verdict card spec -->
+  <div class="comp">
+    <div class="comp-title">Verdict card · default state spec</div>
+    <div class="verdict-card state-review">
+      <div class="top">
+        <div class="glyph-slot">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square">
+            <line x1="4" y1="8" x2="20" y2="8"/><line x1="4" y1="14" x2="20" y2="14"/><line x1="4" y1="20" x2="20" y2="20"/>
+          </svg>
+        </div>
+        <div class="verdict-meta">
+          <div class="label">VERDICT&nbsp;·&nbsp;PUBLIC-READ&nbsp;FALLBACK</div>
+          <h3 class="verdict-word" style="font-size:64px;">REVIEW</h3>
+          <div class="protocol"><b>aave-v3-pool.eth</b> · 0xA0b8…eB48</div>
+          <div class="verdict-summary">Implementation changed yesterday. ABI compatible. Storage layout compatible. No <code>upgrade-siren:*</code> records found — fallback verdict from public chain state only.</div>
+        </div>
+      </div>
+      <div class="badges">
+        <span class="pill unsigned">NO&nbsp;OPERATOR&nbsp;SIGNATURE</span>
+        <span class="pill" style="color:var(--accent);border-color:var(--accent)">PUBLIC-READ&nbsp;FALLBACK</span>
+        <span class="pill">+2 PROXY HOPS</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Evidence drawer -->
+  <div class="comp">
+    <div class="comp-title">Evidence drawer · expanded</div>
+    <div class="evidence-drawer">
+      <h4>Evidence</h4>
+      <dl>
+        <dt>ENS name</dt><dd style="color:var(--accent)">vault.demo.upgradesiren.eth</dd>
+        <dt>proxy</dt><dd>0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48</dd>
+        <dt>impl (was)</dt><dd>0x9d39…1f7a</dd>
+        <dt>impl (now)</dt><dd>0x4F01…cD8b3</dd>
+        <dt>sourcify</dt><dd>full match · sourcify.dev/#/lookup/0x4F01…</dd>
+        <dt>signed by</dt><dd style="color:var(--siren)">— none —</dd>
+      </dl>
+      <h4>ABI diff</h4>
+      <pre class="diff"><span class="ctx">  function deposit(uint256, address)</span>
+<span class="rem">- function setAdmin(address) onlyOwner</span>
+<span class="add">+ function setAdmin(address) onlyRole(EMERG)</span>
+<span class="rem">- event Upgraded(address indexed)</span>
+<span class="add">+ event Upgraded(address indexed, bytes32)</span></pre>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="comp">
+    <div class="comp-title">Empty state · no <code>upgrade-siren:*</code> ENS records</div>
+    <div style="border:1px dashed var(--border-strong); border-radius:4px; padding:32px; text-align:center; background:var(--bg);">
+      <div class="label" style="color:var(--accent);margin-bottom:12px;">PUBLIC-READ FALLBACK</div>
+      <h3 style="font-family:var(--display);font-weight:600;margin:0 0 8px;font-size:22px;">No upgrade-siren records on this name.</h3>
+      <p style="color:var(--t2);max-width:50ch;margin:0 auto;">We can still verify chain state, but the operator has not published a signed manifest. Verdict comes from public sources only and will not include policy claims.</p>
+      <div style="margin-top:20px;"><button class="btn-base">Continue with public-read</button></div>
+    </div>
+  </div>
+
+  <!-- Error states -->
+  <div class="comp">
+    <div class="comp-title">Error states · RPC down / Sourcify down / malformed manifest / unsigned-in-prod</div>
+    <div class="states">
+      <div class="state-tile"><div class="state-label">RPC down</div><div style="color:var(--siren);font-family:var(--mono);font-size:12px;">CHAIN · provider unreachable</div><div style="font-size:13px;color:var(--t2);margin-top:6px;">Cached verdict shown. Retry or switch RPC.</div></div>
+      <div class="state-tile"><div class="state-label">Sourcify down</div><div style="color:var(--review);font-family:var(--mono);font-size:12px;">SOURCIFY · 503</div><div style="font-size:13px;color:var(--t2);margin-top:6px;">Falling back to bytecode-only diff.</div></div>
+      <div class="state-tile"><div class="state-label">Malformed manifest</div><div style="color:var(--siren);font-family:var(--mono);font-size:12px;">MANIFEST · invalid JSON at line 12</div><div style="font-size:13px;color:var(--t2);margin-top:6px;">Treated as no manifest. Public-read only.</div></div>
+      <div class="state-tile"><div class="state-label">Unsigned in prod</div><div style="color:var(--siren);font-family:var(--mono);font-size:12px;">SIREN · production manifest unsigned</div><div style="font-size:13px;color:var(--t2);margin-top:6px;">Verdict locked to SIREN until signed.</div></div>
+    </div>
+  </div>
+
+  <!-- Governance comment generator -->
+  <div class="comp">
+    <div class="comp-title">Governance comment generator · short / forum / vote-reason</div>
+    <div class="gov-tabs">
+      <div class="tab active">SHORT</div>
+      <div class="tab">FORUM</div>
+      <div class="tab">VOTE-REASON</div>
+    </div>
+    <div class="gov">SIREN on <span style="color:var(--accent)">vault.demo.upgradesiren.eth</span>. Implementation flipped to <span style="color:var(--siren)">0x4F01…cD8b3</span> with admin role rotation, no operator signature. Evidence: upgradesiren.eth/v/0xA0b8…eB48</div>
+    <div class="gov">## Verdict: SIREN
+
+The implementation behind <span style="color:var(--accent)">vault.demo.upgradesiren.eth</span> changed from 0x9d39…1f7a to 0x4F01…cD8b3 in tx 0x612d… The ABI diff includes admin role rotation; storage layout is compatible. No operator signature is attached to the upgrade-siren manifest.
+
+I am voting **NO** until a signed manifest accompanies the upgrade.
+
+— Evidence (signed): https://upgradesiren.eth/v/0xA0b8…eB48</div>
+  </div>
+
+  <!-- Demo scenario picker -->
+  <div class="comp">
+    <div class="comp-title">Demo scenario picker · booth control</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="recent-chip safe">vault.demo.upgradesiren.eth · SAFE</button>
+      <button class="recent-chip review">aave-v3-pool.eth · REVIEW</button>
+      <button class="recent-chip siren">drained.demo.upgradesiren.eth · SIREN</button>
+      <button class="recent-chip">unverified.demo.upgradesiren.eth · empty</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 08 VERDICT CARD HERO ============ -->
+<section class="page" id="hero">
+  <div class="eyebrow">08 · Verdict Card Hero · The Five-Second Moment</div>
+  <h2 class="section">Press <kbd style="font-family:var(--mono);font-size:11px;border:1px solid var(--border-strong);padding:2px 6px;border-radius:2px;">FLIP</kbd>. This is the brand.</h2>
+  <p class="dim">A protocol name resolves through ENS, the implementation changes, Sourcify evidence loads, and the screen flips from green to red in under five seconds. Every other deliverable supports this.</p>
+
+  <div class="vc-stage">
+    <div class="vc-controls">
+      <button class="btn primary" id="cycleBtn">PLAY · cycle SAFE → REVIEW → SIREN</button>
+      <button class="btn" data-state="safe">SAFE</button>
+      <button class="btn" data-state="review">REVIEW</button>
+      <button class="btn" data-state="siren">SIREN</button>
+      <span class="timer" id="vcTimer">+0 ms</span>
+    </div>
+
+    <div class="verdict-card state-safe" id="heroCard" style="margin-top:16px;">
+      <div class="top">
+        <div class="glyph-slot" id="glyphSlot">
+          <!-- glyph injected -->
+        </div>
+        <div class="verdict-meta">
+          <div class="label" id="vcLabel">VERDICT&nbsp;·&nbsp;SIGNED-MANIFEST</div>
+          <h3 class="verdict-word" id="vcWord">SAFE</h3>
+          <div class="protocol"><b id="vcProtocol">vault.demo.upgradesiren.eth</b> · <span id="vcAddr">0xA0b8…eB48</span></div>
+          <div class="verdict-summary" id="vcSummary">Implementation matches signed manifest. ABI and storage layout compatible. Operator signature valid.</div>
+        </div>
+      </div>
+      <div class="badges" id="vcBadges">
+        <span class="pill signed">SIGNED&nbsp;BY&nbsp;0x9d39…</span>
+        <span class="pill" style="color:var(--t1);border-color:var(--t1)">SIGNED-MANIFEST</span>
+      </div>
+    </div>
+
+    <div class="checklist" id="checklist">
+      <div class="row" data-step="ens"><span class="step-glyph"></span><span class="label-cell">ENS · resolve name</span><span class="ms">—</span></div>
+      <div class="row" data-step="chain"><span class="step-glyph"></span><span class="label-cell">CHAIN · read implementation slot</span><span class="ms">—</span></div>
+      <div class="row" data-step="sourcify"><span class="step-glyph"></span><span class="label-cell">SOURCIFY · verified metadata</span><span class="ms">—</span></div>
+      <div class="row" data-step="diff"><span class="step-glyph"></span><span class="label-cell">DIFF · ABI &amp; storage</span><span class="ms">—</span></div>
+      <div class="row" data-step="sig"><span class="step-glyph"></span><span class="label-cell">SIGNATURE · operator manifest</span><span class="ms">—</span></div>
+    </div>
+  </div>
+
+  <hr>
+
+  <h3 class="sub">Three full-fidelity states</h3>
+  <p class="dim">Card width: 1040px (desktop) / 358px (mobile). Verdict word size: 88px / 64px. Glyph slot: 96px / 80px square, 2px border in current verdict color. Top padding 28px, side 32px / 20px.</p>
+
+  <div style="display:grid;gap:24px;">
+    <!-- SAFE STATIC -->
+    <div class="verdict-card state-safe" style="border-radius:6px;">
+      <div class="top">
+        <div class="glyph-slot">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square"><path d="M 4 12 L 10 18 L 20 6"/></svg>
+        </div>
+        <div class="verdict-meta">
+          <div class="label">VERDICT&nbsp;·&nbsp;SIGNED-MANIFEST</div>
+          <h3 class="verdict-word">SAFE</h3>
+          <div class="protocol"><b>vault.demo.upgradesiren.eth</b> · 0xA0b86991…eB48</div>
+          <div class="verdict-summary">Implementation matches the signed manifest. ABI and storage layout compatible. Operator signature valid.</div>
+        </div>
+      </div>
+      <div class="badges">
+        <span class="pill signed">SIGNED&nbsp;BY&nbsp;0x9d39…1f7a</span>
+        <span class="pill" style="color:var(--t1);border-color:var(--t1)">SIGNED-MANIFEST</span>
+        <span class="pill">SOURCIFY&nbsp;FULL&nbsp;MATCH</span>
+      </div>
+    </div>
+
+    <!-- REVIEW STATIC -->
+    <div class="verdict-card state-review" style="border-radius:6px;">
+      <div class="top">
+        <div class="glyph-slot">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square"><line x1="4" y1="8" x2="20" y2="8"/><line x1="4" y1="14" x2="20" y2="14"/><line x1="4" y1="20" x2="20" y2="20"/></svg>
+        </div>
+        <div class="verdict-meta">
+          <div class="label">VERDICT&nbsp;·&nbsp;PUBLIC-READ&nbsp;FALLBACK</div>
+          <h3 class="verdict-word">REVIEW</h3>
+          <div class="protocol"><b>aave-v3-pool.eth</b> · 0x87870B…1117</div>
+          <div class="verdict-summary">Implementation changed 14h ago. ABI compatible. No <code>upgrade-siren:*</code> records found — verdict from public chain state only. Human review recommended before vote.</div>
+        </div>
+      </div>
+      <div class="badges">
+        <span class="pill unsigned">NO&nbsp;OPERATOR&nbsp;SIGNATURE</span>
+        <span class="pill" style="color:var(--accent);border-color:var(--accent)">PUBLIC-READ&nbsp;FALLBACK</span>
+        <span class="pill">SOURCIFY&nbsp;PARTIAL</span>
+      </div>
+    </div>
+
+    <!-- SIREN STATIC -->
+    <div class="verdict-card state-siren" style="border-radius:6px;">
+      <div class="top">
+        <div class="glyph-slot">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="9" y="4" width="6" height="13"/><rect x="9" y="19" width="6" height="3"/></svg>
+        </div>
+        <div class="verdict-meta">
+          <div class="label dot">VERDICT&nbsp;·&nbsp;DO&nbsp;NOT&nbsp;APPROVE</div>
+          <h3 class="verdict-word">SIREN</h3>
+          <div class="protocol"><b>drained.demo.upgradesiren.eth</b> · 0xDEAD…BEEF</div>
+          <div class="verdict-summary">Implementation flipped to an unverified contract with admin role rotation. Storage layout incompatible. Owner key rotation detected. Do not approve, fund, or trust until fixed.</div>
+        </div>
+      </div>
+      <div class="badges">
+        <span class="pill invalid">SIGNATURE&nbsp;DOES&nbsp;NOT&nbsp;MATCH&nbsp;OWNER</span>
+        <span class="pill" style="color:var(--siren);border-color:var(--siren)">SIGNED-MANIFEST&nbsp;·&nbsp;INVALID</span>
+        <span class="pill" style="color:var(--siren);border-color:var(--siren)">SOURCIFY&nbsp;UNVERIFIED</span>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <h3 class="sub">Motion specification — the green→red flip</h3>
+  <ul class="bullets">
+    <li><b>Trigger.</b> A new implementation address appears in the EIP-1967 slot during an active session, OR the user clicks PLAY in the booth demo.</li>
+    <li><b>Duration.</b> 480ms total, single play. Easing: <code>cubic-bezier(0.2, 0.8, 0.2, 1.0)</code>.</li>
+    <li><b>Color interpolation.</b> Background and border interpolate in HSL space from <code>safe-surface #062A1B</code> to <code>siren-surface #2D0B09</code>; verdict word and glyph from <code>verdict-safe #00D67A</code> to <code>verdict-siren #FF3B30</code>. Both transitions share the same easing and start frame to keep the moment unified.</li>
+    <li><b>Glyph swap.</b> Check fades out 0–160ms (opacity only). Siren bar fades in 240–400ms. The glyph slot itself does not move.</li>
+    <li><b>Word swap.</b> Word "SAFE" cross-fades to "SIREN" between 200–400ms. No slide, no scale — only opacity, to keep the type stable at booth viewing distance.</li>
+    <li><b>Pulse.</b> On arrival, the SIREN card pulses once: 1.1s ease-in-out, single play, halo at <code>rgba(255,59,48,0.35)</code>.</li>
+    <li><b>Audio.</b> Optional, off by default, single 280ms square-wave chirp at 880 Hz on SIREN arrival. Off-default because public spaces.</li>
+    <li><b>Reduced motion.</b> If <code>prefers-reduced-motion: reduce</code> is set, color interpolation runs at full 480ms but the pulse is skipped.</li>
+  </ul>
+</section>
+
+<!-- ============ 09 DEMO SCREENS ============ -->
+<section class="page" id="screens">
+  <div class="eyebrow">09 · Demo Screens</div>
+  <h2 class="section">Desktop 1440 × 900. Mobile 390 × 844.</h2>
+  <p class="dim">Mobile is a true responsive design, not a scaled-down desktop. The verdict card collapses to a single column, the evidence drawer becomes a bottom sheet, the demo scenario picker becomes a horizontal scroll strip.</p>
+
+  <h3 class="sub">Landing / lookup · desktop</h3>
+  <div class="frame-desktop">
+    <div class="titlebar"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>upgradesiren.eth</div>
+    <div class="landing-hero">
+      <div class="label" style="margin-bottom:18px;">UPGRADE-RISK ALARM · ETH MAINNET</div>
+      <h1>Verdict in five seconds.<br><span class="tag">No source, no upgrade.</span></h1>
+      <p class="lede">Enter the ENS name of any Ethereum protocol. We resolve the proxy, fetch Sourcify evidence, and tell you whether the next upgrade is safe to approve.</p>
+      <div class="input">
+        <span class="prefix">→</span>
+        <input value="vault.demo.upgradesiren.eth" />
+        <button class="btn-base primary" style="margin:6px;">Resolve</button>
+      </div>
+      <div class="recent-row">
+        <span class="recent-chip safe">▣&nbsp;vault.demo · SAFE</span>
+        <span class="recent-chip review">▣&nbsp;aave-v3-pool · REVIEW</span>
+        <span class="recent-chip siren">▣&nbsp;drained.demo · SIREN</span>
+        <span class="recent-chip">▣&nbsp;unverified.demo · empty</span>
+      </div>
+      <div style="margin-top:48px;font-family:var(--mono);font-size:11px;color:var(--t3);letter-spacing:0.08em;">
+        SOURCIFY · ENS · EIP-1967 ·&nbsp;&nbsp;public good · no token · no paywall
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub">Verdict result · desktop · SIREN with evidence drawer</h3>
+  <div class="frame-desktop">
+    <div class="titlebar"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>upgradesiren.eth/v/drained.demo.upgradesiren.eth</div>
+    <div style="display:grid;grid-template-columns:1fr 360px;">
+      <div style="padding:32px;">
+        <div class="verdict-card state-siren">
+          <div class="top">
+            <div class="glyph-slot">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="9" y="4" width="6" height="13"/><rect x="9" y="19" width="6" height="3"/></svg>
+            </div>
+            <div class="verdict-meta">
+              <div class="label dot">VERDICT&nbsp;·&nbsp;DO&nbsp;NOT&nbsp;APPROVE</div>
+              <h3 class="verdict-word">SIREN</h3>
+              <div class="protocol"><b>drained.demo.upgradesiren.eth</b> · 0xDEAD…BEEF</div>
+              <div class="verdict-summary">Implementation flipped to unverified contract with admin role rotation. Owner key rotation detected.</div>
+            </div>
+          </div>
+          <div class="badges">
+            <span class="pill invalid">SIGNATURE&nbsp;INVALID</span>
+            <span class="pill" style="color:var(--siren);border-color:var(--siren)">SIGNED-MANIFEST&nbsp;·&nbsp;INVALID</span>
+          </div>
+        </div>
+
+        <div class="checklist" style="margin-top:20px;">
+          <div class="row done"><span class="step-glyph"></span><span class="label-cell">ENS · resolved <code>drained.demo.upgradesiren.eth</code></span><span class="ms">+184 ms</span></div>
+          <div class="row done"><span class="step-glyph"></span><span class="label-cell">CHAIN · EIP-1967 slot read</span><span class="ms">+612 ms</span></div>
+          <div class="row done"><span class="step-glyph"></span><span class="label-cell">SOURCIFY · partial match (impl unverified)</span><span class="ms">+1 248 ms</span></div>
+          <div class="row done"><span class="step-glyph"></span><span class="label-cell">DIFF · ABI changed, storage incompatible</span><span class="ms">+2 940 ms</span></div>
+          <div class="row fail"><span class="step-glyph"></span><span class="label-cell">SIGNATURE · does not match owner</span><span class="ms">+4 122 ms</span></div>
+        </div>
+      </div>
+
+      <div class="evidence-drawer">
+        <h4>Evidence</h4>
+        <dl>
+          <dt>ENS</dt><dd style="color:var(--accent)">drained.demo.upgradesiren.eth</dd>
+          <dt>proxy</dt><dd>0xDEAD…BEEF</dd>
+          <dt>impl was</dt><dd>0x9d39…1f7a</dd>
+          <dt>impl now</dt><dd style="color:var(--siren)">0x4F01…cD8b3</dd>
+          <dt>sourcify</dt><dd style="color:var(--review)">partial</dd>
+          <dt>signed by</dt><dd style="color:var(--siren)">— invalid —</dd>
+        </dl>
+        <h4>ABI diff</h4>
+        <pre class="diff"><span class="ctx">  function deposit(uint256, address)</span>
+<span class="rem">- function setAdmin(address) onlyOwner</span>
+<span class="add">+ function setAdmin(address) onlyRole(EMERG)</span>
+<span class="rem">- event Upgraded(address)</span>
+<span class="add">+ event Upgraded(address, bytes32)</span></pre>
+        <div style="display:flex;gap:8px;margin-top:16px;">
+          <button class="btn-base">Copy citation</button>
+          <button class="btn-base ghost">Open Sourcify ↗</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub">Mobile · 390 × 844</h3>
+  <div class="mobile-row">
+
+    <!-- mobile landing -->
+    <div class="frame-mobile">
+      <div class="notch"></div>
+      <div class="status"><span>9:41</span><span>···</span></div>
+      <div style="padding:32px 20px;">
+        <svg width="32" height="32" viewBox="0 0 32 32" style="margin-bottom:24px;"><rect x="1" y="1" width="30" height="30" fill="none" stroke="#E8EDEF" stroke-width="1.5"/><path d="M 6 9 L 9 12 L 14 7" stroke="#00D67A" stroke-width="2" fill="none" stroke-linecap="square"/><rect x="6" y="14" width="8" height="2" fill="#FFB020"/><rect x="6" y="18" width="8" height="2" fill="#FFB020"/><rect x="6" y="23" width="8" height="3" fill="#FF3B30"/><line x1="17" y1="4" x2="17" y2="28" stroke="#E8EDEF" stroke-width="1.5"/><text x="22" y="20" font-family="Space Grotesk" font-weight="700" font-size="14" fill="#E8EDEF">S</text></svg>
+        <h2 style="font-family:var(--display);font-weight:700;font-size:36px;letter-spacing:-0.03em;line-height:0.95;margin:0 0 12px;">Verdict in five seconds.</h2>
+        <p style="font-size:14px;color:var(--t2);margin:0 0 20px;">Enter an ENS name. We resolve the proxy and tell you whether the upgrade is safe.</p>
+        <div class="input"><span class="prefix">→</span><input value="vault.demo…" style="font-size:13px;"></div>
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:6px;">
+          <span class="recent-chip safe" style="text-align:left;">vault.demo · SAFE</span>
+          <span class="recent-chip review" style="text-align:left;">aave-v3-pool · REVIEW</span>
+          <span class="recent-chip siren" style="text-align:left;">drained.demo · SIREN</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- mobile siren -->
+    <div class="frame-mobile">
+      <div class="notch"></div>
+      <div class="status"><span>9:41</span><span>···</span></div>
+      <div style="padding:24px 16px;">
+        <div class="verdict-card state-siren" style="border-radius:6px;">
+          <div class="top" style="flex-direction:column;padding:20px;">
+            <div class="glyph-slot" style="width:64px;height:64px;">
+              <svg width="42" height="42" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="9" y="4" width="6" height="13"/><rect x="9" y="19" width="6" height="3"/></svg>
+            </div>
+            <div class="verdict-meta">
+              <div class="label dot" style="font-size:9px;">DO&nbsp;NOT&nbsp;APPROVE</div>
+              <h3 class="verdict-word" style="font-size:56px;">SIREN</h3>
+              <div class="protocol" style="font-size:11px;"><b>drained.demo</b> · 0xDEAD…BEEF</div>
+              <div class="verdict-summary" style="font-size:13px;">Admin role rotated. Sig does not match owner.</div>
+            </div>
+          </div>
+          <div class="badges" style="padding:10px 16px 16px;">
+            <span class="pill invalid" style="font-size:9px;">SIG&nbsp;INVALID</span>
+          </div>
+        </div>
+        <div class="checklist" style="margin-top:12px;">
+          <div class="row done" style="padding:8px 12px;font-size:11px;"><span class="step-glyph"></span><span class="label-cell">ENS</span><span class="ms">+184</span></div>
+          <div class="row done" style="padding:8px 12px;font-size:11px;"><span class="step-glyph"></span><span class="label-cell">CHAIN</span><span class="ms">+612</span></div>
+          <div class="row done" style="padding:8px 12px;font-size:11px;"><span class="step-glyph"></span><span class="label-cell">SOURCIFY</span><span class="ms">+1 248</span></div>
+          <div class="row done" style="padding:8px 12px;font-size:11px;"><span class="step-glyph"></span><span class="label-cell">DIFF</span><span class="ms">+2 940</span></div>
+          <div class="row fail" style="padding:8px 12px;font-size:11px;"><span class="step-glyph"></span><span class="label-cell">SIGNATURE</span><span class="ms">+4 122</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- mobile empty / governance -->
+    <div class="frame-mobile">
+      <div class="notch"></div>
+      <div class="status"><span>9:41</span><span>···</span></div>
+      <div style="padding:24px 16px;">
+        <div class="label" style="margin-bottom:8px;color:var(--accent)">PUBLIC-READ FALLBACK</div>
+        <h3 style="font-family:var(--display);font-weight:600;font-size:22px;line-height:1.1;margin:0 0 6px;">No upgrade-siren records.</h3>
+        <p style="font-size:13px;color:var(--t2);margin:0 0 16px;">Operator hasn't published a signed manifest. Verdict from public sources only.</p>
+        <div class="verdict-card state-review" style="border-radius:6px;">
+          <div class="top" style="flex-direction:column;padding:16px;gap:12px;">
+            <div class="glyph-slot" style="width:48px;height:48px;">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square"><line x1="4" y1="8" x2="20" y2="8"/><line x1="4" y1="14" x2="20" y2="14"/><line x1="4" y1="20" x2="20" y2="20"/></svg>
+            </div>
+            <h3 class="verdict-word" style="font-size:42px;">REVIEW</h3>
+          </div>
+        </div>
+        <div style="margin-top:16px;border:1px solid var(--border);border-radius:4px;padding:12px;font-family:var(--mono);font-size:11px;color:var(--t1);line-height:1.5;">
+          ## REVIEW on aave-v3-pool.eth<br><br>
+          Implementation changed 14h ago, ABI compatible, no operator signature. Voting <b>HOLD</b> until signed manifest is published.
+          <div style="margin-top:8px;display:flex;gap:6px;"><button class="btn-base" style="padding:4px 10px;font-size:10px;">Copy</button><button class="btn-base ghost" style="padding:4px 10px;font-size:10px;">Sign &amp; share</button></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <h3 class="sub">Error state · RPC down · desktop</h3>
+  <div class="frame-desktop">
+    <div class="titlebar"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>upgradesiren.eth/v/…</div>
+    <div style="padding:48px;text-align:center;">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FFB020" stroke-width="1.5" style="margin-bottom:16px;"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="13"/><circle cx="12" cy="16.5" r="0.6" fill="#FFB020"/></svg>
+      <div class="label" style="color:var(--review);">RPC · PROVIDER UNREACHABLE</div>
+      <h2 class="section" style="margin-top:8px;">We can't read chain state right now.</h2>
+      <p style="margin:0 auto 24px;color:var(--t2);max-width:50ch;">No verdict can be issued without live chain reads. Showing cached verdict from 14:32 UTC. Retry, or switch RPC provider.</p>
+      <button class="btn-base primary">Retry</button> <button class="btn-base ghost">Switch RPC</button>
+    </div>
+  </div>
+
+  <h3 class="sub">Signature-invalid state · desktop · SIREN triggered by signature failure, not contract content</h3>
+  <div class="frame-desktop">
+    <div class="titlebar"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>upgradesiren.eth/v/…</div>
+    <div style="padding:32px;">
+      <div class="verdict-card state-siren" style="border-radius:6px;">
+        <div class="top">
+          <div class="glyph-slot">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="9" y="4" width="6" height="13"/><rect x="9" y="19" width="6" height="3"/></svg>
+          </div>
+          <div class="verdict-meta">
+            <div class="label dot">VERDICT&nbsp;·&nbsp;SIGNATURE&nbsp;FAILURE</div>
+            <h3 class="verdict-word">SIREN</h3>
+            <div class="protocol"><b>vault.demo.upgradesiren.eth</b> · 0xA0b8…eB48</div>
+            <div class="verdict-summary"><b>The contract is fine.</b> The operator's manifest signature does not match the address declared in <code>upgrade-siren:owner</code>. Either the manifest was replaced or the owner key was rotated without re-publishing. Either way: do not approve until the operator re-signs.</div>
+          </div>
+        </div>
+        <div class="badges">
+          <span class="pill invalid">SIGNATURE&nbsp;DOES&nbsp;NOT&nbsp;MATCH&nbsp;OWNER</span>
+          <span class="pill">SOURCIFY&nbsp;FULL&nbsp;MATCH</span>
+          <span class="pill">DIFF&nbsp;CLEAN</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 10 MARKETING ============ -->
+<section class="page" id="marketing">
+  <div class="eyebrow">10 · Marketing Assets</div>
+  <h2 class="section">Lead with the flip. Always.</h2>
+  <p class="dim">Devfolio cover, social cards, and booth poster all use the SIREN verdict as the hero. Devfolio thumbnails are 200px wide — if the word "SIREN" isn't legible at thumbnail size, the asset fails.</p>
+
+  <h3 class="sub">Devfolio cover · 1200 × 630</h3>
+  <div class="marketing-card" style="aspect-ratio:1200/630;background:var(--siren-surf);border-color:var(--siren);">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <svg width="40" height="40" viewBox="0 0 32 32"><rect x="1" y="1" width="30" height="30" fill="none" stroke="#E8EDEF" stroke-width="1.5"/><path d="M 6 9 L 9 12 L 14 7" stroke="#00D67A" stroke-width="2" fill="none" stroke-linecap="square"/><rect x="6" y="14" width="8" height="2" fill="#FFB020"/><rect x="6" y="18" width="8" height="2" fill="#FFB020"/><rect x="6" y="23" width="8" height="3" fill="#FF3B30"/><line x1="17" y1="4" x2="17" y2="28" stroke="#E8EDEF" stroke-width="1.5"/><text x="22" y="20" font-family="Space Grotesk" font-weight="700" font-size="14" fill="#E8EDEF">S</text></svg>
+      <div style="font-family:var(--mono);font-size:11px;letter-spacing:0.16em;color:var(--t2);text-align:right;">UPGRADE&nbsp;SIREN<br>ETHPRAGUE&nbsp;2026</div>
+    </div>
+    <div>
+      <div style="font-family:var(--mono);font-size:13px;color:var(--siren);letter-spacing:0.18em;">VERDICT</div>
+      <div style="font-family:var(--display);font-weight:700;font-size:clamp(80px,16vw,200px);line-height:0.85;letter-spacing:-0.04em;color:var(--siren);">SIREN.</div>
+      <div style="font-family:var(--mono);font-size:13px;color:var(--t2);letter-spacing:0.12em;margin-top:12px;">NO&nbsp;SOURCE,&nbsp;NO&nbsp;UPGRADE.</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--t3);letter-spacing:0.12em;">
+      <span>upgradesiren.eth</span><span>SOURCIFY · ENS · EIP-1967</span>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:24px;">
+    <!-- twitter -->
+    <div>
+      <div class="meta-line" style="margin-bottom:8px;">X / TWITTER · 1200 × 675</div>
+      <div class="marketing-card" style="aspect-ratio:1200/675;">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--t2);letter-spacing:0.16em;">UPGRADE-RISK ALARM · ETHPRAGUE 2026</div>
+        <div>
+          <div style="font-family:var(--display);font-weight:700;font-size:64px;line-height:0.95;letter-spacing:-0.035em;">Verdict in five seconds.</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--siren);letter-spacing:0.16em;margin-top:14px;">NO&nbsp;SOURCE,&nbsp;NO&nbsp;UPGRADE.</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:0.1em;"><span>upgradesiren.eth</span><span>SAFE&nbsp;&nbsp;<span style="color:var(--review)">REVIEW</span>&nbsp;&nbsp;<span style="color:var(--siren)">SIREN</span></span></div>
+      </div>
+    </div>
+    <!-- og -->
+    <div>
+      <div class="meta-line" style="margin-bottom:8px;">OPEN GRAPH · 1200 × 630</div>
+      <div class="marketing-card" style="aspect-ratio:1200/630;background:var(--bg);">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--t2);letter-spacing:0.16em;">A PUBLIC UPGRADE-RISK ALARM</div>
+        <div style="display:flex;align-items:center;gap:24px;">
+          <svg width="80" height="80" viewBox="0 0 32 32"><rect x="1" y="1" width="30" height="30" fill="none" stroke="#E8EDEF" stroke-width="1.5"/><path d="M 6 9 L 9 12 L 14 7" stroke="#00D67A" stroke-width="2" fill="none" stroke-linecap="square"/><rect x="6" y="14" width="8" height="2" fill="#FFB020"/><rect x="6" y="18" width="8" height="2" fill="#FFB020"/><rect x="6" y="23" width="8" height="3" fill="#FF3B30"/><line x1="17" y1="4" x2="17" y2="28" stroke="#E8EDEF" stroke-width="1.5"/><text x="22" y="20" font-family="Space Grotesk" font-weight="700" font-size="14" fill="#E8EDEF">S</text></svg>
+          <div>
+            <div style="font-family:var(--display);font-weight:700;font-size:48px;line-height:0.95;letter-spacing:-0.03em;">Upgrade Siren</div>
+            <div style="font-family:var(--mono);font-size:11px;letter-spacing:0.16em;color:var(--t2);margin-top:8px;">NO&nbsp;SOURCE,&nbsp;NO&nbsp;UPGRADE.</div>
+          </div>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:0.1em;">upgradesiren.eth · ETHPrague 2026</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="sub">ETHPrague booth backdrop · A1 portrait · 594 × 841 mm</h3>
+  <div class="poster" style="max-width:480px;">
+    <div class="top-bar">
+      <span>UPGRADE&nbsp;SIREN</span>
+      <span>ETHPRAGUE&nbsp;2026&nbsp;·&nbsp;BOOTH</span>
+    </div>
+    <div class="big-mark">
+      <div style="text-align:center;">
+        <svg width="160" height="160" viewBox="0 0 24 24" fill="#FF3B30" stroke="none"><rect x="9" y="4" width="6" height="13"/><rect x="9" y="19" width="6" height="3"/></svg>
+        <div class="poster-title" style="margin-top:24px;">SIREN.</div>
+        <div class="poster-tag">NO&nbsp;SOURCE,&nbsp;NO&nbsp;UPGRADE.</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-family:var(--display);font-weight:600;font-size:18px;line-height:1.2;max-width:30ch;">A public upgrade-risk alarm for named Ethereum protocols.</div>
+      <div class="footer" style="margin-top:24px;"><span>upgradesiren.eth</span><span>SOURCIFY · ENS</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 11 PITCH DECK ============ -->
+<section class="page" id="deck">
+  <div class="eyebrow">11 · Pitch Deck · 16 : 9 · 1920 × 1080</div>
+  <h2 class="section">Six slides. The flip is slide three.</h2>
+
+  <div style="display:grid;gap:16px;">
+
+    <!-- Slide 1 Title -->
+    <div class="slide dark">
+      <div class="slide-eyebrow">UPGRADE&nbsp;SIREN&nbsp;·&nbsp;ETHPRAGUE&nbsp;2026</div>
+      <div>
+        <div style="font-family:var(--display);font-weight:700;font-size:96px;line-height:0.9;letter-spacing:-0.04em;">Upgrade Siren.</div>
+        <div style="font-family:var(--mono);font-size:14px;color:var(--siren);letter-spacing:0.18em;margin-top:16px;">NO&nbsp;SOURCE,&nbsp;NO&nbsp;UPGRADE.</div>
+        <p style="margin-top:24px;max-width:60ch;">A public upgrade-risk alarm for named Ethereum contracts. Verdict in under five seconds.</p>
+      </div>
+      <div class="slide-num">01 / 06</div>
+    </div>
+
+    <!-- Slide 2 Problem -->
+    <div class="slide paper">
+      <div class="slide-eyebrow">PROBLEM</div>
+      <div>
+        <h2 style="color:var(--ink);">Proxy upgrades change what you trust — silently.</h2>
+        <p style="max-width:60ch;">DAO voters approve upgrade proposals without reading bytecode. By the time a malicious implementation ships, the vote is already cast. There is no public smoke alarm.</p>
+      </div>
+      <div class="slide-num">02 / 06</div>
+    </div>
+
+    <!-- Slide 3 The flip -->
+    <div class="slide siren">
+      <div class="slide-eyebrow" style="color:var(--siren);">THE&nbsp;FIVE-SECOND&nbsp;MOMENT</div>
+      <div style="display:flex;align-items:center;gap:48px;">
+        <svg width="160" height="160" viewBox="0 0 24 24" fill="#FF3B30" stroke="none"><rect x="9" y="4" width="6" height="13"/><rect x="9" y="19" width="6" height="3"/></svg>
+        <div>
+          <div style="font-family:var(--display);font-weight:700;font-size:128px;line-height:0.85;letter-spacing:-0.04em;color:var(--siren);">SIREN.</div>
+          <p style="margin-top:16px;color:var(--t1);max-width:48ch;">An ENS name resolves. The implementation flips. The screen turns red. <b>This is the demo.</b></p>
+        </div>
+      </div>
+      <div class="slide-num" style="color:var(--siren);">03 / 06</div>
+    </div>
+
+    <!-- Slide 4 How -->
+    <div class="slide dark">
+      <div class="slide-eyebrow">HOW&nbsp;IT&nbsp;WORKS</div>
+      <div>
+        <h2>Five reads. One verdict.</h2>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:24px;font-family:var(--mono);font-size:12px;color:var(--t2);letter-spacing:0.08em;">
+          <div style="border:1px solid var(--border);padding:12px;"><b style="color:var(--t1);font-weight:500;">ENS</b><br>resolve&nbsp;name</div>
+          <div style="border:1px solid var(--border);padding:12px;"><b style="color:var(--t1);font-weight:500;">CHAIN</b><br>EIP-1967</div>
+          <div style="border:1px solid var(--border);padding:12px;"><b style="color:var(--t1);font-weight:500;">SOURCIFY</b><br>verified&nbsp;meta</div>
+          <div style="border:1px solid var(--border);padding:12px;"><b style="color:var(--t1);font-weight:500;">DIFF</b><br>ABI · storage</div>
+          <div style="border:1px solid var(--border);padding:12px;"><b style="color:var(--t1);font-weight:500;">SIG</b><br>operator&nbsp;sign</div>
+        </div>
+        <div style="margin-top:32px;display:flex;gap:24px;font-family:var(--display);font-weight:700;font-size:32px;letter-spacing:-0.02em;">
+          <span style="color:var(--safe)">SAFE</span>
+          <span style="color:var(--review)">REVIEW</span>
+          <span style="color:var(--siren)">SIREN</span>
+        </div>
+      </div>
+      <div class="slide-num">04 / 06</div>
+    </div>
+
+    <!-- Slide 5 Sponsor fit -->
+    <div class="slide paper">
+      <div class="slide-eyebrow">SPONSOR&nbsp;FIT</div>
+      <div>
+        <h2 style="color:var(--ink);">Built on the public stack.</h2>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:24px;font-family:var(--mono);font-size:13px;color:#4A4A44;line-height:1.6;">
+          <div><b style="color:var(--ink)">SOURCIFY</b><br>primary evidence source · verified metadata · partial &amp; full match handling</div>
+          <div><b style="color:var(--ink)">ENS</b><br>name resolution · upgrade-siren:* TXT records · governance lookups</div>
+          <div><b style="color:var(--ink)">ETHPRAGUE FUTURE SOCIETY</b><br>civic infrastructure · public good · anti-extractive</div>
+        </div>
+      </div>
+      <div class="slide-num">05 / 06</div>
+    </div>
+
+    <!-- Slide 6 CTA -->
+    <div class="slide dark">
+      <div class="slide-eyebrow">DEMO&nbsp;·&nbsp;CTA</div>
+      <div>
+        <h2>Booth&nbsp;14C. Try it on your own ENS name.</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;font-family:var(--mono);font-size:13px;color:var(--t2);">
+          <div><b style="color:var(--t1);font-weight:500;">repo&nbsp;·&nbsp;</b>github.com/upgrade-siren</div>
+          <div><b style="color:var(--t1);font-weight:500;">devfolio&nbsp;·&nbsp;</b>devfolio.co/upgrade-siren</div>
+          <div><b style="color:var(--t1);font-weight:500;">live&nbsp;·&nbsp;</b>upgradesiren.eth</div>
+          <div><b style="color:var(--t1);font-weight:500;">contact&nbsp;·&nbsp;</b><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="82e0f0e3ece6c2f7f2e5f0e3e6e7f1ebf0e7ecace7f6ea">[email&#160;protected]</a></div>
+        </div>
+        <div style="margin-top:32px;font-family:var(--mono);font-size:12px;color:var(--siren);letter-spacing:0.18em;">NO&nbsp;SOURCE,&nbsp;NO&nbsp;UPGRADE.</div>
+      </div>
+      <div class="slide-num">06 / 06</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 12 VOICE & TONE ============ -->
+<section class="page" id="voice">
+  <div class="eyebrow">12 · Voice &amp; Tone</div>
+  <h2 class="section">Lead with evidence. Lead with verdict. Never lead with AI.</h2>
+  <p class="dim">Upgrade Siren is a civic tool. The voice is brutal-direct, evidence-first, and free of marketing fluff. It never overclaims safety. It never says "trusted by". It never uses emoji.</p>
+
+  <div class="grid-2">
+    <div>
+      <h3 class="sub">Always</h3>
+      <ul class="bullets">
+        <li><b>"verified"</b> · "evidence-backed" · "signed by"</li>
+        <li><b>"verdict from public chain state"</b></li>
+        <li><b>"signed by upgrade-siren:owner"</b></li>
+        <li>"the implementation changed at <code>tx 0x612d…</code>"</li>
+        <li>"do not approve until re-signed"</li>
+        <li>Plain English. Short sentences. Imperative when it matters.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="sub">Never</h3>
+      <ul class="bullets">
+        <li><b style="color:var(--siren)">"trusted by"</b> / "secured by" / "audited by"</li>
+        <li><b style="color:var(--siren)">"AI-powered"</b> / "agent" / "scanner" / "trust layer"</li>
+        <li><b style="color:var(--siren)">"platform"</b> / "ecosystem" / "Web3 infrastructure"</li>
+        <li>Emoji of any kind, including in social copy and pitch slides.</li>
+        <li>Localized versions of "No source, no upgrade." for the hackathon.</li>
+        <li>Marketing claims that cannot be backed by an on-chain citation.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="sub">Voice samples</h3>
+  <div class="comp">
+    <div class="comp-title">Verdict notification · short · X / Farcaster</div>
+    <div class="gov" style="border-left:3px solid var(--siren);">SIREN on <span style="color:var(--accent)">vault.demo.upgradesiren.eth</span>. Implementation flipped to 0x4F01…cD8b3 at tx 0x612d…. Admin role rotated. No operator signature. Don't approve until re-signed. Evidence: upgradesiren.eth/v/0xA0b8…eB48</div>
+  </div>
+  <div class="comp">
+    <div class="comp-title">Empty-state copy</div>
+    <div class="gov">No upgrade-siren records on this name. We can verify chain state, but the operator hasn't published a signed manifest. The verdict will come from public sources only and will not include policy claims.</div>
+  </div>
+  <div class="comp">
+    <div class="comp-title">Booth one-liner · for judges walking past</div>
+    <div class="gov">A public smoke alarm for protocol upgrades. Type an ENS name, see the verdict in five seconds. Sourcify-verified. ENS-resolved. No token.</div>
+  </div>
+</section>
+
+<!-- ============ 13 ANTI-PATTERNS ============ -->
+<section class="page" id="anti">
+  <div class="eyebrow">13 · Anti-Patterns</div>
+  <h2 class="section">What the brand must never look like.</h2>
+  <p class="dim">If a draft starts looking like any of these, it has drifted. Pull back to the verdict triade and the civic vocabulary.</p>
+
+  <div class="anti-grid">
+    <div class="anti">
+      <h4>Corporate SaaS dashboard</h4>
+      <p>Three-column metric cards over a customer-logo wall. "Trusted by 200+ DAOs." Gradient mesh background. We are not a vendor. We are an alarm.</p>
+    </div>
+    <div class="anti">
+      <h4>AI-auditor cliché</h4>
+      <p>Magnifying glass over scrolling code. Robot-with-shield mascot. Chat-bubble UI asking "Should I approve this upgrade?" We do not produce opinions. We surface evidence.</p>
+    </div>
+    <div class="anti">
+      <h4>Web3 default · purple-blue</h4>
+      <p>Purple-to-blue gradient. Glassmorphism cards. Geometric NFT-style hero illustration. Metallic sheen on the wordmark. None of this. The brand is matte, civic, and honest.</p>
+    </div>
+    <div class="anti">
+      <h4>"Agent OS" / "trust layer"</h4>
+      <p>A floating orb representing "intelligence". Slogans like "the trust layer for upgrades" or "the agent OS for governance". Neither term ever appears in our copy.</p>
+    </div>
+  </div>
+
+  <hr>
+
+  <h3 class="sub">Logo do / don't</h3>
+  <div class="grid-2">
+    <div class="comp">
+      <div class="comp-title" style="color:var(--safe);">DO</div>
+      <ul class="bullets">
+        <li>Use the mark on its own at small sizes (≤24px).</li>
+        <li>Pair the mark with the wordmark at 1× clear-space minimum.</li>
+        <li>Use the monochrome mark for single-ink contexts.</li>
+        <li>Treat the tagline as part of the lockup and never edit it.</li>
+      </ul>
+    </div>
+    <div class="comp">
+      <div class="comp-title" style="color:var(--siren);">DON'T</div>
+      <ul class="bullets">
+        <li>Don't recolor the verdict glyphs to match a host site.</li>
+        <li>Don't apply gradients, drop shadows, or bevels to the mark.</li>
+        <li>Don't translate "No source, no upgrade." for the hackathon.</li>
+        <li>Don't crop the mark — the box is part of the glyph.</li>
+        <li>Don't use the mark as a decorative pattern.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 14 ASSET CHECKLIST ============ -->
+<section class="page" id="exports">
+  <div class="eyebrow">14 · Asset Export Checklist</div>
+  <h2 class="section">Everything to export before submission.</h2>
+
+  <table class="asset-table">
+    <thead><tr><th>Asset</th><th>Format</th><th>Sizes</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>Mark · primary</td><td>SVG, PNG</td><td>16, 32, 64, 128, 256, 512, 1024</td><td class="check">✓ ready</td></tr>
+      <tr><td>Mark · monochrome (light + dark)</td><td>SVG, PNG</td><td>same as above</td><td class="check">✓ ready</td></tr>
+      <tr><td>Wordmark · horizontal</td><td>SVG, PDF</td><td>scalable</td><td class="check">✓ ready</td></tr>
+      <tr><td>Lockup · stacked</td><td>SVG, PDF</td><td>scalable</td><td class="check">✓ ready</td></tr>
+      <tr><td>Lockup · horizontal</td><td>SVG, PDF</td><td>scalable</td><td class="check">✓ ready</td></tr>
+      <tr><td>Lockup · single-line condensed</td><td>SVG</td><td>scalable</td><td class="check">✓ ready</td></tr>
+      <tr><td>Favicon set</td><td>ICO, PNG</td><td>16, 32, 48, apple-touch 180</td><td class="check">✓ ready</td></tr>
+      <tr><td>Devfolio cover</td><td>PNG</td><td>1200 × 630</td><td class="check">✓ ready</td></tr>
+      <tr><td>X / Twitter card</td><td>PNG</td><td>1200 × 675</td><td class="check">✓ ready</td></tr>
+      <tr><td>Open Graph</td><td>PNG</td><td>1200 × 630</td><td class="check">✓ ready</td></tr>
+      <tr><td>Booth poster</td><td>PDF (CMYK)</td><td>A1 portrait, 594 × 841 mm, 5mm bleed</td><td class="check">✓ ready</td></tr>
+      <tr><td>Devfolio gallery screenshots</td><td>PNG</td><td>1920 × 1080 × 5</td><td class="check">✓ ready</td></tr>
+      <tr><td>Pitch deck</td><td>PDF, Keynote, PPTX</td><td>1920 × 1080 × 6 slides</td><td class="check">✓ ready</td></tr>
+      <tr><td>Brand tokens</td><td>JSON, Tailwind config</td><td>tokens.json</td><td class="check">✓ ready</td></tr>
+      <tr><td>Brand manual</td><td>PDF, Markdown</td><td>this document</td><td class="check">✓ ready</td></tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <h3 class="sub">Out of scope (for hackathon)</h3>
+  <ul class="bullets">
+    <li>Production-grade illustration beyond the logo and verdict glyphs.</li>
+    <li>Siren Agent watchlist UI (P2 stretch — footnoted only).</li>
+    <li>Optional Umia panel (conditional, out of brand-system core).</li>
+    <li>Slovak or other localizations. English-only for the hackathon.</li>
+  </ul>
+
+  <hr>
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:24px;">
+    <div>
+      <div class="meta-line">UPGRADE&nbsp;SIREN&nbsp;·&nbsp;BRAND&nbsp;MANUAL&nbsp;v1.0&nbsp;·&nbsp;2026-05-09</div>
+      <div class="meta-line" style="margin-top:4px;">contact · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="d6b4a4b7b8b296a3a6b1a4b7b2b3a5bfa4b3b8f8b3a2be">[email&#160;protected]</a> · upgradesiren.eth</div>
+    </div>
+    <div style="font-family:var(--display);font-weight:700;font-size:24px;letter-spacing:-0.01em;">
+      <span style="color:var(--siren)">No source,</span> no upgrade.
+    </div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ===== Verdict card hero — interactive flip =====
+(function(){
+  const card = document.getElementById('heroCard');
+  const word = document.getElementById('vcWord');
+  const summary = document.getElementById('vcSummary');
+  const protocol = document.getElementById('vcProtocol');
+  const addr = document.getElementById('vcAddr');
+  const label = document.getElementById('vcLabel');
+  const badges = document.getElementById('vcBadges');
+  const glyphSlot = document.getElementById('glyphSlot');
+  const checklistRows = document.querySelectorAll('#checklist .row');
+  const timer = document.getElementById('vcTimer');
+
+  const STATES = {
+    safe: {
+      class: 'state-safe',
+      word: 'SAFE',
+      label: 'VERDICT · SIGNED-MANIFEST',
+      protocol: 'vault.demo.upgradesiren.eth',
+      addr: '0xA0b8…eB48',
+      summary: 'Implementation matches signed manifest. ABI and storage layout compatible. Operator signature valid.',
+      badges: '<span class="pill signed">SIGNED BY 0x9d39…1f7a</span><span class="pill" style="color:var(--t1);border-color:var(--t1)">SIGNED-MANIFEST</span><span class="pill">SOURCIFY FULL MATCH</span>',
+      glyph: '<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square"><path d="M 4 12 L 10 18 L 20 6"/></svg>',
+      results: ['done','done','done','done','done']
+    },
+    review: {
+      class: 'state-review',
+      word: 'REVIEW',
+      label: 'VERDICT · PUBLIC-READ FALLBACK',
+      protocol: 'aave-v3-pool.eth',
+      addr: '0x87870B…1117',
+      summary: 'Implementation changed 14h ago. ABI compatible. No upgrade-siren records — verdict from public chain state only.',
+      badges: '<span class="pill unsigned">NO OPERATOR SIGNATURE</span><span class="pill" style="color:var(--accent);border-color:var(--accent)">PUBLIC-READ FALLBACK</span><span class="pill">SOURCIFY PARTIAL</span>',
+      glyph: '<svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square"><line x1="4" y1="8" x2="20" y2="8"/><line x1="4" y1="14" x2="20" y2="14"/><line x1="4" y1="20" x2="20" y2="20"/></svg>',
+      results: ['done','done','done','done','pending']
+    },
+    siren: {
+      class: 'state-siren',
+      word: 'SIREN',
+      label: 'VERDICT · DO NOT APPROVE',
+      protocol: 'drained.demo.upgradesiren.eth',
+      addr: '0xDEAD…BEEF',
+      summary: 'Implementation flipped to unverified contract. Admin role rotation detected. Storage layout incompatible. Do not approve, fund, or trust until fixed.',
+      badges: '<span class="pill invalid">SIGNATURE DOES NOT MATCH OWNER</span><span class="pill" style="color:var(--siren);border-color:var(--siren)">SIGNED-MANIFEST · INVALID</span>',
+      glyph: '<svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="9" y="4" width="6" height="13"/><rect x="9" y="19" width="6" height="3"/></svg>',
+      results: ['done','done','done','done','fail']
+    }
+  };
+
+  function setState(name) {
+    const s = STATES[name];
+    card.className = 'verdict-card ' + s.class;
+    word.textContent = s.word;
+    label.textContent = s.label;
+    label.classList.toggle('dot', name === 'siren');
+    protocol.textContent = s.protocol;
+    addr.textContent = s.addr;
+    summary.textContent = s.summary;
+    badges.innerHTML = s.badges;
+    glyphSlot.innerHTML = s.glyph;
+
+    // animate checklist with realistic timings
+    const ms = [184, 612, 1248, 2940, 4122];
+    checklistRows.forEach((row, i) => {
+      row.classList.remove('done','fail','pending');
+      row.querySelector('.ms').textContent = '—';
+    });
+    s.results.forEach((r, i) => {
+      setTimeout(() => {
+        checklistRows[i].classList.add(r);
+        if (r !== 'pending') checklistRows[i].querySelector('.ms').textContent = '+' + ms[i].toLocaleString() + ' ms';
+        else checklistRows[i].querySelector('.ms').textContent = '— pending';
+        timer.textContent = '+' + ms[i].toLocaleString() + ' ms';
+      }, 120 + i * 220);
+    });
+    setTimeout(() => { timer.textContent = '+' + ms[ms.length-1].toLocaleString() + ' ms · settled'; }, 120 + 5 * 220);
+  }
+
+  // initial
+  setState('safe');
+
+  // direct buttons
+  document.querySelectorAll('[data-state]').forEach(b => {
+    b.addEventListener('click', () => setState(b.dataset.state));
+  });
+
+  // cycle button
+  let cycleIdx = 0;
+  const order = ['safe','review','siren'];
+  document.getElementById('cycleBtn').addEventListener('click', () => {
+    cycleIdx = (cycleIdx + 1) % order.length;
+    setState(order[cycleIdx]);
+  });
+
+  // ===== Sidebar nav active state =====
+  const links = document.querySelectorAll('nav a.nav-link');
+  const sections = Array.from(document.querySelectorAll('section[id]'));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(en => {
+      if (en.isIntersecting) {
+        links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + en.target.id));
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => io.observe(s));
+})();
+</script>
+
+</body>
+</html>

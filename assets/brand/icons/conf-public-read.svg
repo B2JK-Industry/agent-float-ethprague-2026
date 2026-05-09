@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-label="Confidence — public read fallback">
+  <circle cx="12" cy="12" r="9"/>
+  <path d="M 3 12 L 21 12"/>
+  <path d="M 12 3 Q 17 12 12 21 Q 7 12 12 3"/>
+</svg>
