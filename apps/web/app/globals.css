@@ -32,6 +32,39 @@
   --color-ink: #0a0e10;
 
   /*
+   * Bench Mode tokens — Bench v2 Foundations (§1B-1G).
+   * Source-of-truth: assets/brand/tokens.css + assets/brand/tailwind-preset.ts.
+   * These extend US-067 verdict-* without overriding it; the verdict triade
+   * stays canonical for /r/[name] surfaces.
+   */
+  /* Tier letters (§1B) */
+  --color-tier-a: #7ad9ff;
+  --color-tier-b: #e8edef;
+  --color-tier-c: #b3a36a;
+  --color-tier-d: #7e6240;
+  --color-tier-u: #5c6770;
+  /* Source states (§1C) — trust gradient cool→warm→alarm */
+  --color-src-verified: #7ad9ff;
+  --color-src-partial: #b3a36a;
+  --color-src-discounted: #7e6240;
+  --color-src-degraded: #ffb020;
+  --color-src-missing: #5c6770;
+  /* Outcomes (§1D) */
+  --color-o-fast: #7ad9ff;
+  --color-o-emerge: #e8edef;
+  --color-o-evid: #b3a36a;
+  --color-o-block: #ff3b30;
+  /* Confidence (§1E) — independent of trust */
+  --color-conf-hi: #e8edef;
+  --color-conf-md: #b3a36a;
+  --color-conf-lo: #7e6240;
+  /* Paper / stamp (§1F) — additive, existing --color-paper preserved */
+  --color-paper-alt: #ede7d5;
+  --color-ink-soft: #5a5645;
+  --color-rule: #c7be9f;
+  --color-stamp: #9e1e14;
+
+  /*
    * Fonts. next/font/google sets the loaded font CSS variables on <html>
    * in apps/web/app/layout.tsx (--font-space-grotesk, --font-inter,
    * --font-jetbrains-mono). The chain below resolves to the loaded
@@ -46,6 +79,8 @@
   --font-mono:
     var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace,
     SFMono-Regular, Menlo, monospace;
+  --font-serif:
+    var(--font-source-serif-4), "Source Serif 4", ui-serif, Georgia, serif;
 }
 
 :root {

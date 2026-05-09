@@ -8,3 +8,10 @@ export const BENCH_SUB_BRAND = "Upgrade Siren Bench" as const;
 // surfaces. The master tagline "No source, no upgrade." stays on `/` and
 // `/r/[name]`.
 export const BENCH_SUB_TAGLINE = "No data, no score." as const;
+
+// Honest-claims disclaimer (EPIC §10.5 + GATE-14). Rendered in-band on
+// the score banner — never as tooltip, never as footnote. US-139 will
+// tighten copy under Daniel/Orch review; this constant is the single
+// edit point.
+export const honestClaimsDisclaimer =
+  "Score measures public verifiability and code-quality signals. It does not predict intent." as const;
