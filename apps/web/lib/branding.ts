@@ -9,9 +9,8 @@ export const BENCH_SUB_BRAND = "Upgrade Siren Bench" as const;
 // `/r/[name]`.
 export const BENCH_SUB_TAGLINE = "No data, no score." as const;
 
-// Honest-claims disclaimer (EPIC §10.5 + GATE-14). Rendered in-band on
-// the score banner — never as tooltip, never as footnote. US-139 will
-// tighten copy under Daniel/Orch review; this constant is the single
-// edit point.
+// Honest-claims disclaimer (US-139, EPIC §10.5 + GATE-14). Rendered
+// in-band on the score banner — never as tooltip, never as footnote.
+// Copy locked per launch prompt 2026-05-09: this is the verbatim string.
 export const honestClaimsDisclaimer =
-  "Score measures public verifiability and code-quality signals. It does not predict intent." as const;
+  "Score measures verifiability and code-quality signals. It does not predict intent." as const;

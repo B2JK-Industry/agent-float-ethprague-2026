@@ -74,24 +74,53 @@ describe("ScoreBanner (US-132)", () => {
     expect(mono.style.border.toLowerCase()).toBe("2px solid currentcolor");
   });
 
-  it("renders v1 P0 max + v1 full max labels (66 / 79 default — Dev B PR #120 honest accounting)", () => {
+  it("renders v1 max label = 79 by default (US-114b merged 2026-05-09 18:12Z)", () => {
     const { container } = render(<ScoreBanner score={makeScore()} />);
     const meta = container.querySelector('[data-field="score-meta"]');
-    expect(meta?.textContent).toMatch(/v1 P0 max\s*66/);
-    expect(meta?.textContent).toMatch(/full max\s*79/);
+    expect(meta?.textContent).toMatch(/v1 max\s*79/);
+    // QA H-10 regression guard: never advertise the historical P0=66
+    // ceiling once US-114b is merged. Engine returns 79; banner must
+    // match.
+    expect(meta?.textContent).not.toMatch(/v1 P0 max\s*66/);
   });
 
-  it("v1 ceilings are overridable via props (US-114b raises P0 → 79 swap)", () => {
+  it("v1 ceiling is overridable via prop (single number — P0/full split retired)", () => {
     const { container } = render(
-      <ScoreBanner score={makeScore()} v1P0Max={79} v1FullMax={79} />,
+      <ScoreBanner score={makeScore()} v1Max={100} />,
     );
     const meta = container.querySelector('[data-field="score-meta"]');
-    expect(meta?.textContent).toMatch(/v1 P0 max\s*79/);
+    expect(meta?.textContent).toMatch(/v1 max\s*100/);
   });
 
   it("renders the honest-claims disclaimer in-band on the banner (GATE-14 / EPIC §10.5)", () => {
     render(<ScoreBanner score={makeScore()} />);
     expect(screen.getByText(honestClaimsDisclaimer)).toBeInTheDocument();
+  });
+
+  it("US-139: disclaimer is the verbatim launch-prompt copy (no 'public' qualifier)", () => {
+    expect(honestClaimsDisclaimer).toBe(
+      "Score measures verifiability and code-quality signals. It does not predict intent.",
+    );
+  });
+
+  it("US-139: disclaimer lives inside the score-banner section (in-band, not tooltip / footnote)", () => {
+    const { container } = render(<ScoreBanner score={makeScore()} />);
+    const banner = container.querySelector('[data-section="score-banner"]');
+    const disclaimer = container.querySelector(
+      '[data-section="honest-claims"]',
+    );
+    expect(disclaimer).not.toBeNull();
+    expect(banner?.contains(disclaimer ?? null)).toBe(true);
+    expect(disclaimer?.tagName.toLowerCase()).toBe("p");
+  });
+
+  it("US-139: disclaimer renders in serif italic — Bench v2 §3 'human voice' role", () => {
+    const { container } = render(<ScoreBanner score={makeScore()} />);
+    const disclaimer = container.querySelector(
+      '[data-section="honest-claims"]',
+    ) as HTMLElement;
+    expect(disclaimer.style.fontFamily).toMatch(/--font-serif/);
+    expect(disclaimer.style.fontStyle).toBe("italic");
   });
 
   it("outcome chip variant maps tier B → emerge", () => {
