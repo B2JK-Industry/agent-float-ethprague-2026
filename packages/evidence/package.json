@@ -17,7 +17,9 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@types/diff": "^8.0.0",
     "@upgrade-siren/shared": "workspace:*",
+    "diff": "^9.0.0",
     "viem": "^2.21.55"
   },
   "devDependencies": {

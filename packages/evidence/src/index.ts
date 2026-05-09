@@ -137,6 +137,14 @@ export type {
   StorageLayoutEntry,
 } from './diff/storage.js';
 
+export { diffSourceFiles } from './diff/source.js';
+
+export type {
+  SourceFileDiff,
+  SourceFileHunkCounts,
+  SourceFileStatus,
+} from './diff/source.js';
+
 export { parseUpgradeManifest } from './manifest/parse.js';
 
 export type {
