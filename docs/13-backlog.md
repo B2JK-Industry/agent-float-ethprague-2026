@@ -48,7 +48,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-008 | Foundry tests: storage-layout assertions, dangerous-selector behavior, upgrade flow | A | P0 | M | merged | US-001, US-002, US-003, US-004, US-005 |
 | US-009 | Sepolia deploy script with documented addresses | A | P0 | M | merged | US-001, US-002, US-003, US-004, US-005, US-006 |
 | US-010 | ENS subname provisioning script with stable records and atomic upgrade_manifest | A | P0 | L | merged | US-009 |
-| US-011 | Signed and hosted Siren Reports for safe, dangerous, unverified, live public-read | A | P0 | M | open | US-009, US-010, US-014, US-015 |
+| US-011 | Signed and hosted Siren Reports for safe, dangerous, unverified, live public-read | A | P0 | M | merged | US-009, US-010, US-014, US-015 |
 | US-012 | ENSIP-26 agent-context and agent-endpoint records for demo subnames | A | P1 | S | open | US-010 |
 | US-013 | Documentation of deployed addresses, ENS records, and manifest values | A | P0 | S | open | US-009, US-010, US-011 |
 
@@ -585,7 +585,7 @@ The atomic manifest pattern is the mitigation for desync risk documented in `doc
 | Sponsor | ENS, Sourcify |
 | Dependencies | US-009, US-010, US-014, US-015 |
 | Acceptance gates | GATE-24 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
