@@ -160,9 +160,9 @@ Tracker-only owners (not picked up by dev agents):
 | US-112 | Public-read fallback resolver: infer partial manifest from ENS `addr()` + Sourcify `all-chains` lookup | B | P0 | M | merged | US-111 |
 | US-113 | Sourcify source fetcher with deep field selectors (`compileSuccess`, `signatures.function/event`, `proxyResolution`, `creationMatch`, `runtimeMatch`, `metadata.sources[].license`, `userdoc/devdoc`) | B | P0 | M | merged | US-024, US-025 |
 | US-114 | GitHub source fetcher P0 (narrowed per review 2026-05-09): `/users/{owner}`, top-20 `/users/{owner}/repos`, per-repo `/repos/{o}/{r}` (esp. pushed_at), test-dir probes, README + LICENSE contents. PAT-backed cache, server-side only. CI/bug/releases/branch-protection/SECURITY/dependabot move to US-114b. | B | P0 | M | merged | US-111 |
-| US-114b | GitHub source fetcher P1 enrichment: workflow runs (`ciPassRate`), bug-labeled issues (`bugHygiene`), releases (`releaseCadence`), SECURITY.md + dependabot.yml + branch-protection (extends `repoHygiene`). Score engine treats these as null until merged. | B | P1 | M | open | US-114, US-118 |
+| US-114b | GitHub source fetcher P1 enrichment: workflow runs (`ciPassRate`), bug-labeled issues (`bugHygiene`), releases (`releaseCadence`), SECURITY.md + dependabot.yml + branch-protection (extends `repoHygiene`). Score engine treats these as null until merged. | B | P1 | M | merged | US-114, US-118 |
 | US-115 | On-chain source fetcher P0 (rescoped per review 2026-05-09): `nonce` via `eth_getTransactionCount(latest)`, `firstTxBlock`/`firstTxTimestamp` via binary-search on historical nonce, `contractsDeployedCount` via Sourcify deployer crosswalk. Multi-chain. **NO `eth_getLogs from==` filter (RPC does not support it).** Transfer-count signals (Alchemy Transfers / Etherscan) move to US-115b; `relevance.onchainRecency` falls back to `nonce / cap 1000` when indexer keys absent. | B | P0 | M | merged | US-022 |
-| US-115b | On-chain transfer-count enrichment (P1): integrate Alchemy `alchemy_getAssetTransfers` OR Etherscan `txlist` for `transferCountRecent90d` + `transferCountTotal`. Required env keys: `ALCHEMY_API_KEY` or `ETHERSCAN_API_KEY`. Per-chain failure isolation; one chain rate-limited does not abort fetch. | B | P1 | M | open | US-115 |
+| US-115b | On-chain transfer-count enrichment (P1): integrate Alchemy `alchemy_getAssetTransfers` OR Etherscan `txlist` for `transferCountRecent90d` + `transferCountTotal`. Required env keys: `ALCHEMY_API_KEY` or `ETHERSCAN_API_KEY`. Per-chain failure isolation; one chain rate-limited does not abort fetch. | B | P1 | M | merged | US-115 |
 | US-116 | ENS-internal source fetcher: registration date, subname count, text record count, last `TextChanged` block via subgraph (own Graph Network API key required) | B | P0 | M | merged | US-017 |
 | US-117 | Multi-source orchestrator: parallel runner with per-source failure isolation; emits typed `MultiSourceEvidence` shape | B | P0 | M | merged | US-111, US-113, US-114, US-115, US-116 |
 | US-118 | Score engine: pure function over `MultiSourceEvidence`. Locked seniority weights (6 components); provisional relevance weights (4 components, swappable in one file before merge); trust-discount 0.6 on unverified components; **RAW-DISCOUNTED axis (no normalization to ceiling — per EPIC Section 10 update 2026-05-09)**; tier ceiling enforcement (no-verified-GitHub → seniority cap 0.70; public-read manifest → tier cap A; **v1 P0 max 66, v1 full max 79** — both cap at tier A); emits `ScoreBreakdown` + tier label. | B | P0 | M | merged | US-117 |
@@ -4478,7 +4478,7 @@ EPIC reference: US-110. Renumbered to US-145. Final Tracker item — represents 
 | Sponsor | - |
 | Dependencies | US-114, US-118 |
 | Acceptance gates | - |
-| Status | open (Epic 2) |
+| Status | merged |
 
 #### Scope
 
@@ -4512,7 +4512,7 @@ Per EPIC Section 8.2 P0/P1 split (2026-05-09 update). P1 items are explicitly nu
 | Sponsor | - |
 | Dependencies | US-115 |
 | Acceptance gates | - |
-| Status | open (Epic 2) |
+| Status | merged |
 
 #### Scope
 
