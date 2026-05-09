@@ -72,6 +72,7 @@ export type {
 } from './sourcify/fourbyte.js';
 
 export { fetchSourcifyStatus } from './sourcify/status.js';
+export { fetchSourcifyMetadata } from './sourcify/metadata.js';
 
 export type {
   FetchLike,
@@ -79,7 +80,11 @@ export type {
   SourcifyError,
   SourcifyErrorReason,
   SourcifyMatchLevel,
+  SourcifyMetadata,
+  SourcifySourceFile,
   SourcifyStatus,
+  SourcifyStorageLayout,
+  SourcifyStorageLayoutEntry,
 } from './sourcify/types.js';
 
 export { SOURCIFY_BASE_URL } from './sourcify/types.js';
