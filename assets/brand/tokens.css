@@ -164,6 +164,34 @@
   --e-step:  linear;                          /* discrete ledger ticks */
   --e-ui:    cubic-bezier(0.2, 0, 0, 1);      /* standard UI in-out */
   --e-stamp: cubic-bezier(0.6, 0, 0.4, 1);    /* notary thump, slight overshoot */
+
+  /* ============================================================
+   * v3 component-specific tokens (DEV MANUAL 03 OF 06)
+   * ============================================================ */
+  /* Axis bar fill thresholds (C-06) — ratio earned/max drives fill color */
+  --axis-threshold-high: 0.80;  /* >= → --src-verified (cyan) */
+  --axis-threshold-med:  0.50;  /* 0.50..0.79 → --src-partial (brass); <0.50 → --src-discounted (bronze) */
+
+  /* Tier monogram dimensions (C-01) */
+  --monogram-w: 160px;
+  --monogram-h: 200px;
+  --monogram-letter-min: 64px;  /* never compress below this */
+
+  /* Trust pill (C-04) */
+  --trust-bg-invalid: rgba(255, 59, 48, 0.08);  /* siren tinted bg, only on INVALID */
+
+  /* Outcome chip (C-03) */
+  --outcome-bg-block: rgba(255, 59, 48, 0.08);  /* siren tinted, only on BLOCK */
+
+  /* Docket step (C-08) */
+  --step-active-bg: rgba(0, 184, 217, 0.08);  /* accent tint on active index */
+  --step-active-rail: 3px;                    /* left border width */
+
+  /* FINAL stamp (C-12) */
+  --stamp-rotation: -6deg;
+  --stamp-frame-outer: 3px;
+  --stamp-frame-inner: 1px;
+  --stamp-frame-inner-inset: 4px;
 }
 
 /**

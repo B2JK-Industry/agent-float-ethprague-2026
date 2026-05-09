@@ -1,496 +1,463 @@
 # Bench Mode — Component Patterns
 
-> Source-of-truth: `Bench v1 - Sequential Review.html` (FILE 01 OF 04, 2026-05-09 19:14 CET) and `Bench v2 - Foundations.html` (DEV MANUAL 02 OF 06, v0.7, 2026-05-09 19:15 CET).
+> **Source-of-truth (canonical reference HTML in this repo):**
+> - `assets/brand/bench-v2-foundations.html` — DEV MANUAL 02 OF 06, v0.7. Tokens (color, type, space, motion, a11y).
+> - `assets/brand/bench-v3-components.html` — DEV MANUAL 03 OF 06, v0.7 (2026-05-09). **13 components, every state.** Anatomy + states + tokens + do/don't per component.
+> - `assets/brand/bench-v1-sequential-review.html` — FILE 01 OF 04, v1.1. UI mockup of allocator demo flow (Agent North/Meridian/Halo).
+> - `assets/brand/tokens.css` — extracted CSS custom properties.
 >
-> All token references use the names defined in `assets/brand/tokens.css`. Do not hard-code hex values; if you find yourself reaching for one, you are missing a token — open an issue.
+> All token references use the names defined in `tokens.css`. **Do not hard-code hex values** — if you reach for one, you are missing a token. Open an issue.
 >
-> **Authority**: this document is canonical for Bench Mode (`/b/[name]`) component layouts. Single-Contract Mode (`/r/[name]`) layouts continue to use the existing US-067 component inventory in `apps/web/components/`. Where Bench Mode embeds Single-Contract UI (e.g. inside the Sourcify drawer per US-135), the embedded component is reused as-is, not restyled.
+> **Authority order:** v3 (components, anatomy of individual parts) > v2 (foundations, tokens) > v1 (layouts, how parts compose into a page). Where v3 specifies a component, v3 wins. Where v3 is silent, fall back to v2 + v1 + operating principles.
 >
-> **Extrapolation policy**: anything in this file marked `// EXTRAPOLATED` is inferred from the v1+v2 principles — those exact paddings/states are not literally in the manual. Replace with canonical values when Manual 03 (Components) ships.
+> **Authority for `/r/[name]` Single-Contract Mode** is `assets/brand/brand-manual.html` (US-067 v1.0). It is a SEPARATE visual system. Do not pull from it for Bench Mode work.
 
 ---
 
 ## 0. Operating Principles (v2 §0)
 
-Five non-negotiable rules. Every other pattern in this file derives from these:
+Five non-negotiable rules. Every component below derives from these:
 
-1. **Color is information, not decoration.** Every color carries one meaning. The same hue does not get reused for a different role; the same role does not get expressed in two hues. *If two things look alike, they mean alike.*
-2. **Siren red is reserved.** It only appears when Bench refuses to discount — invalid signature, replaced citation, fictional registry. Never as a hover state, never as a brand accent, never as decoration.
-3. **Trust and Confidence are different gradients.** Trust runs cool (verified ▲) → discounted (▼). Confidence runs neutral-warm (HI ●) → LO (●). Do not collapse them into one axis.
-4. **The system is flat.** No drop shadows, no gradients on surfaces, no glows except the heartbeat dot. Depth comes from *border weight and ink density*, the way a printed filing builds hierarchy.
-5. **Type does the heavy lifting.** Four families, four jobs: **Display** (Space Grotesk) for verdicts, **Body** (Inter) for paragraphs, **Mono** (JetBrains Mono) for evidence and numbers, **Serif italic** (Source Serif 4) for the human voice — quotes, claims, brand asides.
+1. **Color is information, not decoration.** Every color carries one meaning. The same hue does not get reused for a different role; the same role does not get expressed in two hues.
+2. **Siren red is reserved.** Only for refusal moments — invalid signature, replaced citation, fictional registry. Never as a hover state, never as a brand accent.
+3. **Trust and Confidence are different gradients.** Trust runs cool (verified ▲) → discounted (▼). Confidence runs neutral-warm (HI ●) → LO (●). Do not collapse them.
+4. **The system is flat.** No drop shadows, no gradients on surfaces, no glows except the heartbeat dot. Depth comes from border weight and ink density.
+5. **Type does the heavy lifting.** Four families, four jobs: **Display** (Space Grotesk) → verdicts/numbers, **Body** (Inter) → paragraphs, **Mono** (JetBrains Mono) → evidence/values, **Serif italic** (Source Serif 4) → human voice (quotes, claims, brand asides).
+
+**Carry-rules (v2 §2B):**
+- Color is a redundancy, not a sole signal. Every state ships with a glyph (`✓ ⊘ ✕`), label, or numeric multiplier.
+- Dashed border is reserved for "missing source" only. The colorblind-safe identifier.
+
+**Banned (v2 §5C + v3):**
+- ✕ Drop shadows except heartbeat dot.
+- ✕ Gradients on surfaces.
+- ✕ Bouncing animations / spring overshoots above 4%.
+- ✕ Counting-up score numbers. Numbers land at full value.
+- ✕ Parallax.
+- ✕ Rounded corners except heartbeat dot (`var(--r-pulse)`).
+- ✕ Reusing `--siren` / `--o-block` for hover states or brand accents.
 
 ---
 
-## 1. Terminal Bar (sticky top navbar)
+## v3 Components (13 parts — anatomy spec)
+
+Each entry: anatomy + state list + key tokens + do/don't headlines. Full visual reference + extended commentary in `bench-v3-components.html` (live document — open in browser to see rendered states with grid overlay).
+
+### C-01 · Tier Monogram
 
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│ [LOGO] UPGRADE SIREN / BENCH    SESSION BNCH-…    ● SOURCIFY ENS CHAIN │
-└────────────────────────────────────────────────────────────────────────┘
+<TierMonogram tier="a" label="FAST-TRACK" />
 ```
 
-| Property | Value |
+**The dominant mark.** 160 × 200 tile with single A/B/C/D/U letter.
+
+| Anatomy | Spec |
 |---|---|
-| Layout | `display: grid; grid-template-columns: auto 1fr auto; gap: 24px` |
-| Padding | `14px 24px` |
-| Background | `var(--bg)` |
-| Border-bottom | `var(--b-hair)` |
-| Position | `sticky; top: 0; z-index: 10` |
-| Font | `var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--t2)` |
+| Outer tile | 160 × 200, `1px solid var(--border-strong)`, bg `var(--surface)`, radius 0 |
+| Letter | 88px Display 700, tracking `-0.04em`, line-height 0.85, color `var(--tier-{a,b,c,d,u})`, optical centering |
+| Separator rule | 1px solid for A/B/C/D, **1px dashed** for tier U (unrated/queue) |
+| Caption | 9/10px Mono UPPERCASE, top line `var(--t1)` 0.18em + bottom descriptor `var(--t3)` 0.16em |
 
-**Lockup (left):**
-- 22×22 SVG mark (`assets/brand/logo-bench.svg`) inline
-- `<b>UPGRADE SIREN</b>` in display 700 14px tracking -0.01em
-- Pipe `/` in `var(--border-strong)`
-- Mode label `BENCH` in `var(--accent)` mono uppercase
+**States:** A (cyan, ≥4 verified sources) · B (ink white, neutral) · C (brass, evidence required) · D (bronze, block) · U (graphite, dashed separator).
 
-**Session (center):**
-- Truncate with ellipsis if overflow
-- Layout: `text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap`
-- Bold elements (session id, allocation amount) in `var(--t1)`
+**Do** · one monogram per agent per artefact · pair monogram + score tile + outcome chip as one unit · keep tiles square.
+**Don't** · tint letter to non-token color · add glow/shadow/fill behind letter · compress below 120 × 160 (letter min 64px).
 
-**Meta (right):**
-- Heartbeat dot before "SOURCIFY · ENS · CHAIN" — 6px circle, `background: var(--src-verified)`, `box-shadow: 0 0 8px var(--src-verified)`, animated `beat 2s ease-in-out infinite`
-- Date + time in mono, bold elements in `var(--t1)`
-
-**Heartbeat keyframe:** `@keyframes beat { 0%,100% { opacity:1 } 50% { opacity:0.4 } }` — only ambient motion in the entire system.
+**Tokens:** `--surface` `--border-strong` `--tier-{a,b,c,d,u}` `--display 700/88/-0.04em`
 
 ---
 
-## 2. Docket / Stepper (subject queue)
+### C-02 · Score Tile
 
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│ DOCKET · 3 applicants on the bench                  Position 01 / 03   │
-├──────────────────┬──────────────────┬──────────────────────────────────┤
-│ ▍01 Agent North  │  02 Agent Meri…  │  03 Agent Halo                   │
-│   north.allo.… A │    meridian.allo C│    halo.allo.…  D                │
-│   UNDER REVIEW   │    QUEUED        │    QUEUED                        │
-└──────────────────┴──────────────────┴──────────────────────────────────┘
+<ScoreTile value={87} max={100} tier="a" />
 ```
 
-| Property | Value |
+**The headline number.** 0–100, always tabular, always landed.
+
+| Anatomy | Spec |
 |---|---|
-| Wrapper | `border: var(--b-hair); background: var(--surface)` |
-| Header | `padding: 14px 20px; border-bottom: var(--b-hair); font: var(--mono) 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--t3)` |
-| Stepper | `display: grid; grid-template-columns: repeat(3, 1fr); gap: 0` (responsive — collapses to 1 column on narrow viewports) |
-| Step | `padding: 18px 20px; border-right: var(--b-hair); display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; cursor: pointer; transition: background var(--t-base)` |
+| Label | 9/14px Mono 0.18em UPPERCASE, color `var(--t3)`, "SCORE · 0–100" — never "/100" in label |
+| Number | 88px Display 700, tier color, tracking `-0.04em`, `tabular-nums` mandatory, lands instantly (`--t-instant`) — never animated up |
+| "/100" max | 18px Display 500, `var(--t3)`, baseline-aligned to number |
 
-**Step states (3):**
+**States:** A=87 (cyan) · C=52 (brass) · D=28 (bronze) · Pending=`—` placeholder (em-dash, never `0`).
 
-| State | Background | Text color | Indicator |
-|---|---|---|---|
-| `queued` | (default `var(--surface)`) | `var(--t2)` at opacity 0.55 | mini-tier `·` placeholder, `tier-u` color |
-| `reviewed` | `var(--bg)` (inverts to page bg) | `var(--t1)` | mini-tier letter (A/C/D) shown |
-| `focus` | `var(--bg)` + `::before` 3px accent strip on left | `var(--t1)` + accent num | `mini-tier u` (`·`) until reviewed |
+**Do** · land instantly (verdict not slot machine) · `tabular-nums` always · color matches tier exactly.
+**Don't** · count up (no `0 → 87` tween) · show `0` for unjudged (use em-dash) · gradient/two-tone fill on number.
 
-**Mini-tier square** (`24×24`):
-- `display: grid; place-items: center; font: var(--display) 700 14px; line-height: 1; border: 1px solid currentColor`
-- Color matches tier letter token (`var(--tier-a)`, `var(--tier-c)`, `var(--tier-d)`, `var(--tier-u)`)
-- For `tier-u`: `border-style: dashed`
-
-**Tier pill (within reviewed step right-side):** `display: inline-flex; gap: 6px; padding: 3px 8px; border: 1px solid currentColor; font: var(--mono) 10px; letter-spacing: 0.12em` — color matches tier token.
+**Tokens:** `--display 700/88/-0.04em` · `--mono 500/9/0.18em` · `tier-*` color · `tabular-nums` · `--t-instant`
 
 ---
 
-## 3. Subject Bar (per-applicant headline)
+### C-03 · Outcome Chip
 
 ```
-SUBJECT 01 · APPLICANT ON THE BENCH
-Reviewing Agent North.                    [◀ PREV]  [NEXT APPLICANT ▶]
-north.allo.upgradesiren.eth · 0xA0b8…eB48
+<OutcomeChip kind="fast" />
 ```
 
-| Property | Value |
+**The verdict instruction.** 1 of 4 values, pairs with tier monogram.
+
+| Anatomy | Spec |
 |---|---|
-| Wrapper | `margin-top: 32px; display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: flex-end; padding-bottom: 20px; border-bottom: var(--b-hair)` |
-| Eyebrow `.eye` | `var(--mono) 11px; letter-spacing: 0.18em; color: var(--t2); text-transform: uppercase` |
-| Heading `h1` | `var(--display) 600; font-size: clamp(40px, 5vw, 64px); line-height: 1.0; letter-spacing: -0.025em; margin: 8px 0 4px` |
-| `h1 em` | `font-family: var(--serif); font-style: italic; color: var(--t2); font-weight: 400` — agent name in italic serif |
-| ENS line | `var(--mono) 13px; color: var(--accent); word-break: break-all` |
+| Frame | `1px solid currentColor`, radius 0, padding `8 14`, transparent fill EXCEPT `block` gets `rgba(255,59,48,0.08)` |
+| Glyph | Mono 13px — `▶` fast · `◆` emerge · `⚠` evid · `✕` block. **Carries meaning if hue missing — never drop it.** |
+| Label | 11px Mono 500, 0.16em UPPERCASE — `FAST-TRACK` · `EMERGING` · `EVIDENCE-REQUIRED` · `BLOCK` |
 
-**Nav buttons:**
-- Default: `appearance: none; background: transparent; color: var(--t1); border: 1px solid var(--border-strong); font: var(--mono) 11px; letter-spacing: 0.14em; padding: 9px 14px; cursor: pointer; text-transform: uppercase`
-- Hover: `border-color: var(--t1)`
-- Disabled: `color: var(--t3); border-color: var(--border); cursor: not-allowed`
-- Primary (NEXT): `background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600`
-- Primary hover: `filter: brightness(1.08)`
-- Danger variant: `color: var(--o-block); border-color: var(--o-block)`
+**States (the four canonical outcomes):**
+- `FAST-TRACK` (cyan `--o-fast`) — Allocate now. Tier A only.
+- `EMERGING` (ink white `--o-emerge`) — Pilot tranche. Tier B.
+- `EVIDENCE-REQUIRED` (brass `--o-evid`) — Send back for proof. Tier C.
+- `BLOCK` (siren `--o-block`) — Refusal. Tier D. **Only chip with tinted background (8%).**
+
+**Do** · exactly one chip per verdict · keep glyph (color-blind carry) · use BLOCK only when Bench refuses.
+**Don't** · invent new outcomes (no REVIEW/WATCH/HOLD — four values total) · fill chip with hue (BLOCK 8% tint excepted) · use BLOCK as hover or destructive button.
+
+**Tokens:** `--o-fast` `--o-emerge` `--o-evid` `--o-block`
 
 ---
 
-## 4. Report Grid (the main two-pane layout)
+### C-04 · Trust Pill
 
 ```
-┌─────────────────────────────────────────────┬──────────────────────┐
-│ [LEFT PANEL — verdict + math]               │ [EVIDENCE DRAWER]    │
-│  • report-head (tier monogram + score)      │  • Source rows       │
-│  • claim-block (serif blockquote)           │  • Recommendations   │
-│  • reads-block (✓/⚠/✕ findings list)        │                      │
-│  • math (formula + axis breakdown bars)     │                      │
-└─────────────────────────────────────────────┴──────────────────────┘
+<TrustPill x={0.85} state="part" />
 ```
 
-| Property | Value |
+**Per-source multiplier — discount made visible.**
+
+| Anatomy | Spec |
 |---|---|
-| Layout | `display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 1px; background: var(--border); border: var(--b-hair)` |
-| Responsive | `@media (max-width: 1080px) { grid-template-columns: 1fr }` — drawer stacks under panel |
-| Panel | `background: var(--bg); padding: 32px` |
-| Evidence | `background: var(--raised); padding: 32px` |
+| Multiplier form | `×0.00` to `×1.00`, Mono 10/500, 0.06em, padding `3 8`, `1px solid currentColor`, **two decimals always** (`×0.30` not `×.3`) |
+| Invalid form | Word form `INVALID` (or `FORGED` / `404`), `--o-block` color, 8% tinted bg, solid border. **Never mix multiplier + word — pick one per source.** |
+| Missing form | `×0.00`, dashed border, `--src-missing`. **Distinct from invalid — silence vs. lie.** |
 
-The 1px gap on `var(--border)` background creates a single hairline between panels without doubling borders.
+**States:** FULL `×1.00` (cyan, default for Sourcify/ENS sig/EIP-1967) · PARTIAL `×0.40–0.85` (brass, "we trust this, but…") · DISCOUNTED `×0.20–0.40` (bronze, just barely counts) · MISSING `×0.00` (dashed, source did not return) · INVALID (siren tinted, active forgery).
 
-**Panel head:**
-- `display: flex; justify-content: space-between; align-items: baseline`
-- `var(--mono) 10px; letter-spacing: 0.18em; color: var(--t3); text-transform: uppercase; margin-bottom: 18px`
-- Bold elements in `var(--t1) font-weight: 500`
+**Do** · one pill per source row in Trust Ledger · always two decimals · dashed border for missing (CB-safe).
+**Don't** · use percentages (`40%` — multiplier semantics clearer) · display `×1` (`×1.00` for alignment) · mix INVALID and `×0.00`.
+
+**Tokens:** `--src-verified` `--src-partial` `--src-discounted` `--src-missing` (dashed) `--o-block`
 
 ---
 
-## 5. Report Head (tier monogram + score banner)
+### C-05 · Source Row
 
 ```
-┌──────┐  SCORE
-│  A   │  87 / 100              [● Fast-track]
-│      │  TIER A
-│ 120  │  ▲ +0.4 (7 day)
-└──────┘
+<SourceRow source="sourcify" weight={0.35} trust="full" />
 ```
 
-| Property | Value |
+**One source per row.** Dot + name(+sub) + trust pill + weight.
+
+| Anatomy | Spec |
 |---|---|
-| Layout | `display: flex; gap: 24px; align-items: flex-start; padding-bottom: 24px; border-bottom: var(--b-hair)` |
+| Status dot | 8 × 8 — verified gets 6px halo (`box-shadow: 0 0 6px`); missing gets `border: dashed` no fill |
+| Name + sub | Mono 12 / Mono 10 — name `var(--t1)`, sub `var(--t3)` 10/16. **Truncate sub on overflow with ellipsis; never truncate name.** |
+| Trust pill | C-04 component, right-aligned, vertically centered |
+| Weight | Mono 10, 0.16em, `var(--t3)`, `w 35%` form. **Weight is score-math contribution, NOT trust multiplier.** |
 
-**Tier monogram** (large square):
-- `width: 120px; height: 120px; flex-shrink: 0`
-- `display: grid; place-items: center`
-- `font: var(--display) 700 88px; line-height: 1; letter-spacing: -0.04em`
-- `border: var(--b-mono)` (2px solid in current tier color)
-- Color via tier token: `.tier-mono.a { color: var(--tier-a) }` etc.
+**States:** FULL (halo dot, cyan pill) · PARTIAL (solid dot, brass) · MISSING (dashed border + dashed dot, the silence) · INVALID (siren dot + tinted pill, the lie).
 
-**Head meta** (right side):
-- `flex: 1; min-width: 0`
-- Label: `var(--mono) 10px; letter-spacing: 0.18em; color: var(--t3); text-transform: uppercase`
-- Agent name: `var(--display) 600 32px; letter-spacing: -0.015em; margin: 6px 0 4px; line-height: 1.05`
-- ENS: `var(--mono) 12px; color: var(--accent); word-break: break-all`
-- Score row: `margin-top: 18px; display: flex; gap: 18px; flex-wrap: wrap; align-items: baseline`
+**Do** · one source per row (no grouping under summary) · show second line (provenance details earn trust) · order by descending weight, NOT trust state.
+**Don't** · truncate name (shrink another column) · fill row bg with trust color · show multiplier inline as string.
 
-**Score-big** (the headline number):
-- `var(--display) 700 88px; line-height: 0.85; letter-spacing: -0.04em; font-variant-numeric: tabular-nums`
-- Color via tier: `.score-big.a { color: var(--tier-a) }`, etc.
-- **Numbers land at full value, never animate** (v2 §5C banned motion).
-
-**Score meta** (small label cluster):
-- `var(--mono) 11px; line-height: 1.55; color: var(--t2); letter-spacing: 0.06em`
-- `<b>` elements in `var(--t1) font-weight: 500`
-- Layout: `/ 100\nTIER A\n▲ +0.4 (7 day)` — three lines
-
-**Outcome chip:**
-- `display: inline-flex; align-items: center; gap: 10px; padding: 9px 14px; border: 1px solid currentColor`
-- `var(--mono) 11px; letter-spacing: 0.18em; text-transform: uppercase`
-- `::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0 }`
-- Variants: `.fast { color: var(--o-fast); background: rgba(122,217,255,0.06) }`, `.evid { color: var(--o-evid); background: rgba(179,163,106,0.06) }`, `.block { color: var(--o-block); background: rgba(255,59,48,0.06) }`
+**Tokens:** `--surface` `--border` (`dashed` when missing) `--mono 12/10` + all source-state tokens
 
 ---
 
-## 6. Claim Block (serif italic blockquote)
+### C-06 · Axis Bar
 
 ```
-HEADLINE CLAIM            self-asserted · operator manifest
-"
-Delta-neutral yield strategy on Ethereum mainnet.
-Public track record across 14 months, $8.2M AUM
-at peak, 18.4% trailing APY net of fees.
-
-— OPERATOR MANIFEST, SIGNED BY ENS CONTROLLER
+<AxisBar name="substance" weight={0.50} earned={46} max={50} />
 ```
 
-| Property | Value |
+**One of three score axes.** Earned/max with line items.
+
+| Anatomy | Spec |
 |---|---|
-| Wrapper | `margin-top: 28px` |
-| Quotation mark `.qmark` | `var(--serif); font-style: italic; font-size: 80px; line-height: 0.4; color: var(--t3); float: left; margin-right: 12px; margin-top: 24px` |
-| Blockquote | `var(--serif) 22px; line-height: 1.4; color: var(--t1); text-wrap: pretty` |
-| Attribution `.attr` | `margin-top: 12px; clear: both; var(--mono) 10px; letter-spacing: 0.16em; color: var(--t3); text-transform: uppercase` |
+| Name + weight | Mono 10 0.16em — name `var(--t1) 500` UPPERCASE, weight `var(--t3) 400`, format `w 0.50 · 50pt max` |
+| Earned/max | 18px Display 600, earned `var(--t1)`, max `var(--t3) 13`, `tabular-nums`, baseline aligned |
+| Fill bar | 6px high, track `var(--border)`, fill driven by ratio: **≥0.80 cyan (`--src-verified`)** · **0.50–0.79 brass (`--src-partial`)** · **<0.50 bronze (`--src-discounted`)**. **No animation on score change.** |
+| Line items | Mono 10, row 6px y-pad, label left `var(--t2)`, earned/max right `var(--t1)`, dotted dividers |
 
-The float-left quote-mark technique makes the blockquote wrap around the `"` at left.
+**States:** High ≥0.80 (cyan fill, strong axis) · Med 0.50–0.79 (brass) · Low <0.50 (bronze, trust collapse axis).
+
+**Do** · always show line items beneath bar (bar without them is decoration) · `tabular-nums` on every numeric column · order axes consistently (Substance · Provenance · Relevance).
+**Don't** · animate fill width on score reveal · flip axis colors to "warning amber" (siren reserved) · render partial line items (all four or none).
+
+**Tokens:** `--display 600/18/-0.01em` · `--mono 10/0.16em` · thresholds 0.80 / 0.50
 
 ---
 
-## 7. Bench Reads (verified findings list)
+### C-07 · Math Line
 
 ```
-┌─ BENCH READS ────────────────────────────────────────┐
-│ ✓ AUM & APY independently verifiable. Settlement…   │
-│ ✓ Genesis matches Sourcify-verified contract. Full…  │
-│ ⚠ Operator manifest signed by ENS controller. …      │
-│ ✕ No SIREN-grade contract findings in linked perim…  │
-└──────────────────────────────────────────────────────┘
+<MathLine axes={[46, 22, 23]} trust={0.96} result={87} />
 ```
 
-| Property | Value |
+**Final formula resolution.** The auditor's worksheet bottom row.
+
+| Anatomy | Spec |
 |---|---|
-| Wrapper | `margin-top: 32px; padding: 20px; background: var(--surface); border-left: 3px solid var(--border-strong)` |
-| Label | `var(--mono) 10px; letter-spacing: 0.18em; color: var(--t2); text-transform: uppercase; margin-bottom: 12px` |
-| List | `margin: 0; padding: 0; list-style: none` |
-| Item | `display: grid; grid-template-columns: 18px 1fr; gap: 10px; padding: 8px 0; var(--mono) 13px; line-height: 1.45; color: var(--t1); border-top: var(--b-dot)` |
-| First item | `border-top: 0` |
-| `<b>` in item | `color: var(--t1); font-weight: 500` |
-| `<code>` in item | `var(--mono) 12px; color: var(--accent); background: transparent; padding: 0; border: 0` |
+| Expression | Mono 13 — operators `var(--t3)`, grouped values `var(--t1)`, `&nbsp;` around `+ × =`. **Two intermediate steps max** — anything more goes into worksheet body |
+| Result | Display 700 32px, tier-matched color, tracking `-0.02em`, `margin-left: auto` (right-pinned), **always two decimals** (`87.36` not `87`) |
 
-**Glyph variants** (3 states, mandatory pairing per v2 §2B carry-rule):
-- `.ok .icn { color: var(--src-verified) }` — `✓`
-- `.warn .icn { color: var(--src-partial) }` — `⊘` or `⚠`
-- `.bad .icn { color: var(--o-block) }` — `✕`
+**States:** Result color tracks verdict tier (A cyan / B ink white / C brass / D bronze).
 
-**Border-left variants** (signals the row's overall mood):
-- Default — `var(--border-strong)`
-- `.reads-block.b { border-left-color: var(--src-partial) }` — partial mood
-- `.reads-block.r { border-left-color: var(--o-block) }` — block mood
+Format example:
+```
+( 46 + 22 + 23 ) × 0.96 = 91 × 0.96 = 87.36
+```
+
+**Do** · show actual arithmetic (opaque models lose trust) · two decimals on every numeric · pin result right with auto margin.
+**Don't** · compress formula into one step (show `91 × 0.96` middle) · round to integers in math line (only headline does that) · decorate with extra equality glyphs/arrows.
+
+**Tokens:** `--mono 13` · `--display 700/32/-0.02em` · tier-* color on result
 
 ---
 
-## 8. Score Math (the auditor's worksheet)
+### C-08 · Docket Step
 
 ```
-┌─ SCORE MATH ── how 87 was built · open ledger ────────────────────┐
-│   SCORE  =  ( SUBSTANCE + PROVENANCE + RELEVANCE )  ×  TRUST       │
-├─────────────────────────────┬─────────────────────────────────────┤
-│ SUBSTANCE / 50          46  │ PROVENANCE & SENIORITY / 30      28 │
-│ AUM verifiability  ▮▮▮▮▮▮▮▮▮ │ Audit trail        ▮▮▮▮▮▮▮ 7 / 8    │
-│ APY verifiability  ▮▮▮▮▮▮▮▮▮ │ Source diversity   ▮▮▮▮▮▮ 6 / 8     │
-│ Strategy clarity   ▮▮▮▮▮▮▮▮  │ ...                                 │
-├─────────────────────────────┴─────────────────────────────────────┤
-│  SCORE  =  ( 46 + 28 + 12 ) × 0.96  =  87 → A                      │
-└────────────────────────────────────────────────────────────────────┘
+<DocketStep idx={2} state="active" />
 ```
 
-| Property | Value |
+**Stepper item** for sequential review. `pending → active → done`.
+
+| Anatomy | Spec |
 |---|---|
-| Wrapper `.math` | `margin-top: 32px; border: var(--b-hair); background: var(--surface)` |
-| Math head | `padding: 14px 20px; border-bottom: var(--b-hair); var(--mono) 10px; letter-spacing: 0.18em; color: var(--t3); text-transform: uppercase` |
-| Math formula | `padding: 14px 20px; border-bottom: var(--b-hair); background: var(--bg); var(--mono) 12px; letter-spacing: 0.04em; color: var(--t2); text-align: center` |
-| Formula `<b>` | `color: var(--t1) font-weight: 500` |
-| Formula `.op` | `color: var(--t3); margin: 0 6px` |
-| Math grid | `display: grid; grid-template-columns: 1fr 1fr` (responsive: 1 col below 780px) |
-| Math col | `padding: 18px 20px` |
-| Col separator | `+ .math-col { border-left: var(--b-hair) }` (top-border on narrow) |
+| Done | Index in tier color, border in tier color, bg `var(--surface)`. Right pill: `{TIER} · {SCORE} · {OUTCOME}` in outcome color |
+| Active | **3px left border in `var(--accent)`**, bg inverts to `var(--bg)`, index gets cyan tint `rgba(0,184,217,0.08)`, right pill `UNDER REVIEW` accent |
+| Pending | Dashed index border, everything `var(--t3)`, right pill `PENDING` dashed |
+| Right pill | Mono 9, 0.14em, 1px solid currentColor — dashed for pending only |
 
-**Math axis (one per axis: substance, provenance, relevance):**
-- `.math-axis + .math-axis { margin-top: 18px; padding-top: 18px; border-top: var(--b-dot) }`
-- Header `.math-axis-h`: `display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; var(--mono) 10px; letter-spacing: 0.16em; color: var(--t1); text-transform: uppercase`
-- Got value (right side): `var(--display) 700 20px; line-height: 1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums` — colored by axis tier (`.got.a` → tier-a, `.got.c` → tier-c, etc.)
+**States:** PENDING (dashed, inactive) · ACTIVE (cyan accent left rail, in focus) · DONE-A (cyan, FAST) · DONE-D (bronze, BLOCK — promise made physical).
 
-**Math line (per signal within axis):**
-- `display: grid; grid-template-columns: 1fr 80px 64px; gap: 12px; align-items: center; padding: 6px 0; var(--mono) 11px; color: var(--t2); letter-spacing: 0.02em`
-- `+ .math-line { border-top: var(--b-dot) }`
-- `.lbl em` — italic serif annotation: `var(--serif) italic; color: var(--t3); font-size: 10px; display: block; margin-top: 2px; letter-spacing: 0`
-- `.bar` — horizontal bar: `position: relative; height: 6px; background: var(--bg); border: var(--b-hair)`
-- `.bf` — bar fill: `position: absolute; top: 0; bottom: 0; left: 0; background: var(--t1)` (default); colored by axis (`.bf.a { background: var(--tier-a) }`, etc.)
-- `.n` — value column: `text-align: right; color: var(--t1); font-variant-numeric: tabular-nums; font-size: 11px`
-- `.n .max` — denominator: `color: var(--t3)`
+**Do** · render rows in queue order (steppers sequential, NOT leaderboard) · on NEXT, transition `active → done` + `next-pending → active` same frame (160ms) · keep tier color on done index AND pill (same verdict).
+**Don't** · sort by score (bench reviews in queue order) · allow editing done verdict from docket (that's report's job) · show "skip" affordance (reviewer rolls forward only).
 
-**Math final (the summary line):**
-- `border-top: var(--b-rule); padding: 18px 20px; background: var(--bg); display: flex; flex-wrap: wrap; gap: 14px; align-items: baseline; justify-content: space-between; var(--mono) 13px; color: var(--t2); letter-spacing: 0.04em`
-- LHS label: `color: var(--t3); letter-spacing: 0.16em; text-transform: uppercase; font-size: 10px`
-- Calc: `color: var(--t1); font-variant-numeric: tabular-nums`
-- Calc operators: `color: var(--t3); margin: 0 8px`
-- RHS: `display: inline-flex; align-items: baseline; gap: 10px; ::before { content: "→"; color: var(--t3) }`
-- RHS bold (final score): `var(--display) 700 32px; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums` — tier color
+**Tokens:** `--accent` (active) · tier-* on done · outcome-* on done pill
 
 ---
 
-## 9. Trust Ledger Table (alternate math layout)
+### C-09 · Heartbeat Dot
 
-| Property | Value |
+```
+<Heartbeat state="ok|warn|crit" label="Bench is reading" />
+```
+
+**The only ambient motion.** Proves Bench is live.
+
+| Anatomy | Spec |
 |---|---|
-| Wrapper | `width: 100%; border-collapse: collapse; var(--mono) 11px; color: var(--t2)` |
-| Header | `text-align: left; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; font-size: 9px; color: var(--t3); padding: 6px 0 8px; border-bottom: var(--b-hair)` |
-| Cell | `padding: 8px 0; border-bottom: var(--b-dot); font-variant-numeric: tabular-nums` |
-| First cell | `color: var(--t1); letter-spacing: 0.04em` |
-| `tr.zero` | All cells `color: var(--t3)` |
-| `tr.bad` | All cells `color: var(--o-block)` |
-| `tr.sum` | `border-bottom: 0; border-top: var(--b-rule); padding-top: 10px; color: var(--t1); font-weight: 500; text-transform: uppercase; letter-spacing: 0.14em; font-size: 10px` |
-| `tr.sum td:last-child` | `var(--display) 700 14px; letter-spacing: -0.01em` |
+| Dot | 8 × 8, `border-radius: 50%` (the only exception, `var(--r-pulse)`) — color `var(--src-verified|review|o-block)`, pulses outward via `box-shadow` rgba 0.55 → 0 across `--t-pulse` 2s ease-out infinite |
+| Label | Mono 11, 0.14em UPPERCASE, `var(--t2)`. **Pair format: action verb in present continuous** (`READING`, not `READ`) |
+
+**States:** OK cyan (default, term-bar mode word) · WARN amber (source slow/stale, Bench still reads) · CRIT siren (verdict refused — once per session max).
+
+**Do** · heartbeat as system-status signal, not decoration · respect `prefers-reduced-motion: reduce` (replace pulse with static dot) · keep pulse exactly 2.0s.
+**Don't** · put heartbeat next to button (buttons not alive) · pulse on hover (hover gets `--t-quick`) · add second dot (one per surface max).
+
+**Tokens:** `--t-pulse 2s ease-out` · `r 9999px` (only here) · `--src-verified` `--review` `--o-block`
 
 ---
 
-## 10. Signal Chips (small mono pills)
+### C-10 · Button
 
-`<span class="sig">PROOF · 7 of 8</span>` rendered as:
+```
+<Button kind="primary|default|ghost|refuse" disabled? />
+```
 
-| Property | Value |
+**Five kinds.** Primary · default · ghost · refuse · disabled.
+
+| Anatomy | Spec |
 |---|---|
-| Wrapper | `var(--mono) 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 8px; border: 1px solid var(--border-strong); color: var(--t2)` |
-| `<b>` | `color: var(--t1); font-weight: 500` |
-| `.warn` | `color: var(--src-partial); border-color: var(--src-partial)` |
-| `.bad` | `color: var(--o-block); border-color: var(--o-block)` |
+| Frame | 1px solid, radius 0, padding `12 20`, transition `120ms cubic-bezier(0.2,0,0,1)` on bg+color, transparent fill EXCEPT `.primary` |
+| Label | 11px Mono 500, 0.16em UPPERCASE — arrows `← →` as separate glyph children with `gap: 10px`, **never wrap** (use `&nbsp;` to keep label on one line) |
+| Focus | **3px solid `var(--accent)` outline, offset 2** — `:focus-visible` ONLY (not `:focus`). Hover inverts: bg `var(--t1)`, color `var(--bg)` |
 
-Layout container: `margin-top: 14px; padding-top: 12px; border-top: var(--b-dot); display: flex; flex-wrap: wrap; gap: 6px`.
+**States:**
+- `PRIMARY` — accent fill + bg text, the forward action, **one per surface**
+- `DEFAULT` — transparent fill, t1 border, companion/secondary
+- `GHOST` — softer: border `var(--border-strong)`, text `var(--t2)`, tertiary
+- `REFUSE` — `var(--o-block)` outline, fills on hover (destructive/refusal only — NOT for harmless deletes)
+- `DISABLED` — border + label drop to `var(--t3)`, `cursor: not-allowed`
+
+**Do** · exactly one PRIMARY per surface (if you need two, design is wrong) · use REFUSE only for destructive/refusal, NOT for CRUD deletes · always wire `:focus-visible` with 3px accent ring.
+**Don't** · round corners (system has one radius: zero) · add icons inside label (only `← →` arrows or external glyphs) · use filled siren button as "delete" (it's contract refusal, not CRUD).
+
+**Tokens:** `--mono 11/0.16em UPPERCASE` · pad `12 × 20` · `--t-quick 120ms` · `--e-ui`
 
 ---
 
-## 11. Evidence Drawer (right column source list)
+### C-11 · Evidence Row
 
 ```
-SOURCES
-
-● Sourcify · vault.eth proxy 0xA0b…       ×1.00
-  https://sourcify.dev/...
-
-● ENS owner sig recovered                  ×1.00
-  EIP-712, signer 0x747…0cfC
-
-⊘ GitHub claimed: "B2JK-Industry"          ×0.60
-  unverified — no cross-sign
-
-⊘ no Etherscan key configured              ×0.00
-  fell back to nonce/cap-1000
-
-✕ proof URI 404                            INVALID
-  https://...
-
-RECOMMENDATIONS
-1. Cross-sign GitHub via signed gist
-2. Provision Etherscan key
-3. Replace dead proof URI
+<EvidenceRow source="sourcify" hash="0x…" verdict="ok|fail|miss" />
 ```
 
-| Property | Value |
+**The proof itself.** Lives only in evidence drawer (L2 raised surface).
+
+| Anatomy | Spec |
 |---|---|
-| Wrapper | `background: var(--raised); padding: 32px` |
-| Heading `h3` | `var(--mono) 11px; letter-spacing: 0.18em; color: var(--t2); text-transform: uppercase; margin: 0 0 14px` |
-| Source row `.src` | `display: grid; grid-template-columns: 14px 1fr auto; gap: 10px; align-items: center; padding: 14px 0; border-top: var(--b-hair); var(--mono) 12px` |
-| First source row | `border-top: 0` |
-| Source dot `.dot` | `width: 10px; height: 10px; flex-shrink: 0` |
-| Source name `.name` | `color: var(--t1); letter-spacing: 0.06em; font-size: 12px` |
-| Source citation `.citation` | `color: var(--t3); font-size: 10px; margin-top: 2px; letter-spacing: 0.04em; word-break: break-all` |
-| Source multiplier `.mult` | `font-size: 11px; letter-spacing: 0.08em; padding: 3px 8px; border: 1px solid currentColor` |
+| Source tag | Mono 10, 0.06em UPPERCASE, `var(--accent)`. **Six canonical tags:** `SOURCIFY` · `ENS` · `SIG` · `REGISTRY` · `IPFS` · `RPC`. **New tags require v3 patch.** |
+| Body | Body 13, line-height 1.55 — plain English finding + actual hash/path/identifier on its own `.hash` line in Mono 11 `var(--accent)`, `word-break: break-all` |
+| Check | Mono 11, 0.06em — `✓ OK` (`--src-verified`) · `✕ INVALID` (`--o-block`) · `⊘ NOT FOUND` (`--src-missing`). Right-aligned, **top-aligned** (not centered) |
 
-**Source row state variants** (mandatory color × dot × multiplier triple per v2 §2B carry-rule):
+**States:** OK (solid border, cyan check, the proof) · INVALID (solid, siren check, the lie) · MISSING (dashed border, graphite check, the silence).
 
-| State | dot bg | name color | mult color | mult content |
-|---|---|---|---|---|
-| `.verified` | `var(--src-verified)` | `var(--t1)` | `var(--src-verified)` | `×1.00` |
-| `.partial` | `var(--src-partial)` | `var(--t1)` | `var(--src-partial)` | `×0.40-0.85` |
-| `.discounted` | `var(--src-discounted)` | `var(--t1)` | `var(--src-discounted)` | `×0.20-0.40` |
-| `.degraded` | `var(--src-degraded)` | `var(--t1)` | `var(--src-degraded)` | `degraded` |
-| `.missing` | `transparent` + `1px dashed var(--border-strong)` | `var(--t3)` | `var(--t3)` | `×0.00` |
-| `.invalid` | `var(--o-block)` | `var(--o-block)` | `var(--o-block)` | `INVALID` |
+**Do** · always show actual hash/path/address (proof, not summary) · keep evidence rows on `--raised` (L2, not commentary) · cluster rows by source family (chain → registry → off-chain).
+**Don't** · truncate hash with ellipsis on desktop (wrap it) · translate source tag (SOURCIFY/ENS/RPC are protocol names) · pair evidence row with thumbs-up or human emoji (check glyph IS the icon).
 
-**Recommendations** (`.recs`):
-- `margin-top: 24px; padding-top: 20px; border-top: var(--b-hair)`
-- Heading: `margin-bottom: 10px` (otherwise same as drawer h3)
-- List: `margin: 0; padding-left: 20px; var(--body) 13px; color: var(--t1); line-height: 1.6`
-- Items: `margin-bottom: 8px; text-wrap: pretty; <b> { color: var(--t1); font-weight: 500 }`
+**Tokens:** `--raised` (L2) · `--accent` (tag, hash) · 3 verdicts ok/fail/miss
 
 ---
 
-## 12. Paper / Stamp (printed-artefact surface)
+### C-12 · FINAL Stamp
 
-For marketing collateral, exported PDF bench reports, and the once-per-artefact "FINAL" stamp:
+```
+<FinalStamp date="2026-05-09" />
+```
 
-| Property | Value |
+**Used once per artefact.** Marks docket closed. Ink on paper.
+
+| Anatomy | Spec |
 |---|---|
-| Surface | `background: var(--paper); color: var(--ink)` |
-| Alt surface | `background: var(--paper-alt)` (slightly darker, for filed/aged feel) |
-| Body text | `color: var(--ink)` (14:1 ratio AAA) |
-| Secondary text | `color: var(--ink-soft)` |
-| Hairline rule | `border-color: var(--rule)` |
-| FINAL stamp | `color: var(--stamp); ::before { content: "FINAL" }` — used 1× per artefact maximum, animated with `--t-stamp` 300ms `--e-stamp` cubic-bezier(0.6, 0, 0.4, 1) for slight overshoot
+| Frame | **3px solid `var(--stamp)` + inner 1px inset 4px**, rotation `-6deg`, padding `18 28`, radius 0, bg `var(--paper)`. **Lives only on paper-colored surfaces.** |
+| Word | Display 700 24, 0.18em UPPERCASE — **"FINAL" only, never localize**. Color `var(--stamp)` `#9E1E14` |
+| Caption | Mono 10, 0.20em — format `LEDGER CLOSED · YYYY-MM-DD`, single line, baseline-attached below word |
 
-Stamp WCAG: 6.5:1 on paper — AAA-passable. Pair always with the literal word "FINAL" (carry-rule v2 §2B).
+**States:** FINAL (default, max one per artefact) · scaled-small (acceptable down to 14px headline; never below).
+
+**Do** · animate lander once with `--t-stamp` (300ms cubic-bezier(0.6,0,0.4,1)), then still · only on paper/paper-alt surfaces · ISO date (`2026-05-09`, not `May 9, '26`).
+**Don't** · put on dark surfaces (stamp belongs to printed filing) · loop rotation or pulse border (land it, stop) · add second stamp (no `APPROVED` / `REJECTED` — `FINAL` is the only word).
+
+**Tokens:** `--paper` · `--stamp` · `--t-stamp 300ms` · `--e-stamp`
 
 ---
 
-## 13. Page Document Container
+### C-13 · Verdict Head (composite)
 
 ```
-<div class="doc">
-  <!-- terminal bar -->
-  <!-- docket -->
-  <!-- subject-bar (per step) -->
-  <!-- report (panel + evidence) -->
-  <!-- design notes -->
-</div>
+<VerdictHead agent={...} />
 ```
 
-| Property | Value |
+**Composite** of monogram + name + claim + score + outcome. The page-opener.
+
+| Anatomy | Spec |
 |---|---|
-| Wrapper | `max-width: 1480px; margin: 0 auto; padding: 40px 32px 64px` |
+| Layout | `grid-template-columns: 160 1fr auto`, gap 24, `align-items: start`. Folds beneath name block at `<720px` |
+| Monogram | C-01 component, fixed 160 × 200 left column |
+| Name block | Eyebrow Mono 10 0.18em accent · H3 Display 600 32px ("Reviewing Agent *{Name}.*" with name **italic-serif**) · ENS Mono 11 t2 · claim Source Serif 4 italic 16/24 |
+| Right stack | column gap 12 — score tile (C-02) on top, outcome chip (C-03) below, both right-aligned. Vertical until 720px |
+| Claim | Source Serif italic 16/24, **quoted**, max-width 48ch, `text-wrap: pretty`. **The agent's words, in their voice — never paraphrased.** |
 
-Section gutters: `--s-16` 64px between sections. First section: `margin-top: 0`.
+**States:** A · 87 · FAST (cyan stack) · B · 71 · EMERGE (ink white) · C · 52 · EVID (brass) · D · 28 · BLOCK (siren outcome).
+
+**Do** · always show monogram + score + outcome together (one verdict, one unit) · use agent's own claim, quoted in serif italic with quote marks · match score color to tier monogram color exactly.
+**Don't** · paraphrase claim into "key takeaways" · show non-tabular score (digits dance between agents) · add portrait/logo/avatar (Bench reviews words and proofs, not faces).
+
+**Tokens:** uses C-01 + C-02 + C-03 · `--display 600/32` · `--serif italic 16/24`
 
 ---
 
-## 14. State Machine — Sequential Review
+## Layout Patterns from v1 (how parts compose)
 
-The `[data-step]` attribute drives applicant visibility. Default CSS:
+The 13 components above are atoms. v1 Sequential Review.html shows how they compose into a page. The patterns below are reproduced from v1 verbatim for Bench Mode `/b/[name]` reuse:
 
-```css
-[data-step] { display: none; }
-[data-step].active { display: block; }
+### L-A · Terminal Bar (sticky top navbar)
+
+`grid: auto 1fr auto`, gap 24, padding `14 24`, `position: sticky; top: 0; z-index: 10`, bg `--bg`, border-bottom `--b-hair`. Lockup left (logo SVG + "UPGRADE SIREN / BENCH" Mono 11 0.08em) · session id center (truncate with ellipsis) · meta right (heartbeat dot C-09 + date/time).
+
+### L-B · Page Document Container
+
+`max-width: 1480px; margin: 0 auto; padding: 40px 32px 64px`. Section gutters `--s-16` 64px between sections.
+
+### L-C · Report Two-Pane Grid (per-applicant page)
+
+`grid-template-columns: minmax(0, 1fr) 380px`, gap 1px on `--border` background (creates single hairline). Responsive: collapses to 1 column below 1080px. Left panel `bg: --bg, padding: 32px`. Right evidence drawer `bg: --raised, padding: 32px`.
+
+### L-D · Subject Bar (per-applicant headline)
+
+`margin-top: 32px; grid: 1fr auto; gap: 32px; align-items: flex-end; padding-bottom: 20px; border-bottom: --b-hair`. Eyebrow + h1 (clamp 40-64px, agent name in italic serif via `<em>`) + ENS line in accent. Nav buttons right (Prev / Next Applicant primary).
+
+### L-E · Bench Reads Block (verified findings list)
+
+`margin-top: 32px; padding: 20px; bg: --surface; border-left: 3px solid --border-strong`. Item layout `grid: 18px 1fr; gap: 10px; padding: 8px 0; Mono 13; line-height: 1.45`. Glyph variants per v2 §2B carry-rule: `.ok .icn { color: --src-verified }` (`✓`) · `.warn` (`⊘` or `⚠`) · `.bad` (`✕`).
+
+### L-F · Score Math Worksheet
+
+`border: --b-hair; bg: --surface`. Math head + math formula (centered, bg --bg) + 2-column math grid (1fr 1fr, responsive 1-col below 780px) where each `.math-axis` block contains AxisBar (C-06) instances + Math Line (C-07) at the bottom.
+
+---
+
+## Banned Patterns (consolidated)
+
+- ✕ Drop shadows except heartbeat dot (`0 0 8px var(--src-verified)`)
+- ✕ Gradients on surfaces — backgrounds are flat solid color tokens
+- ✕ Bouncing animations / spring overshoots above 4%
+- ✕ Counting-up scores — numbers land at full value
+- ✕ Parallax — backgrounds stay still
+- ✕ Rounded corners except heartbeat dot (`var(--r-pulse)`)
+- ✕ Reusing `--siren` / `--o-block` for hover states or brand accents
+- ✕ Dashed borders except `--b-dash` for missing source
+- ✕ Inventing new outcome chips (4 values total: fast / emerge / evid / block)
+- ✕ New evidence source tags (6 canonical: SOURCIFY / ENS / SIG / REGISTRY / IPFS / RPC)
+- ✕ More than one PRIMARY button per surface
+- ✕ More than one heartbeat dot per surface
+- ✕ More than one FINAL stamp per artefact
+- ✕ Score number in non-tabular figures (digits dance between agents)
+- ✕ Paraphrased claims (agent's own words, in serif italic with quote marks)
+
+---
+
+## Extrapolation Tracker (v3 RESOLVES most)
+
+Items previously extrapolated, now resolved by v3:
+
+| Was extrapolated | Now resolved by |
+|---|---|
+| Button anatomy (hover/focus/disabled/ghost/danger) | C-10 Button §10 |
+| Tier monogram exact dimensions | C-01 |
+| Score tile typography | C-02 |
+| Outcome chip 4-state set | C-03 |
+| Trust pill multiplier format | C-04 |
+| Source row (dot + name + sub + pill + weight) | C-05 |
+| Axis bar fill thresholds | C-06 (≥0.80 / 0.50–0.79 / <0.50) |
+| Math line formula presentation | C-07 |
+| Docket step state machine | C-08 |
+| Heartbeat dot timing + states | C-09 |
+| Evidence row format | C-11 |
+| FINAL stamp anatomy | C-12 |
+| Verdict head composition | C-13 |
+| Mobile breakpoint behavior | partial — C-13 specifies 720px fold-rule |
+
+Still pending v4 (per v3 footer "NEXT · v4 patterns"):
+
 ```
-
-JS toggles `.active` on the focused step. Stepper item states (`.queued / .reviewed / .focus`) are independently driven — multiple steps may be `.reviewed` while only one is `.focus`.
-
-For Bench Mode (`/b/[name]`) routes, this state machine is inactive — Bench shows ONE subject per route. The Sequential Review pattern is reserved for the allocator demo / multi-applicant comparison surface (which is NOT in v1 backlog scope per US-131..US-140).
-
----
-
-## 15. Banned Patterns (v2 §5C + §0)
-
-- ✕ No drop shadows. No `box-shadow` except on the heartbeat dot (`0 0 8px var(--src-verified)`).
-- ✕ No gradients on surfaces. Backgrounds are flat solid color tokens.
-- ✕ No bouncing animations. No spring overshoots above 4%.
-- ✕ No counting-up scores. Numbers land at full value — the verdict is not a slot machine.
-- ✕ No parallax. Backgrounds stay still; the report is a document, not a scene.
-- ✕ No rounded corners except the heartbeat dot (`var(--r-pulse)`). Tier monograms, score tiles, evidence rows, outcome chips: all square.
-- ✕ No reusing `--siren` or `--o-block` for hover states or brand accents. Reserved for refusal moments only.
-- ✕ No dashed borders except `--b-dash` for missing source. (Carry-rule v2 §2B identifier.)
-
----
-
-## 16. Extrapolation Tracker (waiting on Bench v3)
-
-Items below are NOT specified in v1+v2 Bench manuals. **Do not pull from `assets/brand/brand-manual.html`** — that is US-067 / Single-Contract Mode spec, a different visual system. Bench Mode awaits Manual v3 (Components) per v2 footer. Until v3 lands, apply operating principles (§0) and add `// EXTRAPOLATED FROM v2 PRINCIPLES — NOT IN MANUAL` code comments.
-
-```
-// EXTRAPOLATED FROM v2 PRINCIPLES — NOT IN MANUAL (waiting on v3)
-- Button anatomy beyond v1 nav-btn (hover / focus / disabled / ghost / danger)
-- Input field anatomy (default / focus / loading / error)
+// EXTRAPOLATED FROM v2 PRINCIPLES + v3 component anatomy — NOT IN MANUAL (waiting on v4)
+- Page-level layout patterns beyond v1 (multi-page navigation, side panels)
+- Form input anatomy (no input field appears in v3 — Bench /b/[name] takes ENS via /lookup/[name] route handler, not in-page form)
 - Tooltip / popover anatomy
 - Toast / notification anatomy
-- Modal / drawer overlay scrim
-- Loading skeleton patterns (spinner → progress bar transitions)
-- Empty state mockups
-- Mobile breakpoint behavior below 780px
-- Bench-mode score banner anatomy beyond §5 of this file
-- Pill / chip anatomy beyond v1 outcome chips and signal chips (§5, §10)
+- Modal overlay scrim
+- Empty state for /b/[name] when subject has no manifest at all (only public-read fallback specced)
+- Mobile breakpoints below 780px for L-C report grid (only the C-13 720px fold is specified)
 ```
 
-When implementing any of the above in Stream C (US-131..US-140), apply v2 §0 operating principles:
-- Right angles only (`--r-0`)
-- Border weight is the language (no shadows, no gradients on surfaces)
-- Pair color with glyph + label (carry-rule v2 §2B)
-- Use existing tokens; never hex literals
-- Motion stays within the 7 timings + 3 easings of v2 §5
-- Trust gradient stays cool→warm→alarm; do not reuse `--src-*` colors for outcome chips
-
-When v3 lands, replace each `// EXTRAPOLATED` site with the canonical anatomy in a follow-up PR. Engine signature does not change.
-
-## 17. Sources
-
-- `Bench v2 - Foundations.html` — DEV MANUAL 02 OF 06, v0.7 (2026-05-09 19:14 CET). Tokens spec.
-- `Bench v1 - Sequential Review.html` — FILE 01 OF 04, v1.1 (2026-05-09 19:15 CET). UI mockup with Agent North/Meridian/Halo flow.
-- `Bench v3 - Components.html` — DEV MANUAL 03 OF 06. **Pending from Daniel.** When supplied, this file's §16 will be rewritten to resolve all extrapolation markers.
-
-`assets/brand/brand-manual.html` (US-067 v1.0) is the **Single-Contract Mode (`/r/[name]`)** brand spec. It is NOT applicable to Bench Mode (`/b/[name]`); the two surfaces use distinct visual systems sharing only the verdict-* token names where Bench Mode embeds Single-Contract UI inside the Sourcify drawer (per US-135).
+For any state still extrapolated, apply v2 §0 operating principles + v3 component primitives.
 
 ---
 
-## 17. Sources
+## Sources (canonical reference HTML in this repo)
 
-- `Bench v2 - Foundations.html` — DEV MANUAL 02 OF 06, v0.7, supplied by Daniel 2026-05-09 19:14 CET. Full manual series will eventually contain 6 files: 01 (intro/principles), 02 ✓ (foundations), 03 (components, NOT YET PROVIDED), 04 (templates), 05, 06.
-- `Bench v1 - Sequential Review.html` — FILE 01 OF 04, v1.1, supplied by Daniel 2026-05-09 19:15 CET. UI mockup demonstrating the per-applicant review flow (Agent North → Meridian → Halo). Full series 4 files; only 01 provided.
-- This document, `assets/brand/tokens.css`, and `assets/brand/logo-bench.svg` together are the canonical brand spec for Bench Mode UI implementation in Stream C (US-131..US-140).
+- **`assets/brand/bench-v2-foundations.html`** — v2 Foundations (color, type, space, motion, a11y) — DEV MANUAL 02 OF 06
+- **`assets/brand/bench-v3-components.html`** — v3 Components (13 atoms with anatomy + states + tokens + do/don't) — DEV MANUAL 03 OF 06 ← **opens in browser, has live render of every state with grid overlay**
+- **`assets/brand/bench-v1-sequential-review.html`** — v1 Sequential Review (UI mockup of allocator demo flow) — FILE 01 OF 04
+- `assets/brand/tokens.css` — extracted CSS custom properties
+- `assets/brand/logo-bench.svg` — Bench-mode lockup mark
+- `assets/brand/brand-tokens.json` v2.0.0 — machine-readable mirror
+- `assets/brand/tailwind-preset.ts` — Tailwind 4 utility classes
+
+**Pending:** Bench v4 Patterns (page-level composition) per v3 footer "NEXT · v4 patterns".
+
+`assets/brand/brand-manual.html` (US-067 v1.0) is the **Single-Contract Mode (`/r/[name]`)** brand spec — NOT applicable to Bench Mode, except where `/b/[name]` embeds `/r/[name]` UI inside the Sourcify drawer per US-135.

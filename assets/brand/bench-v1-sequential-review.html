@@ -1,0 +1,1096 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Upgrade Siren Bench — v1.1 · Sequential Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --safe:#00D67A; --review:#FFB020; --siren:#FF3B30;
+    --bg:#0A0E10; --surface:#14191C; --raised:#1B2125;
+    --border:#232A2F; --border-strong:#39434A;
+    --t3:#5C6770; --t2:#8B969C; --t1:#E8EDEF;
+    --accent:#00B8D9;
+    --tier-a:#7AD9FF; --tier-b:#E8EDEF; --tier-c:#B3A36A; --tier-d:#7E6240; --tier-u:#5C6770;
+    --conf-hi:#E8EDEF; --conf-md:#B3A36A; --conf-lo:#7E6240;
+    --src-verified:#7AD9FF; --src-partial:#B3A36A; --src-discounted:#7E6240;
+    --src-degraded:#FFB020; --src-missing:#5C6770;
+    --o-fast:#7AD9FF; --o-emerge:#E8EDEF; --o-evid:#B3A36A; --o-block:#FF3B30;
+    --paper:#F5F1E6; --paper-alt:#EDE7D5; --ink:#1B1A14; --ink-soft:#5A5645; --rule:#C7BE9F; --stamp:#9E1E14;
+    --display:"Space Grotesk",ui-sans-serif,system-ui,sans-serif;
+    --body:"Inter",ui-sans-serif,system-ui,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --serif:"Source Serif 4",ui-serif,Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--t1);
+    font-family:var(--body); font-size:14px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    font-feature-settings:"ss01","cv11","tnum";
+  }
+  ::selection{background:rgba(122,217,255,0.25)}
+
+  /* TERMINAL BAR */
+  .term-bar{
+    display:grid; grid-template-columns:auto 1fr auto;
+    align-items:center; gap:24px;
+    padding:14px 24px; background:var(--bg); border-bottom:1px solid var(--border);
+    font-family:var(--mono); font-size:11px; letter-spacing:0.08em; color:var(--t2);
+    position:sticky; top:0; z-index:10;
+  }
+  .term-bar .lockup{display:flex;align-items:center;gap:10px;color:var(--t1)}
+  .term-bar .lockup b{font-family:var(--display);font-weight:700;letter-spacing:-0.01em;font-size:14px}
+  .term-bar .lockup .pipe{color:var(--border-strong)}
+  .term-bar .lockup .mode{color:var(--accent)}
+  .term-bar .session{text-align:center;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .term-bar .session b{color:var(--t1);font-weight:500}
+  .term-bar .meta{display:flex;gap:18px;align-items:center;color:var(--t3)}
+  .term-bar .meta b{color:var(--t1);font-weight:500}
+  .term-bar .heartbeat::before{
+    content:"";display:inline-block;width:6px;height:6px;border-radius:50%;
+    background:var(--src-verified);box-shadow:0 0 8px var(--src-verified);
+    animation:beat 2s ease-in-out infinite;margin-right:8px;vertical-align:middle;
+  }
+  @keyframes beat{0%,100%{opacity:1}50%{opacity:0.4}}
+
+  .doc{max-width:1480px;margin:0 auto;padding:40px 32px 64px}
+
+  /* DOCKET STEPPER — the queue across the top */
+  .docket{
+    display:grid; grid-template-columns:1fr;
+    border:1px solid var(--border);
+    background:var(--surface);
+  }
+  .docket .docket-head{
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:14px 20px;
+    border-bottom:1px solid var(--border);
+    font-family:var(--mono); font-size:10px; letter-spacing:0.18em; text-transform:uppercase;
+    color:var(--t3);
+  }
+  .docket .docket-head b{color:var(--t1);font-weight:500;letter-spacing:0.18em}
+  .docket .docket-head .pos b{color:var(--accent);font-size:13px;letter-spacing:0.04em}
+
+  .stepper{
+    display:grid; grid-template-columns:repeat(3, 1fr);
+    gap:0;
+  }
+  .step{
+    padding:18px 20px;
+    border-right:1px solid var(--border);
+    display:grid; grid-template-columns:auto 1fr auto;
+    gap:14px; align-items:center;
+    cursor:pointer;
+    transition:background 160ms;
+    position:relative;
+    min-width:0;
+  }
+  .step:last-child{border-right:0}
+  .step:hover{background:var(--raised)}
+  .step .num{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.16em;
+    color:var(--t3);
+  }
+  .step .nm{
+    font-family:var(--display); font-weight:600; font-size:15px;
+    letter-spacing:-0.005em; color:var(--t2);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .step .ens{
+    font-family:var(--mono); font-size:10px; color:var(--t3); letter-spacing:0.04em;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .step .right{
+    display:flex; flex-direction:column; align-items:flex-end; gap:4px;
+    font-family:var(--mono); font-size:10px; color:var(--t3); letter-spacing:0.12em;
+    text-transform:uppercase;
+  }
+  /* state: queued */
+  .step.queued .num,.step.queued .nm,.step.queued .right{opacity:0.55}
+  .step.queued .right b{color:var(--t2)}
+
+  /* state: reviewed (collapsed verdict visible) */
+  .step.reviewed{background:var(--bg)}
+  .step.reviewed .nm{color:var(--t1)}
+  .step.reviewed .right b{color:var(--t1)}
+  .step.reviewed .tier-pill{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--mono); font-size:10px; letter-spacing:0.12em;
+    padding:3px 8px; border:1px solid currentColor;
+  }
+  .step.reviewed .tier-pill.a{color:var(--tier-a)}
+  .step.reviewed .tier-pill.c{color:var(--tier-c)}
+  .step.reviewed .tier-pill.d{color:var(--tier-d)}
+
+  /* state: in-focus */
+  .step.focus{background:var(--bg);}
+  .step.focus::before{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent);
+  }
+  .step.focus .num{color:var(--accent)}
+  .step.focus .nm{color:var(--t1)}
+  .step.focus .right b{color:var(--t1)}
+
+  .step .mini-tier{
+    width:24px; height:24px; flex-shrink:0;
+    display:grid; place-items:center;
+    font-family:var(--display); font-weight:700; font-size:14px; line-height:1;
+    border:1px solid currentColor;
+  }
+  .step .mini-tier.a{color:var(--tier-a)}
+  .step .mini-tier.c{color:var(--tier-c)}
+  .step .mini-tier.d{color:var(--tier-d)}
+  .step .mini-tier.u{color:var(--tier-u);border-style:dashed}
+
+  /* SUBJECT HEADLINE */
+  .subject-bar{
+    margin-top:32px;
+    display:grid; grid-template-columns:1fr auto;
+    gap:32px; align-items:flex-end;
+    padding-bottom:20px; border-bottom:1px solid var(--border);
+  }
+  .subject-bar .eye{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;color:var(--t2);text-transform:uppercase}
+  .subject-bar h1{
+    font-family:var(--display); font-weight:600;
+    font-size:clamp(40px, 5vw, 64px); line-height:1.0; letter-spacing:-0.025em;
+    margin:8px 0 4px;
+  }
+  .subject-bar h1 em{font-style:normal;font-family:var(--serif);font-style:italic;color:var(--t2);font-weight:400}
+  .subject-bar .ens-line{font-family:var(--mono);font-size:13px;color:var(--accent);word-break:break-all}
+  .subject-bar .nav{
+    display:flex; gap:8px; align-items:center;
+  }
+  .nav-btn{
+    appearance:none; background:transparent; color:var(--t1);
+    border:1px solid var(--border-strong);
+    font-family:var(--mono); font-size:11px; letter-spacing:0.14em;
+    padding:9px 14px; cursor:pointer; text-transform:uppercase;
+  }
+  .nav-btn:hover{border-color:var(--t1)}
+  .nav-btn[disabled]{color:var(--t3);border-color:var(--border);cursor:not-allowed}
+  .nav-btn.primary{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600}
+  .nav-btn.primary:hover{filter:brightness(1.08)}
+  .nav-btn.danger{color:var(--o-block);border-color:var(--o-block)}
+
+  /* MAIN REPORT GRID */
+  .report{
+    margin-top:32px;
+    display:grid; grid-template-columns:minmax(0, 1fr) 380px;
+    gap:1px; background:var(--border);
+    border:1px solid var(--border);
+  }
+  @media (max-width:1080px){.report{grid-template-columns:1fr}}
+
+  .panel{background:var(--bg);padding:32px}
+  .panel-head{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-family:var(--mono); font-size:10px; letter-spacing:0.18em; color:var(--t3);
+    text-transform:uppercase; margin-bottom:18px;
+  }
+  .panel-head b{color:var(--t1);font-weight:500;letter-spacing:0.18em}
+
+  /* HEADER OF REPORT */
+  .report-head{
+    display:flex; gap:24px; align-items:flex-start;
+    padding-bottom:24px; border-bottom:1px solid var(--border);
+  }
+  .tier-mono{
+    width:120px; height:120px; flex-shrink:0;
+    display:grid; place-items:center;
+    font-family:var(--display); font-weight:700; font-size:88px; line-height:1;
+    letter-spacing:-0.04em;
+    border:2px solid currentColor;
+  }
+  .tier-mono.a{color:var(--tier-a)}
+  .tier-mono.c{color:var(--tier-c)}
+  .tier-mono.d{color:var(--tier-d)}
+  .head-meta{flex:1;min-width:0}
+  .head-meta .label{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--t3);text-transform:uppercase}
+  .head-meta .agent-name{
+    font-family:var(--display); font-weight:600; font-size:32px; letter-spacing:-0.015em;
+    margin:6px 0 4px; line-height:1.05;
+  }
+  .head-meta .ens{font-family:var(--mono);font-size:12px;color:var(--accent);word-break:break-all}
+  .head-meta .row{
+    margin-top:18px; display:flex; gap:18px; flex-wrap:wrap; align-items:baseline;
+  }
+  .score-big{
+    font-family:var(--display); font-weight:700; font-size:88px; line-height:0.85;
+    letter-spacing:-0.04em; font-variant-numeric:tabular-nums;
+  }
+  .score-big.a{color:var(--tier-a)}
+  .score-big.c{color:var(--tier-c)}
+  .score-big.d{color:var(--tier-d)}
+  .score-meta{
+    font-family:var(--mono); font-size:11px; line-height:1.55; color:var(--t2);
+    letter-spacing:0.06em;
+  }
+  .score-meta b{color:var(--t1);font-weight:500}
+
+  .outcome{
+    display:inline-flex; align-items:center; gap:10px;
+    padding:9px 14px; border:1px solid currentColor;
+    font-family:var(--mono); font-size:11px; letter-spacing:0.18em; text-transform:uppercase;
+  }
+  .outcome::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+  .outcome.fast{color:var(--o-fast);background:rgba(122,217,255,0.06)}
+  .outcome.evid{color:var(--o-evid);background:rgba(179,163,106,0.06)}
+  .outcome.block{color:var(--o-block);background:rgba(255,59,48,0.06)}
+
+  /* CLAIM BLOCK */
+  .claim-block{margin-top:28px}
+  .claim-block .qmark{
+    font-family:var(--serif); font-style:italic; font-size:80px; line-height:0.4;
+    color:var(--t3); float:left; margin-right:12px; margin-top:24px;
+  }
+  .claim-block blockquote{
+    margin:0; font-family:var(--serif); font-size:22px; line-height:1.4; color:var(--t1);
+    text-wrap:pretty;
+  }
+  .claim-block .attr{
+    margin-top:12px; clear:both;
+    font-family:var(--mono); font-size:10px; letter-spacing:0.16em; color:var(--t3); text-transform:uppercase;
+  }
+
+  /* BENCH READS */
+  .reads-block{
+    margin-top:32px; padding:20px;
+    background:var(--surface); border-left:3px solid var(--border-strong);
+  }
+  .reads-block .label{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--t2);text-transform:uppercase;margin-bottom:12px}
+  .reads-block ul{margin:0;padding:0;list-style:none}
+  .reads-block li{
+    display:grid; grid-template-columns:18px 1fr;
+    gap:10px; padding:8px 0;
+    font-family:var(--mono); font-size:13px; line-height:1.45; color:var(--t1);
+    border-top:1px dotted var(--border);
+  }
+  .reads-block li:first-child{border-top:0}
+  .reads-block li b{color:var(--t1);font-weight:500}
+  .reads-block li code{font-family:var(--mono);font-size:12px;color:var(--accent);background:transparent;padding:0;border:0}
+  .reads-block li .icn{font-weight:700; line-height:1.4;}
+  .reads-block li.ok .icn{color:var(--src-verified)}
+  .reads-block li.warn .icn{color:var(--src-partial)}
+  .reads-block li.bad .icn{color:var(--o-block)}
+  .reads-block.b{border-left-color:var(--src-partial)}
+  .reads-block.r{border-left-color:var(--o-block)}
+
+  /* SCORE MATH — auditor's worksheet */
+  .math{
+    margin-top:32px;
+    border:1px solid var(--border);
+    background:var(--surface);
+  }
+  .math-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:14px 20px; border-bottom:1px solid var(--border);
+    font-family:var(--mono); font-size:10px; letter-spacing:0.18em; color:var(--t3);
+    text-transform:uppercase;
+  }
+  .math-head b{color:var(--t1);font-weight:500;letter-spacing:0.18em}
+  .math-formula{
+    padding:14px 20px; border-bottom:1px solid var(--border);
+    background:var(--bg);
+    font-family:var(--mono); font-size:12px; letter-spacing:0.04em; color:var(--t2);
+    text-align:center;
+  }
+  .math-formula b{color:var(--t1);font-weight:500}
+  .math-formula .op{color:var(--t3);margin:0 6px}
+  .math-grid{
+    display:grid; grid-template-columns:1fr 1fr;
+  }
+  @media (max-width:780px){.math-grid{grid-template-columns:1fr}}
+  .math-col{padding:18px 20px}
+  .math-col + .math-col{border-left:1px solid var(--border)}
+  @media (max-width:780px){.math-col + .math-col{border-left:0;border-top:1px solid var(--border)}}
+  .math-axis + .math-axis{margin-top:18px;padding-top:18px;border-top:1px dotted var(--border)}
+  .math-axis-h{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin-bottom:10px;
+    font-family:var(--mono); font-size:10px; letter-spacing:0.16em; color:var(--t1);
+    text-transform:uppercase;
+  }
+  .math-axis-h .of{color:var(--t3);letter-spacing:0.1em;margin-left:6px}
+  .math-axis-h .got{
+    font-family:var(--display); font-weight:700; font-size:20px; line-height:1;
+    letter-spacing:-0.01em; font-variant-numeric:tabular-nums;
+  }
+  .math-axis-h .got.a{color:var(--tier-a)}
+  .math-axis-h .got.b{color:var(--src-partial)}
+  .math-axis-h .got.c{color:var(--tier-c)}
+  .math-axis-h .got.d{color:var(--tier-d)}
+  .math-axis-h .got.r{color:var(--o-block)}
+  .math-axis-h .got.t{color:var(--src-verified)}
+  .math-line{
+    display:grid; grid-template-columns:1fr 80px 64px;
+    gap:12px; align-items:center; padding:6px 0;
+    font-family:var(--mono); font-size:11px; color:var(--t2); letter-spacing:0.02em;
+  }
+  .math-line + .math-line{border-top:1px dotted var(--border)}
+  .math-line .lbl{color:var(--t2)}
+  .math-line .lbl em{font-family:var(--serif);font-style:italic;color:var(--t3);font-size:10px;display:block;margin-top:2px;letter-spacing:0}
+  .math-line .bar{position:relative;height:6px;background:var(--bg);border:1px solid var(--border)}
+  .math-line .bf{position:absolute;top:0;bottom:0;left:0;background:var(--t1)}
+  .math-line .bf.a{background:var(--tier-a)}
+  .math-line .bf.b{background:var(--src-partial)}
+  .math-line .bf.c{background:var(--tier-c)}
+  .math-line .bf.d{background:var(--tier-d)}
+  .math-line .bf.r{background:var(--o-block)}
+  .math-line .bf.t{background:var(--src-verified)}
+  .math-line .n{text-align:right;color:var(--t1);font-variant-numeric:tabular-nums;font-size:11px}
+  .math-line .n .max{color:var(--t3)}
+
+  /* trust ledger table */
+  table.trust{
+    width:100%; border-collapse:collapse;
+    font-family:var(--mono); font-size:11px; color:var(--t2);
+  }
+  table.trust th{
+    text-align:left; font-weight:500; letter-spacing:0.14em; text-transform:uppercase;
+    font-size:9px; color:var(--t3);
+    padding:6px 0 8px; border-bottom:1px solid var(--border);
+  }
+  table.trust th.r,table.trust td.r{text-align:right}
+  table.trust td{padding:8px 0;border-bottom:1px dotted var(--border);font-variant-numeric:tabular-nums}
+  table.trust td:first-child{color:var(--t1);letter-spacing:0.04em}
+  table.trust tr.zero td{color:var(--t3)}
+  table.trust tr.zero td:first-child{color:var(--t3)}
+  table.trust tr.bad td{color:var(--o-block)}
+  table.trust tr.sum td{
+    border-bottom:0; border-top:1px solid var(--border-strong);
+    padding-top:10px; color:var(--t1); font-weight:500;
+    text-transform:uppercase; letter-spacing:0.14em; font-size:10px;
+  }
+  table.trust tr.sum td:last-child{
+    color:var(--t1); font-family:var(--display); font-weight:700; font-size:14px; letter-spacing:-0.01em;
+  }
+
+  /* signal chips for seniority/relevance context */
+  .signals{
+    margin-top:14px; padding-top:12px; border-top:1px dotted var(--border);
+    display:flex; flex-wrap:wrap; gap:6px;
+  }
+  .sig{
+    font-family:var(--mono); font-size:9px; letter-spacing:0.1em; text-transform:uppercase;
+    padding:4px 8px; border:1px solid var(--border-strong); color:var(--t2);
+  }
+  .sig b{color:var(--t1);font-weight:500}
+  .sig.warn{color:var(--src-partial);border-color:var(--src-partial)}
+  .sig.bad{color:var(--o-block);border-color:var(--o-block)}
+
+  /* final arithmetic line */
+  .math-final{
+    border-top:1px solid var(--border-strong);
+    padding:18px 20px;
+    background:var(--bg);
+    display:flex; flex-wrap:wrap; gap:14px; align-items:baseline; justify-content:space-between;
+    font-family:var(--mono); font-size:13px; color:var(--t2); letter-spacing:0.04em;
+  }
+  .math-final .lhs{color:var(--t3);letter-spacing:0.16em;text-transform:uppercase;font-size:10px}
+  .math-final .calc{color:var(--t1);font-variant-numeric:tabular-nums}
+  .math-final .calc .op{color:var(--t3);margin:0 8px}
+  .math-final .calc .eq{color:var(--t3);margin:0 8px}
+  .math-final .rhs{display:inline-flex;align-items:baseline;gap:10px}
+  .math-final .rhs::before{content:"→";color:var(--t3)}
+  .math-final .rhs b{
+    font-family:var(--display); font-weight:700; font-size:32px; line-height:1; letter-spacing:-0.02em;
+    font-variant-numeric:tabular-nums;
+  }
+  .math-final .rhs b.a{color:var(--tier-a)}
+  .math-final .rhs b.c{color:var(--tier-c)}
+  .math-final .rhs b.d{color:var(--tier-d)}
+
+  /* EVIDENCE DRAWER (right column) */
+  .evidence{
+    background:var(--raised); padding:32px;
+  }
+  .evidence h3{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.18em; color:var(--t2);
+    text-transform:uppercase; margin:0 0 14px;
+  }
+  .evidence .src{
+    display:grid; grid-template-columns:14px 1fr auto;
+    gap:10px; align-items:center;
+    padding:14px 0; border-top:1px solid var(--border);
+    font-family:var(--mono); font-size:12px;
+  }
+  .evidence .src:first-of-type{border-top:0}
+  .evidence .src .dot{width:10px;height:10px;flex-shrink:0}
+  .evidence .src .body{min-width:0}
+  .evidence .src .name{color:var(--t1);letter-spacing:0.06em;font-size:12px}
+  .evidence .src .citation{color:var(--t3);font-size:10px;margin-top:2px;letter-spacing:0.04em;word-break:break-all}
+  .evidence .src .mult{
+    font-size:11px;letter-spacing:0.08em;
+    padding:3px 8px;border:1px solid currentColor;
+  }
+  .evidence .src.verified .dot{background:var(--src-verified)}
+  .evidence .src.verified .mult{color:var(--src-verified)}
+  .evidence .src.partial .dot{background:var(--src-partial)}
+  .evidence .src.partial .mult{color:var(--src-partial)}
+  .evidence .src.discounted .dot{background:var(--src-discounted)}
+  .evidence .src.discounted .mult{color:var(--src-discounted)}
+  .evidence .src.degraded .dot{background:var(--src-degraded)}
+  .evidence .src.degraded .mult{color:var(--src-degraded)}
+  .evidence .src.missing .dot{background:transparent;border:1px dashed var(--border-strong)}
+  .evidence .src.missing .name,.evidence .src.missing .citation{color:var(--t3)}
+  .evidence .src.missing .mult{color:var(--t3)}
+  .evidence .src.invalid .dot{background:var(--o-block)}
+  .evidence .src.invalid .name,.evidence .src.invalid .mult{color:var(--o-block)}
+
+  .recs{margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+  .recs h3{margin-bottom:10px}
+  .recs ol{margin:0;padding-left:20px;font-family:var(--body);font-size:13px;color:var(--t1);line-height:1.6}
+  .recs ol li{margin-bottom:8px;text-wrap:pretty}
+  .recs ol li b{color:var(--t1);font-weight:500}
+
+  /* DESIGN NOTES */
+  .notes{
+    margin-top:64px; padding-top:24px; border-top:1px solid var(--border);
+    display:grid; grid-template-columns:200px 1fr; gap:48px;
+  }
+  .notes h3{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;color:var(--t2);text-transform:uppercase;margin:0}
+  .notes .body{color:var(--t2);font-size:13px;line-height:1.6;max-width:78ch}
+  .notes .body p{margin:0 0 12px}
+  .notes .body b{color:var(--t1);font-weight:500}
+  .notes .body em{font-family:var(--serif);font-style:italic;color:var(--t1)}
+  @media (max-width:780px){.notes{grid-template-columns:1fr}}
+
+  .doc-foot{
+    margin-top:64px; padding-top:20px; border-top:1px solid var(--border);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:16px;
+    font-family:var(--mono); font-size:10px; letter-spacing:0.14em; color:var(--t3);
+  }
+  .doc-foot b{color:var(--t1)}
+
+  /* hidden state machine */
+  [data-step]{display:none}
+  [data-step].active{display:block}
+</style>
+</head>
+<body>
+
+<div class="term-bar">
+  <div class="lockup">
+    <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
+      <rect x="1" y="1" width="30" height="30" fill="none" stroke="#E8EDEF" stroke-width="1.5"/>
+      <path d="M 6 9 L 9 12 L 14 7" stroke="#00D67A" stroke-width="2" fill="none" stroke-linecap="square"/>
+      <rect x="6" y="14" width="8" height="2" fill="#FFB020"/>
+      <rect x="6" y="18" width="8" height="2" fill="#FFB020"/>
+      <rect x="6" y="23" width="8" height="3" fill="#FF3B30"/>
+      <line x1="17" y1="4" x2="17" y2="28" stroke="#E8EDEF" stroke-width="1.5"/>
+      <text x="22" y="20" font-family="Space Grotesk" font-weight="700" font-size="14" fill="#E8EDEF">S</text>
+    </svg>
+    <b>UPGRADE&nbsp;SIREN</b>
+    <span class="pipe">/</span>
+    <span class="mode">BENCH</span>
+  </div>
+  <div class="session">SESSION&nbsp;<b>BNCH-2026-0509-37A</b>&nbsp;·&nbsp;ALLOCATION&nbsp;BRIEF&nbsp;·&nbsp;<b>EthPrague&nbsp;Future&nbsp;Society&nbsp;DAO</b>&nbsp;·&nbsp;1.2M&nbsp;EUR</div>
+  <div class="meta">
+    <span class="heartbeat">SOURCIFY · ENS · CHAIN</span>
+    <span><b>09 May 2026</b> · 14:32 UTC</span>
+  </div>
+</div>
+
+<div class="doc">
+
+  <!-- DOCKET / STEPPER -->
+  <div class="docket">
+    <div class="docket-head">
+      <span><b>DOCKET</b> · 3 applicants on the bench</span>
+      <span class="pos">Position&nbsp;<b id="posLabel">01 / 03</b></span>
+    </div>
+    <div class="stepper" id="stepper">
+
+      <!-- STEP 1 -->
+      <div class="step focus" data-jump="1">
+        <span class="num">01</span>
+        <div style="min-width:0">
+          <div class="nm">Agent North</div>
+          <div class="ens">north.allo.upgradesiren.eth</div>
+        </div>
+        <div class="right">
+          <span class="mini-tier u">·</span>
+          <span><b>UNDER REVIEW</b></span>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step queued" data-jump="2">
+        <span class="num">02</span>
+        <div style="min-width:0">
+          <div class="nm">Agent Meridian</div>
+          <div class="ens">meridian.allo.upgradesiren.eth</div>
+        </div>
+        <div class="right">
+          <span class="mini-tier u">·</span>
+          <span><b>QUEUED</b></span>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step queued" data-jump="3">
+        <span class="num">03</span>
+        <div style="min-width:0">
+          <div class="nm">Agent Halo</div>
+          <div class="ens">halo.allo.upgradesiren.eth</div>
+        </div>
+        <div class="right">
+          <span class="mini-tier u">·</span>
+          <span><b>QUEUED</b></span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =================================================== -->
+  <!-- STEP 1 — NORTH                                      -->
+  <!-- =================================================== -->
+  <div data-step="1" class="active">
+
+    <div class="subject-bar">
+      <div>
+        <div class="eye">SUBJECT&nbsp;01&nbsp;·&nbsp;APPLICANT&nbsp;ON&nbsp;THE&nbsp;BENCH</div>
+        <h1>Reviewing <em>Agent North.</em></h1>
+        <div class="ens-line">north.allo.upgradesiren.eth · 0xA0b86991…eB48</div>
+      </div>
+      <div class="nav">
+        <button class="nav-btn" disabled>◀ PREV</button>
+        <button class="nav-btn primary" data-next>NEXT&nbsp;APPLICANT&nbsp;▶</button>
+      </div>
+    </div>
+
+    <div class="report">
+      <!-- LEFT -->
+      <div class="panel">
+        <div class="panel-head"><b>VERDICT</b><span>Bench v0.7</span></div>
+
+        <div class="report-head">
+          <div class="tier-mono a">A</div>
+          <div class="head-meta">
+            <div class="label">SCORE</div>
+            <div class="row">
+              <div class="score-big a">87</div>
+              <div class="score-meta">
+                <b>/&nbsp;100</b><br>
+                TIER&nbsp;A<br>
+                ▲&nbsp;+0.4&nbsp;(7&nbsp;day)
+              </div>
+              <div style="margin-left:auto;align-self:center">
+                <div class="outcome fast">Fast-track</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="claim-block">
+          <div class="panel-head" style="margin-top:8px"><b>HEADLINE&nbsp;CLAIM</b><span>self-asserted · operator manifest</span></div>
+          <span class="qmark">"</span>
+          <blockquote>Delta-neutral yield strategy on Ethereum mainnet. Public track record across 14 months, $8.2M assets under management at peak, 18.4% trailing APY net of fees.</blockquote>
+          <div class="attr">— operator manifest, signed by ENS controller</div>
+        </div>
+
+        <div class="reads-block">
+          <div class="label">BENCH&nbsp;READS</div>
+          <ul>
+            <li class="ok"><span class="icn">✓</span><span><b>AUM &amp; APY independently verifiable.</b> Settlement events on chain match the claimed window. 14-month series reconstructed from <code>SettlementSettled</code> events.</span></li>
+            <li class="ok"><span class="icn">✓</span><span><b>Genesis matches Sourcify-verified contract.</b> Full match on implementation; no proxy hops outside expected upgrade path.</span></li>
+            <li class="ok"><span class="icn">✓</span><span><b>Operator manifest signed by ENS controller.</b> <code>upgrade-siren:owner</code> matches the recovered signer.</span></li>
+            <li class="ok"><span class="icn">✓</span><span><b>No SIREN-grade contract findings</b> in the linked perimeter. Two routine REVIEW notes carried forward (see Contract Risk).</span></li>
+          </ul>
+        </div>
+
+        <div class="math">
+          <div class="math-head"><b>SCORE&nbsp;MATH</b><span>how&nbsp;<b>87</b>&nbsp;was built · open ledger</span></div>
+          <div class="math-formula"><b>SCORE</b> &nbsp;<span class="op">=</span>&nbsp; ( <b>SUBSTANCE</b> <span class="op">+</span> <b>PROVENANCE&nbsp;&amp;&nbsp;SENIORITY</b> <span class="op">+</span> <b>RELEVANCE&nbsp;TO&nbsp;BRIEF</b> ) &nbsp;<span class="op">×</span>&nbsp; <b>TRUST</b></div>
+
+          <div class="math-grid">
+            <div class="math-col">
+
+              <div class="math-axis">
+                <div class="math-axis-h"><span>SUBSTANCE <span class="of">/ 50</span></span><span class="got a">46</span></div>
+                <div class="math-line"><span class="lbl">AUM verifiability<em>14-mo settlement series reconstructed on-chain</em></span><span class="bar"><span class="bf a" style="width:93%"></span></span><span class="n">14<span class="max">&nbsp;/&nbsp;15</span></span></div>
+                <div class="math-line"><span class="lbl">APY verifiability<em>net-of-fees recomputed from settlement events</em></span><span class="bar"><span class="bf a" style="width:93%"></span></span><span class="n">14<span class="max">&nbsp;/&nbsp;15</span></span></div>
+                <div class="math-line"><span class="lbl">Strategy clarity<em>delta-neutral, single perimeter, no hidden hops</em></span><span class="bar"><span class="bf a" style="width:90%"></span></span><span class="n">9<span class="max">&nbsp;/&nbsp;10</span></span></div>
+                <div class="math-line"><span class="lbl">Reporting cadence<em>monthly attestation, last 14 of 14</em></span><span class="bar"><span class="bf a" style="width:90%"></span></span><span class="n">9<span class="max">&nbsp;/&nbsp;10</span></span></div>
+              </div>
+
+              <div class="math-axis">
+                <div class="math-axis-h"><span>PROVENANCE&nbsp;&amp;&nbsp;SENIORITY <span class="of">/ 25</span></span><span class="got a">22</span></div>
+                <div class="math-line"><span class="lbl">ENS age &amp; continuity<em>18 mo · cap 24 mo · no controller rotation</em></span><span class="bar"><span class="bf a" style="width:88%"></span></span><span class="n">7<span class="max">&nbsp;/&nbsp;8</span></span></div>
+                <div class="math-line"><span class="lbl">On-chain genesis age<em>14 mo from first deployment</em></span><span class="bar"><span class="bf a" style="width:88%"></span></span><span class="n">7<span class="max">&nbsp;/&nbsp;8</span></span></div>
+                <div class="math-line"><span class="lbl">Operator history<em>3 prior cycles · 0 incidents · 0 retractions</em></span><span class="bar"><span class="bf a" style="width:89%"></span></span><span class="n">8<span class="max">&nbsp;/&nbsp;9</span></span></div>
+                <div class="signals">
+                  <span class="sig"><b>ENS</b>&nbsp;18mo</span>
+                  <span class="sig"><b>GENESIS</b>&nbsp;14mo</span>
+                  <span class="sig"><b>CYCLES</b>&nbsp;3 clean</span>
+                  <span class="sig"><b>INCIDENTS</b>&nbsp;0</span>
+                </div>
+              </div>
+
+              <div class="math-axis">
+                <div class="math-axis-h"><span>RELEVANCE TO BRIEF <span class="of">/ 25</span></span><span class="got a">23</span></div>
+                <div class="math-line"><span class="lbl">Strategy class fit<em>delta-neutral ↔ DAO treasury sleeve</em></span><span class="bar"><span class="bf a" style="width:90%"></span></span><span class="n">9<span class="max">&nbsp;/&nbsp;10</span></span></div>
+                <div class="math-line"><span class="lbl">Risk profile alignment<em>vol &lt; brief ceiling · drawdown 4.1% &lt; 8%</em></span><span class="bar"><span class="bf a" style="width:88%"></span></span><span class="n">7<span class="max">&nbsp;/&nbsp;8</span></span></div>
+                <div class="math-line"><span class="lbl">Capacity for tranche<em>1.2M EUR &lt; 14% of declared AUM</em></span><span class="bar"><span class="bf a" style="width:100%"></span></span><span class="n">7<span class="max">&nbsp;/&nbsp;7</span></span></div>
+                <div class="signals">
+                  <span class="sig"><b>BRIEF</b>&nbsp;DAO treasury sleeve</span>
+                  <span class="sig"><b>SIZE</b>&nbsp;1.2M&nbsp;EUR</span>
+                  <span class="sig"><b>VOL CAP</b>&nbsp;OK</span>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="math-col">
+              <div class="math-axis">
+                <div class="math-axis-h"><span>TRUST × <span class="of">weighted average</span></span><span class="got t">0.96</span></div>
+                <table class="trust">
+                  <thead><tr><th>Source</th><th class="r">Mult</th><th class="r">Weight</th><th class="r">Contrib</th></tr></thead>
+                  <tbody>
+                    <tr><td>Sourcify (full)</td><td class="r">×1.00</td><td class="r">35%</td><td class="r">0.350</td></tr>
+                    <tr><td>ENS owner sig</td><td class="r">×1.00</td><td class="r">25%</td><td class="r">0.250</td></tr>
+                    <tr><td>EIP-1967 chain</td><td class="r">×1.00</td><td class="r">20%</td><td class="r">0.200</td></tr>
+                    <tr><td>Citation chain</td><td class="r">×1.00</td><td class="r">10%</td><td class="r">0.100</td></tr>
+                    <tr><td>Audit attestation</td><td class="r">×0.60</td><td class="r">10%</td><td class="r">0.060</td></tr>
+                    <tr class="sum"><td>Σ&nbsp;TRUST</td><td></td><td></td><td class="r">0.960</td></tr>
+                  </tbody>
+                </table>
+                <div class="signals" style="margin-top:18px">
+                  <span class="sig"><b>SOURCES</b>&nbsp;5 of 5</span>
+                  <span class="sig"><b>VERIFIED</b>&nbsp;4</span>
+                  <span class="sig"><b>DEGRADED</b>&nbsp;1</span>
+                  <span class="sig"><b>MISSING</b>&nbsp;0</span>
+                  <span class="sig"><b>INVALID</b>&nbsp;0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="math-final">
+            <span class="lhs">FINAL</span>
+            <span class="calc">( 46 <span class="op">+</span> 22 <span class="op">+</span> 23 ) <span class="op">×</span> 0.96 <span class="eq">=</span> 91 <span class="op">×</span> 0.96 <span class="eq">=</span> 87.36</span>
+            <span class="rhs"><b class="a">87</b></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT — EVIDENCE -->
+      <div class="evidence">
+        <h3>Evidence Room</h3>
+        <div class="src verified"><span class="dot"></span><div class="body"><div class="name">SOURCIFY</div><div class="citation">sourcify.dev/#/lookup/0xA0b8…eB48 · full-match</div></div><span class="mult">×1.0</span></div>
+        <div class="src verified"><span class="dot"></span><div class="body"><div class="name">ENS&nbsp;TXT</div><div class="citation">north.allo.upgradesiren.eth · upgrade-siren:owner=0x9d39…1f7a</div></div><span class="mult">×1.0</span></div>
+        <div class="src verified"><span class="dot"></span><div class="body"><div class="name">CHAIN&nbsp;EIP-1967</div><div class="citation">slot 0x360894… implementation matches signed manifest</div></div><span class="mult">×1.0</span></div>
+        <div class="src verified"><span class="dot"></span><div class="body"><div class="name">SIG&nbsp;OWNER</div><div class="citation">ECDSA recovery: signer = ENS controller · valid</div></div><span class="mult">×1.0</span></div>
+
+        <div class="recs">
+          <h3>Recommendation</h3>
+          <ol>
+            <li><b>Allocate</b> requested tranche to Agent North under fast-track terms.</li>
+            <li><b>Carry forward</b> two REVIEW notes from Contract Risk into the operator's next reporting cycle.</li>
+            <li><b>Re-bench in 90 days</b> against new APY series.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================== -->
+  <!-- STEP 2 — MERIDIAN                                   -->
+  <!-- =================================================== -->
+  <div data-step="2">
+
+    <div class="subject-bar">
+      <div>
+        <div class="eye">SUBJECT&nbsp;02&nbsp;·&nbsp;APPLICANT&nbsp;ON&nbsp;THE&nbsp;BENCH</div>
+        <h1>Reviewing <em>Agent Meridian.</em></h1>
+        <div class="ens-line">meridian.allo.upgradesiren.eth · 0x4F01…cD8b3</div>
+      </div>
+      <div class="nav">
+        <button class="nav-btn" data-prev>◀ PREV</button>
+        <button class="nav-btn primary" data-next>NEXT&nbsp;APPLICANT&nbsp;▶</button>
+      </div>
+    </div>
+
+    <div class="report">
+      <div class="panel">
+        <div class="panel-head"><b>VERDICT</b><span>Bench v0.7</span></div>
+        <div class="report-head">
+          <div class="tier-mono c">C</div>
+          <div class="head-meta">
+            <div class="label">SCORE</div>
+            <div class="row">
+              <div class="score-big c">52</div>
+              <div class="score-meta">
+                <b>/&nbsp;100</b><br>
+                TIER&nbsp;C<br>
+                —&nbsp;0.0&nbsp;(7&nbsp;day)
+              </div>
+              <div style="margin-left:auto;align-self:center">
+                <div class="outcome evid">Evidence&nbsp;required</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="claim-block">
+          <div class="panel-head" style="margin-top:8px"><b>HEADLINE&nbsp;CLAIM</b><span>self-asserted · unsigned manifest</span></div>
+          <span class="qmark">"</span>
+          <blockquote>Multi-strategy alpha agent. Audited by two independent firms. Top-decile returns across the last four cycles. Strategy code closed-source by design.</blockquote>
+          <div class="attr">— operator manifest, ENS-published, no signature</div>
+        </div>
+
+        <div class="reads-block b">
+          <div class="label">BENCH&nbsp;READS</div>
+          <ul>
+            <li class="warn"><span class="icn">⊘</span><span><b>Audit firm A</b> confirms engagement. Scope unverifiable from public artefacts; trust multiplier applied at <code>×0.6</code>.</span></li>
+            <li class="warn"><span class="icn">⊘</span><span><b>Audit firm B</b> did not respond to citation request. Counted as missing evidence (<code>×0.0</code>) until confirmed.</span></li>
+            <li class="bad"><span class="icn">✕</span><span><b>Strategy contracts not on Sourcify.</b> "Closed-source by design" defeats independent verification — Bench cannot reconstruct returns.</span></li>
+            <li class="warn"><span class="icn">⊘</span><span><b>Manifest unsigned.</b> Bench accepts the claim text but cannot pin it to the ENS controller; recommend re-publish with signature.</span></li>
+          </ul>
+        </div>
+
+        <div class="math">
+          <div class="math-head"><b>SCORE&nbsp;MATH</b><span>how&nbsp;<b>52</b>&nbsp;was built · open ledger</span></div>
+          <div class="math-formula"><b>SCORE</b> &nbsp;<span class="op">=</span>&nbsp; ( <b>SUBSTANCE</b> <span class="op">+</span> <b>PROVENANCE&nbsp;&amp;&nbsp;SENIORITY</b> <span class="op">+</span> <b>RELEVANCE&nbsp;TO&nbsp;BRIEF</b> ) &nbsp;<span class="op">×</span>&nbsp; <b>TRUST</b></div>
+
+          <div class="math-grid">
+            <div class="math-col">
+
+              <div class="math-axis">
+                <div class="math-axis-h"><span>SUBSTANCE <span class="of">/ 50</span></span><span class="got c">38</span></div>
+                <div class="math-line"><span class="lbl">AUM verifiability<em>closed-source defeats series reconstruction</em></span><span class="bar"><span class="bf c" style="width:53%"></span></span><span class="n">8<span class="max">&nbsp;/&nbsp;15</span></span></div>
+                <div class="math-line"><span class="lbl">APY verifiability<em>self-reported · no independent settlement trail</em></span><span class="bar"><span class="bf c" style="width:47%"></span></span><span class="n">7<span class="max">&nbsp;/&nbsp;15</span></span></div>
+                <div class="math-line"><span class="lbl">Strategy clarity<em>“closed-source by design” — opaque perimeter</em></span><span class="bar"><span class="bf c" style="width:40%"></span></span><span class="n">4<span class="max">&nbsp;/&nbsp;10</span></span></div>
+                <div class="math-line"><span class="lbl">Reporting cadence<em>quarterly NAV statements, well-formatted</em></span><span class="bar"><span class="bf c" style="width:90%"></span></span><span class="n">9<span class="max">&nbsp;/&nbsp;10</span></span></div>
+              </div>
+
+              <div class="math-axis">
+                <div class="math-axis-h"><span>PROVENANCE&nbsp;&amp;&nbsp;SENIORITY <span class="of">/ 25</span></span><span class="got c">18</span></div>
+                <div class="math-line"><span class="lbl">ENS age &amp; continuity<em>22 mo · stable controller</em></span><span class="bar"><span class="bf c" style="width:88%"></span></span><span class="n">7<span class="max">&nbsp;/&nbsp;8</span></span></div>
+                <div class="math-line"><span class="lbl">On-chain genesis age<em>19 mo · first deployment 2024-10</em></span><span class="bar"><span class="bf c" style="width:75%"></span></span><span class="n">6<span class="max">&nbsp;/&nbsp;8</span></span></div>
+                <div class="math-line"><span class="lbl">Operator history<em>2 prior cycles · 1 unsigned manifest carry-over</em></span><span class="bar"><span class="bf c" style="width:55%"></span></span><span class="n">5<span class="max">&nbsp;/&nbsp;9</span></span></div>
+                <div class="signals">
+                  <span class="sig"><b>ENS</b>&nbsp;22mo</span>
+                  <span class="sig"><b>GENESIS</b>&nbsp;19mo</span>
+                  <span class="sig warn"><b>UNSIGNED</b>&nbsp;manifest carry</span>
+                  <span class="sig"><b>INCIDENTS</b>&nbsp;0</span>
+                </div>
+              </div>
+
+              <div class="math-axis">
+                <div class="math-axis-h"><span>RELEVANCE TO BRIEF <span class="of">/ 25</span></span><span class="got c">21</span></div>
+                <div class="math-line"><span class="lbl">Strategy class fit<em>multi-strat ↔ DAO alpha sleeve</em></span><span class="bar"><span class="bf c" style="width:80%"></span></span><span class="n">8<span class="max">&nbsp;/&nbsp;10</span></span></div>
+                <div class="math-line"><span class="lbl">Risk profile alignment<em>declared vol within ceiling · unverified</em></span><span class="bar"><span class="bf c" style="width:75%"></span></span><span class="n">6<span class="max">&nbsp;/&nbsp;8</span></span></div>
+                <div class="math-line"><span class="lbl">Capacity for tranche<em>1.2M EUR &lt; 9% of declared AUM</em></span><span class="bar"><span class="bf c" style="width:100%"></span></span><span class="n">7<span class="max">&nbsp;/&nbsp;7</span></span></div>
+                <div class="signals">
+                  <span class="sig"><b>BRIEF</b>&nbsp;DAO alpha sleeve</span>
+                  <span class="sig"><b>SIZE</b>&nbsp;1.2M&nbsp;EUR</span>
+                  <span class="sig warn"><b>VOL</b>&nbsp;declared, not verified</span>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="math-col">
+              <div class="math-axis">
+                <div class="math-axis-h"><span>TRUST × <span class="of">weighted average</span></span><span class="got b">0.67</span></div>
+                <table class="trust">
+                  <thead><tr><th>Source</th><th class="r">Mult</th><th class="r">Weight</th><th class="r">Contrib</th></tr></thead>
+                  <tbody>
+                    <tr><td>Sourcify (partial)</td><td class="r">×0.50</td><td class="r">35%</td><td class="r">0.175</td></tr>
+                    <tr><td>ENS owner sig (unsigned)</td><td class="r">×0.60</td><td class="r">25%</td><td class="r">0.150</td></tr>
+                    <tr><td>EIP-1967 chain</td><td class="r">×1.00</td><td class="r">20%</td><td class="r">0.200</td></tr>
+                    <tr><td>Citation chain</td><td class="r">×0.85</td><td class="r">10%</td><td class="r">0.085</td></tr>
+                    <tr><td>Audit attestation</td><td class="r">×0.65</td><td class="r">10%</td><td class="r">0.065</td></tr>
+                    <tr class="sum"><td>Σ&nbsp;TRUST</td><td></td><td></td><td class="r">0.675</td></tr>
+                  </tbody>
+                </table>
+                <div class="signals" style="margin-top:18px">
+                  <span class="sig"><b>SOURCES</b>&nbsp;5 of 5</span>
+                  <span class="sig"><b>VERIFIED</b>&nbsp;1</span>
+                  <span class="sig warn"><b>PARTIAL</b>&nbsp;3</span>
+                  <span class="sig"><b>DEGRADED</b>&nbsp;1</span>
+                  <span class="sig"><b>MISSING</b>&nbsp;0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="math-final">
+            <span class="lhs">FINAL</span>
+            <span class="calc">( 38 <span class="op">+</span> 18 <span class="op">+</span> 21 ) <span class="op">×</span> 0.675 <span class="eq">=</span> 77 <span class="op">×</span> 0.675 <span class="eq">=</span> 51.97</span>
+            <span class="rhs"><b class="c">52</b></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="evidence">
+        <h3>Evidence Room</h3>
+        <div class="src partial"><span class="dot"></span><div class="body"><div class="name">SOURCIFY</div><div class="citation">partial match · contract bytecode does not include strategy logic</div></div><span class="mult">×0.35</span></div>
+        <div class="src verified"><span class="dot"></span><div class="body"><div class="name">ENS&nbsp;TXT</div><div class="citation">meridian.allo.upgradesiren.eth · published · unsigned</div></div><span class="mult">×1.0</span></div>
+        <div class="src degraded"><span class="dot"></span><div class="body"><div class="name">AUDIT&nbsp;FIRM&nbsp;A</div><div class="citation">engagement confirmed · scope artefacts unavailable</div></div><span class="mult">×0.6</span></div>
+        <div class="src missing"><span class="dot"></span><div class="body"><div class="name">AUDIT&nbsp;FIRM&nbsp;B</div><div class="citation">no response · 14-day window expired</div></div><span class="mult">×0.0</span></div>
+
+        <div class="recs">
+          <h3>Recommendation</h3>
+          <ol>
+            <li><b>Send back</b> to Meridian with a written evidence list — sign manifest, publish strategy hashes, escrow audit B reference.</li>
+            <li><b>Reserve</b> a smaller pilot tranche pending evidence return in 30 days.</li>
+            <li><b>Do not block</b> — claim is plausible; the missing piece is artefacts, not character.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================== -->
+  <!-- STEP 3 — HALO                                       -->
+  <!-- =================================================== -->
+  <div data-step="3">
+
+    <div class="subject-bar">
+      <div>
+        <div class="eye">SUBJECT&nbsp;03&nbsp;·&nbsp;APPLICANT&nbsp;ON&nbsp;THE&nbsp;BENCH</div>
+        <h1>Reviewing <em>Agent Halo.</em></h1>
+        <div class="ens-line">halo.allo.upgradesiren.eth · 0xDEAD…BEEF</div>
+      </div>
+      <div class="nav">
+        <button class="nav-btn" data-prev>◀ PREV</button>
+        <button class="nav-btn danger" data-next>FINISH&nbsp;DOCKET&nbsp;▶</button>
+      </div>
+    </div>
+
+    <div class="report">
+      <div class="panel">
+        <div class="panel-head"><b>VERDICT</b><span>Bench v0.7</span></div>
+
+        <div class="report-head">
+          <div class="tier-mono d">D</div>
+          <div class="head-meta">
+            <div class="label">SCORE</div>
+            <div class="row">
+              <div class="score-big d">28</div>
+              <div class="score-meta">
+                <b>/&nbsp;100</b><br>
+                TIER&nbsp;D<br>
+                ▼&nbsp;-12&nbsp;(7&nbsp;day)
+              </div>
+              <div style="margin-left:auto;align-self:center">
+                <div class="outcome block">Block&nbsp;·&nbsp;SIREN</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="claim-block">
+          <div class="panel-head" style="margin-top:8px"><b>HEADLINE&nbsp;CLAIM</b><span>self-asserted · disputed</span></div>
+          <span class="qmark">"</span>
+          <blockquote>Verified by three top-tier firms. Five-year track record. Endorsed by named institutional partners. Awarded "best-in-class" by the 2025 Allocators' Council.</blockquote>
+          <div class="attr">— operator manifest, signature does not match owner</div>
+        </div>
+
+        <div class="reads-block r">
+          <div class="label">BENCH&nbsp;READS</div>
+          <ul>
+            <li class="bad"><span class="icn">✕</span><span><b>Endorsement signature mismatch.</b> Recovered signer ≠ address declared in <code>upgrade-siren:owner</code>. The manifest cannot be trusted as the operator's own statement.</span></li>
+            <li class="bad"><span class="icn">✕</span><span><b>Citation 3 of 3 returns 404.</b> URL was replaced after publication; Wayback shows different content at the original capture date.</span></li>
+            <li class="bad"><span class="icn">✕</span><span><b>"2025 Allocators' Council"</b> — registry not found. No such body exists in any of Bench's eight reference rolls.</span></li>
+            <li class="warn"><span class="icn">⊘</span><span><b>Five-year track record</b> conflicts with on-chain genesis at 14 months. Either a different agent or a misstatement.</span></li>
+          </ul>
+        </div>
+
+        <div class="math">
+          <div class="math-head"><b>SCORE&nbsp;MATH</b><span>how&nbsp;<b>28</b>&nbsp;was built · open ledger</span></div>
+          <div class="math-formula"><b>SCORE</b> &nbsp;<span class="op">=</span>&nbsp; ( <b>SUBSTANCE</b> <span class="op">+</span> <b>PROVENANCE&nbsp;&amp;&nbsp;SENIORITY</b> <span class="op">+</span> <b>RELEVANCE&nbsp;TO&nbsp;BRIEF</b> ) &nbsp;<span class="op">×</span>&nbsp; <b>TRUST</b></div>
+
+          <div class="math-grid">
+            <div class="math-col">
+
+              <div class="math-axis">
+                <div class="math-axis-h"><span>SUBSTANCE <span class="of">/ 50</span> <em style="font-family:var(--serif);font-style:italic;color:var(--t3);font-size:11px;letter-spacing:0">— text scores well; truth is another axis</em></span><span class="got d">42</span></div>
+                <div class="math-line"><span class="lbl">AUM verifiability<em>numbers internally consistent — no source pin</em></span><span class="bar"><span class="bf d" style="width:80%"></span></span><span class="n">12<span class="max">&nbsp;/&nbsp;15</span></span></div>
+                <div class="math-line"><span class="lbl">APY verifiability<em>plausible distribution — no settlement trail</em></span><span class="bar"><span class="bf d" style="width:73%"></span></span><span class="n">11<span class="max">&nbsp;/&nbsp;15</span></span></div>
+                <div class="math-line"><span class="lbl">Strategy clarity<em>well-written perimeter description</em></span><span class="bar"><span class="bf d" style="width:100%"></span></span><span class="n">10<span class="max">&nbsp;/&nbsp;10</span></span></div>
+                <div class="math-line"><span class="lbl">Reporting cadence<em>monthly cadence claimed · last 6 of 6</em></span><span class="bar"><span class="bf d" style="width:90%"></span></span><span class="n">9<span class="max">&nbsp;/&nbsp;10</span></span></div>
+              </div>
+
+              <div class="math-axis">
+                <div class="math-axis-h"><span>PROVENANCE&nbsp;&amp;&nbsp;SENIORITY <span class="of">/ 25</span></span><span class="got r">12</span></div>
+                <div class="math-line"><span class="lbl">ENS age &amp; continuity<em>14 mo · controller rotated 2 mo ago</em></span><span class="bar"><span class="bf d" style="width:63%"></span></span><span class="n">5<span class="max">&nbsp;/&nbsp;8</span></span></div>
+                <div class="math-line"><span class="lbl">On-chain genesis age<em>14 mo — conflicts with “five-year” claim</em></span><span class="bar"><span class="bf r" style="width:38%"></span></span><span class="n">3<span class="max">&nbsp;/&nbsp;8</span></span></div>
+                <div class="math-line"><span class="lbl">Operator history<em>1 prior incident · 1 retracted statement</em></span><span class="bar"><span class="bf r" style="width:44%"></span></span><span class="n">4<span class="max">&nbsp;/&nbsp;9</span></span></div>
+                <div class="signals">
+                  <span class="sig"><b>ENS</b>&nbsp;14mo</span>
+                  <span class="sig bad"><b>CLAIM</b>&nbsp;5yr ≠ on-chain 14mo</span>
+                  <span class="sig bad"><b>INCIDENT</b>&nbsp;1 prior</span>
+                  <span class="sig warn"><b>ROTATION</b>&nbsp;2mo ago</span>
+                </div>
+              </div>
+
+              <div class="math-axis">
+                <div class="math-axis-h"><span>RELEVANCE TO BRIEF <span class="of">/ 25</span></span><span class="got d">21</span></div>
+                <div class="math-line"><span class="lbl">Strategy class fit<em>fits brief if claims hold — they do not</em></span><span class="bar"><span class="bf d" style="width:90%"></span></span><span class="n">9<span class="max">&nbsp;/&nbsp;10</span></span></div>
+                <div class="math-line"><span class="lbl">Risk profile alignment<em>declared 4% drawdown — unverified</em></span><span class="bar"><span class="bf d" style="width:75%"></span></span><span class="n">6<span class="max">&nbsp;/&nbsp;8</span></span></div>
+                <div class="math-line"><span class="lbl">Capacity for tranche<em>1.2M EUR &lt; declared AUM (unverified)</em></span><span class="bar"><span class="bf d" style="width:86%"></span></span><span class="n">6<span class="max">&nbsp;/&nbsp;7</span></span></div>
+                <div class="signals">
+                  <span class="sig"><b>BRIEF</b>&nbsp;DAO treasury sleeve</span>
+                  <span class="sig warn"><b>FIT</b>&nbsp;conditional on truth</span>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="math-col">
+              <div class="math-axis">
+                <div class="math-axis-h"><span>TRUST × <span class="of">weighted average</span></span><span class="got r">0.37</span></div>
+                <table class="trust">
+                  <thead><tr><th>Source</th><th class="r">Mult</th><th class="r">Weight</th><th class="r">Contrib</th></tr></thead>
+                  <tbody>
+                    <tr><td>Sourcify (partial)</td><td class="r">×0.85</td><td class="r">35%</td><td class="r">0.298</td></tr>
+                    <tr class="bad"><td>ENS owner sig — INVALID</td><td class="r">×0.00</td><td class="r">25%</td><td class="r">0.000</td></tr>
+                    <tr><td>EIP-1967 chain</td><td class="r">×0.30</td><td class="r">20%</td><td class="r">0.060</td></tr>
+                    <tr class="bad"><td>Citation chain — 1 of 3 = 404</td><td class="r">×0.15</td><td class="r">10%</td><td class="r">0.015</td></tr>
+                    <tr class="bad"><td>Registry — not found</td><td class="r">×0.00</td><td class="r">10%</td><td class="r">0.000</td></tr>
+                    <tr class="sum"><td>Σ&nbsp;TRUST</td><td></td><td></td><td class="r">0.373</td></tr>
+                  </tbody>
+                </table>
+                <div class="signals" style="margin-top:18px">
+                  <span class="sig"><b>SOURCES</b>&nbsp;5 of 5</span>
+                  <span class="sig"><b>VERIFIED</b>&nbsp;0</span>
+                  <span class="sig"><b>PARTIAL</b>&nbsp;2</span>
+                  <span class="sig bad"><b>INVALID</b>&nbsp;1</span>
+                  <span class="sig bad"><b>MISSING</b>&nbsp;2</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="math-final">
+            <span class="lhs">FINAL</span>
+            <span class="calc">( 42 <span class="op">+</span> 12 <span class="op">+</span> 21 ) <span class="op">×</span> 0.373 <span class="eq">=</span> 75 <span class="op">×</span> 0.373 <span class="eq">=</span> 27.97</span>
+            <span class="rhs"><b class="d">28</b></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="evidence">
+        <h3>Evidence Room</h3>
+        <div class="src invalid"><span class="dot"></span><div class="body"><div class="name">SIG&nbsp;OWNER</div><div class="citation">recovered signer ≠ <code style="color:var(--o-block);background:transparent;border:0;padding:0;font-family:inherit">upgrade-siren:owner</code></div></div><span class="mult">INVALID</span></div>
+        <div class="src missing"><span class="dot"></span><div class="body"><div class="name">CITATION&nbsp;3</div><div class="citation">replaced after publication · 404 · Wayback diff attached</div></div><span class="mult">404</span></div>
+        <div class="src missing"><span class="dot"></span><div class="body"><div class="name">REGISTRY</div><div class="citation">"Allocators' Council" not found · 8 reference rolls checked</div></div><span class="mult">×0.0</span></div>
+        <div class="src partial"><span class="dot"></span><div class="body"><div class="name">ENS&nbsp;TXT</div><div class="citation">published · partial · conflicting genesis date</div></div><span class="mult">×0.85</span></div>
+
+        <div class="recs">
+          <h3>Recommendation</h3>
+          <ol>
+            <li><b>Block</b> allocation. Verdict held until the operator re-signs or retracts.</li>
+            <li><b>Flag operator</b> in the public Bench ledger. Incident BNCH-0509-37A-3.</li>
+            <li><b>Refer</b> to Contract Risk for downstream SIREN escalation.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESIGN NOTES -->
+  <div class="notes">
+    <h3>System rationale</h3>
+    <div class="body">
+      <p><b>Why sequential, not side-by-side.</b> A judge does not allocate 1.2M EUR by squinting at three columns. A reviewer reads one case at a time, in full, and writes one verdict before moving to the next. Bench follows that ritual: <em>one applicant fills the screen, the docket queues the rest.</em></p>
+      <p><b>The 30-second moment becomes the 30-second arc.</b> Step 1 sets a baseline — every source verified, fast-track. Step 2 introduces ambiguity — <em>can</em> we trust, but we lack artefacts. Step 3 lands the alarm — signature mismatch, replaced citation, fictional registry. The contrast emerges <em>through time</em>, which is what makes it a <em>review</em> rather than a comparison.</p>
+      <p><b>The Score Math sheet is the receipt.</b> Every headline number — 87, 52, 28 — opens its own auditor's worksheet. Substance, Provenance &amp; Seniority, Relevance to Brief each break into named line items with earned/max counts; Trust is a per-source weighted ledger. The final arithmetic is shown, not hidden: <em>( substance + provenance + relevance ) × trust = score.</em></p>
+      <p><b>What stays from Contract Risk.</b> The siren red is reserved for the moment Bench refuses to discount — invalid signature, replaced citation, fictional citation. Everything else lives in cool neutrals (tier letters, trust multipliers) and a separate epistemic gradient for confidence. The brand promise extends: <em>No proof, no allocation.</em></p>
+    </div>
+  </div>
+
+  <div class="doc-foot">
+    <div><b>UPGRADE SIREN BENCH</b> &nbsp;·&nbsp; v1.1 sequential hero</div>
+    <div>FILE&nbsp;01&nbsp;OF&nbsp;04 &nbsp;·&nbsp; <b>2026-05-09</b></div>
+    <div>USE&nbsp;←&nbsp;/&nbsp;→&nbsp;OR&nbsp;CLICK&nbsp;THE&nbsp;DOCKET</div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  const TOTAL = 3;
+  const DATA = {
+    1: { name:'Agent North',    tier:'A', tierLabel:'A', score:87, trust:'×0.96', outcome:'Fast-track',         outcomeClass:'fast',  rec:'Allocate · fast-track' },
+    2: { name:'Agent Meridian', tier:'C', tierLabel:'C', score:52, trust:'×0.60', outcome:'Evidence required',  outcomeClass:'evid',  rec:'Send back with evidence list' },
+    3: { name:'Agent Halo',     tier:'D', tierLabel:'D', score:28, trust:'×0.18', outcome:'Block · SIREN',      outcomeClass:'block', rec:'Block · flag operator' }
+  };
+
+  const steps = document.querySelectorAll('[data-step]');
+  const stepperItems = document.querySelectorAll('#stepper .step');
+  const posLabel = document.getElementById('posLabel');
+  let cur = 1;
+  let reviewed = new Set();
+
+  function setStep(n) {
+    if (n < 1) n = 1;
+    // mark previous as reviewed when advancing
+    if (n > cur) reviewed.add(cur);
+    if (n > TOTAL) {
+      reviewed.add(TOTAL);
+      n = TOTAL;
+    }
+    cur = n;
+    steps.forEach(s => s.classList.toggle('active', +s.dataset.step === cur));
+    posLabel.textContent = String(cur).padStart(2,'0') + ' / 0' + TOTAL;
+
+    // stepper visual states
+    stepperItems.forEach((el, i) => {
+      const idx = i+1;
+      el.classList.remove('focus','queued','reviewed');
+      const right = el.querySelector('.right');
+      const tierEl = el.querySelector('.mini-tier');
+      if (reviewed.has(idx) && idx !== cur) {
+        el.classList.add('reviewed');
+        const d = DATA[idx];
+        tierEl.className = 'mini-tier ' + d.tier.toLowerCase();
+        tierEl.textContent = d.tierLabel;
+        right.innerHTML = '<span class="tier-pill ' + d.tier.toLowerCase() + '">'+d.score+' · '+d.outcome.toUpperCase()+'</span>';
+      } else if (idx === cur) {
+        el.classList.add('focus');
+        tierEl.className = 'mini-tier u';
+        tierEl.textContent = '·';
+        right.innerHTML = '<span class="mini-tier u" style="visibility:hidden">·</span><span><b>UNDER REVIEW</b></span>';
+      } else {
+        el.classList.add('queued');
+        tierEl.className = 'mini-tier u';
+        tierEl.textContent = '·';
+        right.innerHTML = '<span class="mini-tier u" style="visibility:hidden">·</span><span><b>QUEUED</b></span>';
+      }
+    });
+
+    // scroll to subject bar
+    const active = document.querySelector('[data-step].active .subject-bar');
+    if (active) active.getBoundingClientRect();
+  }
+
+  document.querySelectorAll('[data-next]').forEach(b => b.addEventListener('click', () => setStep(cur+1)));
+  document.querySelectorAll('[data-prev]').forEach(b => b.addEventListener('click', () => setStep(cur-1)));
+  document.querySelectorAll('#stepper .step').forEach(el => {
+    el.addEventListener('click', () => {
+      const j = +el.dataset.jump;
+      // mark anything in between as reviewed when jumping forward
+      if (j > cur) for (let k=cur; k<j; k++) reviewed.add(k);
+      setStep(j);
+    });
+  });
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') setStep(cur+1);
+    if (e.key === 'ArrowLeft'  || e.key === 'PageUp')   setStep(cur-1);
+  });
+
+  setStep(1);
+})();
+</script>
+</body>
+</html>

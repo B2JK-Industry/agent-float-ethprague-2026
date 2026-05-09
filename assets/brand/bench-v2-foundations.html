@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Upgrade Siren Bench — v2 · Foundations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --safe:#00D67A; --review:#FFB020; --siren:#FF3B30;
+    --bg:#0A0E10; --surface:#14191C; --raised:#1B2125;
+    --border:#232A2F; --border-strong:#39434A;
+    --t3:#5C6770; --t2:#8B969C; --t1:#E8EDEF;
+    --accent:#00B8D9;
+    --tier-a:#7AD9FF; --tier-b:#E8EDEF; --tier-c:#B3A36A; --tier-d:#7E6240; --tier-u:#5C6770;
+    --conf-hi:#E8EDEF; --conf-md:#B3A36A; --conf-lo:#7E6240;
+    --src-verified:#7AD9FF; --src-partial:#B3A36A; --src-discounted:#7E6240;
+    --src-degraded:#FFB020; --src-missing:#5C6770;
+    --o-fast:#7AD9FF; --o-emerge:#E8EDEF; --o-evid:#B3A36A; --o-block:#FF3B30;
+    --paper:#F5F1E6; --ink:#1B1A14; --ink-soft:#5A5645; --rule:#C7BE9F; --stamp:#9E1E14;
+    --display:"Space Grotesk",ui-sans-serif,system-ui,sans-serif;
+    --body:"Inter",ui-sans-serif,system-ui,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --serif:"Source Serif 4",ui-serif,Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--t1);
+    font-family:var(--body); font-size:14px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    font-feature-settings:"ss01","cv11","tnum";
+  }
+
+  /* TERMINAL BAR */
+  .term-bar{
+    display:grid; grid-template-columns:auto 1fr auto;
+    align-items:center; gap:24px;
+    padding:14px 24px; background:var(--bg); border-bottom:1px solid var(--border);
+    font-family:var(--mono); font-size:11px; letter-spacing:0.08em; color:var(--t2);
+    position:sticky; top:0; z-index:10;
+  }
+  .term-bar .lockup{display:flex;align-items:center;gap:10px;color:var(--t1)}
+  .term-bar .lockup b{font-family:var(--display);font-weight:700;letter-spacing:-0.01em;font-size:14px}
+  .term-bar .lockup .pipe{color:var(--border-strong)}
+  .term-bar .lockup .mode{color:var(--accent)}
+  .term-bar .session{text-align:center;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .term-bar .session b{color:var(--t1);font-weight:500}
+  .term-bar .meta{display:flex;gap:18px;align-items:center;color:var(--t3)}
+  .term-bar .meta b{color:var(--t1);font-weight:500}
+
+  .doc{max-width:1480px;margin:0 auto;padding:40px 32px 80px}
+
+  /* DOCUMENT HEADLINE */
+  .doc-head{padding-bottom:20px;border-bottom:1px solid var(--border);margin-bottom:40px}
+  .doc-head .eye{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;color:var(--t3);text-transform:uppercase}
+  .doc-head h1{
+    font-family:var(--display); font-weight:600;
+    font-size:clamp(40px, 5vw, 64px); line-height:1.0; letter-spacing:-0.025em;
+    margin:8px 0 12px;
+  }
+  .doc-head h1 em{font-family:var(--serif);font-style:italic;color:var(--t2);font-weight:400}
+  .doc-head .deck{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--t2);max-width:78ch}
+
+  /* SECTION */
+  section{margin-top:64px}
+  section.first{margin-top:0}
+  .sec-head{
+    display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px;
+    padding-bottom:14px; border-bottom:1px solid var(--border-strong);
+    margin-bottom:28px;
+  }
+  .sec-head .num{font-family:var(--mono);font-size:11px;letter-spacing:0.2em;color:var(--accent)}
+  .sec-head h2{
+    font-family:var(--display); font-weight:600; font-size:32px; line-height:1.05;
+    letter-spacing:-0.015em; margin:6px 0 0;
+  }
+  .sec-head .role{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;color:var(--t3);text-transform:uppercase}
+  .sec-head h2 em{font-family:var(--serif);font-style:italic;color:var(--t2);font-weight:400}
+
+  /* SUB-SECTION */
+  .sub{margin-top:36px}
+  .sub-head{
+    font-family:var(--mono); font-size:10px; letter-spacing:0.18em; color:var(--t2);
+    text-transform:uppercase; margin-bottom:14px;
+    display:flex; justify-content:space-between; align-items:baseline; gap:16px;
+  }
+  .sub-head b{color:var(--t1);font-weight:500;letter-spacing:0.18em}
+  .sub-head .hint{color:var(--t3);letter-spacing:0.1em;text-transform:none;font-style:italic;font-family:var(--serif);font-size:12px}
+
+  /* COLOR SWATCHES */
+  .swatch-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+    gap:1px; background:var(--border); border:1px solid var(--border);
+  }
+  .sw{
+    background:var(--bg); padding:0;
+    display:flex; flex-direction:column;
+  }
+  .sw .chip{
+    height:120px; position:relative;
+    border-bottom:1px solid var(--border);
+  }
+  .sw .chip .label-on{
+    position:absolute; left:14px; top:12px;
+    font-family:var(--mono); font-size:10px; letter-spacing:0.12em;
+  }
+  .sw .chip .label-on.dark{color:rgba(0,0,0,0.6)}
+  .sw .chip .label-on.light{color:rgba(255,255,255,0.7)}
+  .sw .meta{
+    padding:12px 14px;
+    font-family:var(--mono); font-size:11px; line-height:1.5;
+  }
+  .sw .meta .tok{color:var(--t1);letter-spacing:0.04em;display:block}
+  .sw .meta .hex{display:block;color:var(--t2);font-size:10px;margin-top:2px;letter-spacing:0.04em}
+  .sw .meta .role{display:block;color:var(--t3);font-size:11px;margin-top:6px;letter-spacing:0;font-style:italic;font-family:var(--serif);line-height:1.45}
+
+  /* tall-chip variant for tiny/critical tokens */
+  .sw.compact .chip{height:72px}
+
+  /* WCAG TABLE */
+  .wcag{
+    width:100%; border-collapse:collapse;
+    font-family:var(--mono); font-size:12px;
+  }
+  .wcag th{
+    text-align:left; font-weight:500; letter-spacing:0.14em; text-transform:uppercase;
+    font-size:10px; color:var(--t3);
+    padding:10px 12px; border-bottom:1px solid var(--border-strong);
+  }
+  .wcag th.r,.wcag td.r{text-align:right}
+  .wcag td{
+    padding:14px 12px; border-bottom:1px dotted var(--border);
+    color:var(--t2); vertical-align:middle;
+  }
+  .wcag .pair{display:block}
+  .wcag .pair .fg{
+    min-height:36px; padding:8px 14px; display:inline-flex; align-items:center;
+    font-family:var(--mono); font-weight:500; font-size:12px;
+    border:1px solid var(--border-strong);
+    min-width:200px; max-width:280px;
+  }
+  .wcag .desc{color:var(--t1)}
+  .wcag .ratio{color:var(--t1);font-variant-numeric:tabular-nums;font-size:14px;font-weight:500}
+  .wcag .verdict{
+    font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;
+    padding:3px 8px; border:1px solid currentColor; display:inline-block;
+  }
+  .wcag .verdict.aaa{color:var(--src-verified)}
+  .wcag .verdict.aa{color:var(--review)}
+  .wcag .verdict.aalg{color:var(--src-partial)}
+  .wcag .verdict.fail{color:var(--o-block)}
+
+  /* COLORBLIND SIMS */
+  .cb-grid{
+    display:grid; grid-template-columns:repeat(4, 1fr);
+    gap:1px; background:var(--border); border:1px solid var(--border);
+  }
+  @media(max-width:880px){.cb-grid{grid-template-columns:repeat(2,1fr)}}
+  .cb-col{background:var(--bg);padding:18px}
+  .cb-col h4{
+    font-family:var(--mono); font-size:10px; letter-spacing:0.18em; color:var(--t2);
+    text-transform:uppercase; margin:0 0 14px;
+  }
+  .cb-col h4 em{font-family:var(--serif);font-style:italic;font-size:11px;color:var(--t3);letter-spacing:0;display:block;margin-top:2px}
+  .cb-row{
+    display:grid; grid-template-columns:14px 1fr auto;
+    gap:10px; align-items:center; padding:8px 0;
+    font-family:var(--mono); font-size:11px;
+    border-top:1px dotted var(--border);
+  }
+  .cb-row:first-of-type{border-top:0}
+  .cb-row .dot{width:12px;height:12px}
+  .cb-row .nm{color:var(--t1);letter-spacing:0.04em;font-size:11px}
+  .cb-row .mark{
+    font-family:var(--mono); font-size:9px; letter-spacing:0.14em;
+    padding:2px 6px; border:1px solid currentColor;
+  }
+  .cb-row .mark.ok{color:var(--src-verified)}
+  .cb-row .mark.warn{color:var(--review)}
+  .cb-row .mark.fail{color:var(--o-block)}
+  .cb-note{
+    margin-top:14px; padding-top:12px; border-top:1px dotted var(--border);
+    font-family:var(--serif); font-style:italic; font-size:12px; color:var(--t2); line-height:1.5;
+  }
+
+  /* TYPE SECTION */
+  .stack-grid{
+    display:grid; grid-template-columns:repeat(4, 1fr);
+    gap:1px; background:var(--border); border:1px solid var(--border);
+  }
+  @media(max-width:880px){.stack-grid{grid-template-columns:repeat(2,1fr)}}
+  .stack{background:var(--bg);padding:24px;display:flex;flex-direction:column;justify-content:space-between;min-height:220px}
+  .stack .role-tag{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--t3);text-transform:uppercase}
+  .stack .specimen{font-size:64px;line-height:0.95;letter-spacing:-0.02em;color:var(--t1);margin:18px 0}
+  .stack .specimen.serif{font-family:var(--serif);font-style:italic;font-weight:400}
+  .stack .specimen.display{font-family:var(--display);font-weight:600}
+  .stack .specimen.body{font-family:var(--body);font-weight:500;font-size:48px}
+  .stack .specimen.mono{font-family:var(--mono);font-weight:500;font-size:48px}
+  .stack .meta{font-family:var(--mono);font-size:10px;color:var(--t2);letter-spacing:0.04em;line-height:1.6}
+  .stack .meta b{color:var(--t1);font-weight:500}
+
+  /* TYPE SCALE */
+  .scale{
+    border:1px solid var(--border);
+  }
+  .scale-row{
+    display:grid; grid-template-columns:160px 1fr 220px;
+    gap:24px; align-items:baseline;
+    padding:18px 20px; border-bottom:1px solid var(--border);
+  }
+  .scale-row:last-child{border-bottom:0}
+  .scale-row .tok{font-family:var(--mono);font-size:11px;color:var(--t2);letter-spacing:0.06em}
+  .scale-row .tok b{color:var(--t1);display:block;letter-spacing:0.12em;text-transform:uppercase;font-size:9px;margin-bottom:4px;color:var(--t3)}
+  .scale-row .sample{color:var(--t1);min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .scale-row .spec{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:0.04em;text-align:right;line-height:1.6}
+  .scale-row .spec b{color:var(--t1);font-weight:500}
+
+  /* SPACE / RADIUS / BORDER */
+  .three-col{
+    display:grid; grid-template-columns:repeat(3, 1fr);
+    gap:1px; background:var(--border); border:1px solid var(--border);
+  }
+  @media(max-width:880px){.three-col{grid-template-columns:1fr}}
+  .three-col .col{background:var(--bg);padding:24px}
+  .three-col h4{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--t2);text-transform:uppercase;margin:0 0 16px}
+  .three-col h4 b{color:var(--t1);font-weight:500}
+
+  .space-row{
+    display:grid; grid-template-columns:60px 1fr auto;
+    gap:14px; align-items:center; padding:8px 0;
+    border-top:1px dotted var(--border);
+    font-family:var(--mono); font-size:11px; color:var(--t2);
+  }
+  .space-row:first-child{border-top:0}
+  .space-row .nm{color:var(--t1);letter-spacing:0.06em}
+  .space-row .vis{height:8px;background:var(--accent);min-width:1px}
+  .space-row .px{color:var(--t3);font-variant-numeric:tabular-nums}
+
+  .border-row{
+    display:grid; grid-template-columns:60px 1fr auto;
+    gap:14px; align-items:center; padding:10px 0;
+    font-family:var(--mono); font-size:11px; color:var(--t2);
+    border-top:1px dotted var(--border);
+  }
+  .border-row:first-child{border-top:0}
+  .border-row .nm{color:var(--t1);letter-spacing:0.06em}
+  .border-row .vis{
+    height:24px; background:var(--bg);
+    border:1px solid var(--ax,var(--border));
+  }
+  .border-row.dotted .vis{border-style:dotted}
+  .border-row.dashed .vis{border-style:dashed}
+  .border-row .px{color:var(--t3);font-variant-numeric:tabular-nums}
+
+  /* MOTION */
+  .motion-grid{
+    display:grid; grid-template-columns:repeat(2, 1fr);
+    gap:1px; background:var(--border); border:1px solid var(--border);
+  }
+  @media(max-width:880px){.motion-grid{grid-template-columns:1fr}}
+  .motion{background:var(--bg);padding:24px}
+  .motion h4{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--t2);text-transform:uppercase;margin:0 0 12px}
+  .motion h4 b{color:var(--t1);font-weight:500}
+  .motion-row{
+    display:grid; grid-template-columns:140px 1fr 80px;
+    gap:14px; align-items:center; padding:10px 0;
+    font-family:var(--mono); font-size:11px; color:var(--t2);
+    border-top:1px dotted var(--border);
+  }
+  .motion-row:first-of-type{border-top:0}
+  .motion-row .nm{color:var(--t1);letter-spacing:0.06em}
+  .motion-row .nm b{display:block;letter-spacing:0.12em;font-size:9px;color:var(--t3);margin-bottom:2px}
+  .motion-row .desc{color:var(--t2);font-family:var(--serif);font-style:italic;font-size:12px}
+  .motion-row .ms{color:var(--t1);text-align:right;font-variant-numeric:tabular-nums}
+
+  /* PRINCIPLES PRELUDE */
+  .principles{
+    border:1px solid var(--border-strong); background:var(--surface);
+    padding:24px 28px;
+  }
+  .principles h3{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.18em; color:var(--t2);
+    text-transform:uppercase; margin:0 0 14px;
+  }
+  .principles ol{margin:0;padding-left:20px;color:var(--t1);font-size:14px;line-height:1.6}
+  .principles ol li{margin-bottom:8px;text-wrap:pretty}
+  .principles ol li b{color:var(--t1);font-weight:500}
+  .principles ol li em{font-family:var(--serif);font-style:italic;color:var(--t2)}
+
+  /* FOOTER */
+  .doc-foot{
+    margin-top:80px; padding-top:20px; border-top:1px solid var(--border);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:16px;
+    font-family:var(--mono); font-size:10px; letter-spacing:0.14em; color:var(--t3);
+  }
+  .doc-foot b{color:var(--t1)}
+
+</style>
+</head>
+<body>
+
+<div class="term-bar">
+  <div class="lockup">
+    <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
+      <rect x="1" y="1" width="30" height="30" fill="none" stroke="#E8EDEF" stroke-width="1.5"/>
+      <path d="M 6 9 L 9 12 L 14 7" stroke="#00D67A" stroke-width="2" fill="none" stroke-linecap="square"/>
+      <rect x="6" y="14" width="8" height="2" fill="#FFB020"/>
+      <rect x="6" y="18" width="8" height="2" fill="#FFB020"/>
+      <rect x="6" y="23" width="8" height="3" fill="#FF3B30"/>
+      <line x1="17" y1="4" x2="17" y2="28" stroke="#E8EDEF" stroke-width="1.5"/>
+      <text x="22" y="20" font-family="Space Grotesk" font-weight="700" font-size="14" fill="#E8EDEF">S</text>
+    </svg>
+    <b>UPGRADE&nbsp;SIREN</b>
+    <span class="pipe">/</span>
+    <span class="mode">BENCH&nbsp;·&nbsp;FOUNDATIONS</span>
+  </div>
+  <div class="session">DEV&nbsp;MANUAL&nbsp;<b>02&nbsp;OF&nbsp;06</b>&nbsp;·&nbsp;color&nbsp;·&nbsp;type&nbsp;·&nbsp;space&nbsp;·&nbsp;motion&nbsp;·&nbsp;a11y</div>
+  <div class="meta"><b>v0.7</b>&nbsp;·&nbsp;2026-05-09</div>
+</div>
+
+<div class="doc">
+
+  <!-- HEAD -->
+  <div class="doc-head">
+    <div class="eye">FILE&nbsp;02&nbsp;·&nbsp;FOUNDATIONS</div>
+    <h1>Tokens before <em>opinions.</em></h1>
+    <div class="deck">Every value below is a runtime CSS variable in the Bench codebase. Names are stable; hex values may shift one notch but never role. If you find yourself reaching for a hex literal, you are missing a token — open an issue, do not invent.</div>
+  </div>
+
+  <!-- 0 · PRINCIPLES -->
+  <section class="first">
+    <div class="principles">
+      <h3>Operating principles for this system</h3>
+      <ol>
+        <li><b>Color is information, not decoration.</b> Every color in this manual carries one meaning. The same hue does not get reused for a different role; the same role does not get expressed in two hues. <em>If two things look alike, they mean alike.</em></li>
+        <li><b>Siren red is reserved.</b> It only appears when Bench refuses to discount — invalid signature, replaced citation, fictional registry. Never as a hover state, never as a brand accent, never as decoration.</li>
+        <li><b>Trust and Confidence are different gradients.</b> Trust runs cool (verified&nbsp;<span style="color:var(--src-verified)">▲</span> → discounted&nbsp;<span style="color:var(--src-discounted)">▼</span>). Confidence runs neutral-warm (HI&nbsp;<span style="color:var(--conf-hi)">●</span> → LO&nbsp;<span style="color:var(--conf-lo)">●</span>). Do not collapse them into one axis.</li>
+        <li><b>The system is flat.</b> No drop shadows, no gradients on surfaces, no glows except the heartbeat dot. Depth comes from <em>border weight and ink density</em>, the way a printed filing builds hierarchy.</li>
+        <li><b>Type does the heavy lifting.</b> Four families, four jobs: <b>Display</b> for verdicts, <b>Body</b> for paragraphs, <b>Mono</b> for evidence and numbers, <b>Serif italic</b> for the human voice — quotes, claims, brand asides.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- 1 · COLOR -->
+  <section>
+    <div class="sec-head">
+      <div>
+        <div class="num">01&nbsp;·&nbsp;COLOR</div>
+        <h2>The palette is a <em>vocabulary,</em> not a mood board.</h2>
+      </div>
+      <div class="role">36 tokens · 6 roles · all role-prefixed</div>
+    </div>
+
+    <!-- 1A SURFACES -->
+    <div class="sub">
+      <div class="sub-head"><b>1A · SURFACES &amp; INK</b><span class="hint">the dark canvas the whole product lives on</span></div>
+      <div class="swatch-grid">
+        <div class="sw"><div class="chip" style="background:#0A0E10"><span class="label-on light">Aa</span></div><div class="meta"><span class="tok">--bg</span><span class="hex">#0A0E10 · oklch(0.18 0.01 220)</span><span class="role">Page background. The void Bench reads against.</span></div></div>
+        <div class="sw"><div class="chip" style="background:#14191C"><span class="label-on light">Aa</span></div><div class="meta"><span class="tok">--surface</span><span class="hex">#14191C</span><span class="role">Cards, panels, math sheets. One step up from bg.</span></div></div>
+        <div class="sw"><div class="chip" style="background:#1B2125"><span class="label-on light">Aa</span></div><div class="meta"><span class="tok">--raised</span><span class="hex">#1B2125</span><span class="role">Evidence drawer · the sidebar that holds proof.</span></div></div>
+        <div class="sw"><div class="chip" style="background:#232A2F"><span class="label-on light">Aa</span></div><div class="meta"><span class="tok">--border</span><span class="hex">#232A2F</span><span class="role">Hairlines and dotted dividers (1px).</span></div></div>
+        <div class="sw"><div class="chip" style="background:#39434A"><span class="label-on light">Aa</span></div><div class="meta"><span class="tok">--border-strong</span><span class="hex">#39434A</span><span class="role">Section rules · button outlines · separators.</span></div></div>
+        <div class="sw"><div class="chip" style="background:#5C6770"><span class="label-on light">Aa</span></div><div class="meta"><span class="tok">--t3</span><span class="hex">#5C6770</span><span class="role">Tertiary text · meta · timestamps.</span></div></div>
+        <div class="sw"><div class="chip" style="background:#8B969C"><span class="label-on dark">Aa</span></div><div class="meta"><span class="tok">--t2</span><span class="hex">#8B969C</span><span class="role">Secondary text · labels · captions.</span></div></div>
+        <div class="sw"><div class="chip" style="background:#E8EDEF"><span class="label-on dark">Aa</span></div><div class="meta"><span class="tok">--t1</span><span class="hex">#E8EDEF</span><span class="role">Primary text · numbers · names.</span></div></div>
+      </div>
+    </div>
+
+    <!-- 1B TIERS -->
+    <div class="sub">
+      <div class="sub-head"><b>1B · TIER LETTERS</b><span class="hint">A → D → U · the verdict's only typography color</span></div>
+      <div class="swatch-grid">
+        <div class="sw"><div class="chip" style="background:#7AD9FF"><span class="label-on dark">A</span></div><div class="meta"><span class="tok">--tier-a</span><span class="hex">#7AD9FF · pale cyan</span><span class="role">Tier A · fast-track. Highest verifiability.</span></div></div>
+        <div class="sw"><div class="chip" style="background:#E8EDEF"><span class="label-on dark">B</span></div><div class="meta"><span class="tok">--tier-b</span><span class="hex">#E8EDEF · ink white</span><span class="role">Tier B · emerging. Solid claim, modest provenance.</span></div></div>
+        <div class="sw"><div class="chip" style="background:#B3A36A"><span class="label-on dark">C</span></div><div class="meta"><span class="tok">--tier-c</span><span class="hex">#B3A36A · brass</span><span class="role">Tier C · evidence required. Plausible but unproven.</span></div></div>
+        <div class="sw"><div class="chip" style="background:#7E6240"><span class="label-on light">D</span></div><div class="meta"><span class="tok">--tier-d</span><span class="hex">#7E6240 · bronze</span><span class="role">Tier D · block. Trust collapse.</span></div></div>
+        <div class="sw"><div class="chip" style="background:#5C6770;border:1px dashed #8B969C"><span class="label-on light">U</span></div><div class="meta"><span class="tok">--tier-u</span><span class="hex">#5C6770 · graphite</span><span class="role">Unrated · in queue. Dashed border.</span></div></div>
+      </div>
+    </div>
+
+    <!-- 1C SOURCE STATES -->
+    <div class="sub">
+      <div class="sub-head"><b>1C · SOURCE STATES</b><span class="hint">the trust gradient · cool to warm to alarm</span></div>
+      <div class="swatch-grid">
+        <div class="sw compact"><div class="chip" style="background:#7AD9FF"></div><div class="meta"><span class="tok">--src-verified</span><span class="hex">#7AD9FF · ×1.00</span><span class="role">Full match. Sourcify, ENS sig, EIP-1967.</span></div></div>
+        <div class="sw compact"><div class="chip" style="background:#B3A36A"></div><div class="meta"><span class="tok">--src-partial</span><span class="hex">#B3A36A · ×0.40–0.85</span><span class="role">Partial match. Discount applied per source.</span></div></div>
+        <div class="sw compact"><div class="chip" style="background:#7E6240"></div><div class="meta"><span class="tok">--src-discounted</span><span class="hex">#7E6240 · ×0.20–0.40</span><span class="role">Heavy discount. Source still counts, just barely.</span></div></div>
+        <div class="sw compact"><div class="chip" style="background:#FFB020"></div><div class="meta"><span class="tok">--src-degraded</span><span class="hex">#FFB020 · amber</span><span class="role">Live degradation · stale RPC · slow oracle.</span></div></div>
+        <div class="sw compact"><div class="chip" style="background:#5C6770;border:1px dashed #8B969C"></div><div class="meta"><span class="tok">--src-missing</span><span class="hex">#5C6770 · ×0.00 dashed</span><span class="role">Source not returned. Counts as zero.</span></div></div>
+        <div class="sw compact"><div class="chip" style="background:#FF3B30"></div><div class="meta"><span class="tok">--o-block (invalid)</span><span class="hex">#FF3B30 · siren</span><span class="role">Source actively invalid. Sig mismatch · 404 · forgery.</span></div></div>
+      </div>
+    </div>
+
+    <!-- 1D OUTCOMES -->
+    <div class="sub">
+      <div class="sub-head"><b>1D · OUTCOMES</b><span class="hint">what Bench tells the allocator to do</span></div>
+      <div class="swatch-grid">
+        <div class="sw compact"><div class="chip" style="background:#7AD9FF"></div><div class="meta"><span class="tok">--o-fast</span><span class="hex">#7AD9FF</span><span class="role">Fast-track · allocate now.</span></div></div>
+        <div class="sw compact"><div class="chip" style="background:#E8EDEF"></div><div class="meta"><span class="tok">--o-emerge</span><span class="hex">#E8EDEF</span><span class="role">Emerging · pilot tranche.</span></div></div>
+        <div class="sw compact"><div class="chip" style="background:#B3A36A"></div><div class="meta"><span class="tok">--o-evid</span><span class="hex">#B3A36A</span><span class="role">Evidence required · send back.</span></div></div>
+        <div class="sw compact"><div class="chip" style="background:#FF3B30"></div><div class="meta"><span class="tok">--o-block</span><span class="hex">#FF3B30</span><span class="role">Block · siren. Reserved for the moment of refusal.</span></div></div>
+      </div>
+    </div>
+
+    <!-- 1E CONFIDENCE -->
+    <div class="sub">
+      <div class="sub-head"><b>1E · CONFIDENCE GRADIENT</b><span class="hint">how sure we are · independent of trust</span></div>
+      <div class="swatch-grid">
+        <div class="sw compact"><div class="chip" style="background:#E8EDEF"></div><div class="meta"><span class="tok">--conf-hi</span><span class="hex">#E8EDEF</span><span class="role">High · 4–5 sources agree.</span></div></div>
+        <div class="sw compact"><div class="chip" style="background:#B3A36A"></div><div class="meta"><span class="tok">--conf-md</span><span class="hex">#B3A36A</span><span class="role">Medium · 2–3 sources agree.</span></div></div>
+        <div class="sw compact"><div class="chip" style="background:#7E6240"></div><div class="meta"><span class="tok">--conf-lo</span><span class="hex">#7E6240</span><span class="role">Low · 0–1 sources agree.</span></div></div>
+      </div>
+    </div>
+
+    <!-- 1F PAPER & STAMP -->
+    <div class="sub">
+      <div class="sub-head"><b>1F · PAPER &amp; STAMP</b><span class="hint">light surface · used only when an artefact must feel printed</span></div>
+      <div class="swatch-grid">
+        <div class="sw"><div class="chip" style="background:#F5F1E6"><span class="label-on dark">Aa</span></div><div class="meta"><span class="tok">--paper</span><span class="hex">#F5F1E6</span><span class="role">Filing paper · marketing collateral · printed PDF.</span></div></div>
+        <div class="sw"><div class="chip" style="background:#1B1A14"><span class="label-on light">Aa</span></div><div class="meta"><span class="tok">--ink</span><span class="hex">#1B1A14</span><span class="role">Ink on paper · primary text on light surface.</span></div></div>
+        <div class="sw compact"><div class="chip" style="background:#5A5645"></div><div class="meta"><span class="tok">--ink-soft</span><span class="hex">#5A5645</span><span class="role">Secondary text on paper.</span></div></div>
+        <div class="sw compact"><div class="chip" style="background:#C7BE9F"></div><div class="meta"><span class="tok">--rule</span><span class="hex">#C7BE9F</span><span class="role">Hairline rule on paper.</span></div></div>
+        <div class="sw"><div class="chip" style="background:#9E1E14"><span class="label-on light">FINAL</span></div><div class="meta"><span class="tok">--stamp</span><span class="hex">#9E1E14</span><span class="role">Notary stamp red. Used 1× per artefact, max.</span></div></div>
+      </div>
+    </div>
+
+    <!-- 1G ACCENT & SAFE -->
+    <div class="sub">
+      <div class="sub-head"><b>1G · ACCENT &amp; SIGNAL</b><span class="hint">the four hue commitments outside the trust gradient</span></div>
+      <div class="swatch-grid">
+        <div class="sw compact"><div class="chip" style="background:#00B8D9"></div><div class="meta"><span class="tok">--accent</span><span class="hex">#00B8D9</span><span class="role">Wayfinding · ENS hashes · session ids · primary CTA.</span></div></div>
+        <div class="sw compact"><div class="chip" style="background:#00D67A"></div><div class="meta"><span class="tok">--safe</span><span class="hex">#00D67A</span><span class="role">Heartbeat dot · OK rows in Bench Reads. <b>Never</b> for tier or score.</span></div></div>
+        <div class="sw compact"><div class="chip" style="background:#FFB020"></div><div class="meta"><span class="tok">--review</span><span class="hex">#FFB020</span><span class="role">Caution rows · degraded sources · WCAG-AA badge.</span></div></div>
+        <div class="sw compact"><div class="chip" style="background:#FF3B30"></div><div class="meta"><span class="tok">--siren</span><span class="hex">#FF3B30</span><span class="role">Refusal. Identical to <code>--o-block</code>. The promise.</span></div></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- 2 · ACCESSIBILITY · WCAG -->
+  <section>
+    <div class="sec-head">
+      <div>
+        <div class="num">02&nbsp;·&nbsp;A11Y · WCAG&nbsp;2.2</div>
+        <h2>Every pairing, <em>tested.</em></h2>
+      </div>
+      <div class="role">contrast ratios · against --bg #0A0E10 unless noted</div>
+    </div>
+
+    <table class="wcag">
+      <thead>
+        <tr>
+          <th style="width:240px">Foreground</th>
+          <th>Used for</th>
+          <th class="r">Ratio</th>
+          <th class="r">WCAG&nbsp;AA</th>
+          <th class="r">WCAG&nbsp;AAA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="pair"><span class="fg" style="background:#0A0E10;color:#E8EDEF;border-color:#39434A">--t1</span></span></td><td class="desc">Primary text · numbers · names</td><td class="r ratio">17.5 : 1</td><td class="r"><span class="verdict aaa">PASS</span></td><td class="r"><span class="verdict aaa">PASS</span></td></tr>
+        <tr><td><span class="pair"><span class="fg" style="background:#0A0E10;color:#8B969C;border-color:#39434A">--t2</span></span></td><td class="desc">Secondary text · labels · captions</td><td class="r ratio">6.5 : 1</td><td class="r"><span class="verdict aaa">PASS</span></td><td class="r"><span class="verdict aa">PASS&nbsp;(lg)</span></td></tr>
+        <tr><td><span class="pair"><span class="fg" style="background:#0A0E10;color:#5C6770;border-color:#39434A">--t3</span></span></td><td class="desc">Tertiary text · meta · timestamps</td><td class="r ratio">3.5 : 1</td><td class="r"><span class="verdict aalg">LARGE&nbsp;ONLY</span></td><td class="r"><span class="verdict fail">USE&nbsp;≥14px</span></td></tr>
+        <tr><td><span class="pair"><span class="fg" style="background:#0A0E10;color:#00B8D9;border-color:#39434A">--accent</span></span></td><td class="desc">ENS hashes · session ids · CTA</td><td class="r ratio">7.8 : 1</td><td class="r"><span class="verdict aaa">PASS</span></td><td class="r"><span class="verdict aaa">PASS</span></td></tr>
+        <tr><td><span class="pair"><span class="fg" style="background:#0A0E10;color:#7AD9FF;border-color:#39434A">--tier-a / --src-verified</span></span></td><td class="desc">Tier A · verified source dot</td><td class="r ratio">11.0 : 1</td><td class="r"><span class="verdict aaa">PASS</span></td><td class="r"><span class="verdict aaa">PASS</span></td></tr>
+        <tr><td><span class="pair"><span class="fg" style="background:#0A0E10;color:#B3A36A;border-color:#39434A">--tier-c / --src-partial</span></span></td><td class="desc">Tier C · partial source · brass</td><td class="r ratio">8.1 : 1</td><td class="r"><span class="verdict aaa">PASS</span></td><td class="r"><span class="verdict aaa">PASS</span></td></tr>
+        <tr><td><span class="pair"><span class="fg" style="background:#0A0E10;color:#7E6240;border-color:#39434A">--tier-d / --src-discounted</span></span></td><td class="desc">Tier D · discounted source · bronze</td><td class="r ratio">3.6 : 1</td><td class="r"><span class="verdict aalg">LARGE&nbsp;ONLY</span></td><td class="r"><span class="verdict fail">USE&nbsp;≥18px</span></td></tr>
+        <tr><td><span class="pair"><span class="fg" style="background:#0A0E10;color:#FFB020;border-color:#39434A">--review</span></span></td><td class="desc">Caution · degraded · WCAG-AA badge</td><td class="r ratio">10.0 : 1</td><td class="r"><span class="verdict aaa">PASS</span></td><td class="r"><span class="verdict aaa">PASS</span></td></tr>
+        <tr><td><span class="pair"><span class="fg" style="background:#0A0E10;color:#FF3B30;border-color:#39434A">--siren / --o-block</span></span></td><td class="desc">Refusal · invalid · block</td><td class="r ratio">5.2 : 1</td><td class="r"><span class="verdict aaa">PASS</span></td><td class="r"><span class="verdict aa">PASS&nbsp;(lg)</span></td></tr>
+        <tr><td><span class="pair"><span class="fg" style="background:#0A0E10;color:#00D67A;border-color:#39434A">--safe</span></span></td><td class="desc">Heartbeat · OK rows</td><td class="r ratio">9.4 : 1</td><td class="r"><span class="verdict aaa">PASS</span></td><td class="r"><span class="verdict aaa">PASS</span></td></tr>
+        <tr><td><span class="pair"><span class="fg" style="background:#F5F1E6;color:#1B1A14;border-color:#C7BE9F">--ink&nbsp;on&nbsp;paper</span></span></td><td class="desc">Printed-artefact text</td><td class="r ratio">14.0 : 1</td><td class="r"><span class="verdict aaa">PASS</span></td><td class="r"><span class="verdict aaa">PASS</span></td></tr>
+        <tr><td><span class="pair"><span class="fg" style="background:#F5F1E6;color:#9E1E14;border-color:#C7BE9F">--stamp&nbsp;on&nbsp;paper</span></span></td><td class="desc">Notary red on filing</td><td class="r ratio">6.5 : 1</td><td class="r"><span class="verdict aaa">PASS</span></td><td class="r"><span class="verdict aa">PASS&nbsp;(lg)</span></td></tr>
+      </tbody>
+    </table>
+
+    <!-- COLORBLIND SIMS -->
+    <div class="sub">
+      <div class="sub-head"><b>2B · COLOR-BLIND SIMULATION</b><span class="hint">trust signal must survive deutan, protan, tritan</span></div>
+      <div class="cb-grid">
+        <div class="cb-col">
+          <h4>Normal vision<em>baseline · the trust gradient</em></h4>
+          <div class="cb-row"><span class="dot" style="background:#7AD9FF"></span><span class="nm">Verified ×1.00</span><span class="mark ok">OK</span></div>
+          <div class="cb-row"><span class="dot" style="background:#B3A36A"></span><span class="nm">Partial ×0.50</span><span class="mark ok">OK</span></div>
+          <div class="cb-row"><span class="dot" style="background:#7E6240"></span><span class="nm">Discounted ×0.20</span><span class="mark ok">OK</span></div>
+          <div class="cb-row"><span class="dot" style="background:#5C6770;border:1px dashed #8B969C"></span><span class="nm">Missing ×0.00</span><span class="mark ok">OK</span></div>
+          <div class="cb-row"><span class="dot" style="background:#FF3B30"></span><span class="nm">Invalid (siren)</span><span class="mark ok">OK</span></div>
+          <div class="cb-note">Cool → warm → black → red. Five distinguishable steps.</div>
+        </div>
+        <div class="cb-col">
+          <h4>Deuteranopia<em>~6% of men · green-weak</em></h4>
+          <div class="cb-row"><span class="dot" style="background:#A2CFE3"></span><span class="nm">Verified ×1.00</span><span class="mark ok">OK</span></div>
+          <div class="cb-row"><span class="dot" style="background:#9E9F73"></span><span class="nm">Partial ×0.50</span><span class="mark ok">OK</span></div>
+          <div class="cb-row"><span class="dot" style="background:#6B603F"></span><span class="nm">Discounted ×0.20</span><span class="mark ok">OK</span></div>
+          <div class="cb-row"><span class="dot" style="background:#5F6970;border:1px dashed #8E97A0"></span><span class="nm">Missing ×0.00</span><span class="mark ok">OK</span></div>
+          <div class="cb-row"><span class="dot" style="background:#A26A30"></span><span class="nm">Invalid (siren)</span><span class="mark warn">SUPPORT&nbsp;W/&nbsp;ICON</span></div>
+          <div class="cb-note">Siren red shifts toward burnt orange. We always pair it with a <code>✕</code> glyph and the word INVALID — never carry meaning by hue alone.</div>
+        </div>
+        <div class="cb-col">
+          <h4>Protanopia<em>~2% of men · red-weak</em></h4>
+          <div class="cb-row"><span class="dot" style="background:#A8CFE0"></span><span class="nm">Verified ×1.00</span><span class="mark ok">OK</span></div>
+          <div class="cb-row"><span class="dot" style="background:#999777"></span><span class="nm">Partial ×0.50</span><span class="mark ok">OK</span></div>
+          <div class="cb-row"><span class="dot" style="background:#665A45"></span><span class="nm">Discounted ×0.20</span><span class="mark ok">OK</span></div>
+          <div class="cb-row"><span class="dot" style="background:#5E696F;border:1px dashed #8C9499"></span><span class="nm">Missing ×0.00</span><span class="mark ok">OK</span></div>
+          <div class="cb-row"><span class="dot" style="background:#7A6128"></span><span class="nm">Invalid (siren)</span><span class="mark warn">SUPPORT&nbsp;W/&nbsp;ICON</span></div>
+          <div class="cb-note">Siren collapses toward bronze. The dashed border on Missing remains the cleanest discriminator — keep it.</div>
+        </div>
+        <div class="cb-col">
+          <h4>Tritanopia<em>~0.01% · blue-weak</em></h4>
+          <div class="cb-row"><span class="dot" style="background:#B0E0DE"></span><span class="nm">Verified ×1.00</span><span class="mark ok">OK</span></div>
+          <div class="cb-row"><span class="dot" style="background:#B69F8A"></span><span class="nm">Partial ×0.50</span><span class="mark ok">OK</span></div>
+          <div class="cb-row"><span class="dot" style="background:#7E5E51"></span><span class="nm">Discounted ×0.20</span><span class="mark ok">OK</span></div>
+          <div class="cb-row"><span class="dot" style="background:#5E6868;border:1px dashed #8E9698"></span><span class="nm">Missing ×0.00</span><span class="mark ok">OK</span></div>
+          <div class="cb-row"><span class="dot" style="background:#FF584D"></span><span class="nm">Invalid (siren)</span><span class="mark ok">OK</span></div>
+          <div class="cb-note">Tritan keeps red distinct. The verified cyan loses some saturation but remains lighter than partial — gradient holds.</div>
+        </div>
+      </div>
+      <div class="principles" style="margin-top:18px;border-color:var(--border);background:var(--bg)">
+        <h3>Carry-rule</h3>
+        <ol>
+          <li><b>Color is a redundancy, not a sole signal.</b> Every state ships with a glyph (<code>✓ ⊘ ✕</code>), a label, or a numeric multiplier. A reviewer who cannot perceive hue still gets the verdict.</li>
+          <li><b>Dashed border is reserved for Missing.</b> Do not use dashed borders for any other purpose — that's the colorblind-safe identifier for "source did not return."</li>
+        </ol>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- 3 · TYPE -->
+  <section>
+    <div class="sec-head">
+      <div>
+        <div class="num">03&nbsp;·&nbsp;TYPE</div>
+        <h2>Four families. <em>Four jobs.</em></h2>
+      </div>
+      <div class="role">no system fonts · all webfont · variable axes preferred</div>
+    </div>
+
+    <div class="stack-grid">
+      <div class="stack">
+        <span class="role-tag">DISPLAY · verdicts &amp; numbers</span>
+        <div class="specimen display">A 87</div>
+        <div class="meta">
+          <b>Space Grotesk</b><br>
+          weights 500 / 600 / 700<br>
+          <span style="color:var(--t3)">--display</span>
+        </div>
+      </div>
+      <div class="stack">
+        <span class="role-tag">BODY · paragraphs &amp; UI</span>
+        <div class="specimen body">No proof, no allocation.</div>
+        <div class="meta">
+          <b>Inter</b><br>
+          weights 400 / 500 / 600 · <code>tnum</code>, <code>cv11</code>, <code>ss01</code><br>
+          <span style="color:var(--t3)">--body</span>
+        </div>
+      </div>
+      <div class="stack">
+        <span class="role-tag">MONO · evidence &amp; values</span>
+        <div class="specimen mono">×0.96</div>
+        <div class="meta">
+          <b>JetBrains Mono</b><br>
+          weights 400 / 500 / 700<br>
+          <span style="color:var(--t3)">--mono</span>
+        </div>
+      </div>
+      <div class="stack">
+        <span class="role-tag">SERIF ITALIC · the human voice</span>
+        <div class="specimen serif">claim</div>
+        <div class="meta">
+          <b>Source Serif 4</b><br>
+          opsz 8–60 · italic · 400 / 600<br>
+          <span style="color:var(--t3)">--serif</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="sub-head"><b>3B · TYPE SCALE</b><span class="hint">9 named sizes · use these tokens, not raw px</span></div>
+      <div class="scale">
+        <div class="scale-row"><div class="tok"><b>--text-xs</b>--mono / 10px</div><div class="sample" style="font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--t3)">SOURCIFY · ×1.00 · WEIGHT 35%</div><div class="spec"><b>10/14</b><br>tracking 0.18em<br>UPPERCASE labels</div></div>
+        <div class="scale-row"><div class="tok"><b>--text-sm</b>--mono / 11px</div><div class="sample" style="font-family:var(--mono);font-size:11px;letter-spacing:0.06em;color:var(--t2)">north.allo.upgradesiren.eth · 0xA0b8…eB48</div><div class="spec"><b>11/16</b><br>tracking 0.06em<br>ENS · IDs · paths</div></div>
+        <div class="scale-row"><div class="tok"><b>--text-base</b>--body / 14px</div><div class="sample" style="font-family:var(--body);font-size:14px;color:var(--t1)">14-month settlement series reconstructed from <code style="font-family:var(--mono)">SettlementSettled</code> events.</div><div class="spec"><b>14/21</b><br>tracking 0<br>Body paragraphs</div></div>
+        <div class="scale-row"><div class="tok"><b>--text-lg</b>--serif / 18px</div><div class="sample" style="font-family:var(--serif);font-style:italic;font-size:18px;color:var(--t1)">Tokens before opinions.</div><div class="spec"><b>18/27</b><br>italic · serif<br>Section deck</div></div>
+        <div class="scale-row"><div class="tok"><b>--text-xl</b>--serif / 22px</div><div class="sample" style="font-family:var(--serif);font-size:22px;color:var(--t1);line-height:1.4">Delta-neutral yield strategy on Ethereum mainnet. Public track record across 14 months.</div><div class="spec"><b>22/31</b><br>serif quotes<br>Headline claim</div></div>
+        <div class="scale-row"><div class="tok"><b>--text-2xl</b>--display / 32px</div><div class="sample" style="font-family:var(--display);font-weight:600;font-size:32px;letter-spacing:-0.015em;color:var(--t1);line-height:1.05">Reviewing Agent North.</div><div class="spec"><b>32/34</b><br>tracking -0.015em<br>Section H2 · agent name</div></div>
+        <div class="scale-row"><div class="tok"><b>--text-3xl</b>--display / 48px</div><div class="sample" style="font-family:var(--display);font-weight:600;font-size:48px;letter-spacing:-0.02em;color:var(--t1);line-height:1">No proof.</div><div class="spec"><b>48/48</b><br>tracking -0.02em<br>Hero title alt</div></div>
+        <div class="scale-row"><div class="tok"><b>--text-4xl</b>--display / 64px</div><div class="sample" style="font-family:var(--display);font-weight:600;font-size:64px;letter-spacing:-0.025em;color:var(--t1);line-height:1">Bench.</div><div class="spec"><b>64/64</b><br>tracking -0.025em<br>Document H1</div></div>
+        <div class="scale-row"><div class="tok"><b>--text-mono-xl</b>--display / 88px</div><div class="sample" style="font-family:var(--display);font-weight:700;font-size:88px;letter-spacing:-0.04em;line-height:0.85;color:var(--tier-a);font-variant-numeric:tabular-nums">87</div><div class="spec"><b>88/75</b><br>tracking -0.04em<br>Score · tier monogram</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · SPACE / RADIUS / BORDER -->
+  <section>
+    <div class="sec-head">
+      <div>
+        <div class="num">04&nbsp;·&nbsp;SPACE · RADIUS · BORDER</div>
+        <h2>Geometry is <em>flat.</em></h2>
+      </div>
+      <div class="role">no shadows · radius=0 · border weight is the language</div>
+    </div>
+
+    <div class="three-col">
+      <div class="col">
+        <h4><b>4A</b>&nbsp;·&nbsp;SPACING SCALE</h4>
+        <div class="space-row"><span class="nm">--s-1</span><span class="vis" style="width:4px"></span><span class="px">4px</span></div>
+        <div class="space-row"><span class="nm">--s-2</span><span class="vis" style="width:8px"></span><span class="px">8px</span></div>
+        <div class="space-row"><span class="nm">--s-3</span><span class="vis" style="width:12px"></span><span class="px">12px</span></div>
+        <div class="space-row"><span class="nm">--s-4</span><span class="vis" style="width:16px"></span><span class="px">16px</span></div>
+        <div class="space-row"><span class="nm">--s-5</span><span class="vis" style="width:20px"></span><span class="px">20px</span></div>
+        <div class="space-row"><span class="nm">--s-6</span><span class="vis" style="width:24px"></span><span class="px">24px</span></div>
+        <div class="space-row"><span class="nm">--s-8</span><span class="vis" style="width:32px"></span><span class="px">32px</span></div>
+        <div class="space-row"><span class="nm">--s-10</span><span class="vis" style="width:40px"></span><span class="px">40px</span></div>
+        <div class="space-row"><span class="nm">--s-12</span><span class="vis" style="width:48px"></span><span class="px">48px</span></div>
+        <div class="space-row"><span class="nm">--s-16</span><span class="vis" style="width:64px"></span><span class="px">64px</span></div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px dotted var(--border);font-family:var(--serif);font-style:italic;font-size:12px;color:var(--t2);line-height:1.5">4-pt grid. Most surfaces use <b>--s-5 / --s-6 / --s-8</b>. Section gutters are <b>--s-16</b>.</div>
+      </div>
+
+      <div class="col">
+        <h4><b>4B</b>&nbsp;·&nbsp;RADIUS</h4>
+        <div class="border-row" style="--ax:var(--border-strong)"><span class="nm">--r-0</span><span class="vis" style="border-radius:0"></span><span class="px">0px</span></div>
+        <div style="margin-top:14px;padding:14px;border:1px solid var(--border-strong);background:var(--surface);font-family:var(--serif);font-style:italic;font-size:12px;color:var(--t2);line-height:1.5">
+          <b style="font-family:var(--mono);font-style:normal;font-size:10px;letter-spacing:0.16em;color:var(--t1);display:block;margin-bottom:6px">RADIUS POLICY</b>
+          The system has <b>one radius: zero</b>. Right angles only. This is a filing system, not a consumer app — rounded corners signal warmth and informality, both of which work against the brand. Tier monograms, score tiles, evidence rows, outcome chips: all square.
+        </div>
+        <div style="margin-top:12px;font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:0.12em;text-transform:uppercase">EXCEPTION&nbsp;·&nbsp;heartbeat dot only</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--t2)"><span style="width:8px;height:8px;border-radius:50%;background:var(--src-verified);box-shadow:0 0 8px var(--src-verified)"></span><span>--r-pulse&nbsp;·&nbsp;9999px (circle)</span></div>
+      </div>
+
+      <div class="col">
+        <h4><b>4C</b>&nbsp;·&nbsp;BORDER WEIGHT</h4>
+        <div class="border-row" style="--ax:var(--border)"><span class="nm">--b-hair</span><span class="vis"></span><span class="px">1px solid&nbsp;--border</span></div>
+        <div class="border-row dotted" style="--ax:var(--border)"><span class="nm">--b-dot</span><span class="vis"></span><span class="px">1px dotted</span></div>
+        <div class="border-row dashed" style="--ax:var(--border-strong)"><span class="nm">--b-dash</span><span class="vis"></span><span class="px">1px dashed&nbsp;(missing)</span></div>
+        <div class="border-row" style="--ax:var(--border-strong)"><span class="nm">--b-rule</span><span class="vis"></span><span class="px">1px solid&nbsp;--border-strong</span></div>
+        <div class="border-row" style="--ax:var(--accent)"><span class="nm">--b-focus</span><span class="vis" style="border-width:3px;border-color:var(--accent)"></span><span class="px">3px solid&nbsp;--accent</span></div>
+        <div class="border-row" style="--ax:var(--t1)"><span class="nm">--b-mono</span><span class="vis" style="border-width:2px"></span><span class="px">2px solid&nbsp;--t1</span></div>
+        <div style="margin-top:14px;padding-top:12px;border-top:1px dotted var(--border);font-family:var(--serif);font-style:italic;font-size:12px;color:var(--t2);line-height:1.5">
+          Hierarchy by <b>weight</b>, not radius or shadow. Section rules: <b>--b-rule</b>. Dotted: in-section dividers. Dashed: <em>missing source only.</em> 3px accent: focus indicator on the active stepper item.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · MOTION -->
+  <section>
+    <div class="sec-head">
+      <div>
+        <div class="num">05&nbsp;·&nbsp;MOTION</div>
+        <h2>Quiet, except <em>once.</em></h2>
+      </div>
+      <div class="role">7 timings · 3 easings · prefers-reduced-motion respected</div>
+    </div>
+
+    <div class="motion-grid">
+      <div class="motion">
+        <h4><b>5A</b>&nbsp;·&nbsp;TIMINGS</h4>
+        <div class="motion-row"><div class="nm"><b>--t-instant</b>0ms</div><div class="desc">Score reveal — values land, never animate. Numbers don't crawl.</div><div class="ms">0ms</div></div>
+        <div class="motion-row"><div class="nm"><b>--t-quick</b>120ms</div><div class="desc">Hover · focus · button press feedback.</div><div class="ms">120ms</div></div>
+        <div class="motion-row"><div class="nm"><b>--t-base</b>160ms</div><div class="desc">Stepper item state change · panel cross-fades.</div><div class="ms">160ms</div></div>
+        <div class="motion-row"><div class="nm"><b>--t-step</b>240ms</div><div class="desc">Next applicant transition · subject swap.</div><div class="ms">240ms</div></div>
+        <div class="motion-row"><div class="nm"><b>--t-pulse</b>2000ms</div><div class="desc">Heartbeat dot · loops · the only ambient motion.</div><div class="ms">2.0s</div></div>
+        <div class="motion-row"><div class="nm"><b>--t-stamp</b>300ms</div><div class="desc">FINAL stamp lands — once per artefact, sharp.</div><div class="ms">300ms</div></div>
+      </div>
+      <div class="motion">
+        <h4><b>5B</b>&nbsp;·&nbsp;EASING</h4>
+        <div class="motion-row"><div class="nm"><b>--e-step</b>linear</div><div class="desc">Discrete ledger ticks — no warmth, no spring.</div><div class="ms">linear</div></div>
+        <div class="motion-row"><div class="nm"><b>--e-ui</b>cubic-bezier(0.2, 0, 0, 1)</div><div class="desc">Standard UI · enter / exit · feels confident.</div><div class="ms">in-out</div></div>
+        <div class="motion-row"><div class="nm"><b>--e-stamp</b>cubic-bezier(0.6, 0, 0.4, 1)</div><div class="desc">The notary thump. Slight overshoot at the end.</div><div class="ms">stamp</div></div>
+
+        <div style="margin-top:18px;padding-top:14px;border-top:1px dotted var(--border)">
+          <h4 style="margin-bottom:10px"><b>5C</b>&nbsp;·&nbsp;BANNED MOTION</h4>
+          <div style="font-family:var(--serif);font-style:italic;font-size:13px;color:var(--t2);line-height:1.6">
+            <b style="font-family:var(--body);font-style:normal;color:var(--t1);font-weight:500">No bouncing.</b> No spring overshoots above 4%. <b style="font-family:var(--body);font-style:normal;color:var(--t1);font-weight:500">No counting-up scores.</b> Numbers land at full value — the verdict is not a slot machine. <b style="font-family:var(--body);font-style:normal;color:var(--t1);font-weight:500">No parallax.</b> Backgrounds stay still; the report is a document, not a scene.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · ELEVATION & DENSITY -->
+  <section>
+    <div class="sec-head">
+      <div>
+        <div class="num">06&nbsp;·&nbsp;DENSITY</div>
+        <h2>Surfaces by <em>border weight,</em> not shadow.</h2>
+      </div>
+      <div class="role">5 surface levels · all flat</div>
+    </div>
+
+    <div class="three-col">
+      <div class="col" style="background:#0A0E10">
+        <h4><b>L0</b>&nbsp;·&nbsp;BG&nbsp;<span style="color:var(--t3);letter-spacing:0.04em;text-transform:none">·&nbsp;the void</span></h4>
+        <div style="height:120px;background:var(--bg);border:1px solid var(--border);display:grid;place-items:center;font-family:var(--mono);font-size:11px;color:var(--t3)">--bg #0A0E10</div>
+        <div style="margin-top:12px;font-family:var(--serif);font-style:italic;font-size:12px;color:var(--t2);line-height:1.5">The page. Used for global background and "active" stepper item (the one in focus inverts to bg).</div>
+      </div>
+      <div class="col" style="background:#0A0E10">
+        <h4><b>L1</b>&nbsp;·&nbsp;SURFACE&nbsp;<span style="color:var(--t3);letter-spacing:0.04em;text-transform:none">·&nbsp;the panel</span></h4>
+        <div style="height:120px;background:var(--surface);border:1px solid var(--border);display:grid;place-items:center;font-family:var(--mono);font-size:11px;color:var(--t3)">--surface #14191C</div>
+        <div style="margin-top:12px;font-family:var(--serif);font-style:italic;font-size:12px;color:var(--t2);line-height:1.5">Score Math sheet · Bench Reads block · the docket bar. Sits on bg, separated by border-strong.</div>
+      </div>
+      <div class="col" style="background:#0A0E10">
+        <h4><b>L2</b>&nbsp;·&nbsp;RAISED&nbsp;<span style="color:var(--t3);letter-spacing:0.04em;text-transform:none">·&nbsp;the proof</span></h4>
+        <div style="height:120px;background:var(--raised);border:1px solid var(--border);display:grid;place-items:center;font-family:var(--mono);font-size:11px;color:var(--t3)">--raised #1B2125</div>
+        <div style="margin-top:12px;font-family:var(--serif);font-style:italic;font-size:12px;color:var(--t2);line-height:1.5">Reserved for the Evidence Room. The brightest dark surface. Signals: <em>this is the proof itself, not commentary.</em></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="doc-foot">
+    <div><b>UPGRADE SIREN BENCH</b> &nbsp;·&nbsp; v2 foundations</div>
+    <div>FILE&nbsp;<b>02</b>&nbsp;OF&nbsp;06 &nbsp;·&nbsp; 2026-05-09</div>
+    <div>NEXT&nbsp;·&nbsp;<b>v3 components</b></div>
+  </div>
+
+</div>
+
+</body>
+</html>
