@@ -74,7 +74,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-027 | Storage-layout compatibility diff | B | P0 | M | merged | US-025 |
 | US-028 | EIP-712 Siren Report signature verification against upgrade-siren:owner | B | P0 | M | merged | US-014, US-015, US-017 |
 | US-029 | Verdict engine: SAFE / REVIEW / SIREN rules | B | P0 | L | merged | US-018, US-019, US-020, US-022, US-026, US-027, US-028 |
-| US-030 | Manifest hash-chain validation using previousManifestHash | B | P1 | S | open | US-018 |
+| US-030 | Manifest hash-chain validation using previousManifestHash | B | P1 | S | merged | US-018 |
 | US-031 | ENSIP-26 agent-context and agent-endpoint[web] record reading | B | P1 | S | merged | US-017 |
 | US-032 | Sourcify response cache layer with TTL | B | P1 | M | open | US-024, US-025 |
 | US-033 | ENS resolution cache layer | B | P1 | S | merged | US-017 |
@@ -1395,7 +1395,7 @@ The engine is the heart of the product. Reviewer must verify the code matches th
 | Sponsor | ENS |
 | Dependencies | US-018 |
 | Acceptance gates | - |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
