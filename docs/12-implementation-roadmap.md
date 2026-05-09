@@ -204,9 +204,10 @@ Before clicking submit, verify each of these against `docs/06-acceptance-gates.m
   - `ALCHEMY_RPC_SEPOLIA`
   - `ALCHEMY_RPC_MAINNET`
   - `SOURCIFY_API_BASE` (default `https://sourcify.dev`)
-- [ ] Local deploy/provision env vars set outside git:
-  - `REPORT_SIGNER_PRIVATE_KEY`
-  - `REPORT_SIGNER_ADDRESS`
+- [ ] Local deploy/provision env vars set outside git (per US-060 decision in `BRAINSTORM.md`, all three sit in `.env` which `.gitignore` excludes; `OPERATOR_PRIVATE_KEY` and `REPORT_SIGNER_PRIVATE_KEY` are the **same key** so the EIP-712 recovered signer equals the address claimed by `upgrade-siren:owner` per GATE-24):
+  - `DEPLOYER_PRIVATE_KEY` — Sepolia fixture deployer wallet, separate from operator
+  - `OPERATOR_PRIVATE_KEY` — ENS subname provisioning + `upgrade-siren:owner` authority
+  - `REPORT_SIGNER_PRIVATE_KEY` — EIP-712 report signer; **same value as `OPERATOR_PRIVATE_KEY`**
 - [ ] Optional Upstash Redis instance (cache Sourcify responses, rate-limit per IP) — via Vercel Marketplace
 - [ ] Optional Neon Postgres (Siren Agent watchlist persistence, P2 stretch) — via Vercel Marketplace
 
