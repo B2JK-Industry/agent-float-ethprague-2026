@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Upgrade Siren / Bench mark.
+  Source: term-bar lockup in Bench v2 - Foundations.html (2026-05-09).
+  Use: Bench Mode (/b/[name]) navbar lockup. For wider lockups + wordmark
+  variants, see assets/brand/logo/{lockup-stacked,wordmark-horizontal,
+  mark-primary,mark-mono-dark,mark-mono-light}.svg (US-067 inventory).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" role="img" aria-label="Upgrade Siren Bench">
+  <title>Upgrade Siren · Bench</title>
+  <rect x="1" y="1" width="30" height="30" fill="none" stroke="#E8EDEF" stroke-width="1.5"/>
+  <path d="M 6 9 L 9 12 L 14 7" stroke="#00D67A" stroke-width="2" fill="none" stroke-linecap="square"/>
+  <rect x="6" y="14" width="8" height="2" fill="#FFB020"/>
+  <rect x="6" y="18" width="8" height="2" fill="#FFB020"/>
+  <rect x="6" y="23" width="8" height="3" fill="#FF3B30"/>
+  <line x1="17" y1="4" x2="17" y2="28" stroke="#E8EDEF" stroke-width="1.5"/>
+  <text x="22" y="20" font-family="Space Grotesk, ui-sans-serif, system-ui, sans-serif" font-weight="700" font-size="14" fill="#E8EDEF">S</text>
+</svg>

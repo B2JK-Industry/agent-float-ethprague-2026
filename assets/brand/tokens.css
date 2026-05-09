@@ -1,0 +1,199 @@
+/**
+ * Upgrade Siren Bench — canonical brand tokens (CSS custom properties).
+ *
+ * Source: Bench v2 - Foundations.html (DEV MANUAL 02 OF 06, v0.7, 2026-05-09)
+ *         + Bench v1 - Sequential Review.html (FILE 01 OF 04, v1.1)
+ * Both supplied by Daniel 2026-05-09 19:14-19:15 CET.
+ *
+ * Authority: this file is canonical for Bench Mode (/b/[name]) UI.
+ *            For Single-Contract Mode (/r/[name]) tokens, see
+ *            assets/brand/brand-tokens.json (US-067 source) — that schema
+ *            stays authoritative for verdict-* token names; this file
+ *            extends it without conflict for the wider Bench surface.
+ *
+ * Conflict resolution: where US-067 brand-tokens.json and Bench v2
+ * disagree (e.g. --paper #FAFAF8 vs #F5F1E6), Bench v2 wins as the
+ * newer canonical specification and US-067 brand-tokens.json should
+ * be updated in lock-step. Both are tracked in this file's table below.
+ *
+ * Anything below NOT in v1 or v2 is marked
+ *   `// EXTRAPOLATED FROM v2 PRINCIPLES — NOT IN MANUAL`
+ * and should be replaced with the canonical value as soon as
+ * Manual 03 (Components) ships.
+ */
+
+:root {
+  /* ============================================================
+   * 1A · SURFACES & INK (v2 §1A)
+   * ============================================================ */
+  --bg: #0A0E10;            /* page background, the void */
+  --surface: #14191C;       /* cards, panels, math sheets */
+  --raised: #1B2125;        /* evidence drawer, the proof */
+  --border: #232A2F;        /* hairlines, dotted dividers (1px) */
+  --border-strong: #39434A; /* section rules, button outlines */
+  --t3: #5C6770;            /* tertiary text, meta, timestamps */
+  --t2: #8B969C;            /* secondary text, labels, captions */
+  --t1: #E8EDEF;            /* primary text, numbers, names */
+
+  /* ============================================================
+   * 1B · TIER LETTERS (v2 §1B) — verdict's only typography color
+   * ============================================================ */
+  --tier-a: #7AD9FF; /* fast-track, highest verifiability */
+  --tier-b: #E8EDEF; /* emerging, solid claim, modest provenance */
+  --tier-c: #B3A36A; /* evidence required, plausible but unproven */
+  --tier-d: #7E6240; /* block, trust collapse */
+  --tier-u: #5C6770; /* unrated, in queue (use with dashed border) */
+
+  /* ============================================================
+   * 1C · SOURCE STATES (v2 §1C) — trust gradient: cool → warm → alarm
+   * ============================================================ */
+  --src-verified: #7AD9FF;   /* full match, ×1.00 */
+  --src-partial: #B3A36A;    /* partial match, ×0.40–0.85 */
+  --src-discounted: #7E6240; /* heavy discount, ×0.20–0.40 */
+  --src-degraded: #FFB020;   /* live degradation, stale RPC */
+  --src-missing: #5C6770;    /* source not returned, ×0.00 (use with dashed border) */
+
+  /* ============================================================
+   * 1D · OUTCOMES (v2 §1D) — what Bench tells the allocator
+   * ============================================================ */
+  --o-fast: #7AD9FF;   /* fast-track, allocate now */
+  --o-emerge: #E8EDEF; /* emerging, pilot tranche */
+  --o-evid: #B3A36A;   /* evidence required, send back */
+  --o-block: #FF3B30;  /* block, siren — moment of refusal */
+
+  /* ============================================================
+   * 1E · CONFIDENCE GRADIENT (v2 §1E) — independent of trust
+   * ============================================================ */
+  --conf-hi: #E8EDEF; /* high, 4–5 sources agree */
+  --conf-md: #B3A36A; /* medium, 2–3 sources agree */
+  --conf-lo: #7E6240; /* low, 0–1 sources agree */
+
+  /* ============================================================
+   * 1F · PAPER & STAMP (v2 §1F) — light surface for printed artefacts
+   * ============================================================ */
+  --paper: #F5F1E6;     /* filing paper, marketing collateral, printed PDF */
+  --paper-alt: #EDE7D5; /* alternate paper tone, v1 only */
+  --ink: #1B1A14;       /* primary text on paper */
+  --ink-soft: #5A5645;  /* secondary text on paper */
+  --rule: #C7BE9F;      /* hairline rule on paper */
+  --stamp: #9E1E14;     /* notary stamp red, used 1× per artefact max */
+
+  /* ============================================================
+   * 1G · ACCENT & SIGNAL (v2 §1G) — four hue commitments outside trust gradient
+   * ============================================================ */
+  --accent: #00B8D9; /* wayfinding, ENS hashes, session ids, primary CTA */
+  --safe: #00D67A;   /* heartbeat dot, OK rows. NEVER for tier or score. */
+  --review: #FFB020; /* caution rows, degraded sources, WCAG-AA badge */
+  --siren: #FF3B30;  /* refusal. identical to --o-block. the promise. */
+
+  /* ============================================================
+   * 3 · TYPE (v2 §3) — four families, four jobs
+   * ============================================================ */
+  --display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --body:    "Inter", ui-sans-serif, system-ui, sans-serif;
+  --mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --serif:   "Source Serif 4", ui-serif, Georgia, serif;
+
+  /* ============================================================
+   * 3B · TYPE SCALE (v2 §3B) — 9 named sizes, use these tokens not raw px
+   * ============================================================ */
+  --text-xs:      10px;  /* mono, uppercase, tracking 0.18em — labels */
+  --text-sm:      11px;  /* mono, tracking 0.06em — ENS, IDs, paths */
+  --text-base:    14px;  /* body, tracking 0 — body paragraphs */
+  --text-lg:      18px;  /* serif italic — section deck */
+  --text-xl:      22px;  /* serif — headline claim quote */
+  --text-2xl:     32px;  /* display, tracking -0.015em — section H2, agent name */
+  --text-3xl:     48px;  /* display, tracking -0.02em — hero title alt */
+  --text-4xl:     64px;  /* display, tracking -0.025em — document H1 */
+  --text-mono-xl: 88px;  /* display, tracking -0.04em — score, tier monogram */
+
+  /* line heights paired with sizes */
+  --lh-xs:      1.4;   /* 14/10 */
+  --lh-sm:      1.45;  /* 16/11 */
+  --lh-base:    1.5;   /* 21/14 */
+  --lh-lg:      1.5;   /* 27/18 */
+  --lh-xl:      1.4;   /* 31/22 */
+  --lh-2xl:     1.05;  /* 34/32 */
+  --lh-3xl:     1.0;   /* 48/48 */
+  --lh-4xl:     1.0;   /* 64/64 */
+  --lh-mono-xl: 0.85;  /* 75/88 */
+
+  /* ============================================================
+   * 4A · SPACING SCALE (v2 §4A) — 4-pt grid
+   * ============================================================ */
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  20px;  /* most surface padding */
+  --s-6:  24px;  /* most surface padding */
+  --s-8:  32px;  /* most surface padding */
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;  /* section gutters */
+
+  /* ============================================================
+   * 4B · RADIUS (v2 §4B) — system has ONE radius: zero
+   * ============================================================ */
+  --r-0:     0;       /* right angles only — filing system, not consumer app */
+  --r-pulse: 9999px;  /* exception: heartbeat dot only */
+
+  /* ============================================================
+   * 4C · BORDER WEIGHT (v2 §4C) — hierarchy by weight, not radius or shadow
+   * ============================================================ */
+  --b-hair:  1px solid var(--border);         /* default hairline */
+  --b-dot:   1px dotted var(--border);        /* in-section dividers */
+  --b-dash:  1px dashed var(--border-strong); /* RESERVED: missing source only */
+  --b-rule:  1px solid var(--border-strong);  /* section rules */
+  --b-focus: 3px solid var(--accent);         /* focus indicator on active stepper */
+  --b-mono:  2px solid var(--t1);             /* tier monogram square */
+
+  /* ============================================================
+   * 5A · MOTION TIMINGS (v2 §5A) — 7 timings
+   * ============================================================ */
+  --t-instant: 0ms;     /* score reveal — values land, never animate */
+  --t-quick:   120ms;   /* hover, focus, button press feedback */
+  --t-base:    160ms;   /* stepper item state change, panel cross-fade */
+  --t-step:    240ms;   /* next applicant transition, subject swap */
+  --t-pulse:   2000ms;  /* heartbeat dot — only ambient motion */
+  --t-stamp:   300ms;   /* FINAL stamp lands, sharp */
+
+  /* ============================================================
+   * 5B · EASING (v2 §5B) — 3 easings
+   * ============================================================ */
+  --e-step:  linear;                          /* discrete ledger ticks */
+  --e-ui:    cubic-bezier(0.2, 0, 0, 1);      /* standard UI in-out */
+  --e-stamp: cubic-bezier(0.6, 0, 0.4, 1);    /* notary thump, slight overshoot */
+}
+
+/**
+ * BANNED MOTION (v2 §5C):
+ *   - No bouncing. No spring overshoots above 4%.
+ *   - No counting-up scores. Numbers land at full value.
+ *   - No parallax. Backgrounds stay still.
+ *
+ * GLOBAL: prefers-reduced-motion respected — disable all transitions
+ * + heartbeat keyframe in apps/web/app/globals.css when set.
+ */
+
+/**
+ * COLOR-BLIND CARRY-RULE (v2 §2B):
+ *   - Color is a redundancy, not a sole signal. Every state ships
+ *     with a glyph (✓ ⊘ ✕), a label, or a numeric multiplier.
+ *   - Dashed border is reserved for "missing source." Do not use
+ *     dashed borders for any other purpose.
+ */
+
+/**
+ * WCAG 2.2 PAIRINGS verified against --bg #0A0E10 (v2 §2A):
+ *   --t1 17.5:1 AAA / --t2 6.5:1 AAA / --t3 3.5:1 LARGE-ONLY (≥14px)
+ *   --accent 7.8:1 AAA
+ *   --tier-a / --src-verified 11.0:1 AAA
+ *   --tier-c / --src-partial 8.1:1 AAA
+ *   --tier-d / --src-discounted 3.6:1 LARGE-ONLY (≥18px)
+ *   --review 10.0:1 AAA  /  --siren / --o-block 5.2:1 AAA
+ *   --safe 9.4:1 AAA
+ *   --ink on --paper: 14.0:1 AAA  /  --stamp on --paper: 6.5:1 AAA
+ *
+ * Use --t3 only at >=14px; use --tier-d / --src-discounted only at >=18px.
+ */

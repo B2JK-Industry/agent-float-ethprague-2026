@@ -1,7 +1,8 @@
 {
   "$schema": "./brand-tokens.schema.json",
-  "version": "1.0.0",
-  "source": "assets/brand/brand-manual.html (:root block)",
+  "version": "2.0.0",
+  "source": "assets/brand/tokens.css (canonical) + Bench v1+v2 manuals 2026-05-09",
+  "supersedes": "1.0.0 (US-067 brand-manual.html :root block) — paper hex updated #FAFAF8 → #F5F1E6 to match Bench v2 §1F",
   "colors": {
     "verdict-safe": "#00D67A",
     "verdict-review": "#FFB020",
@@ -12,6 +13,7 @@
     "verdict-safe-surf": "#062A1B",
     "verdict-review-surf": "#2A1C00",
     "verdict-siren-surf": "#2D0B09",
+
     "bg": "#0A0E10",
     "surface": "#14191C",
     "raised": "#1B2125",
@@ -21,17 +23,128 @@
     "t2": "#8B969C",
     "t1": "#E8EDEF",
     "accent": "#00B8D9",
-    "paper": "#FAFAF8",
-    "ink": "#0A0E10"
+    "safe": "#00D67A",
+    "review": "#FFB020",
+    "siren": "#FF3B30",
+
+    "tier-a": "#7AD9FF",
+    "tier-b": "#E8EDEF",
+    "tier-c": "#B3A36A",
+    "tier-d": "#7E6240",
+    "tier-u": "#5C6770",
+
+    "src-verified": "#7AD9FF",
+    "src-partial": "#B3A36A",
+    "src-discounted": "#7E6240",
+    "src-degraded": "#FFB020",
+    "src-missing": "#5C6770",
+
+    "o-fast": "#7AD9FF",
+    "o-emerge": "#E8EDEF",
+    "o-evid": "#B3A36A",
+    "o-block": "#FF3B30",
+
+    "conf-hi": "#E8EDEF",
+    "conf-md": "#B3A36A",
+    "conf-lo": "#7E6240",
+
+    "paper": "#F5F1E6",
+    "paper-alt": "#EDE7D5",
+    "ink": "#1B1A14",
+    "ink-soft": "#5A5645",
+    "rule": "#C7BE9F",
+    "stamp": "#9E1E14"
   },
   "fonts": {
     "display": "\"Space Grotesk\", ui-sans-serif, system-ui, sans-serif",
     "body": "\"Inter\", ui-sans-serif, system-ui, sans-serif",
-    "mono": "\"JetBrains Mono\", ui-monospace, SFMono-Regular, Menlo, monospace"
+    "mono": "\"JetBrains Mono\", ui-monospace, SFMono-Regular, Menlo, monospace",
+    "serif": "\"Source Serif 4\", ui-serif, Georgia, serif"
   },
   "fontWeights": {
     "display": [500, 600, 700],
     "body": [400, 500, 600],
-    "mono": [400, 500, 700]
+    "mono": [400, 500, 700],
+    "serif": [400, 600]
+  },
+  "fontFeatures": {
+    "body": ["ss01", "cv11", "tnum"]
+  },
+  "fontSizes": {
+    "xs": "10px",
+    "sm": "11px",
+    "base": "14px",
+    "lg": "18px",
+    "xl": "22px",
+    "2xl": "32px",
+    "3xl": "48px",
+    "4xl": "64px",
+    "mono-xl": "88px"
+  },
+  "spacing": {
+    "1": "4px",
+    "2": "8px",
+    "3": "12px",
+    "4": "16px",
+    "5": "20px",
+    "6": "24px",
+    "8": "32px",
+    "10": "40px",
+    "12": "48px",
+    "16": "64px"
+  },
+  "radii": {
+    "0": "0",
+    "pulse": "9999px"
+  },
+  "borders": {
+    "hair": "1px solid var(--border)",
+    "dot": "1px dotted var(--border)",
+    "dash": "1px dashed var(--border-strong)",
+    "rule": "1px solid var(--border-strong)",
+    "focus": "3px solid var(--accent)",
+    "mono": "2px solid var(--t1)"
+  },
+  "motion": {
+    "timings": {
+      "instant": "0ms",
+      "quick": "120ms",
+      "base": "160ms",
+      "step": "240ms",
+      "pulse": "2000ms",
+      "stamp": "300ms"
+    },
+    "easings": {
+      "step": "linear",
+      "ui": "cubic-bezier(0.2, 0, 0, 1)",
+      "stamp": "cubic-bezier(0.6, 0, 0.4, 1)"
+    },
+    "banned": [
+      "no bouncing",
+      "no spring overshoots above 4%",
+      "no counting-up scores",
+      "no parallax"
+    ]
+  },
+  "wcag": {
+    "baseAgainst": "#0A0E10",
+    "pairs": {
+      "t1-on-bg": { "ratio": "17.5:1", "aa": "PASS", "aaa": "PASS" },
+      "t2-on-bg": { "ratio": "6.5:1", "aa": "PASS", "aaa": "PASS-LG" },
+      "t3-on-bg": { "ratio": "3.5:1", "aa": "LARGE-ONLY", "aaa": "USE-≥14px" },
+      "accent-on-bg": { "ratio": "7.8:1", "aa": "PASS", "aaa": "PASS" },
+      "tier-a-on-bg": { "ratio": "11.0:1", "aa": "PASS", "aaa": "PASS" },
+      "tier-c-on-bg": { "ratio": "8.1:1", "aa": "PASS", "aaa": "PASS" },
+      "tier-d-on-bg": { "ratio": "3.6:1", "aa": "LARGE-ONLY", "aaa": "USE-≥18px" },
+      "review-on-bg": { "ratio": "10.0:1", "aa": "PASS", "aaa": "PASS" },
+      "siren-on-bg": { "ratio": "5.2:1", "aa": "PASS", "aaa": "PASS-LG" },
+      "safe-on-bg": { "ratio": "9.4:1", "aa": "PASS", "aaa": "PASS" },
+      "ink-on-paper": { "ratio": "14.0:1", "aa": "PASS", "aaa": "PASS" },
+      "stamp-on-paper": { "ratio": "6.5:1", "aa": "PASS", "aaa": "PASS-LG" }
+    }
+  },
+  "carryRules": {
+    "colorIsRedundancy": "Every state ships with glyph (✓ ⊘ ✕), label, or numeric multiplier. A reviewer who cannot perceive hue still gets the verdict.",
+    "dashedBorderReserved": "Dashed border is reserved for missing source only. Do not use dashed borders for any other purpose."
   }
 }

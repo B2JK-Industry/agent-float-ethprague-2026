@@ -3,6 +3,66 @@
 > Paste this prompt into a Claude conversation dedicated to design work.
 > Self-contained — receiver does not need access to the project repo.
 
+---
+
+## ⚠ STATUS — 2026-05-09: Bench Mode brand spec is now canonical
+
+This prompt is the **Epic 1 / Single-Contract** design brief that produced the original brand inventory in `assets/brand/` (US-067 — verdict tokens, logos, icons, Tailwind preset). It remains valid for `/r/[name]` UI.
+
+For **Epic 2 / Bench Mode** UI (`/b/[name]`), Daniel supplied two canonical HTML specifications on 2026-05-09:
+
+- `Bench v2 - Foundations.html` — DEV MANUAL 02 OF 06, v0.7. Tokens (color, type, space, motion, a11y).
+- `Bench v1 - Sequential Review.html` — FILE 01 OF 04, v1.1. Layout patterns (terminal bar, docket, score banner, claim block, bench reads, math grid, evidence drawer).
+
+These two files have been mechanically extracted into the following canonical artefacts in this repo. **Read these in priority order before implementing any Bench Mode UI:**
+
+| File | Purpose |
+|---|---|
+| [`assets/brand/tokens.css`](../assets/brand/tokens.css) | All Bench v2 CSS custom properties (36 color tokens + type stack + 4-pt spacing scale + 6 motion timings + 3 easings + WCAG pairings). Drop-in `:root` block. |
+| [`assets/brand/COMPONENT_PATTERNS.md`](../assets/brand/COMPONENT_PATTERNS.md) | 17 layout patterns extracted from v1 (terminal bar, docket/stepper, subject bar, report grid, tier monogram, score banner, outcome chip, claim block, bench reads, score math worksheet, trust ledger, signal chips, evidence drawer, paper/stamp, page container, sequential state machine, banned patterns). Each pattern names the exact tokens to use. |
+| [`assets/brand/brand-tokens.json`](../assets/brand/brand-tokens.json) | Machine-readable mirror of the above (v2.0.0, supersedes US-067 v1.0.0 — paper hex updated `#FAFAF8 → #F5F1E6`). |
+| [`assets/brand/tailwind-preset.ts`](../assets/brand/tailwind-preset.ts) | Tailwind 4 theme preset + `brandThemeCss` `@theme` block. All Bench tokens exposed as utility class names (e.g. `bg-tier-a`, `text-src-verified`, `border-stamp`). |
+| [`assets/brand/logo-bench.svg`](../assets/brand/logo-bench.svg) | Bench-mode lockup mark (32×32). For wordmark and lockup variants, see `assets/brand/logo/*.svg` (US-067 inventory). |
+
+**Operating principles** (v2 §0, non-negotiable, copied verbatim from `COMPONENT_PATTERNS.md`):
+
+1. **Color is information, not decoration.** Every color carries one meaning. The same hue does not get reused for a different role; the same role does not get expressed in two hues.
+2. **Siren red is reserved.** Only for refusal moments — invalid signature, replaced citation, fictional registry. Never as hover, never as accent.
+3. **Trust and Confidence are different gradients.** Trust runs cool (verified ▲) → discounted (▼). Confidence runs neutral-warm (HI ●) → LO (●). Do not collapse them.
+4. **The system is flat.** No drop shadows, no gradients on surfaces, no glows except the heartbeat dot. Depth comes from border weight and ink density.
+5. **Type does the heavy lifting.** Four families, four jobs: **Display** (Space Grotesk) → verdicts, **Body** (Inter) → paragraphs, **Mono** (JetBrains Mono) → evidence/numbers, **Serif italic** (Source Serif 4) → human voice (quotes, claims, brand asides).
+
+**Carry-rules** (v2 §2B):
+
+- Color is a redundancy, not a sole signal. Every state ships with a glyph (`✓ ⊘ ✕`), label, or numeric multiplier.
+- Dashed border (`var(--b-dash)`) is reserved for "missing source" only. Do not use dashed borders for any other purpose — that's the colorblind-safe identifier for "source did not return."
+
+**Banned patterns** (v2 §5C + §0):
+
+- ✕ No drop shadows except the heartbeat dot.
+- ✕ No gradients on surfaces.
+- ✕ No bouncing animations or spring overshoots above 4%.
+- ✕ No counting-up scores. Numbers land at full value — the verdict is not a slot machine.
+- ✕ No parallax.
+- ✕ No rounded corners except the heartbeat dot (`var(--r-pulse)`).
+- ✕ No reusing `--siren` / `--o-block` for hover states or brand accents.
+
+**Implementation guidance for Stream C (US-131..US-140):**
+
+When building any Bench Mode component:
+1. Import tokens from `assets/brand/tokens.css` (or use Tailwind utilities backed by `tailwind-preset.ts`).
+2. Match component patterns from `COMPONENT_PATTERNS.md` 1:1 — the file names every selector, padding, border, and color token.
+3. Where the manual does NOT specify a state (e.g. button hover beyond `nav-btn`, input focus rings, tooltip anatomy, mobile breakpoints below 780px), apply the operating principles + carry-rules and add a code comment `// EXTRAPOLATED FROM v2 PRINCIPLES — NOT IN MANUAL`.
+4. Daniel's intent is **1:1 fidelity** — if you find yourself reaching for a hex literal, you are missing a token. Open an issue, do not invent.
+
+**Pending:** Manual 03 (Components) is referenced by v2 footer ("NEXT · v3 components") but has not been generated yet. When it lands, it will resolve all `// EXTRAPOLATED` markers above with canonical button/input/tooltip/modal anatomy.
+
+---
+
+The rest of this document below is the **original Epic 1 design-brief** that produced US-067. It remains valid for Single-Contract Mode (`/r/[name]`) work and is preserved verbatim as historical authority for that surface.
+
+---
+
 ## Role
 
 You are the brand and product designer for **Upgrade Siren**, a public upgrade-risk alarm for named Ethereum contracts shipped at ETHPrague 2026. Your job in this conversation is to deliver a complete visual identity, design system, and brand manual for the product, including all assets needed for the hackathon submission and booth demo.
