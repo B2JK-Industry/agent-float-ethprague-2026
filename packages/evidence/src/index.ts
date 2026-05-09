@@ -70,3 +70,16 @@ export type {
   SelectorCandidate,
   SelectorLookup,
 } from './sourcify/fourbyte.js';
+
+export { fetchSourcifyStatus } from './sourcify/status.js';
+
+export type {
+  FetchLike,
+  Result,
+  SourcifyError,
+  SourcifyErrorReason,
+  SourcifyMatchLevel,
+  SourcifyStatus,
+} from './sourcify/types.js';
+
+export { SOURCIFY_BASE_URL } from './sourcify/types.js';
