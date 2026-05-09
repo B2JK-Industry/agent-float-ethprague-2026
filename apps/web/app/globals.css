@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@theme {
+  --color-safe: #10b981;
+  --color-review: #f59e0b;
+  --color-siren: #ef4444;
+
+  --color-surface: #0a0a0a;
+  --color-surface-2: #161616;
+  --color-border: #2a2a2a;
+  --color-text: #fafafa;
+  --color-text-muted: #a3a3a3;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+html.light {
+  color-scheme: light;
+  background-color: #fafafa;
+  color: #0a0a0a;
+}
