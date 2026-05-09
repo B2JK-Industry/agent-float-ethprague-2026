@@ -28,6 +28,7 @@ import { ScoreBanner } from "../../../components/bench/ScoreBanner";
 import { ScoreBreakdownPanel } from "../../../components/bench/ScoreBreakdownPanel";
 import { SourceGrid } from "../../../components/bench/SourceGrid";
 import { GitHubDrawer } from "../../../components/bench/drawers/GitHubDrawer";
+import { SourcifyDrawer } from "../../../components/bench/drawers/SourcifyDrawer";
 import { BENCH_SUB_BRAND, BENCH_SUB_TAGLINE } from "../../../lib/branding";
 import { loadBench, type LoadBenchResult } from "./loadBench";
 
@@ -151,10 +152,12 @@ function BenchFoundation({
           className="text-xs text-verdict-review"
         >
           {evidence.failures.length} per-source failure
-          {evidence.failures.length === 1 ? "" : "s"} — drawers in
-          US-135..US-138 will surface details.
+          {evidence.failures.length === 1 ? "" : "s"} — see source drawers
+          for details.
         </p>
       ) : null}
+
+      <SourcifyDrawer entries={evidence.sourcify} />
 
       <GitHubDrawer github={evidence.github} />
     </>

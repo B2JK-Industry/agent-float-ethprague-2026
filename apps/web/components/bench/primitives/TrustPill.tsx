@@ -1,7 +1,8 @@
 // v3 §C-04 Trust Pill primitive. Renders a multiplier (× 0.00..× 1.00)
 // OR the literal word INVALID — never both. Carry-rule v2 §2B applies:
 // color is redundancy, currentColor border + label is the at-a-glance
-// signal. Used by US-133 SourceGrid and US-136 GitHub drawer.
+// signal. Used by US-133 SourceGrid, US-135 SourcifyDrawer, US-136
+// GitHubDrawer.
 
 export type TrustPillVariant =
   | "verified"
