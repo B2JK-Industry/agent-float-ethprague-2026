@@ -4,7 +4,7 @@
 
 The repo has pivoted from **Agent Float** to **Upgrade Siren**.
 
-Current status: **pivot pre-build**. Documentation may change. Code remains blocked until Daniel explicitly confirms final scope.
+Current status: **build scope locked 2026-05-09**. Dev pipeline ran across three streams + Release Manager, 67+ backlog items merged. Live demo on Vercel at https://upgrade-siren.vercel.app. Remaining open items in `docs/13-backlog.md` are integration polish (US-081 wire trust path + diffs into loadReport, US-082 raw-address fallback, US-084 5-second perf fix) plus P1/P2 stretch.
 
 ## Current Product
 

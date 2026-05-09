@@ -1,6 +1,6 @@
 # Upgrade Siren — Scope
 
-> **Status:** Pivot scope prepared 2026-05-08. Code blocked until Daniel explicitly confirms this as the final build scope.
+> **Status:** Build scope locked 2026-05-09. Three dev streams + Release Manager shipped 67+ items; live demo at https://upgrade-siren.vercel.app. Stream A 13/13, Stream B 23/23, Stream C P0+P1 done; remaining open items are integration polish (US-081/082/083/084), V1-anchored bytecode hypothesis (US-078/079, P1), and P2 stretch.
 > **Hackathon:** ETHPrague 2026 in-person.
 > **Submission deadline:** 2026-05-10 12:00 PM via Devfolio.
 
