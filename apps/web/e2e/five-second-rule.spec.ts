@@ -8,11 +8,8 @@
 //
 // The verdict word is rendered by `<VerdictCard>` (US-042), which surfaces it
 // as `[data-testid="verdict-word"]` inside `[role="region"][data-verdict=...]`.
-//
-// At the time this spec is committed the live `/r/[name]` route that wires
-// VerdictCard up to live data is not yet shipped, so the per-scenario tests
-// are marked `test.fixme` — they are real assertions that will execute the
-// moment the route lands. Removing `.fixme` is the trigger.
+// The `/r/[name]` route wiring VerdictCard up to fixture data lands alongside
+// this spec — the per-scenario assertions are real and active.
 
 import { test, expect } from "@playwright/test";
 
@@ -55,8 +52,7 @@ test.describe("five-second rule", () => {
   });
 
   for (const scenario of SCENARIOS) {
-    // eslint-disable-next-line playwright/no-skipped-test
-    test.fixme(
+    test(
       `${scenario.key}: verdict word visible within 5000ms at ${scenario.href}`,
       async ({ page }) => {
         const start = Date.now();
