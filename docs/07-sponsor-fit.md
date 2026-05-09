@@ -35,23 +35,39 @@ Upgrade Siren should be framed as a Sourcify adoption loop, not just an API cons
 3. Is partial verification acceptable for `REVIEW`, or should it always be `SIREN`?
 4. Are there Sourcify endpoints for similarity or signature data we should use for unverified implementations?
 
-## Secondary: ENS Most Creative Use
+## Secondary: ENS — AI Agents ($2K) primary
 
-### Why It Fits
+> **Track switched 2026-05-09 from "Most Creative Use" to "AI Agents" per `EPIC_BENCH_MODE.md` Section 21 D-D lock.** Most Creative remains as fallback if AI Agents track signals weaken.
 
-ENS is not just resolving a wallet address. It is the protocol's public upgrade map:
+### Why It Fits (Epic 1 + Epic 2)
+
+ENS is not just resolving a wallet address. It is the **identity layer** for two front doors on the same engine:
+
+**Single-Contract Mode (Epic 1, LIVE)** — protocol upgrade map:
 
 - named proxy
 - previous implementation
 - expected current implementation
-- report pointer
-- report hash
-- schema pointer
+- report pointer + hash + schema pointer
 - atomic upgrade manifest
 - ENSIP-26 context and web endpoint records
-- project-specific `upgrade-siren:*` namespace to avoid broad `siren:*` collisions
+- project-specific `upgrade-siren:*` namespace
+
+**Bench Mode (Epic 2, in build)** — universal subject registry:
+
+- `agent-bench:bench_manifest` atomic JSON record listing every public data source for the subject (Sourcify projects + GitHub owner + on-chain primary address + ENS-internal root)
+- `agent-bench:owner` for manifest authorship
+- `agent-bench:schema` version pointer
+- co-exists with `upgrade-siren:*` records on the same name without conflict
+- public-read fallback for un-opted-in subjects (banner shows `confidence: public-read`, tier ceiling A)
+
+### Why this is AI Agents track, not just Most Creative
+
+Bench Mode treats any ENS name as a subject identity — agent, project, team — and pulls verifiable evidence of that subject's seniority and relevance. The trust-discount mechanic (0.6 multiplier on unverified GitHub claims) makes ENS the **identity anchor** for verifiability: claims that aren't cross-signed against the ENS owner's wallet are structurally weaker. That is the AI-Agents-grade primitive — identity rooted in ENS, claims verifiable via ENS-controlled signatures.
 
 ### What To Show
+
+**Single-Contract path (live demo opener):**
 
 - live ENS text-record resolution
 - named contract hierarchy
@@ -59,19 +75,25 @@ ENS is not just resolving a wallet address. It is the protocol's public upgrade 
 - report discovery through ENS
 - EIP-712 report signature verified against `upgrade-siren:owner`
 - ENSIP-26 records (`agent-context`, `agent-endpoint[web]`) reused instead of inventing every record
-- no hardcoded product path
+
+**Bench Mode segment:**
+
+- live ENS resolution of `agent-bench:bench_manifest` on owned subject `siren-agent-demo.upgrade-siren-demo.eth`
+- four-source grid populated from one ENS lookup
+- public-read fallback on a Daniel-picked existing ENS name proves universal-registry shape works without opt-in
+- v2 cross-sign upgrade path (gist signed by ENS-owner wallet → flips GitHub source from `unverified` to `verified` → discount removed) is in the schema, even though v1 ships unverified
 
 ### Judge Sentence
 
-> ENS becomes the readable contract/version/report layer for upgradeable protocols.
+> ENS is the identity anchor for both the protocol's upgrade map and any subject's verifiable benchmark — one resolver, two product surfaces.
 
 ### Mentor Questions
 
-1. Is `upgrade-siren:*` a reasonable collision-reduced text-record namespace for the upgrade-specific records?
-2. Should `upgrade-siren:upgrade_manifest` be a text record, contenthash pointer, or CCIP-Read response?
-3. Is reusing ENSIP-26 `agent-context` and `agent-endpoint[web]` the right standard compatibility layer?
-4. Would wildcard/offchain subnames be more compelling than normal text records?
-5. What would make this feel "Most Creative" rather than ordinary ENS metadata?
+1. Is `agent-bench:*` namespace acceptable alongside `upgrade-siren:*` for AI-Agents-track judging? Both atomic-manifest pattern.
+2. Does the trust-discount + cross-sign upgrade path satisfy AI Agents judging criteria around "agent identity rooted in ENS"?
+3. For the cross-sign v2 path, is a signed Gist-pointer the right verification primitive, or should we use ERC-1271 contract signature?
+4. Would wildcard/offchain subnames be more compelling than normal text records for the universal-subject-registry shape?
+5. Is the `kind: "ai-agent" | "human-team" | "project"` taxonomy something ENS would want to standardize?
 
 ## Organizer: Future Society
 

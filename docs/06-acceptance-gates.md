@@ -62,3 +62,29 @@ Do not submit if:
 - UI looks like a generic audit dashboard
 - pitch says "AI auditor" or "generic scanner"
 - old Agent Float story leaks into active pitch
+
+## Bench Mode Gates (Epic 2 — added 2026-05-09 per US-145)
+
+> Source: `EPIC_BENCH_MODE.md` Section 15. Apply to `/b/[name]` route + Bench Mode score engine + Stream A Playwright suite.
+
+| Gate | Tier | Requirement |
+|---|---|---|
+| GATE-27 | P0 | `/b/[name]` resolves a real ENS name and renders within 5 seconds (cached) for at least three demo scenarios |
+| GATE-28 | P0 | Score banner displays a single 0–100 number, both axis values (seniority + relevance), tier label (S/A/B/C/D/U), and the honest-claims disclaimer in-band |
+| GATE-29 | P0 | Source grid renders 4 tiles (Sourcify, GitHub, On-chain, ENS) with verified/unverified badges and per-source contribution numbers |
+| GATE-30 | P0 | Trust-discount factor `0.6` is applied to every unverified-source signal AND is visibly rendered in the breakdown panel as a `× 0.6` column. Raw-discounted axis only — no normalization to ceiling. v1 max final score is 79 (tier A); S-tier reserved for verified-GitHub v2 |
+| GATE-31 | P0 | Storage-layout hygiene aggregate is shown for at least one proxy with multiple verified implementations in the Sourcify drawer |
+| GATE-32 | P0 | Public-read fallback: a subject without `agent-bench:bench_manifest` produces a labeled `confidence: public-read` report with tier ceiling A |
+| GATE-33 | P1 | Bytecode similarity submit produces a visible score change for at least one unverified-Sourcify scenario |
+| GATE-34 | P0 | Playwright e2e suite covers at least 4 scenarios deterministically (high-score / mid-score / public-read / storage-collision) and runs green in CI without live network |
+
+## Bench Mode Kill Conditions
+
+In addition to existing kill conditions, do not submit Bench Mode if:
+
+- score is computed by an LLM (must be deterministic formula)
+- bench profile renders without any per-source live fetch (sources must be live, not mocked, except inside Playwright runs explicitly labeled)
+- trust-discount is hidden or absent from the breakdown panel
+- `/b/[name]` is advertised in README/SCOPE without the route actually shipping
+- score breakdown normalizes the discounted sum to a ceiling (`0.601 / 0.700 → 0.86`) — that cancels the trust discount
+- S-tier badge is rendered as reachable in v1 (max v1 final score is 79; S requires verified GitHub cross-sign in v2)

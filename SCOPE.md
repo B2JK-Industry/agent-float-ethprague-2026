@@ -1,6 +1,6 @@
 # Upgrade Siren — Scope
 
-> **Status:** Build scope locked 2026-05-09. Three dev streams + Release Manager shipped 67+ items; live demo at https://upgrade-siren.vercel.app. Stream A 13/13, Stream B 23/23, Stream C P0+P1 done; remaining open items are integration polish (US-081/082/083/084), V1-anchored bytecode hypothesis (US-078/079, P1), and P2 stretch.
+> **Status:** Epic 1 LOCKED + LIVE 2026-05-09 at https://upgrade-siren.vercel.app — single-contract verdict (`/r/[name]`) shipped. Epic 2 (Bench Mode, `/b/[name]`) LOCKED 2026-05-09 — Section 21 of `EPIC_BENCH_MODE.md` resolved by Daniel; backlog stories US-111..US-146 in active build by Stream A/B/C. Both epics share one engine.
 > **Hackathon:** ETHPrague 2026 in-person.
 > **Submission deadline:** 2026-05-10 12:00 PM via Devfolio.
 
@@ -10,13 +10,15 @@
 |---|---|
 | Project name | **Upgrade Siren** |
 | Product agent | **Siren Agent** |
-| Pitch sentence | *Upgrade Siren warns DAO voters and venture investors when a named protocol upgrade changes what they are trusting.* |
-| Stage tagline | **No source, no upgrade.** |
-| Category | Public upgrade-risk alarm for Ethereum contracts |
-| Primary sponsor target | Sourcify |
-| Secondary sponsor target | ENS Most Creative Use |
+| Pitch sentence | *Upgrade Siren warns DAO voters and venture investors when a named protocol upgrade changes what they are trusting — and benchmarks the seniority and relevance of any ENS-named subject across Sourcify, GitHub, on-chain, and ENS-internal data, with verifiability structurally rewarded.* |
+| Front doors | Two: `/r/[name]` Single-Contract Mode (LIVE) and `/b/[name]` Bench Mode (in build) |
+| Stage tagline (master) | **No source, no upgrade.** |
+| Stage tagline (Bench-mode sub) | **No data, no score.** *(only on `/b/[name]`)* |
+| Category | Public verification + reputation surface for Ethereum |
+| Primary sponsor target | Sourcify (Bench Mode strengthens this — only verified seniority source) |
+| Secondary sponsor target | ENS — track switched 2026-05-09 from Most Creative Use to **AI Agents ($2K) primary**; Most Creative as fallback |
 | Organizer target | Future Society |
-| Optional alternate sponsor | Umia, only as Siren Agent for venture due diligence |
+| Optional alternate sponsor | Umia, only as Siren Agent for venture due diligence (per-subject scoring API in Bench Mode) |
 
 ## 2. Problem
 
@@ -51,12 +53,13 @@ An upgrade that points users to an unverified implementation must be treated as 
 
 ## 5. Sponsor Strategy
 
-| Priority | Track | Fit | Submission stance |
+| Priority | Track | Fit (Epic 1 + Epic 2) | Submission stance |
 |---|---|---|---|
-| 1 | **Sourcify Bounty** | Core evidence source: verified source, ABI, metadata, storage layout, bytecode, similarity search | Submit |
-| 2 | **ENS Most Creative Use** | ENS names and records become contract/version/report discovery, not cosmetic labels | Submit |
-| 3 | **ETHPrague Future Society** | Public-good security for users and DAO governance | Submit |
-| Optional | **Umia Best Agentic Venture** | Siren Agent as due-diligence and monitoring agent for tokenized onchain ventures | Submit only if Daniel swaps strategy after mentor feedback |
+| 1 | **Sourcify Bounty** | Core evidence source: verified source, ABI, metadata, storage layout, bytecode, similarity search. **Bench Mode deepens this** — Sourcify is the *only* verified seniority signal in the score formula (every other source is discounted via the trust-discount mechanic), plus storage-layout history aggregator across implementation chains. | Submit |
+| 2 | **ENS — AI Agents ($2K) primary** *(track switched 2026-05-09 from Most Creative per Section 21 D-D lock)* | Bench Mode introduces the `agent-bench:bench_manifest` atomic record under `agent-bench:*` namespace — a universal subject registry where any ENS name (agent, project, team) declares its data sources. Single-Contract Mode's `upgrade-siren:*` records remain. ENS becomes the identity layer for both verdict and benchmark. | Submit |
+| — | ENS Most Creative Use | Fallback if AI Agents track signals weak | Backup only |
+| 3 | **ETHPrague Future Society** | Public-good transparency primitive — applies to per-upgrade safety (Epic 1) and per-subject verifiability (Epic 2). Score formula is open-source + deterministic; trust-discount on unverified claims is structurally visible. | Submit |
+| Optional | **Umia Best Agentic Venture** | Siren Agent as due-diligence and monitoring agent for tokenized onchain ventures, now with per-subject scoring API consumable by venture launch reviewers | Submit only if Daniel swaps strategy after mentor feedback |
 
 Hard cap: **2 sponsor tracks + 1 organizer track** unless Daniel explicitly overrides.
 
@@ -236,6 +239,31 @@ For Umia framing, Siren Agent becomes:
 > A due-diligence and post-launch monitoring agent for onchain ventures.
 
 It checks whether a venture is ready to fund, needs review, or should be blocked until contract risks are resolved.
+
+### Bench Mode (Epic 2 — `/b/[name]`, in build per US-111..US-146)
+
+Bench Mode is a second front door on the same engine. Where Single-Contract Mode answers *"is this upgrade safe?"*, Bench Mode answers *"how senior and relevant is this subject overall?"* — for any ENS-named subject (agent, project, team).
+
+**ENS schema** (extends Single-Contract namespace, does not replace it):
+
+| Record | Purpose |
+|---|---|
+| `agent-bench:bench_manifest` | Single JSON object describing every data source for the subject (Sourcify projects, GitHub owner, on-chain primary address, ENS-internal root). Atomic update pattern, same discipline as `upgrade-siren:upgrade_manifest`. |
+| `agent-bench:owner` | Address authorized to update the bench manifest. |
+| `agent-bench:schema` | JSON schema version pointer (`agent-bench-manifest@1`). |
+
+Both namespaces co-exist on the same ENS name without conflict. Existing `upgrade-siren:*` records remain owned by Single-Contract Mode.
+
+**Score formula** (raw-discounted axis, no normalization to ceiling):
+
+- Two axes: `seniority` (code quality, Sourcify + GitHub-derived) + `relevance` (recent activity, all four sources).
+- Each axis is `Σ(weight × value × trust)`. Trust factor `0.6` on every unverified-source signal; verified sources at `1.0`.
+- `score_raw = 0.5 * seniority + 0.5 * relevance`. Tier S (≥90) is intentionally unreachable in v1 because GitHub trust factor is locked at `0.6` (Section 21 D-G); v1 max final score is 79 (tier A).
+- Trust-discount is structurally visible in the breakdown panel — every unverified component renders the `× 0.6` factor inline. Hiding the math defeats GATE-30.
+
+**Public-read fallback for un-opted-in subjects:** when an ENS name has no `agent-bench:bench_manifest`, the resolver infers a partial manifest from `addr()` + Sourcify all-chains lookup. Banner shows `confidence: public-read`; tier ceiling A.
+
+Full spec: `EPIC_BENCH_MODE.md` (locked 2026-05-09).
 
 ## 8. Demo Scope
 

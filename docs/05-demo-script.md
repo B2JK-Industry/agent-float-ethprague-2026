@@ -111,3 +111,40 @@ Keep one intentionally bad case:
 - UI returns `SIREN`
 
 This is the strongest judge moment.
+
+## Bench Mode Segment (Epic 2 — appended 2026-05-09 per US-141)
+
+> Source: `EPIC_BENCH_MODE.md` Section 14. Append after the existing 3-minute single-contract booth flow. Total 90 seconds. Hits the 5-second meta moment plus the trust-discount memorable line.
+
+> **Setup:** Existing 3-minute single-contract demo (`vault.demo.upgradesiren.eth` → SAFE / dangerous → SIREN / unverified → SIREN / live public-read → REVIEW) runs first. Bench segment opens with "Same product, second front door."
+
+### 90-second flow
+
+| Time | Action | Voiceover |
+|---|---|---|
+| 0:00 | Type owned subject `siren-agent-demo.upgrade-siren-demo.eth` (provisioned per US-146) | "Same product, second front door. Any ENS name." |
+| 0:10 | Score banner renders: e.g. "63 / 100 — Tier B — Seniority 60, Relevance 66" | "One number. Seniority and relevance. Disclaimer is right there: it measures verifiability, not intent." |
+| 0:20 | Source grid renders four tiles, GitHub tile shows `⚠ unverified` badge | "Four sources. GitHub is unverified — values count for 60 percent until cross-signed. Sourcify, on-chain, ENS — all verified." |
+| 0:35 | Click Sourcify tile → drawer opens → upgrade-history timeline → row highlights `slot 5: uint256 → address` red | "Sourcify drawer: every contract, every upgrade. Slot 5 changed type — storage collision. The score reflects it." |
+| 0:55 | Back to grid, click GitHub tile → repo grid → highlight one repo with green CI badge | "GitHub drawer: top 20 repos, recent push, README + LICENSE, test presence — all from public API." |
+| 1:10 | Click on-chain tile → first tx, total nonce, contracts deployed | "On-chain: first transaction, lifetime activity, contracts deployed. RPC truth, no indexer needed." |
+| 1:20 | (If P1 shipped) Click "Submit similarity" on the unverified Sourcify entry → score climbs visibly | "The unverified contract is structurally similar to a known one. Sourcify auto-verifies. Score climbs — without any on-chain action." |
+| 1:30 | Sponsor close | "For Sourcify: the only verified seniority source. For ENS: universal subject registry. For Future Society: public-good transparency, not just for upgrades." |
+
+### Memorable line (Gate 8 candidate)
+
+> *"Type any ENS name. See a 0–100 benchmark of how senior and relevant the subject is — every signal sourced, every claim discounted if unverified."*
+
+### Five-second moment
+
+User types `siren-agent-demo.upgrade-siren-demo.eth` → score banner renders within 5 seconds (cached) → the `× 0.6` trust-discount on GitHub component is visible above the fold in the breakdown panel. No slides, no voiceover required.
+
+### Public-read backup demo (if owned subject is unavailable)
+
+If the owned subject route fails on the day, fall back to a Daniel-on-site-picked existing ENS name (e.g. `vitalik.eth`). The product handles it via public-read fallback (US-112) — banner shows `confidence: public-read` chip, tier capped at A. This proves the universal-registry shape works even without explicit opt-in.
+
+### What NOT to do during this segment
+
+- Do NOT pitch Bench as "AI auditor" or "generic scanner" — same kill conditions as Epic 1.
+- Do NOT claim S-tier is reachable in v1 — it is reserved for verified-GitHub v2 per Section 21 D-G lock.
+- Do NOT show normalized score breakdown (`0.601 / 0.700 → 86`) — render raw discounted axis only.
