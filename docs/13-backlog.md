@@ -157,7 +157,7 @@ Tracker-only owners (not picked up by dev agents):
 | ID | Title | Owner | Priority | Effort | Status | Depends on |
 |---|---|---|---|---|---|---|
 | US-111 | Subject ENS resolver: parse `agent-bench:bench_manifest` text record + JSON schema validator | B | P0 | M | merged | US-017 |
-| US-112 | Public-read fallback resolver: infer partial manifest from ENS `addr()` + Sourcify `all-chains` lookup | B | P0 | M | open | US-111 |
+| US-112 | Public-read fallback resolver: infer partial manifest from ENS `addr()` + Sourcify `all-chains` lookup | B | P0 | M | merged | US-111 |
 | US-113 | Sourcify source fetcher with deep field selectors (`compileSuccess`, `signatures.function/event`, `proxyResolution`, `creationMatch`, `runtimeMatch`, `metadata.sources[].license`, `userdoc/devdoc`) | B | P0 | M | merged | US-024, US-025 |
 | US-114 | GitHub source fetcher P0 (narrowed per review 2026-05-09): `/users/{owner}`, top-20 `/users/{owner}/repos`, per-repo `/repos/{o}/{r}` (esp. pushed_at), test-dir probes, README + LICENSE contents. PAT-backed cache, server-side only. CI/bug/releases/branch-protection/SECURITY/dependabot move to US-114b. | B | P0 | M | open | US-111 |
 | US-114b | GitHub source fetcher P1 enrichment: workflow runs (`ciPassRate`), bug-labeled issues (`bugHygiene`), releases (`releaseCadence`), SECURITY.md + dependabot.yml + branch-protection (extends `repoHygiene`). Score engine treats these as null until merged. | B | P1 | M | open | US-114, US-118 |
@@ -3285,7 +3285,7 @@ EPIC reference: US-076. Backlog ID renumbered to US-111 to avoid collision with 
 | Sponsor | ENS, Sourcify |
 | Dependencies | US-111 |
 | Acceptance gates | GATE-32 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | merged |
 
 #### Scope
 
