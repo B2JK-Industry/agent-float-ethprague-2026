@@ -1,89 +1,96 @@
-// Booth demo orchestration config (US-050).
+// Bench-mode demo scenarios (post-2026-05-10 pivot).
 //
-// Names match `contracts/DEPLOYMENTS.md` — the live Sepolia subnames
-// provisioned in US-010. Do not invent new names here; mirror DEPLOYMENTS.md.
+// Daniel directive: landing page demo tiles point at /b/[name] subjects only;
+// the verdict-mode `/r/[name]` route stays functional but no longer surfaces
+// as a primary FE path. Sponsor judges who need the Sourcify-anchored single-
+// contract path can still navigate via direct URL.
 //
-// `live-public-read` is intentionally left as `target: null` until Tracker
-// US-062 picks the live mainnet protocol target. The runner greys out that
-// row instead of 404-ing — see US-050 backlog notes.
+// Subjects below are LIVE — manifest fixtures committed in
+// apps/web/public/manifests/, ENS records provisioned on Sepolia (US-146)
+// or live mainnet (vitalik.eth). The runner card renders the expected
+// tier band so judges can compare predicted vs actual without surprise.
 
 import type { Verdict } from "@upgrade-siren/shared";
 
 export const DEMO_SCENARIO_KEYS = [
-  "safe",
-  "dangerous",
-  "unverified",
-  "live-public-read",
+  "agent-curated",
+  "human-public",
+  "rich-records",
+  "mainnet-public",
 ] as const;
 
 export type DemoScenarioKey = (typeof DEMO_SCENARIO_KEYS)[number];
 
 export type DemoScenarioMode = "signed-manifest" | "public-read";
 
+export type DemoScenarioBucket = "S" | "A" | "B" | "C" | "D" | "U";
+
 export type DemoScenario = {
   readonly key: DemoScenarioKey;
   readonly label: string;
-  /** ENS name or 0x address. `null` = pending US-062, render greyed-out. */
+  /** ENS name routed to /b/[name]. */
   readonly target: string | null;
   readonly mode: DemoScenarioMode;
-  readonly useMock?: boolean;
-  readonly expectedVerdict: Verdict | "REVIEW";
+  /** Predicted tier band — guidance to the visitor before they click. */
+  readonly expectedBucket: DemoScenarioBucket;
   readonly description: string;
+  /**
+   * @deprecated kept on the type for backward-compat with code that still
+   * reads `expectedVerdict`. New callers should read `expectedBucket`.
+   */
+  readonly expectedVerdict: Verdict | "REVIEW";
 };
 
 export const DEMO_SCENARIOS: readonly DemoScenario[] = [
   {
-    key: "safe",
-    label: "Safe upgrade",
-    target: "safe.upgrade-siren-demo.eth",
+    key: "agent-curated",
+    label: "Curated AI agent",
+    target: "siren-agent-demo.upgrade-siren-demo.eth",
     mode: "signed-manifest",
+    expectedBucket: "B",
     expectedVerdict: "SAFE",
     description:
-      "Verified V1 → V2Safe with compatible storage and no risky selectors.",
+      "Signed agent-bench manifest on Sepolia. ai-agent kind, declared Sourcify entries + GitHub owner — full four-source verdict.",
   },
   {
-    key: "dangerous",
-    label: "Dangerous upgrade",
-    target: "dangerous.upgrade-siren-demo.eth",
-    mode: "signed-manifest",
-    useMock: true,
-    expectedVerdict: "SIREN",
-    description:
-      "Booth snapshot: V2 adds sweep() and reorders storage — drains the vault.",
-  },
-  {
-    key: "unverified",
-    label: "Unverified upgrade",
-    target: "unverified.upgrade-siren-demo.eth",
-    mode: "signed-manifest",
-    useMock: true,
-    expectedVerdict: "SIREN",
-    description:
-      "Booth snapshot: current implementation is not verified on Sourcify. No source, no upgrade.",
-  },
-  {
-    key: "live-public-read",
-    label: "Aave V3 Pool (mainnet, live)",
-    target: "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
+    key: "human-public",
+    label: "Real human profile",
+    target: "letadlo.eth",
     mode: "public-read",
+    expectedBucket: "D",
     expectedVerdict: "REVIEW",
     description:
-      "Real Aave V3 Pool proxy on Ethereum mainnet (no upgrade-siren records). Public-read fallback: verdict capped at REVIEW (never SAFE without operator manifest); evidence from live chain state + Sourcify metadata.",
+      "Sepolia ENS with com.github + description + url text records. Public-read fallback infers GitHub source from com.github — no signed claim, ×0.6 trust discount applies.",
+  },
+  {
+    key: "rich-records",
+    label: "Rich ENS records",
+    target: "agent-kikiriki.eth",
+    mode: "public-read",
+    expectedBucket: "D",
+    expectedVerdict: "REVIEW",
+    description:
+      "Sepolia ENS with 11 text records — Project_A/B/C URLs, description, location, avatar. Demonstrates the ENS-internal subgraph signal end-to-end.",
+  },
+  {
+    key: "mainnet-public",
+    label: "Mainnet ENS demo",
+    target: "vitalik.eth",
+    mode: "public-read",
+    expectedBucket: "A",
+    expectedVerdict: "REVIEW",
+    description:
+      "Famous mainnet ENS profile via the mainnet ENS subgraph. Public-read mode caps tier at A regardless of axis sums — honest demo of the public-read ceiling.",
   },
 ] as const;
 
 /**
- * Build the verdict route href for a scenario.
- * Returns `null` when the scenario has no target yet (greyed-out row).
+ * Build the Bench Mode route href for a scenario.
+ * Returns `null` when the scenario has no target yet (greyed-out tile).
  */
 export function buildScenarioHref(scenario: DemoScenario): string | null {
   if (scenario.target === null) return null;
-  const path = `/r/${encodeURIComponent(scenario.target)}`;
-  const params = new URLSearchParams();
-  if (scenario.mode === "public-read") params.set("mode", "public-read");
-  if (scenario.useMock === true) params.set("mock", "true");
-  const query = params.toString();
-  return query.length > 0 ? `${path}?${query}` : path;
+  return `/b/${encodeURIComponent(scenario.target)}`;
 }
 
 export function findScenario(key: DemoScenarioKey): DemoScenario {
