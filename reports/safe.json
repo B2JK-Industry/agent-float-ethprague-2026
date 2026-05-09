@@ -1,0 +1,52 @@
+{
+  "schema": "siren-report@1",
+  "name": "safe.demo.upgradesiren.eth",
+  "chainId": 11155111,
+  "proxy": "0x0000000000000000000000000000000000000000",
+  "previousImplementation": "0x0000000000000000000000000000000000000000",
+  "currentImplementation": "0x0000000000000000000000000000000000000000",
+  "verdict": "SAFE",
+  "summary": "Verified V2 upgrade with storage layout matching V1 slot-for-slot. No new privileged selectors.",
+  "findings": [
+    {
+      "id": "VERIFICATION_CURRENT",
+      "severity": "info",
+      "title": "Current implementation verified on Sourcify",
+      "evidence": {
+        "address": "0x0000000000000000000000000000000000000000",
+        "sourcify": "https://sourcify.dev/#/lookup/0x0000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "id": "STORAGE_LAYOUT_COMPAT",
+      "severity": "info",
+      "title": "Storage layout slots 0 and 1 unchanged from V1",
+      "evidence": {
+        "previous": "0x0000000000000000000000000000000000000000",
+        "current": "0x0000000000000000000000000000000000000000"
+      }
+    }
+  ],
+  "sourcify": {
+    "previousVerified": true,
+    "currentVerified": true,
+    "links": []
+  },
+  "mode": "signed-manifest",
+  "confidence": "operator-signed",
+  "ens": {
+    "recordsResolvedLive": true,
+    "manifestHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "owner": null
+  },
+  "auth": {
+    "status": "unsigned",
+    "signatureType": null,
+    "signer": null,
+    "signature": null,
+    "signedAt": null
+  },
+  "recommendedAction": "approve",
+  "mock": false,
+  "generatedAt": "2026-05-09T01:26:14Z"
+}

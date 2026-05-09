@@ -1,0 +1,58 @@
+{
+  "schema": "siren-report@1",
+  "name": "dangerous.demo.upgradesiren.eth",
+  "chainId": 11155111,
+  "proxy": "0x0000000000000000000000000000000000000000",
+  "previousImplementation": "0x0000000000000000000000000000000000000000",
+  "currentImplementation": "0x0000000000000000000000000000000000000000",
+  "verdict": "SIREN",
+  "summary": "Verified V2 upgrade adds sweep(address,address) and reorders V1 slots 0/1. Verdict: SIREN.",
+  "findings": [
+    {
+      "id": "ABI_DANGEROUS_SELECTOR",
+      "severity": "critical",
+      "title": "New privileged selector: sweep(address,address)",
+      "evidence": {
+        "selector": "0x00000000",
+        "note": "Drains arbitrary ERC20 balance to recipient. Owner-callable, no timelock."
+      }
+    },
+    {
+      "id": "STORAGE_LAYOUT_INCOMPAT",
+      "severity": "critical",
+      "title": "V1 slots 0 and 1 are swapped in V2Dangerous",
+      "evidence": {
+        "previous": {
+          "slot0": "address owner",
+          "slot1": "mapping balances"
+        },
+        "current": {
+          "slot0": "mapping balances",
+          "slot1": "address owner"
+        }
+      }
+    }
+  ],
+  "sourcify": {
+    "previousVerified": true,
+    "currentVerified": true,
+    "links": []
+  },
+  "mode": "signed-manifest",
+  "confidence": "operator-signed",
+  "ens": {
+    "recordsResolvedLive": true,
+    "manifestHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "owner": null
+  },
+  "auth": {
+    "status": "unsigned",
+    "signatureType": null,
+    "signer": null,
+    "signature": null,
+    "signedAt": null
+  },
+  "recommendedAction": "reject",
+  "mock": false,
+  "generatedAt": "2026-05-09T01:26:14Z"
+}
