@@ -1,0 +1,12 @@
+{
+  "fetchedAt": "2026-05-09T14:24:12.828Z",
+  "chainId": 1,
+  "proxyAddress": "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
+  "ensName": null,
+  "note": "Compound v3 USDC Comet — modern proxy pattern",
+  "eip1967Slot": "0x00000000000000000000000083d491269720ce925f92c6bf9f66b7a0779a293a",
+  "sourcify": {
+    "match": "exact_match",
+    "implementationMatch": "exact_match"
+  }
+}

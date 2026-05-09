@@ -1,0 +1,12 @@
+{
+  "fetchedAt": "2026-05-09T14:24:11.844Z",
+  "chainId": 1,
+  "proxyAddress": "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
+  "ensName": null,
+  "note": "Aave V3 Pool — flagship public-read demo target",
+  "eip1967Slot": "0x0000000000000000000000008147b99df7672a21809c9093e6f6ce1a60f119bd",
+  "sourcify": {
+    "match": "exact_match",
+    "implementationMatch": "match"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "fetchedAt": "2026-05-09T14:24:12.178Z",
+  "chainId": 1,
+  "proxyAddress": "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
+  "ensName": null,
+  "note": "Lido stETH — largest TVL upgradeable proxy",
+  "eip1967Slot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "sourcify": {
+    "match": "match",
+    "implementationMatch": "not_found"
+  }
+}

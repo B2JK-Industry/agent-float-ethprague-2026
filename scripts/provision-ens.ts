@@ -275,7 +275,11 @@ function buildManifest(
     const proxy = d.proxy;
     const previousImpl = d.v1;
     const currentImpl = d[sub.currentImplKey];
-    const reportUri = `https://upgradesiren.app/r/${sub.name}.json`;
+    // Reports are hosted at the live Vercel deploy under
+    // `apps/web/public/reports/<subname>.json`. The `upgradesiren.app` host
+    // is unregistered (NXDOMAIN) so any external judge or verifier resolving
+    // the manifest's reportUri would have failed before this fix landed.
+    const reportUri = `https://upgrade-siren.vercel.app/reports/${sub.name}.json`;
 
     // Preserve effectiveFrom when nothing material changed. Without this,
     // re-runs would mutate the upgrade timestamp on every invocation and break

@@ -1,0 +1,12 @@
+{
+  "fetchedAt": "2026-05-09T14:24:14.032Z",
+  "chainId": 1,
+  "proxyAddress": "0x39053D51B77DC0d36036Fc1fCc8Cb819df8Ef37A",
+  "ensName": null,
+  "note": "EigenLayer DelegationManager — recent restaking protocol",
+  "eip1967Slot": "0x000000000000000000000000e7022a128acd4c6cad7aff6fa874d61f984bce75",
+  "sourcify": {
+    "match": "exact_match",
+    "implementationMatch": "exact_match"
+  }
+}
