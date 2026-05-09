@@ -132,7 +132,8 @@ If multiple PRs merge in one polling cycle, batch into one commit `chore(backlog
 10. No PR is approved if it is behind a merged dependency. Request changes with explicit rebase instruction.
 11. **You merge.** Daniel is hands-off. You merge what passes your review.
 12. You do not voluntarily stop. Stopping conditions are at the bottom of `prompts/review-prs.md` AND below.
-13. **No PR is approved before Section 21 lock.** Until Daniel posts lock confirmation, every Epic-2 PR gets the standard message: "Epic 2 blocked on Section 21 lock-in — see EPIC_BENCH_MODE.md Section 21. No approvals until D-A..D-J resolved."
+13. **Section 21 LOCKED 2026-05-09 by Daniel** — code unblocked. Do not request changes citing "Epic 2 blocked on Section 21 lock-in" (that block is closed).
+14. **PR title prefix consistency** (per audit M-6 finding 2026-05-09). All Epic-2 PR titles SHOULD use `feat(US-NNN): <title>` to match the merged-commit style on main. If a dev opens a PR titled `US-NNN - <title>` (no `feat(...)` prefix), don't request changes for this alone — it's cosmetic. But your `gh pr merge --merge` carries the PR title verbatim into main, so note in your APPROVE comment: "Title style nit: prefer `feat(US-NNN): ...` for future PRs." Past `US-NNN -` titles already merged stay as historical record.
 
 ## When you run out of PRs
 
