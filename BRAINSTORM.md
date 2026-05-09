@@ -92,3 +92,26 @@
 **Rotation.** If a key is compromised: generate new key with `cast wallet new`, update Vercel Secrets, redeploy Siren Reports under the new signer, update `upgrade-siren:owner` ENS record on all subnames, invalidate prior signed reports. A `siren:revoked_signers` ENS record is post-hackathon hardening, not in current scope.
 
 **Mainnet ENS parent control.** Custodied personally by Daniel, separate from the three burner keys above. US-061 (ENS parent registration on mainnet) executes from that wallet and does not touch this repo's `.env`.
+
+### 2026-05-09 — US-061 — Descope mainnet ENS parent registration to P1 / post-hack
+
+**Decision.** US-061 reclassified from P0 to P1, status flipped to `blocked` (deferred). Mainnet `upgradesiren.eth` registration will not happen during the hackathon. Demo and Devfolio submission run on the Sepolia parent `upgrade-siren-demo.eth` already provisioned by Stream A US-010 in PR #68.
+
+**Trigger.** Daniel attempted the mainnet registration through the ENS Manager twice on 2026-05-09 and the commit-reveal flow stalled both times — most likely between the `commit()` transaction and the 60-second-delayed `register()` transaction (MetaMask timeout, gas estimation failure, or UI state loss). Continuing to retry under hackathon time pressure trades a demo-blocking risk for a feature that does not affect demo readiness.
+
+**Why this is safe for the demo.**
+
+- Booth demo, Devfolio link, and judge verification all run against Sepolia chain ID 11155111.
+- The four demo subnames (`vault.`, `safe.`, `dangerous.`, `unverified.upgrade-siren-demo.eth`) already carry the stable records, atomic `upgrade-siren:upgrade_manifest`, and `upgrade-siren:owner` per PR #68 broadcast.
+- The three signed Siren Reports (safe / dangerous / unverified) are hosted and verified end-to-end with EIP-712 signature recovery to `upgrade-siren:owner`.
+- GATE-3 (live ENS resolution) and GATE-17 (ENS central to identity/discovery) are both satisfied through the Sepolia parent; mainnet would be a sponsor-pitch nicety, not a gate prerequisite.
+- US-010 (which originally referenced US-061 as the production parent) already lists `upgrade-siren-demo.eth` as the live parent in `contracts/DEPLOYMENTS.md` (per PR #68 + #50).
+
+**What remains for post-hackathon.**
+
+- Register `upgradesiren.eth` (or alternate per `SCOPE.md §7` provisional list) on mainnet without the deadline pressure.
+- Fund the operator wallet with the production gas budget per the original AC.
+- Re-broadcast a mainnet equivalent of the four demo subnames OR migrate to a different naming scheme for production (TBD post-hack).
+- Re-open US-061 with status `open` and bump priority back to P1 active when the project enters production prep.
+
+**No code or backlog dep is broken by this descope.** Stream C US-050 demo runner targets Sepolia subnames. Stream B verifier reads `upgrade-siren:*` records from any chain configured in `ALCHEMY_RPC_*` env vars; mainnet is supported but not required.

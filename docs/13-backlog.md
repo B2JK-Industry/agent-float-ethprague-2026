@@ -120,7 +120,7 @@ Tracker-only owners (not picked up by dev agents):
 |---|---|---|---|---|---|---|
 | US-059 | Sponsor pitch finalization (start at scope-lock) | Daniel + Orch | P0 | M | open | none |
 | US-060 | Operator wallet / report signer custody decision (start at scope-lock) | Daniel | P0 | S | merged | none |
-| US-061 | ENS parent registration and operator wallet provisioning | Daniel | P0 | M | open | US-060 |
+| US-061 | ENS parent registration on mainnet (deferred post-hack; Sepolia parent suffices for demo) | Daniel | P1 | M | blocked | US-060 |
 | US-062 | Live public-read protocol target research (start at scope-lock) | Daniel + Orch | P0 | M | open | none |
 | US-063 | Booth fallback artifacts: Anvil, cached fixtures, recorded demo (start at scope-lock) | Orch | P0 | L | open | US-009, US-050 |
 | US-064 | Devfolio submission materials | Daniel + Orch | P0 | M | open | US-013, US-029, US-050, US-059 |
@@ -2690,18 +2690,20 @@ grep -A5 "REPORT_SIGNER_PRIVATE_KEY" BRAINSTORM.md
 
 **Start-at-scope-lock item.** Stream A's US-009 (Sepolia deploy) and US-011 (signed reports) cannot start without this decision because they need to know where keys come from.
 
-### US-061 - ENS parent registration and operator wallet provisioning
+### US-061 - ENS parent registration on mainnet (deferred post-hack)
 
 | Field | Value |
 |---|---|
 | Type | task |
-| Priority | P0 |
+| Priority | P1 |
 | Owner | Daniel |
 | Effort | M |
 | Sponsor | ENS |
 | Dependencies | US-060 |
-| Acceptance gates | GATE-3, GATE-17 |
-| Status | open |
+| Acceptance gates | GATE-3, GATE-17 (satisfied via Sepolia parent for demo; mainnet upgrade is post-hack) |
+| Status | blocked |
+
+> **2026-05-09 descope:** Daniel attempted mainnet registration of `upgradesiren.eth` twice during hackathon and the ENS commit-reveal flow stalled both times. For demo and Devfolio submission, Stream A US-010 already provisioned `upgrade-siren-demo.eth` on Sepolia with the four required subnames + atomic manifests + signed reports (per PR #68). The booth demo, Devfolio link, and judge verification all run against Sepolia. Mainnet parent is a production-readiness feature, not a demo blocker. Reclassified P0 -> P1, status `blocked` (deferred). Will be re-opened post-hackathon if the project continues. See `BRAINSTORM.md` Decision Log 2026-05-09 entry for full rationale.
 
 #### Scope
 
