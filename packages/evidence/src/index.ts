@@ -172,3 +172,16 @@ export type {
   ManifestGraceMode,
   ManifestGraceOptions,
 } from './verdict/gracePolicy.js';
+
+export {
+  canonicalManifestJson,
+  hashManifest,
+  validateManifestChain,
+} from './manifest/chain.js';
+
+export type {
+  ManifestChainFailureReason,
+  ManifestChainInvalid,
+  ManifestChainResult,
+  ManifestChainValid,
+} from './manifest/chain.js';
