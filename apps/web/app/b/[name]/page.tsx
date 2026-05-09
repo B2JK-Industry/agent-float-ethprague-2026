@@ -29,6 +29,7 @@ import { ScoreBreakdownPanel } from "../../../components/bench/ScoreBreakdownPan
 import { SourceGrid } from "../../../components/bench/SourceGrid";
 import { EnsDrawer } from "../../../components/bench/drawers/EnsDrawer";
 import { GitHubDrawer } from "../../../components/bench/drawers/GitHubDrawer";
+import { OnchainDrawer } from "../../../components/bench/drawers/OnchainDrawer";
 import { SourcifyDrawer } from "../../../components/bench/drawers/SourcifyDrawer";
 import { BENCH_SUB_BRAND, BENCH_SUB_TAGLINE } from "../../../lib/branding";
 import { loadBench, type LoadBenchResult } from "./loadBench";
@@ -161,6 +162,8 @@ function BenchFoundation({
       <SourcifyDrawer entries={evidence.sourcify} />
 
       <GitHubDrawer github={evidence.github} />
+
+      <OnchainDrawer entries={evidence.onchain} />
 
       <EnsDrawer
         subjectName={evidence.subject.name}
