@@ -313,3 +313,22 @@ export type {
   EnsInternalResult,
   EnsInternalSignals,
 } from './sources/ens-internal/types.js';
+
+export { fetchSourcifyAllChains } from './sourcify/allChains.js';
+
+export type {
+  FetchSourcifyAllChainsOptions,
+  SourcifyAllChainsEntry,
+} from './sourcify/allChains.js';
+
+export { inferSubjectFromPublicRead } from './subject/publicRead.js';
+
+export type {
+  InferSubjectFromPublicReadOptions,
+  SubjectPublicReadError,
+  SubjectPublicReadFailureReason,
+  SubjectPublicReadInference,
+  SubjectPublicReadInferredSources,
+  SubjectPublicReadOk,
+  SubjectPublicReadResolutionResult,
+} from './subject/publicRead.js';
