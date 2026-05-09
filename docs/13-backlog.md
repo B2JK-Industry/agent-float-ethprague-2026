@@ -67,7 +67,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-020 | Absent-record verdict paths (missing manifest, owner, malformed, slot mismatch) | B | P0 | M | open | US-018, US-019 |
 | US-021 | Schema version policy for upgrade-siren-manifest@1 | B | P0 | S | open | US-014, US-018 |
 | US-022 | EIP-1967 implementation slot reader | B | P0 | S | merged | none |
-| US-023 | Upgraded(address) event reader | B | P0 | S | open | none |
+| US-023 | Upgraded(address) event reader | B | P0 | S | merged | none |
 | US-024 | Sourcify verification status fetch | B | P0 | M | open | none |
 | US-025 | Sourcify metadata fetch (source, ABI, compiler, storage layout) | B | P0 | M | open | none |
 | US-026 | ABI risky-selector diff | B | P0 | M | open | US-025 |
@@ -1093,7 +1093,7 @@ The slot constant is canonical and grep-able. Reviewer must verify the constant 
 | Sponsor | - |
 | Dependencies | none |
 | Acceptance gates | - |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
