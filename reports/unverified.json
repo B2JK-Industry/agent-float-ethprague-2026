@@ -1,0 +1,44 @@
+{
+  "schema": "siren-report@1",
+  "name": "unverified.demo.upgradesiren.eth",
+  "chainId": 11155111,
+  "proxy": "0x0000000000000000000000000000000000000000",
+  "previousImplementation": "0x0000000000000000000000000000000000000000",
+  "currentImplementation": "0x0000000000000000000000000000000000000000",
+  "verdict": "SIREN",
+  "summary": "Implementation is not verified on Sourcify. No source -> no upgrade. Verdict: SIREN.",
+  "findings": [
+    {
+      "id": "VERIFICATION_NOT_FOUND",
+      "severity": "critical",
+      "title": "Implementation not verified on Sourcify",
+      "evidence": {
+        "address": "0x0000000000000000000000000000000000000000",
+        "sourcify": "https://sourcify.dev/server/check-by-addresses?addresses=0x0000000000000000000000000000000000000000&chainIds=11155111",
+        "note": "Sourcify returned not_found; no source means no upgrade."
+      }
+    }
+  ],
+  "sourcify": {
+    "previousVerified": true,
+    "currentVerified": false,
+    "links": []
+  },
+  "mode": "signed-manifest",
+  "confidence": "operator-signed",
+  "ens": {
+    "recordsResolvedLive": true,
+    "manifestHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "owner": null
+  },
+  "auth": {
+    "status": "unsigned",
+    "signatureType": null,
+    "signer": null,
+    "signature": null,
+    "signedAt": null
+  },
+  "recommendedAction": "reject",
+  "mock": false,
+  "generatedAt": "2026-05-09T01:26:14Z"
+}
