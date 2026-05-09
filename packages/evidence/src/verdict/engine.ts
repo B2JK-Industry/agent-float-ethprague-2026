@@ -65,21 +65,16 @@ function confidenceFor(mode: VerdictMode): VerdictConfidence {
 }
 
 // Aggregates a set of findings into a final verdict. Higher severity wins;
-// public-read mode caps at REVIEW (never SAFE) per docs/02.
-function aggregateVerdict(findings: ReadonlyArray<Finding>, mode: VerdictMode, mock: boolean): Verdict {
-  if (mock) {
-    // Mock mode reflects the worst severity but doesn't claim production trust.
-    // Engine still returns the structural verdict so the UI can render it.
-  }
-
+// public-read mode caps at REVIEW (never SAFE) per docs/02. Mock mode is
+// handled by the caller via the confidence label; aggregation is identical
+// to signed-manifest so the booth can render real verdict shapes against
+// fixture inputs.
+function aggregateVerdict(findings: ReadonlyArray<Finding>, mode: VerdictMode): Verdict {
   const hasCritical = findings.some((f) => f.severity === 'critical');
   const hasWarning = findings.some((f) => f.severity === 'warning');
 
   if (hasCritical) return 'SIREN';
-  if (mode === 'public-read') {
-    // Per docs/02: public-read mode is never SAFE. Even with no warnings, REVIEW.
-    return hasWarning ? 'REVIEW' : 'REVIEW';
-  }
+  if (mode === 'public-read') return 'REVIEW';
   if (hasWarning) return 'REVIEW';
   return 'SAFE';
 }
@@ -221,7 +216,18 @@ function addSignatureFinding(input: ComputeVerdictInput, findings: Finding[]): v
 
 function addSourcifyFindings(input: ComputeVerdictInput, findings: Finding[]): void {
   const current = input.currentSourcifyMatch;
-  if (current === 'not_found') {
+  if (current === null) {
+    // Sourcify fetch failed (network / rate-limit / 5xx). docs/04 + docs/02
+    // GATE-13: missing data must lower confidence, never produce false SAFE.
+    findings.push(
+      makeFinding(
+        FINDING_IDS.VERIFICATION_CURRENT_UNVERIFIED,
+        'warning',
+        'Sourcify status for current implementation is unavailable',
+        { match: null },
+      ),
+    );
+  } else if (current === 'not_found') {
     findings.push(
       makeFinding(
         FINDING_IDS.VERIFICATION_CURRENT_UNVERIFIED,
@@ -341,19 +347,42 @@ function addStorageFindings(input: ComputeVerdictInput, findings: Finding[]): vo
 }
 
 function addProxyFindings(input: ComputeVerdictInput, findings: Finding[]): void {
-  if (input.liveImplementation === null) {
+  if (input.liveImplementation !== null) return;
+
+  // Live slot is zero. Two distinct cases:
+  //
+  // 1. signed-manifest mode + manifest declares a non-null currentImpl ->
+  //    the manifest claims an active proxy but chain says zero. This is the
+  //    docs/02 "Proxy slot disagrees with manifest current implementation"
+  //    rule and must be SIREN. classifyAbsentRecord rule 4 only fires when
+  //    BOTH sides are non-null, so this branch is the engine's own
+  //    enforcement of the disagreement when one side is null.
+  // 2. public-read mode (or signed-manifest with manifest=null) -> the
+  //    address probably isn't an EIP-1967 proxy. Warning is enough; the
+  //    verdict caps at REVIEW unless another critical signal fires.
+  if (input.mode === 'signed-manifest' && (input.manifest?.currentImpl ?? null) !== null) {
     findings.push(
       makeFinding(
-        FINDING_IDS.PROXY_NOT_INITIALISED,
-        // The address probably isn't an EIP-1967 proxy at all. Surface as
-        // warning so the verdict caps at REVIEW; further critical signals
-        // can still escalate to SIREN.
-        'warning',
-        'live EIP-1967 implementation slot is zero (proxy not initialised or not a proxy)',
-        {},
+        FINDING_IDS.MANIFEST_STALE_OR_UNEXPECTED_UPGRADE,
+        'critical',
+        'live EIP-1967 implementation slot is zero but manifest declares a non-null currentImpl',
+        {
+          liveImplementation: null,
+          manifestCurrentImpl: input.manifest?.currentImpl ?? null,
+        },
       ),
     );
+    return;
   }
+
+  findings.push(
+    makeFinding(
+      FINDING_IDS.PROXY_NOT_INITIALISED,
+      'warning',
+      'live EIP-1967 implementation slot is zero (proxy not initialised or not a proxy)',
+      {},
+    ),
+  );
 }
 
 function addModeFinding(input: ComputeVerdictInput, findings: Finding[]): void {
@@ -384,7 +413,7 @@ export function computeVerdict(input: ComputeVerdictInput): ComputeVerdictResult
   addAbiFindings(input, findings);
   addStorageFindings(input, findings);
 
-  const verdict = aggregateVerdict(findings, input.mode, input.mock);
+  const verdict = aggregateVerdict(findings, input.mode);
   const summary = summarise(verdict, findings, input.mode);
   return {
     verdict,

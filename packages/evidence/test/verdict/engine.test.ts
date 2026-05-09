@@ -222,11 +222,80 @@ describe('computeVerdict — determinism', () => {
 });
 
 describe('computeVerdict — proxy not initialised', () => {
-  it('warns when liveImplementation is null', () => {
+  it('SIREN in signed-manifest mode when manifest declares currentImpl but live slot is null', () => {
+    // docs/02 "Proxy slot disagrees with manifest current implementation" —
+    // the disagreement holds when one side is null and the other is a real
+    // address. classifyAbsentRecord rule 4 only fires when both are non-null,
+    // so the engine's addProxyFindings owns this branch.
     const r = computeVerdict({ ...happySigned, liveImplementation: null });
-    expect(r.findings.some((f) => f.id === 'PROXY_NOT_INITIALISED')).toBe(true);
-    // Other signals (manifest still has currentImpl, sig still valid) keep the
-    // critical surface clean; the result is REVIEW.
+    expect(r.verdict).toBe('SIREN');
+    expect(r.findings.some((f) => f.id === 'MANIFEST_STALE_OR_UNEXPECTED_UPGRADE')).toBe(true);
+  });
+
+  it('REVIEW (warning only) in public-read mode when live slot is null', () => {
+    // public-read mode has no manifest claim, so a null slot is just "this
+    // address is probably not an EIP-1967 proxy". Warning, not critical.
+    const publicReadNoSlot: ComputeVerdictInput = {
+      ...happySigned,
+      mode: 'public-read',
+      manifestPresent: false,
+      manifestParseOk: false,
+      manifest: null,
+      ownerPresent: false,
+      ownerAddress: null,
+      signatureVerification: null,
+      liveImplementation: null,
+    };
+    const r = computeVerdict(publicReadNoSlot);
     expect(r.verdict).toBe('REVIEW');
+    expect(r.findings.some((f) => f.id === 'PROXY_NOT_INITIALISED')).toBe(true);
+    expect(r.findings.some((f) => f.id === 'MANIFEST_STALE_OR_UNEXPECTED_UPGRADE')).toBe(false);
+  });
+
+  it('REVIEW (warning only) in signed-manifest mode when manifest itself is null and live slot is null', () => {
+    // Defensive: signed-manifest mode but manifest record is missing entirely.
+    // No declaration to disagree with, so this is just "no proxy here".
+    const r = computeVerdict({
+      ...happySigned,
+      manifest: null,
+      manifestPresent: false,
+      manifestParseOk: false,
+      liveImplementation: null,
+    });
+    // Rule 1 (manifest absent) fires first as warning; proxy adds another
+    // warning. No critical -> REVIEW.
+    expect(r.verdict).toBe('REVIEW');
+    expect(r.findings.some((f) => f.id === 'PROXY_NOT_INITIALISED')).toBe(true);
+    expect(r.findings.some((f) => f.id === 'MANIFEST_STALE_OR_UNEXPECTED_UPGRADE')).toBe(false);
+  });
+});
+
+describe('computeVerdict — Sourcify status null (data missing)', () => {
+  it('warns when currentSourcifyMatch is null (fetch failed)', () => {
+    // GATE-13: missing data must lower confidence, never produce false SAFE.
+    const r = computeVerdict({ ...happySigned, currentSourcifyMatch: null });
+    expect(r.verdict).toBe('REVIEW');
+    expect(
+      r.findings.some(
+        (f) => f.id === 'VERIFICATION_CURRENT_UNVERIFIED' && f.severity === 'warning',
+      ),
+    ).toBe(true);
+  });
+
+  it('null currentSourcifyMatch in public-read mode stays REVIEW (never SAFE)', () => {
+    const publicRead: ComputeVerdictInput = {
+      ...happySigned,
+      mode: 'public-read',
+      manifestPresent: false,
+      manifestParseOk: false,
+      manifest: null,
+      ownerPresent: false,
+      ownerAddress: null,
+      signatureVerification: null,
+      currentSourcifyMatch: null,
+    };
+    const r = computeVerdict(publicRead);
+    expect(r.verdict).toBe('REVIEW');
+    expect(r.confidence).toBe('public-read');
   });
 });
