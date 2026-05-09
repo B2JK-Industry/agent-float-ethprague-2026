@@ -460,3 +460,11 @@ export type {
   SlotHygieneEntry,
   SubjectHygiene,
 } from './diff/storageHygiene.js';
+
+export { detectSourcePatterns } from './sourcify/patterns.js';
+
+export type {
+  SourcePatternId,
+  SourcePatternMatch,
+  SourcifySourceFileLike,
+} from './sourcify/patterns.js';
