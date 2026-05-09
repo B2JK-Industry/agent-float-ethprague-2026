@@ -395,3 +395,51 @@ export type {
   SubjectIdentity,
   SubjectMode,
 } from './bench/types.js';
+
+export {
+  AXIS_WEIGHTS,
+  PUBLIC_READ_TIER_CAP,
+  RELEVANCE_WEIGHTS,
+  SENIORITY_WEIGHTS,
+  TIER_THRESHOLDS,
+  TRUST_DISCOUNT_UNVERIFIED,
+  TRUST_DISCOUNT_VERIFIED,
+  U_TIER_MIN_NONZERO_SOURCES,
+  trustFactor,
+} from './score/weights.js';
+
+export type {
+  RelevanceComponentId,
+  SeniorityComponentId,
+  TrustLabel,
+  WeightedComponent,
+} from './score/weights.js';
+
+export { computeScore } from './score/engine.js';
+
+export type { ComputeScoreOptions } from './score/engine.js';
+
+export type {
+  CeilingApplied,
+  ComponentStatus,
+  ScoreAxisBreakdown,
+  ScoreComponentBreakdown,
+  ScoreResult,
+  Tier,
+} from './score/types.js';
+
+export {
+  bugHygiene,
+  ciPassRate,
+  compileSuccess,
+  ensRecency,
+  githubRecency,
+  nonZeroSourceCount,
+  onchainRecency,
+  releaseCadence,
+  repoHygiene,
+  sourcifyRecency,
+  testPresence,
+} from './score/components.js';
+
+export type { ComponentValue } from './score/components.js';
