@@ -49,11 +49,13 @@ import {
   parseUpgradeManifest,
   readImplementationSlot,
   resolveEnsRecords,
+  runPublicReadFallback,
   verifyReportFromManifest,
   type AbiRiskyDiff,
   type ComputeVerdictResult,
   type EnsResolutionOk,
   type EnsResolutionResult,
+  type PublicReadOk,
   type ReportTrustResult,
   type SourceFileDiff,
   type SourcifyMatchLevel,
@@ -271,6 +273,79 @@ async function fetchMetadataIfAddress(
   return result.kind === "ok" ? result.value : null;
 }
 
+const RAW_ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
+
+function isRawAddress(input: string): boolean {
+  return RAW_ADDRESS_RE.test(input.trim());
+}
+
+/**
+ * Build a SirenReport from the public-read fallback engine's result. The
+ * raw-address branch (US-082) cannot resolve ENS records — there are none —
+ * so the engine emits a deliberately conservative public-read shape:
+ *   verdict capped at REVIEW; mode = "public-read"; auth = unsigned;
+ *   sourcify links derived from the matcher; previousImpl unknown.
+ */
+function buildPublicReadReportFromAddress(
+  name: string,
+  result: PublicReadOk,
+): SirenReport {
+  const sourcifyMatch = result.sourcifyStatus;
+  const currentVerified = sourcifyVerifiedFromMatch(sourcifyMatch);
+  const links = result.currentImplementation !== null && currentVerified
+    ? [
+        {
+          label: "Sourcify · current",
+          url: `https://sourcify.dev/#/lookup/${result.currentImplementation}`,
+        },
+      ]
+    : [];
+  return {
+    schema: "siren-report@1",
+    name,
+    chainId: MAINNET_CHAIN_ID,
+    proxy: result.proxyAddress,
+    previousImplementation: null,
+    currentImplementation: result.currentImplementation ?? result.proxyAddress,
+    // Public-read fallback never produces SAFE per docs/02 rule table.
+    // Without ENS records there is no signed manifest to attest, so the
+    // engine returns REVIEW (or SIREN if a hard rule fired). The fallback
+    // primitive does not run the verdict engine; it only assembles the
+    // primitives. Return REVIEW as the conservative default.
+    verdict: "REVIEW",
+    summary:
+      "Public-read fallback (raw 0x address). No upgrade-siren records — verdict capped at REVIEW; never SAFE.",
+    findings: result.notes.map((note, i) => ({
+      id: `PUBLIC_READ_NOTE_${i}`,
+      severity: "info" as const,
+      title: note,
+      evidence: { kind: result.inputKind },
+    })),
+    sourcify: {
+      previousVerified: null,
+      currentVerified,
+      links,
+    },
+    mode: "public-read",
+    confidence: "public-read",
+    ens: {
+      recordsResolvedLive: false,
+      manifestHash: null,
+      owner: null,
+    },
+    auth: {
+      status: "unsigned",
+      signatureType: null,
+      signer: null,
+      signature: null,
+      signedAt: null,
+    },
+    recommendedAction: "review",
+    mock: false,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
 export async function loadReport(
   name: string,
   options: LoadReportOptions,
@@ -278,6 +353,29 @@ export async function loadReport(
   if (options.mockMode) {
     const { report } = loadFixture(name);
     return { kind: "loaded", report, source: "fixture" };
+  }
+
+  // US-082: raw 0x-prefixed address bypasses ENS — go straight to the
+  // public-read fallback engine. resolveEnsRecords does not accept raw
+  // addresses (only plausible ENS names), so without this branch the
+  // Aave V3 Pool / arbitrary-contract scenario fails at the ENS gate.
+  if (isRawAddress(name)) {
+    const fallback = await runPublicReadFallback(name.trim(), {
+      chainId: MAINNET_CHAIN_ID,
+      rpcUrl: rpcUrlForChain(MAINNET_CHAIN_ID),
+    });
+    if (fallback.kind === "error") {
+      return {
+        kind: "error",
+        reason: `public_read_${fallback.reason}`,
+        message: fallback.message,
+      };
+    }
+    return {
+      kind: "loaded",
+      report: buildPublicReadReportFromAddress(name, fallback),
+      source: "live",
+    };
   }
 
   const resolved = await tryResolveEns(name);

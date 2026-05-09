@@ -44,6 +44,18 @@ vi.mock("@upgrade-siren/evidence", () => {
       appended: [],
     })),
     diffSourceFiles: vi.fn(() => []),
+    runPublicReadFallback: vi.fn().mockResolvedValue({
+      kind: "ok",
+      mode: "public-read",
+      confidence: "public-read",
+      inputKind: "address",
+      inputName: null,
+      proxyAddress: "0x87870BCA3F3fd6335C3F4ce8392D69350B4fA4E2",
+      currentImplementation: "0x05f2e3ca9c8b9ce7b5b80e57db2f4bd8e8fb3322",
+      sourcifyStatus: "exact_match",
+      sourcifyMetadata: null,
+      notes: ["input recognised as raw 0x address"],
+    }),
   };
 });
 
@@ -569,5 +581,65 @@ describe("loadReport — ENS resolution error", () => {
     expect(result.kind).toBe("empty");
     if (result.kind !== "empty") return;
     expect(result.reason).toBe("ens_not_found");
+  });
+});
+
+describe("loadReport — raw 0x address bypass (US-082)", () => {
+  it("bypasses tryResolveEns and calls runPublicReadFallback when name is a 0x40-hex address", async () => {
+    const RAW = "0x87870BCA3F3fd6335C3F4ce8392D69350B4fA4E2";
+
+    const result = await loadReport(RAW, {
+      mockMode: false,
+      publicReadIntent: false,
+    });
+
+    expect(result.kind).toBe("loaded");
+    if (result.kind !== "loaded") return;
+    expect(result.report.mode).toBe("public-read");
+    expect(result.report.verdict).toBe("REVIEW");
+    expect(result.report.proxy.toLowerCase()).toBe(
+      "0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2",
+    );
+    // resolveEnsRecords must not have been called for the raw-address path.
+    expect(vi.mocked(resolveEnsRecords)).not.toHaveBeenCalled();
+  });
+
+  it("forwards a public-read fallback engine error as kind:'error'", async () => {
+    const ev = await import("@upgrade-siren/evidence");
+    vi.mocked(ev.runPublicReadFallback).mockResolvedValueOnce({
+      kind: "error",
+      reason: "unsupported_chain",
+      message: "publicRead: unsupported chainId 137",
+    });
+
+    const result = await loadReport(
+      "0x0000000000000000000000000000000000000001",
+      { mockMode: false, publicReadIntent: false },
+    );
+    expect(result.kind).toBe("error");
+    if (result.kind !== "error") return;
+    expect(result.reason).toBe("public_read_unsupported_chain");
+  });
+
+  it("does NOT trigger raw-address bypass for plausible ENS names", async () => {
+    vi.mocked(resolveEnsRecords)
+      .mockResolvedValueOnce({
+        kind: "error",
+        reason: "invalid_name",
+        message: "x",
+      })
+      .mockResolvedValueOnce({
+        kind: "error",
+        reason: "invalid_name",
+        message: "y",
+      });
+
+    await loadReport("aave.eth", {
+      mockMode: false,
+      publicReadIntent: false,
+    });
+
+    const ev = await import("@upgrade-siren/evidence");
+    expect(vi.mocked(ev.runPublicReadFallback)).not.toHaveBeenCalled();
   });
 });
