@@ -169,7 +169,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-119 | Storage-Layout Hygiene aggregator across implementation history per proxy (chronological pairwise diff over Sourcify `proxyResolution.implementations`; subject-level avg) | B | P0 | L | open | US-027, US-113 |
 | US-120 | Cross-chain auto-discovery via `/v2/contract/all-chains/{address}` for Sourcify entries | B | P1 | S | open | US-113 |
 | US-121 | Bytecode similarity submit flow: POST `/v2/verify/similarity/{chainId}/{address}` → poll → re-fetch → re-evaluate score | B | P1 | M | open | US-113 |
-| US-122 | Cache extension (extends US-032): GitHub / RPC / ENS-subgraph keys with per-namespace TTLs per EPIC Section 12 | B | P0 | S | open | US-032, US-114, US-115, US-116 |
+| US-122 | Cache extension (extends US-032): GitHub / RPC / ENS-subgraph keys with per-namespace TTLs per EPIC Section 12 | B | P0 | S | merged | US-032, US-114, US-115, US-116 |
 | US-123 | Source-pattern detection from Sourcify `sources` (Pausable, Ownable, UUPS, AccessControl) for drawer badges | B | P1 | M | open | US-113 |
 | US-124 | License + compiler-recency extraction (data path; available for drawer + future relevance redesign; not yet a score component in v1) | B | P1 | S | open | US-113 |
 
@@ -3687,7 +3687,7 @@ EPIC reference: US-086. Renumbered to US-121. **First cut** if Day 2 morning sli
 | Sponsor | - |
 | Dependencies | US-032, US-114, US-115, US-116 |
 | Acceptance gates | GATE-20 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | merged |
 
 #### Scope
 
