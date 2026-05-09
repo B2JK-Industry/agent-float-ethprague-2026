@@ -148,12 +148,21 @@ async function main(): Promise<void> {
             false,
             0,
         ],
-        value: totalPrice,
+        // Send 10% above the read price. ENS rentPrice is queried fresh at
+        // register-time, so a price-oracle wiggle between commit and register
+        // would otherwise revert with InsufficientValue. The controller
+        // refunds any surplus to the sender.
+        value: (totalPrice * 110n) / 100n,
         chain: sepolia,
     });
     console.log(`  register tx: ${registerTx}`);
 
-    await publicClient.waitForTransactionReceipt({ hash: registerTx });
+    const registerReceipt = await publicClient.waitForTransactionReceipt({
+        hash: registerTx,
+    });
+    if (registerReceipt.status !== "success") {
+        throw new Error(`register reverted (tx ${registerTx})`);
+    }
     console.log(`OK: ${fullName} registered to ${account.address}`);
 }
 
