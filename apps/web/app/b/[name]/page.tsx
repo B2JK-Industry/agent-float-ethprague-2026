@@ -25,6 +25,7 @@
 import type { Metadata } from "next";
 
 import { ScoreBanner } from "../../../components/bench/ScoreBanner";
+import { ScoreBreakdownPanel } from "../../../components/bench/ScoreBreakdownPanel";
 import { SourceGrid } from "../../../components/bench/SourceGrid";
 import { GitHubDrawer } from "../../../components/bench/drawers/GitHubDrawer";
 import { BENCH_SUB_BRAND, BENCH_SUB_TAGLINE } from "../../../lib/branding";
@@ -141,6 +142,8 @@ function BenchFoundation({
       <ScoreBanner score={score} />
 
       <SourceGrid evidence={evidence} />
+
+      <ScoreBreakdownPanel score={score} />
 
       {evidence.failures.length > 0 ? (
         <p
