@@ -329,4 +329,151 @@ describe('orchestrateSubject', () => {
       expect(result.onchain).toHaveLength(2);
     });
   });
+
+  // US-117 carry-rule v2 §2B: per-source AbortController budgets so a
+  // public-read subject (vitalik.eth-style) returns a partial verdict
+  // when one source hangs instead of failing the whole 12s page budget.
+  describe('per-source timeouts', () => {
+    function neverResolves<T>(): Promise<T> {
+      return new Promise<T>(() => {
+        /* deliberately never resolves */
+      });
+    }
+
+    it('Sourcify entry timeout fires source_timeout reason without aborting other sources', async () => {
+      const records = new Map<string, string | null>([
+        [AGENT_BENCH_RECORD_KEYS.benchManifest, JSON.stringify(fullManifest)],
+      ]);
+      const client = makeClient({ recordValues: records });
+      // Sourcify deep + metadata both hang. ENS-internal returns fast.
+      const sourcifyHang = vi.fn(async (_url: string) => neverResolves<Response>());
+      const ensFast = vi.fn(async () => jsonResponse(200, { data: { domains: [] } }));
+
+      const result = await orchestrateSubject(NAME, {
+        client,
+        sourcifyDeepOptions: { fetchImpl: sourcifyHang },
+        metadataOptions: { fetchImpl: sourcifyHang },
+        crossChainOptions: { fetchImpl: sourcifyHang },
+        ensInternalOptions: { apiKey: 'k', fetchImpl: ensFast },
+        graphApiKey: 'k',
+        // 50ms budgets so the test runs in <1s even if abort doesn't
+        // propagate.
+        perSourceBudgetsMs: { sourcifyDeep: 50, ensInternal: 50, crossChain: 50 },
+      });
+
+      const sourcifyEntry = result.sourcify[0];
+      expect(sourcifyEntry?.kind).toBe('error');
+      if (sourcifyEntry?.kind === 'error') {
+        expect(sourcifyEntry.reason).toBe('source_timeout');
+        expect(sourcifyEntry.message).toContain('per-source timeout');
+      }
+      // ENS-internal still resolved despite Sourcify hang.
+      expect(result.ensInternal.kind).toBe('ok');
+    });
+
+    it("GitHub timeout doesn't block ENS-internal", async () => {
+      const records = new Map<string, string | null>([
+        [AGENT_BENCH_RECORD_KEYS.benchManifest, JSON.stringify(fullManifest)],
+      ]);
+      const client = makeClient({ recordValues: records });
+      const githubHang = vi.fn(async () => neverResolves<Response>());
+      const ensFast = vi.fn(async () => jsonResponse(200, { data: { domains: [] } }));
+      const sourcifyFast = vi.fn(async () => jsonResponse(200, { match: 'exact_match' }));
+
+      const result = await orchestrateSubject(NAME, {
+        client,
+        sourcifyDeepOptions: { fetchImpl: sourcifyFast },
+        metadataOptions: { fetchImpl: sourcifyFast },
+        crossChainOptions: { fetchImpl: sourcifyFast },
+        githubPat: 'ghp_test',
+        githubOptions: { fetchImpl: githubHang, pat: 'ghp_test' },
+        graphApiKey: 'k',
+        ensInternalOptions: { apiKey: 'k', fetchImpl: ensFast },
+        perSourceBudgetsMs: { github: 50, sourcifyDeep: 200, ensInternal: 200, crossChain: 200 },
+      });
+
+      expect(result.github.kind).toBe('error');
+      if (result.github.kind === 'error') {
+        expect(result.github.reason).toBe('source_timeout');
+      }
+      expect(result.ensInternal.kind).toBe('ok');
+      expect(result.failures.find((f) => f.source === 'github' && f.reason === 'source_timeout')).toBeDefined();
+    });
+
+    it('All sources fast → no timeouts fire', async () => {
+      const records = new Map<string, string | null>([
+        [AGENT_BENCH_RECORD_KEYS.benchManifest, JSON.stringify(fullManifest)],
+      ]);
+      const client = makeClient({ recordValues: records });
+      const fetchImpl = vi.fn(async (url: string) => {
+        if (url.includes('/v2/contract/all-chains/')) return jsonResponse(200, []);
+        if (url.includes('/v2/contract/')) return jsonResponse(200, { match: 'exact_match' });
+        if (url.includes('api.github.com/users/')) return jsonResponse(200, { login: 'vbuterin' });
+        if (url.includes('gateway.thegraph.com/')) return jsonResponse(200, { data: { domains: [] } });
+        return jsonResponse(404, {});
+      });
+
+      const result = await orchestrateSubject(NAME, {
+        client,
+        sourcifyDeepOptions: { fetchImpl },
+        metadataOptions: { fetchImpl },
+        crossChainOptions: { fetchImpl },
+        githubPat: 'ghp_test',
+        githubOptions: { fetchImpl, pat: 'ghp_test' },
+        graphApiKey: 'k',
+        ensInternalOptions: { apiKey: 'k', fetchImpl },
+        // Tight budgets — happy path completes well under them.
+        perSourceBudgetsMs: { sourcifyDeep: 200, github: 200, onchain: 200, ensInternal: 200, crossChain: 200 },
+      });
+
+      expect(result.failures.find((f) => f.reason === 'source_timeout')).toBeUndefined();
+      expect(result.sourcify[0]?.kind).toBe('ok');
+      expect(result.github.kind).toBe('ok');
+      expect(result.ensInternal.kind).toBe('ok');
+    });
+
+    it('Per-source budget is shorter than page budget — partial verdict returns within budget × source-count', async () => {
+      // Mix: 1 hung Sourcify entry + 1 hung GitHub + ENS-internal fast.
+      // Budgets at 60ms each → orchestrator must return well under
+      // 12s page deadline (we assert under 1s as a generous ceiling).
+      const m: SubjectManifest = {
+        ...fullManifest,
+        sources: {
+          ...fullManifest.sources,
+          sourcify: [{ chainId: 1, address: SOURCIFY_ADDR, label: 'mainnet' }],
+        },
+      };
+      const records = new Map<string, string | null>([
+        [AGENT_BENCH_RECORD_KEYS.benchManifest, JSON.stringify(m)],
+      ]);
+      const client = makeClient({ recordValues: records });
+      const hang = vi.fn(async () => neverResolves<Response>());
+      const ensFast = vi.fn(async () => jsonResponse(200, { data: { domains: [] } }));
+
+      const start = Date.now();
+      const result = await orchestrateSubject(NAME, {
+        client,
+        sourcifyDeepOptions: { fetchImpl: hang },
+        metadataOptions: { fetchImpl: hang },
+        crossChainOptions: { fetchImpl: hang },
+        githubPat: 'ghp_test',
+        githubOptions: { fetchImpl: hang, pat: 'ghp_test' },
+        graphApiKey: 'k',
+        ensInternalOptions: { apiKey: 'k', fetchImpl: ensFast },
+        perSourceBudgetsMs: { sourcifyDeep: 60, github: 60, ensInternal: 60, crossChain: 60 },
+      });
+      const elapsed = Date.now() - start;
+
+      // Far under the 12s page-level cap; sources fan out in parallel
+      // so total ≈ max(individual budget) ≈ 60ms × overhead.
+      expect(elapsed).toBeLessThan(1000);
+      // Partial verdict: timed-out sources surface as kind:'error'
+      // reason:'source_timeout'; ENS-internal succeeded.
+      expect(result.sourcify[0]?.kind).toBe('error');
+      expect(result.github.kind).toBe('error');
+      expect(result.ensInternal.kind).toBe('ok');
+      // Score-engine-readable failure entries logged.
+      expect(result.failures.filter((f) => f.reason === 'source_timeout').length).toBeGreaterThanOrEqual(2);
+    });
+  });
 });

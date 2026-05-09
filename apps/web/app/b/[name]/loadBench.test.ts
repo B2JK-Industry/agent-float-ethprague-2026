@@ -199,4 +199,100 @@ describe("loadBench", () => {
     // Default 12s did NOT fire on a 100ms call — loaded path returned.
     expect(result.kind).toBe("loaded");
   });
+
+  // US-117 carry-rule v2 §2B: per-source timeouts inside the
+  // orchestrator surface as `kind:'error' reason:'source_timeout'` per
+  // tile rather than triggering the page-level `orchestrator_timeout`.
+  // loadBench must pass partial evidence through unchanged so the
+  // renderer can show missing pills on timed-out tiles + scored
+  // contributions on the OK ones.
+  it("Partial evidence renders score with missing components — loadBench passes timed-out tiles through to computeScore", async () => {
+    const partialEvidence = {
+      subject: {
+        name: "vitalik.eth",
+        chainId: 1,
+        mode: "public-read",
+        primaryAddress: "0xPRIMARY00000000000000000000000000000000",
+        kind: null,
+        manifest: null,
+      },
+      // Sourcify entry timed out → tile renders missing pill.
+      sourcify: [
+        {
+          kind: "error",
+          chainId: 1,
+          address: "0xBBB",
+          label: "vault",
+          reason: "source_timeout",
+          message: "sourcify-deep:1:0xBBB: per-source timeout 4000ms",
+        },
+      ],
+      // GitHub responded OK.
+      github: { kind: "ok", value: { owner: "vbuterin", user: null, repos: [] } },
+      // On-chain responded OK across both default chains.
+      onchain: [
+        {
+          kind: "ok",
+          chainId: 1,
+          value: {
+            chainId: 1,
+            address: "0xPRIMARY00000000000000000000000000000000",
+            nonce: 100,
+            firstTxBlock: 18_000_000n,
+            firstTxTimestamp: 1700000000,
+            latestBlock: 19_000_000n,
+          },
+        },
+      ],
+      // ENS-internal subgraph timed out → tile renders missing pill.
+      ensInternal: {
+        kind: "error",
+        reason: "source_timeout",
+        message: "ens-internal:vitalik.eth: per-source timeout 4000ms",
+      },
+      crossChain: null,
+      // Failures aggregate logged by orchestrator.
+      failures: [
+        { kind: "error", source: "sourcify", reason: "source_timeout", message: "tile timeout" },
+        { kind: "error", source: "ens-internal", reason: "source_timeout", message: "tile timeout" },
+      ],
+    } as unknown as MultiSourceEvidence;
+
+    orchestrateMock.mockResolvedValue(partialEvidence);
+    // Score engine reads ok sources (github + onchain), ignores the
+    // timed-out tiles. Tier ceiling A still applies in public-read mode
+    // — that's the score engine's job. Here we lock that loadBench
+    // returns kind:'loaded' (NOT kind:'error' orchestrator_timeout) so
+    // the renderer gets the partial evidence + the score.
+    const partialScore = {
+      ...SAMPLE_SCORE,
+      seniority: 0.18,
+      relevance: 0.30,
+      score_100: 24,
+      tier: "D",
+      meta: { ...SAMPLE_SCORE.meta, mode: "public-read", nonZeroSourceCount: 2 },
+    } as unknown as ScoreResult;
+    computeScoreMock.mockReturnValue(partialScore);
+
+    const result = await loadBench("vitalik.eth", { nowSeconds: 1_715_000_000 });
+
+    expect(result.kind).toBe("loaded");
+    if (result.kind !== "loaded") throw new Error("unreachable");
+    // Evidence threaded through unchanged — renderer sees source_timeout
+    // entries and renders missing pills on those tiles.
+    expect(result.evidence).toBe(partialEvidence);
+    expect(result.evidence.sourcify[0]?.kind).toBe("error");
+    expect(result.evidence.ensInternal.kind).toBe("error");
+    expect(result.evidence.github.kind).toBe("ok");
+    expect(result.evidence.onchain[0]?.kind).toBe("ok");
+    // Score computed honestly off the OK sources.
+    expect(result.score).toBe(partialScore);
+    expect(result.score.tier).toBe("D");
+    expect(result.score.meta.mode).toBe("public-read");
+    // computeScore was invoked with the partial evidence — no early
+    // bail-out on timeout entries.
+    expect(computeScoreMock).toHaveBeenCalledWith(partialEvidence, {
+      nowSeconds: 1_715_000_000,
+    });
+  });
 });
