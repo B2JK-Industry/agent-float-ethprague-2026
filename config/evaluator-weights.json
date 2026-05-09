@@ -1,0 +1,63 @@
+{
+  "addr.eth": {
+    "weight": 1.0,
+    "trustFloor": 0.7,
+    "trustCeiling": 1.0,
+    "timeoutMs": 2000,
+    "thresholds": {
+      "maxAgeDays": 730,
+      "maxTxCount": 10000,
+      "maxDeployed": 50,
+      "maxRecent": 200,
+      "staleDays": 90
+    }
+  },
+  "com.github": {
+    "weight": 1.0,
+    "trustFloor": 0.6,
+    "trustCeiling": 1.0,
+    "timeoutMs": 3000,
+    "thresholds": {
+      "maxAccountAge": 1825,
+      "maxRepos": 50,
+      "maxStars": 1000,
+      "maxLangs": 6,
+      "maxReleases": 50,
+      "maxCommits30d": 100,
+      "maxActive": 10,
+      "staleDays": 90
+    }
+  },
+  "description": {
+    "weight": 0.5,
+    "trustFloor": 0.5,
+    "trustCeiling": 0.7,
+    "timeoutMs": 200,
+    "thresholds": {
+      "minLength": 20,
+      "maxLength": 280,
+      "techKeywordsTarget": 4
+    }
+  },
+  "url": {
+    "weight": 0.6,
+    "trustFloor": 0.5,
+    "trustCeiling": 0.8,
+    "timeoutMs": 2000,
+    "thresholds": {
+      "maxResponseMs": 1500,
+      "selfReferenceBoost": 0.2
+    }
+  },
+  "ens-registration": {
+    "weight": 0.6,
+    "trustFloor": 1.0,
+    "trustCeiling": 1.0,
+    "timeoutMs": 2000,
+    "thresholds": {
+      "maxAgeDays": 1825,
+      "freshUpdateDays": 30,
+      "expiryWarningDays": 60
+    }
+  }
+}
