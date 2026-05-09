@@ -18,12 +18,16 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("HomePage", () => {
-  it("renders the canonical Upgrade Siren hero copy", () => {
+  it("renders the canonical Bench-mode hero copy", () => {
     render(<HomePage />);
+    // Post-2026-05-10 pivot: hero leads with the Bench Mode pitch
+    // ("Type any ENS name. Get a 0–100 benchmark.") and the
+    // "No data, no score." sub-tagline. The legacy
+    // "Verdict in five seconds." headline is gone.
     expect(
-      screen.getByRole("heading", { name: /verdict in five seconds/i }),
+      screen.getByRole("heading", { name: /type any ens name/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/no source, no upgrade\./i)).toBeInTheDocument();
+    expect(screen.getByText(/no data, no score\./i)).toBeInTheDocument();
   });
 
   it("does not contain stale scaffold/placeholder/coming-soon wording", () => {
@@ -35,15 +39,15 @@ describe("HomePage", () => {
     expect(text).not.toMatch(/subsequent items/i);
   });
 
-  it("mounts EnsLookupForm and PublicReadInput", () => {
+  it("mounts the Bench-mode EnsLookupForm in the hero", () => {
     render(<HomePage />);
-    // EnsLookupForm exposes input id="ens-lookup-input";
-    // PublicReadInput exposes input id="public-read-input".
+    // PublicReadInput was retired with the single-contract band on
+    // 2026-05-10 — only EnsLookupForm remains in the hero.
     expect(document.getElementById("ens-lookup-input")).toBeInTheDocument();
-    expect(document.getElementById("public-read-input")).toBeInTheDocument();
+    expect(document.getElementById("public-read-input")).toBeNull();
   });
 
-  it("renders the booth-scenarios section linking each scenario to its /r route", () => {
+  it("renders the booth-scenarios section linking each scenario to its /b route", () => {
     render(<HomePage />);
     const section = screen.getByRole("region", {
       name: /try the booth scenarios/i,
@@ -62,11 +66,11 @@ describe("HomePage", () => {
       expect(li).toBeDefined();
       const href = buildScenarioHref(scenario);
       if (href === null) {
-        // greyed-out chip
         const span = li!.querySelector('[aria-disabled="true"]');
         expect(span).not.toBeNull();
       } else {
         expect(li!.querySelector("a")).toHaveAttribute("href", href);
+        expect(href.startsWith("/b/")).toBe(true);
       }
     }
   });
