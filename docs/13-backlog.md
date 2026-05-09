@@ -60,7 +60,7 @@ Tracker-only owners (not picked up by dev agents):
 |---|---|---|---|---|---|---|
 | US-014 | Siren Report JSON schema in packages/shared | B | P0 | S | merged | none |
 | US-015 | EIP-712 typed-data builder and signReport helper in packages/shared | B | P0 | S | merged | US-014 |
-| US-016 | Shared types package for cross-stream consumption | B | P0 | S | open | none |
+| US-016 | Shared types package for cross-stream consumption | B | P0 | S | merged | none |
 | US-017 | ENS live record resolution (stable upgrade-siren records and manifest) | B | P0 | M | merged | none |
 | US-018 | Atomic upgrade-siren:upgrade_manifest parser and validator | B | P0 | M | open | US-014, US-017 |
 | US-019 | Public-read fallback path for absent Upgrade Siren records | B | P0 | M | merged | US-017 |
@@ -110,7 +110,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-056 | Siren Agent watchlist config | C | P2 | M | open | US-029 |
 | US-057 | Operator report-signing workflow UX for Siren Agent automation | C | P2 | M | open | US-015, US-056 |
 | US-058 | Umia-style due-diligence panel | C | P2 | M | open | US-029 |
-| US-067 | Brand visual identity assets and Tailwind preset integration | C | P0 | L | open | US-037 |
+| US-067 | Brand visual identity assets and Tailwind preset integration | C | P0 | L | merged | US-037 |
 
 ### Tracker — Daniel + Orch
 
@@ -801,7 +801,7 @@ Effort `S` and listed second in the Stream B Index per scheduling guidance. Stre
 | Sponsor | - |
 | Dependencies | none |
 | Acceptance gates | - |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -2952,7 +2952,7 @@ P1 because Devfolio accepts a default placeholder if the visual identity from `p
 | Sponsor | Future Society |
 | Dependencies | US-037 |
 | Acceptance gates | GATE-2, GATE-22 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
