@@ -115,7 +115,7 @@ export type {
   RunPublicReadFallbackOptions,
 } from './fallback/publicRead.js';
 
-export { diffStorageLayout, entriesEqual } from './diff/storage.js';
+export { diffStorageLayout, entriesEqual, typesDeepEqual } from './diff/storage.js';
 
 export type {
   StorageDiffChange,
@@ -149,6 +149,7 @@ export { computeVerdict } from './verdict/engine.js';
 
 export type {
   ComputeVerdictInput,
+  ComputeVerdictOptions,
   ComputeVerdictResult,
   StorageDiffResultLike,
   Verdict,

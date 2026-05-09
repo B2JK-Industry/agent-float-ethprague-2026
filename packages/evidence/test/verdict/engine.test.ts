@@ -200,6 +200,74 @@ describe('computeVerdict — mock mode', () => {
     expect(r.confidence).toBe('mock');
     expect(r.findings.some((f) => f.id === 'MOCK_MODE')).toBe(true);
   });
+
+  it('Codex #52: mock=true with mode=signed-manifest forces mock confidence', () => {
+    // Pre-fix the engine returned 'operator-signed' here, letting an
+    // unsigned/mock fixture be reported as trusted production output.
+    const r = computeVerdict({ ...happySigned, mock: true });
+    expect(r.confidence).toBe('mock');
+    expect(r.mode).toBe('signed-manifest');
+  });
+
+  it('mock=true with mode=public-read also forces mock confidence', () => {
+    const r = computeVerdict({ ...happySigned, mode: 'public-read', mock: true });
+    expect(r.confidence).toBe('mock');
+  });
+});
+
+describe('computeVerdict — grace policy wire-up (Codex #53)', () => {
+  // Manifest declares currentImpl=IMPL_B; live slot is IMPL_A. Pre-fix this
+  // always returned SIREN regardless of MANIFEST_GRACE_SECONDS. Post-fix the
+  // engine accepts a graceSeconds option and downgrades to REVIEW when the
+  // manifest's effectiveFrom is within the window.
+  const slotMismatch: ComputeVerdictInput = {
+    ...happySigned,
+    liveImplementation: IMPL_A, // disagrees with manifest.currentImpl=IMPL_B
+  };
+
+  it('default (no options) keeps SIREN — P0 conservative', () => {
+    const r = computeVerdict(slotMismatch);
+    expect(r.verdict).toBe('SIREN');
+  });
+
+  it('graceSeconds=0 keeps SIREN', () => {
+    const r = computeVerdict(slotMismatch, { graceSeconds: 0 });
+    expect(r.verdict).toBe('SIREN');
+  });
+
+  it('graceSeconds=300 + effectiveFrom within window -> REVIEW', () => {
+    // baseManifest.effectiveFrom is 2026-05-09T00:00:00Z
+    const r = computeVerdict(slotMismatch, {
+      graceSeconds: 300,
+      clock: () => new Date('2026-05-09T00:01:00Z'),
+    });
+    expect(r.verdict).toBe('REVIEW');
+    const stale = r.findings.find((f) => f.id === 'MANIFEST_STALE_OR_UNEXPECTED_UPGRADE');
+    expect(stale?.severity).toBe('warning');
+    expect((stale?.evidence as { graceApplied?: boolean })?.graceApplied).toBe(true);
+  });
+
+  it('graceSeconds=300 + effectiveFrom outside window -> SIREN', () => {
+    const r = computeVerdict(slotMismatch, {
+      graceSeconds: 300,
+      clock: () => new Date('2026-06-01T00:00:00Z'),
+    });
+    expect(r.verdict).toBe('SIREN');
+  });
+
+  it('grace also applies to live-slot-null vs manifest.currentImpl mismatch (addProxyFindings path)', () => {
+    const proxyMismatch: ComputeVerdictInput = {
+      ...happySigned,
+      liveImplementation: null,
+    };
+    const r = computeVerdict(proxyMismatch, {
+      graceSeconds: 300,
+      clock: () => new Date('2026-05-09T00:01:00Z'),
+    });
+    expect(r.verdict).toBe('REVIEW');
+    const stale = r.findings.find((f) => f.id === 'MANIFEST_STALE_OR_UNEXPECTED_UPGRADE');
+    expect(stale?.severity).toBe('warning');
+  });
 });
 
 describe('computeVerdict — determinism', () => {

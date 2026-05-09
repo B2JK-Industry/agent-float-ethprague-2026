@@ -2,6 +2,7 @@ import type { Abi } from 'viem';
 
 import type { Address } from '@upgrade-siren/shared';
 
+import { NetworkUnavailable, retryableFetch, type RetryOptions } from '../network/retry.js';
 import {
   SOURCIFY_BASE_URL,
   type FetchLike,
@@ -13,9 +14,17 @@ import {
   type SourcifyStorageLayout,
 } from './types.js';
 
+// Codex #51: opt-in retry on 429/5xx via `retry` option.
 interface FetchSourcifyMetadataOptions {
   readonly fetchImpl?: FetchLike;
   readonly baseUrl?: string;
+  readonly retry?: RetryOptions | true;
+}
+
+function resolveRetryOptions(retry: RetryOptions | true | undefined): RetryOptions | undefined {
+  if (retry === undefined) return undefined;
+  if (retry === true) return {};
+  return retry;
 }
 
 function buildUrl(baseUrl: string, chainId: number, address: Address): string {
@@ -89,7 +98,9 @@ export async function fetchSourcifyMetadata(
   address: Address,
   options: FetchSourcifyMetadataOptions = {},
 ): Promise<Result<SourcifyMetadata, SourcifyError>> {
-  const fetchImpl: FetchLike = options.fetchImpl ?? globalThis.fetch.bind(globalThis);
+  const baseFetch: FetchLike = options.fetchImpl ?? globalThis.fetch.bind(globalThis);
+  const retryOpts = resolveRetryOptions(options.retry);
+  const fetchImpl: FetchLike = retryOpts ? retryableFetch(baseFetch, retryOpts) : baseFetch;
   const baseUrl = options.baseUrl ?? SOURCIFY_BASE_URL;
   const url = buildUrl(baseUrl, chainId, address);
 
@@ -97,6 +108,16 @@ export async function fetchSourcifyMetadata(
   try {
     response = await fetchImpl(url, { headers: { accept: 'application/json' } });
   } catch (err) {
+    if (err instanceof NetworkUnavailable) {
+      return {
+        kind: 'error',
+        error: {
+          reason: 'network_error',
+          message: `sourcify.metadata: ${err.message}`,
+          cause: err.lastError,
+        },
+      };
+    }
     return {
       kind: 'error',
       error: {

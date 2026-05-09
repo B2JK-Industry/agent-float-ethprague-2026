@@ -27,13 +27,25 @@ function makeFetchCounting(handler: () => Promise<Response>): { fetchImpl: Fetch
 }
 
 describe('SourcifyCache', () => {
-  it('keyFor lowercases the address and namespaces by endpoint+chainId', () => {
+  it('keyFor lowercases the address and namespaces by endpoint+chainId+baseUrl', () => {
     expect(SourcifyCache.keyFor('status', CHAIN_ID, '0xABCDEF1234567890123456789012345678901234' as `0x${string}`)).toBe(
-      `status:${CHAIN_ID}:0xabcdef1234567890123456789012345678901234`,
+      `status::${CHAIN_ID}:0xabcdef1234567890123456789012345678901234`,
     );
     expect(SourcifyCache.keyFor('metadata', CHAIN_ID, ADDRESS)).toBe(
-      `metadata:${CHAIN_ID}:${ADDRESS.toLowerCase()}`,
+      `metadata::${CHAIN_ID}:${ADDRESS.toLowerCase()}`,
     );
+    expect(
+      SourcifyCache.keyFor('status', CHAIN_ID, ADDRESS, 'https://staging.sourcify.dev'),
+    ).toBe(`status:https://staging.sourcify.dev:${CHAIN_ID}:${ADDRESS.toLowerCase()}`);
+  });
+
+  it('Codex #47: different baseUrl values are distinct cache identities', () => {
+    const cache = new SourcifyCache();
+    const status: SourcifyStatus = { chainId: CHAIN_ID, address: ADDRESS, match: 'exact_match' };
+    cache.setStatus(CHAIN_ID, ADDRESS, status, 'https://prod.sourcify.dev');
+    expect(cache.getStatus(CHAIN_ID, ADDRESS, 'https://prod.sourcify.dev')).toEqual(status);
+    expect(cache.getStatus(CHAIN_ID, ADDRESS, 'https://staging.sourcify.dev')).toBeUndefined();
+    expect(cache.getStatus(CHAIN_ID, ADDRESS)).toBeUndefined(); // default ('') is its own identity
   });
 
   it('verified responses use the long TTL; not_found uses the short TTL', () => {

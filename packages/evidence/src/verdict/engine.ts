@@ -14,6 +14,7 @@ import type { UpgradeManifest } from '../manifest/types.js';
 import type { VerifySignatureResult } from '../verify/signature.js';
 import { classifyAbsentRecord } from './absentRecords.js';
 import { FINDING_IDS, type Finding, makeFinding } from './findings.js';
+import { applyManifestGracePolicy } from './gracePolicy.js';
 
 // Compatibility alias for the canonical US-027 type. Earlier drafts of this
 // engine declared a local structural mirror named StorageDiffResultLike;
@@ -58,7 +59,23 @@ export interface ComputeVerdictResult {
   readonly confidence: VerdictConfidence;
 }
 
-function confidenceFor(mode: VerdictMode): VerdictConfidence {
+// Codex #53: grace-policy options threaded through the verdict path. When
+// graceSeconds > 0 and the manifest's effectiveFrom is within the window,
+// the slot-vs-manifest mismatch finding is downgraded from critical to
+// warning so the aggregated verdict caps at REVIEW instead of SIREN.
+// Default disabled (graceSeconds === undefined or 0) preserves the
+// conservative SIREN behavior. See docs/07 mentor question 60.
+export interface ComputeVerdictOptions {
+  readonly graceSeconds?: number;
+  readonly clock?: () => Date;
+}
+
+// Codex #52 (P2): if a caller sets mock: true while leaving mode='signed-manifest'
+// (allowed by ComputeVerdictInput), the previous logic returned 'operator-signed'
+// confidence — letting an unsigned/mock fixture be reported as trusted
+// signed-manifest output. Mock flag now wins regardless of the mode label.
+function confidenceFor(mode: VerdictMode, mock: boolean): VerdictConfidence {
+  if (mock) return 'mock';
   if (mode === 'signed-manifest') return 'operator-signed';
   if (mode === 'public-read') return 'public-read';
   return 'mock';
@@ -92,7 +109,33 @@ function summarise(verdict: Verdict, findings: ReadonlyArray<Finding>, mode: Ver
 }
 
 // Adds a finding for absent-record paths (US-020 output).
-function addAbsentRecordFinding(input: ComputeVerdictInput, findings: Finding[]): void {
+// Codex #53: when graceSeconds > 0 and the manifest's effectiveFrom is
+// inside the window, the slot-vs-manifest mismatch is downgraded from
+// critical to warning so the verdict aggregates to REVIEW instead of
+// SIREN. Returns 'critical' (P0 conservative) when the option is absent
+// or the window has elapsed.
+function staleSeverityWithGrace(
+  input: ComputeVerdictInput,
+  options: ComputeVerdictOptions | undefined,
+): 'critical' | 'warning' {
+  if (!options || !options.graceSeconds || options.graceSeconds <= 0) return 'critical';
+  const effectiveFrom = input.manifest?.effectiveFrom;
+  if (!effectiveFrom) return 'critical';
+  const decision = applyManifestGracePolicy(
+    { effectiveFrom },
+    {
+      graceSeconds: options.graceSeconds,
+      ...(options.clock !== undefined ? { clock: options.clock } : {}),
+    },
+  );
+  return decision.verdict === 'REVIEW' ? 'warning' : 'critical';
+}
+
+function addAbsentRecordFinding(
+  input: ComputeVerdictInput,
+  findings: Finding[],
+  options?: ComputeVerdictOptions,
+): void {
   if (input.mode === 'mock') return;
   const absentRecordVerdict = classifyAbsentRecord({
     manifestPresent: input.manifestPresent,
@@ -136,19 +179,24 @@ function addAbsentRecordFinding(input: ComputeVerdictInput, findings: Finding[])
         ),
       );
       break;
-    case 'manifest_stale_or_unexpected_upgrade':
+    case 'manifest_stale_or_unexpected_upgrade': {
+      const severity = staleSeverityWithGrace(input, options);
       findings.push(
         makeFinding(
           FINDING_IDS.MANIFEST_STALE_OR_UNEXPECTED_UPGRADE,
-          'critical',
-          'live proxy implementation disagrees with the manifest currentImpl',
+          severity,
+          severity === 'warning'
+            ? 'live proxy implementation disagrees with manifest currentImpl, but manifest.effectiveFrom is within the configured grace window (REVIEW)'
+            : 'live proxy implementation disagrees with the manifest currentImpl',
           {
             liveImplementation: input.liveImplementation,
             manifestCurrentImpl: input.manifest?.currentImpl ?? null,
+            graceApplied: severity === 'warning',
           },
         ),
       );
       break;
+    }
   }
 }
 
@@ -346,7 +394,11 @@ function addStorageFindings(input: ComputeVerdictInput, findings: Finding[]): vo
   }
 }
 
-function addProxyFindings(input: ComputeVerdictInput, findings: Finding[]): void {
+function addProxyFindings(
+  input: ComputeVerdictInput,
+  findings: Finding[],
+  options?: ComputeVerdictOptions,
+): void {
   if (input.liveImplementation !== null) return;
 
   // Live slot is zero. Two distinct cases:
@@ -356,19 +408,24 @@ function addProxyFindings(input: ComputeVerdictInput, findings: Finding[]): void
   //    docs/02 "Proxy slot disagrees with manifest current implementation"
   //    rule and must be SIREN. classifyAbsentRecord rule 4 only fires when
   //    BOTH sides are non-null, so this branch is the engine's own
-  //    enforcement of the disagreement when one side is null.
+  //    enforcement of the disagreement when one side is null. Grace policy
+  //    (Codex #53) applies here too — same docs/02 path.
   // 2. public-read mode (or signed-manifest with manifest=null) -> the
   //    address probably isn't an EIP-1967 proxy. Warning is enough; the
   //    verdict caps at REVIEW unless another critical signal fires.
   if (input.mode === 'signed-manifest' && (input.manifest?.currentImpl ?? null) !== null) {
+    const severity = staleSeverityWithGrace(input, options);
     findings.push(
       makeFinding(
         FINDING_IDS.MANIFEST_STALE_OR_UNEXPECTED_UPGRADE,
-        'critical',
-        'live EIP-1967 implementation slot is zero but manifest declares a non-null currentImpl',
+        severity,
+        severity === 'warning'
+          ? 'live EIP-1967 slot is zero but manifest declares a non-null currentImpl, within the configured grace window (REVIEW)'
+          : 'live EIP-1967 implementation slot is zero but manifest declares a non-null currentImpl',
         {
           liveImplementation: null,
           manifestCurrentImpl: input.manifest?.currentImpl ?? null,
+          graceApplied: severity === 'warning',
         },
       ),
     );
@@ -402,13 +459,16 @@ function addModeFinding(input: ComputeVerdictInput, findings: Finding[]): void {
   }
 }
 
-export function computeVerdict(input: ComputeVerdictInput): ComputeVerdictResult {
+export function computeVerdict(
+  input: ComputeVerdictInput,
+  options?: ComputeVerdictOptions,
+): ComputeVerdictResult {
   const findings: Finding[] = [];
 
   addModeFinding(input, findings);
-  addAbsentRecordFinding(input, findings);
+  addAbsentRecordFinding(input, findings, options);
   addSignatureFinding(input, findings);
-  addProxyFindings(input, findings);
+  addProxyFindings(input, findings, options);
   addSourcifyFindings(input, findings);
   addAbiFindings(input, findings);
   addStorageFindings(input, findings);
@@ -420,6 +480,6 @@ export function computeVerdict(input: ComputeVerdictInput): ComputeVerdictResult
     findings,
     summary,
     mode: input.mode,
-    confidence: confidenceFor(input.mode),
+    confidence: confidenceFor(input.mode, input.mock),
   };
 }

@@ -1,6 +1,7 @@
 import { createPublicClient, http, type PublicClient } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 
+import { withRetry, type RetryOptions } from '../network/retry.js';
 import {
   ENSIP_26_RECORD_KEYS,
   UPGRADE_SIREN_RECORD_KEYS,
@@ -12,10 +13,18 @@ import {
   type UpgradeSirenRecordKey,
 } from './types.js';
 
+// Codex #51: opt-in retry on transient ENS RPC errors via `retry` option.
 export interface ResolveEnsRecordsOptions {
   readonly chainId?: number;
   readonly rpcUrl?: string;
   readonly client?: PublicClient;
+  readonly retry?: RetryOptions | true;
+}
+
+function resolveRetryOptions(retry: RetryOptions | true | undefined): RetryOptions | undefined {
+  if (retry === undefined) return undefined;
+  if (retry === true) return {};
+  return retry;
 }
 
 const ENS_NAME_RE = /^(?:[a-z0-9_-]+\.)+(?:eth|test)$/i;
@@ -46,10 +55,13 @@ async function getText(
   client: PublicClient,
   name: string,
   key: UpgradeSirenRecordKey | Ensip26RecordKey,
+  retry?: RetryOptions,
 ): Promise<{ kind: 'ok'; value: string | null } | { kind: 'error'; cause: unknown }> {
   try {
-    const value = await client.getEnsText({ name, key });
-    return { kind: 'ok', value: value ?? null };
+    const call = (): Promise<string | null> =>
+      client.getEnsText({ name, key }).then((v) => v ?? null);
+    const value = retry ? await withRetry(call, retry) : await call();
+    return { kind: 'ok', value };
   } catch (err) {
     return { kind: 'error', cause: err };
   }
@@ -74,6 +86,7 @@ export async function resolveEnsRecords(
   }
   const client = clientOrError as PublicClient;
 
+  const retryOpts = resolveRetryOptions(options.retry);
   const [
     chainIdRead,
     proxyRead,
@@ -84,14 +97,14 @@ export async function resolveEnsRecords(
     agentEndpointWebRead,
     agentEndpointMcpRead,
   ] = await Promise.all([
-    getText(client, name, UPGRADE_SIREN_RECORD_KEYS.chainId),
-    getText(client, name, UPGRADE_SIREN_RECORD_KEYS.proxy),
-    getText(client, name, UPGRADE_SIREN_RECORD_KEYS.owner),
-    getText(client, name, UPGRADE_SIREN_RECORD_KEYS.schema),
-    getText(client, name, UPGRADE_SIREN_RECORD_KEYS.upgradeManifest),
-    getText(client, name, ENSIP_26_RECORD_KEYS.agentContext),
-    getText(client, name, ENSIP_26_RECORD_KEYS.agentEndpointWeb),
-    getText(client, name, ENSIP_26_RECORD_KEYS.agentEndpointMcp),
+    getText(client, name, UPGRADE_SIREN_RECORD_KEYS.chainId, retryOpts),
+    getText(client, name, UPGRADE_SIREN_RECORD_KEYS.proxy, retryOpts),
+    getText(client, name, UPGRADE_SIREN_RECORD_KEYS.owner, retryOpts),
+    getText(client, name, UPGRADE_SIREN_RECORD_KEYS.schema, retryOpts),
+    getText(client, name, UPGRADE_SIREN_RECORD_KEYS.upgradeManifest, retryOpts),
+    getText(client, name, ENSIP_26_RECORD_KEYS.agentContext, retryOpts),
+    getText(client, name, ENSIP_26_RECORD_KEYS.agentEndpointWeb, retryOpts),
+    getText(client, name, ENSIP_26_RECORD_KEYS.agentEndpointMcp, retryOpts),
   ]);
 
   const reads = [

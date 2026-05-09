@@ -3,6 +3,8 @@ import { mainnet, sepolia } from 'viem/chains';
 
 import type { Address, Hex32 } from '@upgrade-siren/shared';
 
+import { NetworkUnavailable, withRetry, type RetryOptions } from '../network/retry.js';
+
 // EIP-1967 implementation slot:
 // keccak256("eip1967.proxy.implementation") - 1
 // Canonical and grep-able. Reviewer must verify byte-for-byte.
@@ -52,9 +54,17 @@ export function extractImplementationFromSlot(slotValue: Hex32 | Hex): Address |
   return getAddress(candidate) as Address;
 }
 
+// Codex #51: opt-in retry on transient RPC errors via `retry` option.
 interface ResolveClientOptions {
   readonly client?: PublicClient;
   readonly rpcUrl?: string;
+  readonly retry?: RetryOptions | true;
+}
+
+function resolveRetryOptions(retry: RetryOptions | true | undefined): RetryOptions | undefined {
+  if (retry === undefined) return undefined;
+  if (retry === true) return {};
+  return retry;
 }
 
 function resolveClient(chainId: number, options: ResolveClientOptions): PublicClient | Eip1967ReadError {
@@ -89,11 +99,16 @@ export async function readImplementationSlot(
   const client = clientOrError as PublicClient;
 
   let slotValue: Hex;
+  const retryOpts = resolveRetryOptions(options.retry);
   try {
-    const raw = await client.getStorageAt({
-      address: proxyAddress,
-      slot: EIP1967_IMPLEMENTATION_SLOT,
-    });
+    const callGetStorageAt = (): Promise<Hex | undefined> =>
+      client.getStorageAt({
+        address: proxyAddress,
+        slot: EIP1967_IMPLEMENTATION_SLOT,
+      });
+    const raw = retryOpts
+      ? await withRetry(callGetStorageAt, retryOpts)
+      : await callGetStorageAt();
     if (raw === undefined) {
       return {
         kind: 'error',
@@ -103,6 +118,14 @@ export async function readImplementationSlot(
     }
     slotValue = raw;
   } catch (err) {
+    if (err instanceof NetworkUnavailable) {
+      return {
+        kind: 'error',
+        reason: 'rpc_error',
+        message: `eip1967.getStorageAt: ${err.message}`,
+        cause: err.lastError,
+      };
+    }
     return {
       kind: 'error',
       reason: 'rpc_error',

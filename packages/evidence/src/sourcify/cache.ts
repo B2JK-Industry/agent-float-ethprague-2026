@@ -49,8 +49,19 @@ export class SourcifyCache {
     this.maxEntries = options.maxEntries ?? DEFAULT_MAX_ENTRIES;
   }
 
-  static keyFor(endpoint: SourcifyEndpoint, chainId: number, address: Address): string {
-    return `${endpoint}:${chainId}:${address.toLowerCase()}`;
+  // Codex #47: include the Sourcify base URL in cache identity. Without this,
+  // a single SourcifyCache instance reused across a local fixture/proxy
+  // server and live Sourcify (or a staging vs prod backend) can hand back
+  // the wrong backend's response. Default empty string preserves caller
+  // intent ("the default Sourcify endpoint is one identity"); explicit
+  // overrides become their own identities.
+  static keyFor(
+    endpoint: SourcifyEndpoint,
+    chainId: number,
+    address: Address,
+    baseUrl: string = '',
+  ): string {
+    return `${endpoint}:${baseUrl}:${chainId}:${address.toLowerCase()}`;
   }
 
   private ttlFor(matchLevel: 'exact_match' | 'match' | 'not_found'): number {
@@ -63,8 +74,8 @@ export class SourcifyCache {
     if (firstKey !== undefined) store.delete(firstKey);
   }
 
-  getStatus(chainId: number, address: Address): SourcifyStatus | undefined {
-    const key = SourcifyCache.keyFor('status', chainId, address);
+  getStatus(chainId: number, address: Address, baseUrl: string = ''): SourcifyStatus | undefined {
+    const key = SourcifyCache.keyFor('status', chainId, address, baseUrl);
     const entry = this.statusStore.get(key);
     if (!entry) return undefined;
     if (this.clock() >= entry.expiresAt) {
@@ -74,17 +85,17 @@ export class SourcifyCache {
     return entry.value;
   }
 
-  setStatus(chainId: number, address: Address, value: SourcifyStatus): void {
+  setStatus(chainId: number, address: Address, value: SourcifyStatus, baseUrl: string = ''): void {
     this.prune(this.statusStore);
-    const key = SourcifyCache.keyFor('status', chainId, address);
+    const key = SourcifyCache.keyFor('status', chainId, address, baseUrl);
     this.statusStore.set(key, {
       value,
       expiresAt: this.clock() + this.ttlFor(value.match),
     });
   }
 
-  getMetadata(chainId: number, address: Address): SourcifyMetadata | undefined {
-    const key = SourcifyCache.keyFor('metadata', chainId, address);
+  getMetadata(chainId: number, address: Address, baseUrl: string = ''): SourcifyMetadata | undefined {
+    const key = SourcifyCache.keyFor('metadata', chainId, address, baseUrl);
     const entry = this.metadataStore.get(key);
     if (!entry) return undefined;
     if (this.clock() >= entry.expiresAt) {
@@ -94,18 +105,18 @@ export class SourcifyCache {
     return entry.value;
   }
 
-  setMetadata(chainId: number, address: Address, value: SourcifyMetadata): void {
+  setMetadata(chainId: number, address: Address, value: SourcifyMetadata, baseUrl: string = ''): void {
     this.prune(this.metadataStore);
-    const key = SourcifyCache.keyFor('metadata', chainId, address);
+    const key = SourcifyCache.keyFor('metadata', chainId, address, baseUrl);
     this.metadataStore.set(key, {
       value,
       expiresAt: this.clock() + this.ttlFor(value.match),
     });
   }
 
-  invalidate(chainId: number, address: Address): void {
-    this.statusStore.delete(SourcifyCache.keyFor('status', chainId, address));
-    this.metadataStore.delete(SourcifyCache.keyFor('metadata', chainId, address));
+  invalidate(chainId: number, address: Address, baseUrl: string = ''): void {
+    this.statusStore.delete(SourcifyCache.keyFor('status', chainId, address, baseUrl));
+    this.metadataStore.delete(SourcifyCache.keyFor('metadata', chainId, address, baseUrl));
   }
 
   clear(): void {
@@ -130,8 +141,9 @@ export async function fetchSourcifyStatusCached(
   options: CachedFetchOptions = {},
 ): Promise<Result<SourcifyStatus, SourcifyError>> {
   const cache = options.cache;
+  const baseUrl = options.baseUrl ?? '';
   if (cache) {
-    const hit = cache.getStatus(chainId, address);
+    const hit = cache.getStatus(chainId, address, baseUrl);
     if (hit !== undefined) return { kind: 'ok', value: hit };
   }
   const fetchOptions = {
@@ -140,7 +152,7 @@ export async function fetchSourcifyStatusCached(
   };
   const result = await fetchSourcifyStatus(chainId, address, fetchOptions);
   if (cache && result.kind === 'ok') {
-    cache.setStatus(chainId, address, result.value);
+    cache.setStatus(chainId, address, result.value, baseUrl);
   }
   return result;
 }
@@ -151,8 +163,9 @@ export async function fetchSourcifyMetadataCached(
   options: CachedFetchOptions = {},
 ): Promise<Result<SourcifyMetadata, SourcifyError>> {
   const cache = options.cache;
+  const baseUrl = options.baseUrl ?? '';
   if (cache) {
-    const hit = cache.getMetadata(chainId, address);
+    const hit = cache.getMetadata(chainId, address, baseUrl);
     if (hit !== undefined) return { kind: 'ok', value: hit };
   }
   const fetchOptions = {
@@ -161,7 +174,7 @@ export async function fetchSourcifyMetadataCached(
   };
   const result = await fetchSourcifyMetadata(chainId, address, fetchOptions);
   if (cache && result.kind === 'ok') {
-    cache.setMetadata(chainId, address, result.value);
+    cache.setMetadata(chainId, address, result.value, baseUrl);
   }
   return result;
 }
