@@ -142,6 +142,71 @@ Tracker-only owners (not picked up by dev agents):
 | US-065 | 3-minute booth script rehearsal | Daniel | P0 | S | open | US-050 |
 | US-066 | Devfolio logo and cover asset | Daniel + Orch | P1 | S | open | none |
 
+## Bench Mode (Epic 2 — DRAFT, blocked on Section 21 lock-in)
+
+> Source-of-truth document: `EPIC_BENCH_MODE.md` (v1, 2026-05-08). All P0 items here block on Daniel resolving Section 21 decisions D-A through D-J. EPIC numbering (US-076..US-110) was renumbered to **US-111..US-145** to avoid collisions with already-merged stories US-076..US-084.
+>
+> Acceptance gates GATE-27..GATE-34 are new (defined in EPIC Section 15) and must be appended to `docs/06-acceptance-gates.md` before the first P0 item starts. That update is itself US-145 dependency surface.
+>
+> Stream A scope inside this epic is **reduced**: no demo-subject ENS provisioning, no new Foundry fixtures (unless storage-collision Playwright scenario forces US-130). A's contribution is the Playwright e2e harness + scenario fixtures. Per EPIC Section 13.
+>
+> EPIC ↔ backlog ID mapping is recorded in each story's Notes block. The EPIC document keeps original US-076..US-110 numbers as a historical draft; this index is the build authority.
+
+### Bench Mode — Stream B (Evidence Engine, multi-source)
+
+| ID | Title | Owner | Priority | Effort | Status | Depends on |
+|---|---|---|---|---|---|---|
+| US-111 | Subject ENS resolver: parse `agent-bench:bench_manifest` text record + JSON schema validator | B | P0 | M | open | US-017 |
+| US-112 | Public-read fallback resolver: infer partial manifest from ENS `addr()` + Sourcify `all-chains` lookup | B | P0 | M | open | US-111 |
+| US-113 | Sourcify source fetcher with deep field selectors (`compileSuccess`, `signatures.function/event`, `proxyResolution`, `creationMatch`, `runtimeMatch`, `metadata.sources[].license`, `userdoc/devdoc`) | B | P0 | M | open | US-024, US-025 |
+| US-114 | GitHub source fetcher: account meta, top-20 repos, workflow runs, contents probes (test dirs / README / LICENSE / SECURITY / dependabot), bug-labeled issues, releases. PAT-backed cache, server-side only | B | P0 | L | open | US-111 |
+| US-115 | On-chain source fetcher: first tx block + timestamp, `txCountTotal`, `txCountRecent90d`, `contractsDeployedCount` via Sourcify deployer crosswalk; multi-chain | B | P0 | M | open | US-022 |
+| US-116 | ENS-internal source fetcher: registration date, subname count, text record count, last `TextChanged` block via subgraph (own Graph Network API key required) | B | P0 | M | open | US-017 |
+| US-117 | Multi-source orchestrator: parallel runner with per-source failure isolation; emits typed `MultiSourceEvidence` shape | B | P0 | M | open | US-111, US-113, US-114, US-115, US-116 |
+| US-118 | Score engine: pure function over `MultiSourceEvidence`. Locked seniority weights (6 components); provisional relevance weights (4 components, swappable in one file before merge); trust-discount 0.6 on unverified components; emits `ScoreBreakdown` + tier label | B | P0 | M | open | US-117 |
+| US-119 | Storage-Layout Hygiene aggregator across implementation history per proxy (chronological pairwise diff over Sourcify `proxyResolution.implementations`; subject-level avg) | B | P0 | L | open | US-027, US-113 |
+| US-120 | Cross-chain auto-discovery via `/v2/contract/all-chains/{address}` for Sourcify entries | B | P1 | S | open | US-113 |
+| US-121 | Bytecode similarity submit flow: POST `/v2/verify/similarity/{chainId}/{address}` → poll → re-fetch → re-evaluate score | B | P1 | M | open | US-113 |
+| US-122 | Cache extension (extends US-032): GitHub / RPC / ENS-subgraph keys with per-namespace TTLs per EPIC Section 12 | B | P0 | S | open | US-032, US-114, US-115, US-116 |
+| US-123 | Source-pattern detection from Sourcify `sources` (Pausable, Ownable, UUPS, AccessControl) for drawer badges | B | P1 | M | open | US-113 |
+| US-124 | License + compiler-recency extraction (data path; available for drawer + future relevance redesign; not yet a score component in v1) | B | P1 | S | open | US-113 |
+
+### Bench Mode — Stream A (Playwright e2e suite, replaces demo-subject provisioning)
+
+| ID | Title | Owner | Priority | Effort | Status | Depends on |
+|---|---|---|---|---|---|---|
+| US-125 | Playwright e2e harness in `apps/web` with MSW (Mock Service Worker) for fixturing GitHub / Sourcify / RPC / ENS-subgraph responses | A | P0 | M | open | US-117 |
+| US-126 | Playwright scenario: high-score subject (verified Sourcify + verified GitHub-shaped fixtures) | A | P0 | S | open | US-125, US-118 |
+| US-127 | Playwright scenario: mid-score subject (mixed verification states; demonstrates trust-discount visibly) | A | P0 | S | open | US-125, US-118 |
+| US-128 | Playwright scenario: public-read fallback subject (no `agent-bench:bench_manifest` in fixtures; tier ceiling A) | A | P0 | S | open | US-125, US-112 |
+| US-129 | Playwright scenario: storage-collision-detected subject (fixture data shaped to trigger COLLISION in US-119) | A | P0 | M | open | US-125, US-119 |
+| US-130 | Optional Foundry fixture: deliberate storage-collision proxy upgrade (only if existing demo fixtures do not cover this for live snapshotting; decided Day 2 morning) | A | P2 | M | open | US-001..US-005 |
+
+### Bench Mode — Stream C (Web UX, /b/[name] route)
+
+| ID | Title | Owner | Priority | Effort | Status | Depends on |
+|---|---|---|---|---|---|---|
+| US-131 | `/b/[name]` route + landing mode-detection (route to `/r/[name]` if `upgrade-siren:proxy` present, else `/b/[name]`; public-read inferred when no `agent-bench:bench_manifest`) | C | P0 | M | open | US-117 |
+| US-132 | Score banner component: 0–100, both axis values, tier badge (S/A/B/C/D/U), honest-claims disclaimer copy | C | P0 | M | open | US-118 |
+| US-133 | Source grid component: 4 tiles (Sourcify / GitHub / On-chain / ENS) with verified/unverified badges and contribution numbers | C | P0 | M | open | US-117, US-118 |
+| US-134 | Score breakdown panel: full component-by-component table with `weight × value × trust` math visible per component | C | P0 | M | open | US-118 |
+| US-135 | Sourcify source drawer (reuses `/r/[name]` UI as embedded component, plus storage-history timeline per proxy) | C | P0 | L | open | US-068, US-119 |
+| US-136 | GitHub source drawer (top-20 repos card grid: name, last push, CI badge, test presence, repo-hygiene score, releases count, link out) | C | P0 | M | open | US-114 |
+| US-137 | On-chain source drawer (first tx, totals, recent activity, primary address chip) | C | P1 | S | open | US-115 |
+| US-138 | ENS source drawer (registration date, subname / record counts, raw `agent-bench:bench_manifest` JSON viewer) | C | P1 | S | open | US-116 |
+| US-139 | Honest-claims disclaimer copy reviewed by Daniel/Orch; integrated into score banner | C | P0 | XS | open | US-132 |
+| US-140 | Bytecode similarity-submit button + optimistic re-render after Sourcify confirms | C | P1 | S | open | US-121 |
+
+### Bench Mode — Tracker
+
+| ID | Title | Owner | Priority | Effort | Status | Depends on |
+|---|---|---|---|---|---|---|
+| US-141 | Update demo script (`docs/05-demo-script.md`) with 90-second Bench Mode segment per EPIC Section 14 | Orch | P0 | S | open | US-132 |
+| US-142 | Update sponsor pitch (`docs/07-sponsor-fit.md`) with Bench Mode delta: ENS AI-Agents track positioning + Sourcify "only verified seniority source" framing | Orch | P0 | S | open | US-117 |
+| US-143 | Naming-collision check for "Upgrade Siren Bench" sub-brand (existing crypto / web3 products named "Bench" or "Siren Bench"); fallback list "Profile" / "Score" / "Stand"; outcome documented in `docs/14-naming-bench.md` | Daniel + Orch | P0 | XS | open | none |
+| US-144 | Mentor sweep on Sourcify (similarity submit + storage-history use) and ENS (AI-Agents track judging criteria) | Daniel | P0 | S | open | US-117 |
+| US-145 | Update `SCOPE.md` Section 1 + Section 5 with Bench Mode delta after this epic merges; append GATE-27..GATE-34 to `docs/06-acceptance-gates.md` | Orch | P0 | S | open | US-117, US-132 |
+
 ## Dependency DAG (text form)
 
 Items by stream that can start immediately at scope-lock (Dependencies | none):
@@ -164,6 +229,24 @@ Cross-stream dependency edges:
 - **Tracker -> C:** US-050 (demo runner 4th scenario) is content-blocked on US-062 (live public-read target research); US-050 can scaffold the runner without the target chosen and add the live scenario in a follow-up commit if the target lands late.
 
 Stream B items that genuinely run in parallel (no inter-stream deps): US-014, US-016, US-017, US-022, US-023, US-024, US-025. Stream B can have seven open PRs simultaneously at scope-lock.
+
+### Bench Mode dependency edges (Epic 2)
+
+Items that can start immediately after Section 21 lock-in (Bench-Mode-only deps; existing Stream B/C items already merged):
+
+- **Stream B:** US-111 (deps: merged US-017), US-113 (deps: merged US-024 + US-025), US-115 (deps: merged US-022), US-116 (deps: merged US-017), US-122 (deps: merged US-032)
+- **Stream A:** US-130 only (other A items wait on B's score engine + collision aggregator)
+- **Tracker:** US-143 (naming check, Daniel-driven, zero deps)
+
+Cross-stream dependency edges within Epic 2:
+
+- **B -> B:** US-114 -> US-117. US-117 -> US-118. US-118 -> US-126/127/128/129/132/134.
+- **B -> A:** US-125 (Playwright harness) waits for US-117 merged. US-129 (storage-collision scenario) waits for US-119 merged.
+- **B -> C:** US-131 waits for US-117 merged. All Stream C drawer items wait for their respective B fetcher.
+- **B -> C -> Tracker:** US-141 (demo script) waits for US-132 (banner). US-145 (SCOPE update) waits for US-117 + US-132.
+- **Existing -> Bench:** US-135 (Sourcify drawer) reuses US-068's `/r/[name]` UI as embedded component — must remain backward-compatible during embedding.
+
+Bench Mode items genuinely parallel after lock-in: US-111, US-113, US-115, US-116, US-122, US-143. Stream B can open six Epic-2 PRs simultaneously the moment Section 21 unblocks code.
 
 ## Backlog Detail
 
@@ -3144,3 +3227,1239 @@ pnpm --filter @upgrade-siren/web e2e demo-mode
 #### Notes
 
 P2 stretch. The 5-second-rule itself (US-052) is the gating perf metric; this is purely visual emphasis on top.
+
+## Bench Mode Backlog Detail (Epic 2 — DRAFT)
+
+> All items below are **DRAFT** pending Section 21 lock-in in `EPIC_BENCH_MODE.md`. Status transitions to scope-locked once Daniel resolves D-A..D-J. Until then no PRs open.
+>
+> EPIC ↔ backlog ID mapping recorded in each item's Notes block.
+
+### US-111 - Subject ENS resolver: parse agent-bench:bench_manifest text record + JSON schema validator
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | B |
+| Effort | M |
+| Sponsor | ENS |
+| Dependencies | US-017 |
+| Acceptance gates | GATE-3, GATE-27 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Live-resolve the new `agent-bench:*` namespace text records on Sepolia and mainnet. Read `agent-bench:bench_manifest` (atomic JSON), `agent-bench:owner`, `agent-bench:schema`. Parse manifest to typed `SubjectManifest` shape per EPIC Section 7: `{ schema, kind, sources: { sourcify[], github, onchain, ensInternal }, version, previousManifestHash }`. JSON schema validator co-located in `packages/shared/schemas/agent-bench-manifest-v1.json`.
+
+#### Acceptance Criteria
+
+- [ ] `resolveSubjectManifest(name, chainId)` lives in `packages/evidence/src/subject/resolve.ts`
+- [ ] Returns typed `SubjectManifestOk` or `SubjectManifestError` with discriminated reasons (`no_manifest`, `malformed_json`, `schema_mismatch`, `ens_not_found`)
+- [ ] JSON schema covers `kind` enum, `sources.sourcify[].chainId/address/label`, `github.owner/verified/verificationGist`, `onchain.primaryAddress/claimedFirstTxHash`, `ensInternal.rootName`
+- [ ] Live resolution path uses existing `apps/web/lib/wagmi.ts` + `viem ensjs` per US-017 pattern
+- [ ] Coexistence with `upgrade-siren:*` records validated (both namespaces readable on the same name)
+- [ ] PR body references US-111 + EPIC_BENCH_MODE.md Section 7
+
+#### Files
+
+- `packages/shared/src/subjectManifest.ts` (types)
+- `packages/shared/schemas/agent-bench-manifest-v1.json` (JSON schema)
+- `packages/evidence/src/subject/resolve.ts`
+- `packages/evidence/test/subject/resolve.test.ts`
+
+#### Notes
+
+EPIC reference: US-076. Backlog ID renumbered to US-111 to avoid collision with already-merged US-076 (Source diff renderer). This story unblocks the entire Stream B Bench Mode chain.
+
+### US-112 - Public-read fallback resolver: infer partial manifest from ENS addr() + Sourcify all-chains
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | B |
+| Effort | M |
+| Sponsor | ENS, Sourcify |
+| Dependencies | US-111 |
+| Acceptance gates | GATE-32 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+For ENS names without `agent-bench:bench_manifest`, infer a partial manifest per EPIC Section 7:
+- `sources.onchain.primaryAddress` <- ENS `addr()` record
+- `sources.sourcify` <- `GET /v2/contract/all-chains/{primaryAddress}` matches
+- `sources.github` <- absent (no claim made)
+- `sources.ensInternal.rootName` <- the input ENS name
+
+Banner shows `confidence: public-read`; tier ceiling A (cannot reach S without opt-in manifest).
+
+#### Acceptance Criteria
+
+- [ ] `inferPublicReadSubjectManifest(name, addrAddress)` returns the partial manifest
+- [ ] Sourcify `all-chains` lookup wired (re-uses fetch primitives from US-024)
+- [ ] Tier-ceiling-A enforcement happens in score engine (US-118), not here, but this resolver tags the manifest with `confidence: 'public-read'` so US-118 can apply the cap
+- [ ] Returns `SubjectManifestError` with reason `no_addr_record` when ENS does not resolve to any address
+- [ ] PR body references US-112
+
+#### Files
+
+- `packages/evidence/src/subject/publicReadInfer.ts`
+- `packages/evidence/test/subject/publicReadInfer.test.ts`
+
+#### Notes
+
+EPIC reference: US-077. Renumbered to US-112.
+
+### US-113 - Sourcify source fetcher with deep field selectors
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | B |
+| Effort | M |
+| Sponsor | Sourcify |
+| Dependencies | US-024, US-025 |
+| Acceptance gates | GATE-16 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Extend Sourcify fetch primitives with deeper field selectors per EPIC Section 8.1 P0/P1/P2 matrix. Adds:
+- `compileSuccess` (creationMatch + runtimeMatch both `exact_match`)
+- `signatures.function` and `signatures.event` (replaces external 4byte for selector decoding)
+- `proxyResolution.{isProxy,proxyType,implementations}` (Sourcify-first proxy detection; EIP-1967 RPC remains fallback)
+- `metadata.sources[].license` (license chips per project)
+- `userdoc/devdoc` (drawer copy)
+- P1 forensic: `creationBytecode.recompiledBytecode` vs `onchainBytecode`
+
+`fields=` query stays valid Sourcify selector (per recent prod fix in `status.ts`); `fields=all` for metadata fetch unchanged.
+
+#### Acceptance Criteria
+
+- [ ] New primitive `fetchSourcifyDeep(chainId, address)` in `packages/evidence/src/sourcify/deep.ts`
+- [ ] Returns typed `SourcifyDeepResult` exposing every field from the matrix
+- [ ] Existing `fetchSourcifyStatus` and `fetchSourcifyMetadata` unchanged (backward-compat for single-contract verdict path)
+- [ ] No breakage to merged US-068 verdict pipeline
+- [ ] Cache key prefix `sourcify-deep:` differentiates from existing `sourcify:` keys
+- [ ] PR body references US-113
+
+#### Files
+
+- `packages/evidence/src/sourcify/deep.ts`
+- `packages/evidence/test/sourcify/deep.test.ts`
+
+#### Notes
+
+EPIC reference: US-078. Renumbered to US-113. Use cases for the new fields are listed in EPIC Section 8.1 table.
+
+### US-114 - GitHub source fetcher
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | B |
+| Effort | L |
+| Sponsor | - |
+| Dependencies | US-111 |
+| Acceptance gates | GATE-29 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Public REST fetch per EPIC Section 8.2. Endpoints: `/users/{owner}`, `/users/{owner}/repos`, `/repos/{o}/{r}`, `/actions/runs`, `/actions/workflows`, `/contents/{test|tests|__tests__|spec}`, `/issues?labels=bug`, `/contents/README.md|LICENSE|SECURITY.md|.github/dependabot.yml`, `/branches/{default}/protection`, `/releases`. Cap top-20 repos by recent activity. Server-side only (PAT in env, never reaches browser).
+
+Rate-limit budget: ~143 calls per fresh subject lookup. PAT-authed budget 5000/hr -> ~30 fresh lookups/hr. Cache TTLs per US-122.
+
+#### Acceptance Criteria
+
+- [ ] `fetchGitHubSource(owner, options)` returns `GitHubSourceResult` with all signals: `account`, `repos[]`, `ciPassRate`, `testPresence`, `bugHygiene`, `repoHygiene`, `releaseCadence` raw inputs
+- [ ] PAT consumed from `GITHUB_PAT` env var; never logged
+- [ ] Per-repo failure does not abort whole fetch (failure isolation per repo)
+- [ ] 404 on branch protection (non-admin token) treated as `0` not error
+- [ ] Lives in `packages/evidence/src/sources/github/`
+- [ ] PR body references US-114
+
+#### Files
+
+- `packages/evidence/src/sources/github/index.ts`
+- `packages/evidence/src/sources/github/{account,repos,workflows,issues,releases}.ts`
+- `packages/evidence/test/sources/github/*.test.ts`
+
+#### Notes
+
+EPIC reference: US-079. Renumbered to US-114. Largest effort in the epic.
+
+### US-115 - On-chain source fetcher
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | B |
+| Effort | M |
+| Sponsor | - |
+| Dependencies | US-022 |
+| Acceptance gates | GATE-29 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Per EPIC Section 8.3. Reuses existing RPC infrastructure. Signals:
+- `firstTxBlock + firstTxTimestamp` (RPC scan via `eth_getTransactionCount` historical or Etherscan-fallback)
+- `txCountTotal` (`eth_getTransactionCount(address, latest)`)
+- `txCountRecent90d` (`eth_getLogs` last 90 days, `from == primaryAddress`)
+- `contractsDeployedCount` (Sourcify deployer crosswalk: count of subject's Sourcify projects deployed by `primaryAddress`)
+
+Multi-chain: fetch from each chain in `sources.sourcify[].chainId` plus mainnet + Sepolia by default.
+
+#### Acceptance Criteria
+
+- [ ] `fetchOnChainSource(primaryAddress, chainIds[])` returns `OnChainSourceResult` per chain with all signals
+- [ ] Etherscan API key optional; native RPC fallback when absent (slower but works)
+- [ ] No new RPC dependency beyond Alchemy (existing Sepolia + mainnet keys)
+- [ ] Per-chain failure isolation
+- [ ] PR body references US-115
+
+#### Files
+
+- `packages/evidence/src/sources/onchain/index.ts`
+- `packages/evidence/test/sources/onchain/*.test.ts`
+
+#### Notes
+
+EPIC reference: US-080. Renumbered to US-115.
+
+### US-116 - ENS-internal source fetcher
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | B |
+| Effort | M |
+| Sponsor | ENS |
+| Dependencies | US-017 |
+| Acceptance gates | GATE-29 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Per EPIC Section 8.4. ENS subgraph reads:
+- `ensRegistrationDate` (`domain.createdAt`)
+- `subnameCount` (`domain.subdomains.totalCount`)
+- `textRecordCount` (`domain.resolver.texts.length`)
+- `lastRecordUpdateBlock` (last `TextChanged` event for the resolver)
+
+Subgraph endpoint: Graph Network. **Pre-req: register own free-tier API key Day 1 09:00 (community key rate-limited).** Document key location in `.env.example`.
+
+#### Acceptance Criteria
+
+- [ ] `fetchEnsInternalSource(rootName)` returns `EnsInternalSourceResult` with all 4 signals
+- [ ] Graph Network API key consumed from `THE_GRAPH_API_KEY` env var
+- [ ] Returns typed error when subgraph rate-limits (429 path)
+- [ ] PR body references US-116
+
+#### Files
+
+- `packages/evidence/src/sources/ens-internal/index.ts`
+- `packages/evidence/test/sources/ens-internal/*.test.ts`
+
+#### Notes
+
+EPIC reference: US-081. Renumbered to US-116.
+
+### US-117 - Multi-source orchestrator
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | B |
+| Effort | M |
+| Sponsor | - |
+| Dependencies | US-111, US-113, US-114, US-115, US-116 |
+| Acceptance gates | GATE-27 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Parallel runner per EPIC Section 6. Takes `SubjectManifest`, fans out to all four source fetchers in parallel via `Promise.allSettled`. Emits typed `MultiSourceEvidence` shape with per-source result + per-source failure reason if any source failed. Per-source failure does NOT block emit; downstream score engine handles missing-source absorption.
+
+5-second budget per GATE-27: orchestrator must not serialize source fetches.
+
+#### Acceptance Criteria
+
+- [ ] `runMultiSourceOrchestrator(manifest)` returns `Promise<MultiSourceEvidence>`
+- [ ] All 4 sources run in parallel via `Promise.allSettled` (no sequential waits)
+- [ ] Per-source failure recorded as `{kind: 'error', source, reason}` without aborting siblings
+- [ ] Total wall-clock measured + included in result for GATE-27 monitoring
+- [ ] Lives in `packages/evidence/src/bench/orchestrator.ts`
+- [ ] PR body references US-117
+
+#### Files
+
+- `packages/evidence/src/bench/orchestrator.ts`
+- `packages/evidence/src/bench/types.ts` (MultiSourceEvidence shape)
+- `packages/evidence/test/bench/orchestrator.test.ts`
+
+#### Notes
+
+EPIC reference: US-082. Renumbered to US-117.
+
+### US-118 - Score engine
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | B |
+| Effort | M |
+| Sponsor | - |
+| Dependencies | US-117 |
+| Acceptance gates | GATE-28, GATE-30 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Pure function over `MultiSourceEvidence`. Per EPIC Section 10:
+- Seniority axis: 6 components (LOCKED weights 0.25/0.20/0.15/0.10/0.15/0.15)
+- Relevance axis: 4 components (PROVISIONAL weights 0.30/0.30/0.25/0.15 — flagged with `// PROVISIONAL — DANIEL REVIEW PENDING`; entire formula in one file)
+- Trust-discount: 0.6 multiplier on every unverified-source signal
+- Output: `score 0..100`, tier (S/A/B/C/D/U), full breakdown per component (weight × value × trust)
+- Tier-ceiling enforcement: public-read manifest (US-112) capped at A; subject without verified GitHub cross-sign capped at seniority 0.70
+
+Anti-gaming heuristics per EPIC Section 10.4 (min bytecode complexity, top-20 repos cap, deployer-only `compileSuccess`).
+
+#### Acceptance Criteria
+
+- [ ] `computeScore(evidence: MultiSourceEvidence): ScoreResult` is a pure function (no I/O, no `Date.now()`)
+- [ ] Seniority weights match EPIC Section 10.2 table exactly
+- [ ] Relevance weights flagged with override comment per Section 21 D-A
+- [ ] Trust-discount factor `0.6` is exported as a named constant `TRUST_DISCOUNT_UNVERIFIED`
+- [ ] Tier label boundaries: S>=90, A>=75, B>=60, C>=45, D<45, U=<2 sources with non-zero evidence
+- [ ] Public-read manifest -> tier ceiling A enforced
+- [ ] No-verified-GitHub -> seniority capped at 0.70 enforced
+- [ ] Min bytecode complexity gate (>=1024 bytes) excludes empty contracts from `compileSuccess`
+- [ ] Lives in `packages/evidence/src/score/index.ts` (formula constants in `weights.ts` for one-file override)
+- [ ] PR body references US-118 + EPIC Section 10
+
+#### Files
+
+- `packages/evidence/src/score/index.ts`
+- `packages/evidence/src/score/weights.ts`
+- `packages/evidence/test/score/*.test.ts`
+
+#### Notes
+
+EPIC reference: US-083. Renumbered to US-118. Daniel's relevance-weight override (Section 21 D-A) targets `weights.ts` — single-file swap before merge.
+
+### US-119 - Storage-Layout Hygiene aggregator
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | B |
+| Effort | L |
+| Sponsor | Sourcify |
+| Dependencies | US-027, US-113 |
+| Acceptance gates | GATE-31 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Per EPIC Section 8.1 algorithm. For each proxy in `sources.sourcify`:
+1. Sourcify lookup -> `proxyResolution.implementations`
+2. Order chronologically by RPC deployment block (fallback `verifiedAt asc`)
+3. Pairwise compare consecutive impls' storage layouts:
+   - same slot, same type, same label -> SAFE
+   - same slot, same type, diff label -> SOFT (rename)
+   - same slot, different type -> COLLISION
+   - slot in i missing in i+1 -> REMOVED
+   - new slot beyond i.max -> SAFE (append)
+4. Per-proxy hygiene = avg of pair scores (1.0/0.5/0.0)
+5. Subject hygiene = avg over proxies (no-upgrade -> 1.0)
+
+Edge cases per Section 8.1: missing layout -> UNKNOWN (no penalty); compiler drift -> compare by `label + offset + size`; diamond proxies documented as unsupported.
+
+**Highest-risk item in the epic** — time-boxed; fallback to single-pair diff if 4h budget breached (per EPIC Section 17).
+
+#### Acceptance Criteria
+
+- [ ] `computeStorageHygiene(sourcifyEntries[])` returns `{ subjectHygiene, perProxy[], pairwiseDetail[] }`
+- [ ] Implementation ordering uses RPC deployment block; fallback documented
+- [ ] Diamond proxies surface `kind: 'diamond', hygiene: 'unsupported'` without crashing
+- [ ] Compiler-drift type-string normalization implemented per Section 8.1 edge case
+- [ ] Lives in `packages/evidence/src/score/storageHygiene.ts`
+- [ ] PR body references US-119
+
+#### Files
+
+- `packages/evidence/src/score/storageHygiene.ts`
+- `packages/evidence/test/score/storageHygiene.test.ts`
+
+#### Notes
+
+EPIC reference: US-084. Renumbered to US-119. Per EPIC Section 13 hard cuts, this is **Never cut** — the differentiator.
+
+### US-120 - Cross-chain auto-discovery
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | B |
+| Effort | S |
+| Sponsor | Sourcify |
+| Dependencies | US-113 |
+| Acceptance gates | - |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+For each Sourcify project address, also call `GET /v2/contract/all-chains/{address}`. Discovered chains surface as chips in the drawer (US-135). Boost the breadth signal honestly (not yet a score component in v1; data path only).
+
+#### Acceptance Criteria
+
+- [ ] `discoverChains(address)` returns chain ID list from Sourcify
+- [ ] Result threaded through orchestrator into Sourcify drawer payload
+- [ ] PR body references US-120
+
+#### Files
+
+- `packages/evidence/src/sourcify/allChains.ts`
+
+#### Notes
+
+EPIC reference: US-085. Renumbered to US-120.
+
+### US-121 - Bytecode similarity submit flow
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P1 |
+| Owner | B |
+| Effort | M |
+| Sponsor | Sourcify |
+| Dependencies | US-113 |
+| Acceptance gates | GATE-33 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Per EPIC Section 8.1. For unverified contracts:
+1. `POST /v2/verify/similarity/{chainId}/{address}` -> Sourcify scans known bytecode set
+2. Poll `/v2/verify/{verificationId}` until terminal
+3. Re-fetch `/v2/contract/{chainId}/{address}` -> re-evaluate score
+
+Demo line: *"Subject's GitHub claim already gives 65. We submit the unverified contract to similarity. Sourcify finds a match, score climbs to 71 — verifiability dominates."*
+
+#### Acceptance Criteria
+
+- [ ] `submitSimilarity(chainId, address)` POST + poll loop with exponential backoff (cap 30s)
+- [ ] On terminal success, returns updated `SourcifyDeepResult`
+- [ ] Lives in `packages/evidence/src/sourcify/similarity.ts`
+- [ ] PR body references US-121
+
+#### Files
+
+- `packages/evidence/src/sourcify/similarity.ts`
+
+#### Notes
+
+EPIC reference: US-086. Renumbered to US-121. **First cut** if Day 2 morning slips.
+
+### US-122 - Cache extension for portfolio hit rate
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | B |
+| Effort | S |
+| Sponsor | - |
+| Dependencies | US-032, US-114, US-115, US-116 |
+| Acceptance gates | GATE-20 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Per EPIC Section 12. Extend US-032 Upstash Redis layer with new namespaces + TTLs:
+- `github:{owner}:meta` 1h
+- `github:{owner}:repos` 1h
+- `github:{owner}:{repo}:runs` 15min
+- `github:{owner}:{repo}:issues:bug` 15min
+- `github:{owner}:{repo}:contents:{path}` 1h
+- `onchain:{chain}:{address}:firstTx` 24h (immutable)
+- `onchain:{chain}:{address}:counts` 5min
+- `ens-internal:{name}` 5min
+- `bench:{name}:report` 5min
+
+#### Acceptance Criteria
+
+- [ ] All cache keys above implemented in `packages/evidence/src/cache/keys.ts`
+- [ ] TTLs constants exported
+- [ ] No breakage to existing US-032 sourcify cache
+- [ ] PR body references US-122
+
+#### Files
+
+- `packages/evidence/src/cache/keys.ts`
+
+#### Notes
+
+EPIC reference: US-087. Renumbered to US-122.
+
+### US-123 - Source-pattern detection
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | B |
+| Effort | M |
+| Sponsor | Sourcify |
+| Dependencies | US-113 |
+| Acceptance gates | - |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Detect common patterns (`Pausable`, `Ownable`, `UUPS`, `AccessControl`) from Sourcify `sources` files via simple string matching against well-known import statements. Result rendered as drawer badges in US-135. Not a score component in v1.
+
+#### Acceptance Criteria
+
+- [ ] `detectSourcePatterns(sourcifySources)` returns `{patterns: string[]}`
+- [ ] Detection covers OZ Pausable / Ownable / UUPSUpgradeable / AccessControl import patterns
+- [ ] PR body references US-123
+
+#### Files
+
+- `packages/evidence/src/sourcify/patterns.ts`
+
+#### Notes
+
+EPIC reference: US-088. Renumbered to US-123.
+
+### US-124 - License + compiler-recency extraction
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | B |
+| Effort | S |
+| Sponsor | Sourcify |
+| Dependencies | US-113 |
+| Acceptance gates | - |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Extract per-project license (from `metadata.sources[].license`) + compiler version + EVM version. Available for drawer (US-135) and as data path for future relevance redesign. Not a score component in v1.
+
+#### Acceptance Criteria
+
+- [ ] `extractLicenseAndCompiler(sourcifyMetadata)` returns `{license, compilerVersion, evmVersion}`
+- [ ] PR body references US-124
+
+#### Files
+
+- `packages/evidence/src/sourcify/licenseCompiler.ts`
+
+#### Notes
+
+EPIC reference: US-089. Renumbered to US-124.
+
+### US-125 - Playwright e2e harness with MSW
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | A |
+| Effort | M |
+| Sponsor | - |
+| Dependencies | US-117 |
+| Acceptance gates | GATE-34 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Playwright e2e harness in `apps/web` with MSW (Mock Service Worker) interception layer for fixturing GitHub / Sourcify / RPC / ENS-subgraph responses deterministically. Per EPIC Section 13 + 19.
+
+Stream A's reduced scope this epic: **no demo-subject ENS provisioning**. Instead, fixtures + scenario tests are A's contribution.
+
+#### Acceptance Criteria
+
+- [ ] `apps/web/e2e/setup.ts` initializes Playwright + MSW handlers
+- [ ] MSW handlers cover `/api/source/*` + Sourcify v2 + ENS subgraph + RPC
+- [ ] `pnpm --filter @upgrade-siren/web e2e` runs the suite
+- [ ] CI integration via existing GitHub Actions workflow
+- [ ] PR body references US-125
+
+#### Files
+
+- `apps/web/e2e/setup.ts`
+- `apps/web/e2e/fixtures/*` (MSW handler shapes)
+- `apps/web/playwright.config.ts` (extend existing)
+
+#### Notes
+
+EPIC reference: US-090. Renumbered to US-125.
+
+### US-126 - Playwright scenario: high-score subject
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | A |
+| Effort | S |
+| Sponsor | - |
+| Dependencies | US-125, US-118 |
+| Acceptance gates | GATE-34 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Fixture data shaped to produce S-tier score: verified Sourcify entries (`compileSuccess` 1.0), verified-GitHub-shaped fixtures (CI 100%, tests, releases, hygiene), recent on-chain activity, recent ENS updates. Tests assert score >= 90 + tier S.
+
+#### Acceptance Criteria
+
+- [ ] Fixture file `apps/web/e2e/fixtures/highScoreSubject.ts`
+- [ ] Test asserts `score >= 90 && tier === 'S'`
+- [ ] PR body references US-126
+
+#### Files
+
+- `apps/web/e2e/scenarios/highScore.spec.ts`
+- `apps/web/e2e/fixtures/highScoreSubject.ts`
+
+#### Notes
+
+EPIC reference: US-091. Renumbered to US-126. Note: trust-discount caps unverified GitHub at 0.6 even with ideal signals — actual S-tier requires `compileSuccess: 1.0` to compensate.
+
+### US-127 - Playwright scenario: mid-score subject
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | A |
+| Effort | S |
+| Sponsor | - |
+| Dependencies | US-125, US-118 |
+| Acceptance gates | GATE-34 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Fixture: mixed verification states (some Sourcify verified, some unverified; partial GitHub presence; old ENS updates). Demonstrates trust-discount visibly. Tests assert score in B-C range (45..75) and breakdown panel shows the discount math.
+
+#### Acceptance Criteria
+
+- [ ] Fixture file `apps/web/e2e/fixtures/midScoreSubject.ts`
+- [ ] Test asserts `score >= 45 && score < 75`
+- [ ] Test asserts breakdown panel renders `× 0.6` factor for at least one unverified component
+- [ ] PR body references US-127
+
+#### Files
+
+- `apps/web/e2e/scenarios/midScore.spec.ts`
+
+#### Notes
+
+EPIC reference: US-092. Renumbered to US-127.
+
+### US-128 - Playwright scenario: public-read fallback
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | A |
+| Effort | S |
+| Sponsor | - |
+| Dependencies | US-125, US-112 |
+| Acceptance gates | GATE-32, GATE-34 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Fixture: ENS name with `addr()` record but no `agent-bench:bench_manifest`. Validates US-112 inference path + US-118 tier-ceiling-A enforcement.
+
+#### Acceptance Criteria
+
+- [ ] Test asserts `confidence === 'public-read'` in banner
+- [ ] Test asserts tier never reaches S regardless of underlying data quality (capped at A)
+- [ ] PR body references US-128
+
+#### Files
+
+- `apps/web/e2e/scenarios/publicRead.spec.ts`
+
+#### Notes
+
+EPIC reference: US-093. Renumbered to US-128.
+
+### US-129 - Playwright scenario: storage-collision-detected subject
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | A |
+| Effort | M |
+| Sponsor | - |
+| Dependencies | US-125, US-119 |
+| Acceptance gates | GATE-31, GATE-34 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Fixture data shaped to trigger COLLISION in US-119 storage hygiene aggregator: two Sourcify implementations with same slot/different type. Tests assert hygiene score < 1.0, drawer renders red collision row.
+
+#### Acceptance Criteria
+
+- [ ] Fixture file with deliberate `slot 5: uint256 -> address` mismatch (matches EPIC Section 14 demo line)
+- [ ] Test asserts `subjectHygiene < 1.0` in score breakdown
+- [ ] Test asserts drawer renders red collision row with raw type strings
+- [ ] PR body references US-129
+
+#### Files
+
+- `apps/web/e2e/scenarios/storageCollision.spec.ts`
+- `apps/web/e2e/fixtures/collisionSubject.ts`
+
+#### Notes
+
+EPIC reference: US-094. Renumbered to US-129. Validates the differentiator end-to-end.
+
+### US-130 - Optional Foundry fixture: storage-collision proxy upgrade
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P2 |
+| Owner | A |
+| Effort | M |
+| Sponsor | Sourcify |
+| Dependencies | US-001, US-002, US-003, US-004, US-005 |
+| Acceptance gates | GATE-31 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Only created if existing demo fixtures (V1, V2Safe, V2Dangerous) cannot be repurposed for live storage-collision snapshotting. Decision Day 2 morning per EPIC Section 13. Default: not created (fixtures cover this via Playwright MSW per US-129).
+
+#### Acceptance Criteria
+
+- [ ] Decision documented in `BRAINSTORM.md` Day 2
+- [ ] If created, deployed to Sepolia + Sourcify-verified
+- [ ] PR body references US-130
+
+#### Files
+
+- `contracts/VaultV2Collision.sol` (only if created)
+- `scripts/deploy/DeployCollision.s.sol` (only if created)
+
+#### Notes
+
+EPIC reference: US-095. Renumbered to US-130.
+
+### US-131 - /b/[name] route + landing mode-detection
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | C |
+| Effort | M |
+| Sponsor | - |
+| Dependencies | US-117 |
+| Acceptance gates | GATE-1, GATE-27 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Per EPIC Section 11. New route `apps/web/app/b/[name]/page.tsx`. Landing route detection on `/`:
+1. Resolve ENS records
+2. If `upgrade-siren:proxy` -> redirect to `/r/[name]`
+3. Else if `agent-bench:bench_manifest` -> render `/b/[name]`
+4. Else -> render `/b/[name]` with public-read inferred manifest
+
+Single front door — mode is inferred from records, not selected.
+
+#### Acceptance Criteria
+
+- [ ] `/b/[name]` page renders score banner + source grid (stub initially) for any ENS name
+- [ ] Landing route detection works for all 3 cases
+- [ ] PR body references US-131
+
+#### Files
+
+- `apps/web/app/b/[name]/page.tsx`
+- `apps/web/app/b/[name]/loadBench.ts`
+- `apps/web/app/page.tsx` (extend with mode detection)
+
+#### Notes
+
+EPIC reference: US-096. Renumbered to US-131. Mirrors `/r/[name]` orchestration pattern (US-068).
+
+### US-132 - Score banner component
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | C |
+| Effort | M |
+| Sponsor | - |
+| Dependencies | US-118 |
+| Acceptance gates | GATE-28 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Per EPIC Section 11. Score 0-100, both axis values (seniority + relevance), tier badge (S/A/B/C/D/U), honest-claims disclaimer copy in-band (not tooltip). Reuses existing brand tokens (US-067).
+
+#### Acceptance Criteria
+
+- [ ] `ScoreBanner` component renders all 4 elements (score, axes, tier, disclaimer)
+- [ ] Disclaimer copy is in-band (not modal, not tooltip)
+- [ ] Tier badge color maps to existing verdict tokens (S/A green, B/C amber, D red)
+- [ ] PR body references US-132
+
+#### Files
+
+- `apps/web/components/bench/ScoreBanner.tsx`
+- `apps/web/components/bench/ScoreBanner.test.tsx`
+
+#### Notes
+
+EPIC reference: US-097. Renumbered to US-132.
+
+### US-133 - Source grid component
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | C |
+| Effort | M |
+| Sponsor | - |
+| Dependencies | US-117, US-118 |
+| Acceptance gates | GATE-29, GATE-30 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Per EPIC Section 11. 4 tiles (Sourcify / GitHub / On-chain / ENS) with verified/unverified badges + per-source contribution to final score. Click any tile -> drawer (separate components US-135..US-138).
+
+#### Acceptance Criteria
+
+- [ ] 4 tiles always rendered (even if source failed — show ⚠ with reason)
+- [ ] verified badge: green dot
+- [ ] unverified badge: amber dot + tooltip "values count for 60% — add cross-sign to lift"
+- [ ] Tile click expands drawer below grid
+- [ ] PR body references US-133
+
+#### Files
+
+- `apps/web/components/bench/SourceGrid.tsx`
+- `apps/web/components/bench/SourceTile.tsx`
+
+#### Notes
+
+EPIC reference: US-098. Renumbered to US-133.
+
+### US-134 - Score breakdown panel
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | C |
+| Effort | M |
+| Sponsor | - |
+| Dependencies | US-118 |
+| Acceptance gates | GATE-30 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Per EPIC Section 11. Expandable panel showing every component's `weight × value × trust` math line by line (10 components total: 6 seniority + 4 relevance). Trust factor visible as `× 0.6` for unverified — this is GATE-30's structural defense being made visible.
+
+#### Acceptance Criteria
+
+- [ ] Panel renders 10-line breakdown matching EPIC Section 10
+- [ ] Each unverified line shows `× 0.6`
+- [ ] Sum totals match the score banner exactly
+- [ ] PR body references US-134
+
+#### Files
+
+- `apps/web/components/bench/ScoreBreakdownPanel.tsx`
+
+#### Notes
+
+EPIC reference: US-099. Renumbered to US-134.
+
+### US-135 - Sourcify source drawer
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | C |
+| Effort | L |
+| Sponsor | Sourcify |
+| Dependencies | US-068, US-119 |
+| Acceptance gates | GATE-31 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Per EPIC Section 11 drawer table. Embeds `/r/[name]` UI as component for per-contract verdict (reuse US-068 work). Adds **storage-history timeline per proxy** rendering US-119 aggregator output. License chips, compiler chips, bytecode-similarity submit button if any unverified contracts present.
+
+#### Acceptance Criteria
+
+- [ ] Drawer renders per-contract verdict via embedded existing `/r/[name]` component
+- [ ] Storage-history timeline renders chronological pairwise diff with color: green SAFE, amber SOFT, red COLLISION/REMOVED
+- [ ] License + compiler chips per project
+- [ ] Bytecode similarity submit button visible only when at least one unverified Sourcify entry exists in the subject
+- [ ] PR body references US-135
+
+#### Files
+
+- `apps/web/components/bench/drawers/SourcifyDrawer.tsx`
+- `apps/web/components/bench/drawers/StorageHistoryTimeline.tsx`
+
+#### Notes
+
+EPIC reference: US-100. Renumbered to US-135. Largest UI item — reuse-heavy.
+
+### US-136 - GitHub source drawer
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | C |
+| Effort | M |
+| Sponsor | - |
+| Dependencies | US-114 |
+| Acceptance gates | - |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Per EPIC Section 11 drawer table. Top-20 repos card grid with per-repo card: name, last push, CI badge (pass/fail rate), test presence dot, repo-hygiene score, releases count, link out to GitHub.
+
+#### Acceptance Criteria
+
+- [ ] Drawer renders up-to-20-repo card grid
+- [ ] Per-repo card has 6 elements (name, push, CI, tests, hygiene, releases) + external link
+- [ ] PR body references US-136
+
+#### Files
+
+- `apps/web/components/bench/drawers/GitHubDrawer.tsx`
+- `apps/web/components/bench/drawers/GitHubRepoCard.tsx`
+
+#### Notes
+
+EPIC reference: US-101. Renumbered to US-136.
+
+### US-137 - On-chain source drawer
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | C |
+| Effort | S |
+| Sponsor | - |
+| Dependencies | US-115 |
+| Acceptance gates | - |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Drawer: first tx (date + hash + chain), total tx count, recent 90d tx count, contracts-deployed count, primary address chip with copy button.
+
+#### Acceptance Criteria
+
+- [ ] Drawer renders 5 numeric/textual signals + copy-able address chip
+- [ ] PR body references US-137
+
+#### Files
+
+- `apps/web/components/bench/drawers/OnChainDrawer.tsx`
+
+#### Notes
+
+EPIC reference: US-102. Renumbered to US-137.
+
+### US-138 - ENS source drawer
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | C |
+| Effort | S |
+| Sponsor | ENS |
+| Dependencies | US-116 |
+| Acceptance gates | - |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Drawer: registration date, subname count, text record count, last update timestamp, raw `agent-bench:bench_manifest` JSON viewer (collapsible).
+
+#### Acceptance Criteria
+
+- [ ] Drawer renders 4 ENS signals + manifest JSON viewer
+- [ ] JSON viewer is collapsible, copy-able
+- [ ] PR body references US-138
+
+#### Files
+
+- `apps/web/components/bench/drawers/EnsDrawer.tsx`
+
+#### Notes
+
+EPIC reference: US-103. Renumbered to US-138.
+
+### US-139 - Honest-claims disclaimer copy
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | C |
+| Effort | XS |
+| Sponsor | - |
+| Dependencies | US-132 |
+| Acceptance gates | - |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Per EPIC Section 10.5. Copy: *"Score measures public verifiability and code-quality signals. It does not predict intent."* In-band in score banner (US-132), not tooltip, not footnote. Reviewed by Daniel + Orch before merge.
+
+#### Acceptance Criteria
+
+- [ ] Copy reviewed by Daniel
+- [ ] Copy integrated into ScoreBanner component (US-132)
+- [ ] PR body references US-139
+
+#### Files
+
+- `apps/web/components/bench/ScoreBanner.tsx` (extends US-132)
+
+#### Notes
+
+EPIC reference: US-104. Renumbered to US-139.
+
+### US-140 - Bytecode similarity-submit button
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | C |
+| Effort | S |
+| Sponsor | Sourcify |
+| Dependencies | US-121 |
+| Acceptance gates | GATE-33 |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Button in Sourcify drawer (US-135) that triggers US-121's similarity submit flow. Optimistic re-render after Sourcify confirms terminal state. Score climbs visibly if Sourcify finds a match.
+
+#### Acceptance Criteria
+
+- [ ] Button visible only when unverified Sourcify entries exist
+- [ ] Click triggers POST + polling spinner
+- [ ] On success: score banner + source grid + breakdown re-render with new values
+- [ ] On failure: inline error toast
+- [ ] PR body references US-140
+
+#### Files
+
+- `apps/web/components/bench/drawers/SourcifyDrawer.tsx` (extends US-135)
+- `apps/web/components/bench/SimilaritySubmitButton.tsx`
+
+#### Notes
+
+EPIC reference: US-105. Renumbered to US-140. **First cut** behind US-121 if Day 2 morning slips.
+
+### US-141 - Update demo script with Bench Mode segment
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | Orch |
+| Effort | S |
+| Sponsor | - |
+| Dependencies | US-132 |
+| Acceptance gates | - |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Append 90-second Bench Mode segment to `docs/05-demo-script.md` per EPIC Section 14. Existing 3-minute single-contract demo flow stays as opener; Bench segment runs after.
+
+#### Acceptance Criteria
+
+- [ ] `docs/05-demo-script.md` has new section after existing demo with 9-row table per EPIC Section 14
+- [ ] PR body references US-141
+
+#### Files
+
+- `docs/05-demo-script.md`
+
+#### Notes
+
+EPIC reference: US-106. Renumbered to US-141.
+
+### US-142 - Update sponsor pitch with Bench Mode delta
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | Orch |
+| Effort | S |
+| Sponsor | - |
+| Dependencies | US-117 |
+| Acceptance gates | - |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Update `docs/07-sponsor-fit.md`:
+- ENS track: switch primary target from Most Creative -> AI Agents ($2K), per Section 21 D-D
+- Sourcify positioning: "**only** verified seniority source" framing, deeper field usage (P0/P1/P2 matrix)
+- Future Society: extend "transparency primitive for any subject" framing
+- Umia: optional, scoring-API framing if Daniel approves D-J
+
+#### Acceptance Criteria
+
+- [ ] All 4 sponsor sections updated
+- [ ] No Swarm / Apify / SpaceComputer claims (per CLAUDE.md hard rule)
+- [ ] PR body references US-142
+
+#### Files
+
+- `docs/07-sponsor-fit.md`
+
+#### Notes
+
+EPIC reference: US-107. Renumbered to US-142.
+
+### US-143 - Naming-collision check for Upgrade Siren Bench
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | Daniel + Orch |
+| Effort | XS |
+| Sponsor | - |
+| Dependencies | none |
+| Acceptance gates | - |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Daniel's first-hour Day 1 task per EPIC Section 18. Search existing crypto / web3 products named "Bench", "Siren Bench", "Upgrade Bench". Document outcome in new `docs/14-naming-bench.md`. Fallback list: "Profile" / "Score" / "Stand" — Daniel picks if collision found.
+
+#### Acceptance Criteria
+
+- [ ] `docs/14-naming-bench.md` created with search outcome
+- [ ] If "Bench" clear -> document confirmed, sub-brand locked
+- [ ] If collision -> Daniel picks fallback, all subsequent docs use the picked name
+- [ ] PR body references US-143
+
+#### Files
+
+- `docs/14-naming-bench.md`
+
+#### Notes
+
+EPIC reference: US-108. Renumbered to US-143. **Section 21 D-C lock** — without this, naming risks downstream rework.
+
+### US-144 - Mentor sweep on Sourcify + ENS
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | Daniel |
+| Effort | S |
+| Sponsor | Sourcify, ENS |
+| Dependencies | US-117 |
+| Acceptance gates | - |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Daniel checks with Sourcify mentor on similarity-submit + storage-history use cases (validates US-119 + US-121 are sponsor-native). Daniel checks with ENS mentor on AI-Agents track judging criteria (validates D-D track switch). Outputs: any feedback fed back into US-118/US-119/US-135/US-142 before submission.
+
+#### Acceptance Criteria
+
+- [ ] Mentor sweep notes recorded in `BRAINSTORM.md`
+- [ ] Material feedback creates follow-up issues (not new US — issues only)
+- [ ] PR body references US-144
+
+#### Files
+
+- `BRAINSTORM.md` (notes)
+
+#### Notes
+
+EPIC reference: US-109. Renumbered to US-144.
+
+### US-145 - Update SCOPE.md + acceptance gates with Bench Mode delta
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P0 |
+| Owner | Orch |
+| Effort | S |
+| Sponsor | - |
+| Dependencies | US-117, US-132 |
+| Acceptance gates | - |
+| Status | open (Epic 2 — blocked on Section 21) |
+
+#### Scope
+
+Two doc updates:
+1. `SCOPE.md` Section 1 (Identity) + Section 5 (Sponsor strategy) — add Bench Mode as second front door, update sponsor positioning to match US-142.
+2. `docs/06-acceptance-gates.md` — append GATE-27..GATE-34 from EPIC Section 15.
+
+#### Acceptance Criteria
+
+- [ ] `SCOPE.md` reflects two-front-door product (per-upgrade verdict + per-subject benchmark)
+- [ ] `docs/06-acceptance-gates.md` has GATE-27..GATE-34 appended with EPIC Section 15 wording
+- [ ] PR body references US-145
+
+#### Files
+
+- `SCOPE.md`
+- `docs/06-acceptance-gates.md`
+
+#### Notes
+
+EPIC reference: US-110. Renumbered to US-145. Final Tracker item — represents Bench Mode as locked scope.
