@@ -20,10 +20,10 @@ const GLYPHS: Record<StepStatus, string> = {
 };
 
 const GLYPH_COLOR_VAR: Record<StepStatus, string> = {
-  pending: "var(--color-text-muted)",
-  running: "var(--color-text)",
-  success: "var(--color-safe)",
-  failure: "var(--color-siren)",
+  pending: "var(--color-t2)",
+  running: "var(--color-t1)",
+  success: "var(--color-verdict-safe)",
+  failure: "var(--color-verdict-siren)",
 };
 
 export function LoadingChecklist({
@@ -53,20 +53,20 @@ export function LoadingChecklist({
           {step.status === "running" ? (
             <span
               aria-live="polite"
-              className="text-xs text-[color:var(--color-text-muted)]"
+              className="text-xs text-[color:var(--color-t2)]"
             >
               loading…
             </span>
           ) : null}
           {step.status === "success" && step.durationMs !== undefined ? (
-            <span className="font-mono text-xs text-[color:var(--color-text-muted)]">
+            <span className="font-mono text-xs text-[color:var(--color-t2)]">
               {step.durationMs}ms
             </span>
           ) : null}
           {step.status === "failure" && step.error ? (
             <span
               role="alert"
-              className="text-xs text-[color:var(--color-siren)]"
+              className="text-xs text-[color:var(--color-verdict-siren)]"
             >
               {step.error}
             </span>

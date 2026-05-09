@@ -83,7 +83,7 @@ export function GovernanceComment({
               }}
               className={
                 selected
-                  ? "rounded border border-[color:var(--color-text)] bg-[color:var(--color-surface-2)] px-3 py-1 text-sm"
+                  ? "rounded border border-[color:var(--color-t1)] bg-[color:var(--color-raised)] px-3 py-1 text-sm"
                   : "rounded border border-[color:var(--color-border)] px-3 py-1 text-sm"
               }
             >
@@ -99,7 +99,7 @@ export function GovernanceComment({
         aria-labelledby={`gc-tab-${format}`}
         data-format={format}
         data-length={text.length}
-        className="whitespace-pre-wrap rounded border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] p-3 text-sm"
+        className="whitespace-pre-wrap rounded border border-[color:var(--color-border)] bg-[color:var(--color-raised)] p-3 text-sm"
       >
         {text}
       </pre>
@@ -108,7 +108,7 @@ export function GovernanceComment({
         type="button"
         onClick={onCopy}
         aria-label="Copy comment to clipboard"
-        className="self-start rounded border border-[color:var(--color-text)] px-3 py-1 text-sm"
+        className="self-start rounded border border-[color:var(--color-t1)] px-3 py-1 text-sm"
       >
         {copied ? "Copied" : "Copy"}
       </button>

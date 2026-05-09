@@ -25,9 +25,9 @@ const STORAGE_TAG_COLOR_VAR: Record<
   EvidenceDrawerStorageSummary["tag"],
   string
 > = {
-  compatible: "var(--color-safe)",
-  incompatible: "var(--color-siren)",
-  unknown: "var(--color-review)",
+  compatible: "var(--color-verdict-safe)",
+  incompatible: "var(--color-verdict-siren)",
+  unknown: "var(--color-verdict-review)",
 };
 
 function previousVerifiedLabel(value: boolean | null): string {
@@ -67,7 +67,7 @@ export function EvidenceDrawer({
         onClick={() => setOpen(true)}
         aria-expanded={open}
         aria-controls="evidence-drawer"
-        className="rounded border border-[color:var(--color-text)] px-3 py-1 text-sm"
+        className="rounded border border-[color:var(--color-t1)] px-3 py-1 text-sm"
       >
         Evidence
       </button>
@@ -77,7 +77,7 @@ export function EvidenceDrawer({
           role="dialog"
           aria-modal="true"
           aria-label="Evidence drawer"
-          className="fixed right-0 top-0 z-50 h-full w-full max-w-md overflow-y-auto bg-[color:var(--color-surface-2)] p-6 shadow-xl"
+          className="fixed right-0 top-0 z-50 h-full w-full max-w-md overflow-y-auto bg-[color:var(--color-raised)] p-6 shadow-xl"
         >
           <button
             ref={closeButtonRef}
@@ -95,7 +95,7 @@ export function EvidenceDrawer({
             <h3 className="mb-2 text-sm font-bold">Sourcify</h3>
             <ul className="flex flex-col gap-1 text-sm">
               {report.sourcify.links.length === 0 ? (
-                <li className="text-[color:var(--color-text-muted)]">
+                <li className="text-[color:var(--color-t2)]">
                   unverified
                 </li>
               ) : null}
@@ -111,7 +111,7 @@ export function EvidenceDrawer({
                   </a>
                 </li>
               ))}
-              <li className="text-xs text-[color:var(--color-text-muted)]">
+              <li className="text-xs text-[color:var(--color-t2)]">
                 previous: {previousVerifiedLabel(report.sourcify.previousVerified)}
                 {" / current: "}
                 {report.sourcify.currentVerified ? "verified" : "unverified"}
@@ -127,7 +127,7 @@ export function EvidenceDrawer({
                 <span
                   className={
                     abiSummary.riskyAddedCount > 0
-                      ? "text-[color:var(--color-siren)] font-bold"
+                      ? "text-[color:var(--color-verdict-siren)] font-bold"
                       : ""
                   }
                 >
@@ -135,7 +135,7 @@ export function EvidenceDrawer({
                 </span>
               </p>
             ) : (
-              <p className="text-sm text-[color:var(--color-text-muted)]">
+              <p className="text-sm text-[color:var(--color-t2)]">
                 no diff available
               </p>
             )}
@@ -152,7 +152,7 @@ export function EvidenceDrawer({
                 {storageSummary.label ?? storageSummary.tag}
               </span>
             ) : (
-              <p className="text-sm text-[color:var(--color-text-muted)]">
+              <p className="text-sm text-[color:var(--color-t2)]">
                 storage layout not published
               </p>
             )}
@@ -162,7 +162,7 @@ export function EvidenceDrawer({
             <a
               href={reportUrl}
               download
-              className="inline-block rounded border border-[color:var(--color-text)] px-3 py-1 text-sm"
+              className="inline-block rounded border border-[color:var(--color-t1)] px-3 py-1 text-sm"
             >
               Download report JSON
             </a>

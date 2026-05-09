@@ -23,19 +23,19 @@ function SelectorRow({
       <span
         aria-hidden
         className="inline-block h-2 w-2 rounded-full"
-        style={{ backgroundColor: "var(--color-siren)" }}
+        style={{ backgroundColor: "var(--color-verdict-siren)" }}
       />
       <span
         data-severity="risky"
-        className="text-xs font-bold uppercase text-[color:var(--color-siren)]"
+        className="text-xs font-bold uppercase text-[color:var(--color-verdict-siren)]"
       >
         risky
       </span>
       <code className="font-mono">{match.name}</code>
-      <span className="font-mono text-xs text-[color:var(--color-text-muted)]">
+      <span className="font-mono text-xs text-[color:var(--color-t2)]">
         {match.selector}
       </span>
-      <span className="text-xs text-[color:var(--color-text-muted)]">
+      <span className="text-xs text-[color:var(--color-t2)]">
         ({match.inputs.join(", ") || "no args"}) {match.stateMutability}
       </span>
     </li>
@@ -49,7 +49,7 @@ export function AbiDiffRenderer({
     return (
       <p
         data-testid="abi-diff-empty"
-        className="text-sm text-[color:var(--color-text-muted)]"
+        className="text-sm text-[color:var(--color-t2)]"
       >
         no ABI changes detected
       </p>
