@@ -100,6 +100,19 @@ export type {
 
 export { fetchSourcifyStatus } from './sourcify/status.js';
 export { fetchSourcifyMetadata } from './sourcify/metadata.js';
+export { SOURCIFY_DEEP_FIELDS, fetchSourcifyDeep } from './sourcify/deep.js';
+
+export type {
+  FetchSourcifyDeepOptions,
+  SourcifyDeep,
+  SourcifyDeepCompilation,
+  SourcifyDeepEventSignature,
+  SourcifyDeepField,
+  SourcifyDeepFunctionSignature,
+  SourcifyDeepLicense,
+  SourcifyDeepProxyImplementation,
+  SourcifyDeepProxyResolution,
+} from './sourcify/deep.js';
 
 export type {
   FetchLike,
