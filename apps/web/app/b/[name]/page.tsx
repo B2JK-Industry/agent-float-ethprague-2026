@@ -34,8 +34,23 @@ import { GitHubDrawer } from "../../../components/bench/drawers/GitHubDrawer";
 import { OnchainDrawer } from "../../../components/bench/drawers/OnchainDrawer";
 import { SourcifyDrawer } from "../../../components/bench/drawers/SourcifyDrawer";
 import { BENCH_SUB_BRAND, BENCH_SUB_TAGLINE } from "../../../lib/branding";
+import dynamic from "next/dynamic";
+
 import { isDemoMockSubject } from "../../../lib/demoMocks";
+import { loadLatestAttestationForSubject } from "../../../lib/easStore";
 import { loadBench, type LoadBenchResult } from "./loadBench";
+
+// Client-only widget — wagmi hooks need WagmiProvider context.
+// Dynamic import keeps the SSR pass free of `useConfig` calls (Vitest
+// page tests render the page without Web3Providers) and keeps the
+// EAS bundle out of the server lambda.
+const BenchPublishWidget = dynamic(
+  () =>
+    import("../../../components/bench/BenchPublishWidget").then((m) => ({
+      default: m.BenchPublishWidget,
+    })),
+  { ssr: false },
+);
 
 type PageProps = {
   params: Promise<{ name: string }>;
@@ -71,6 +86,13 @@ export default async function BenchPage(
   const name = decodeURIComponent(rawName);
   const result: LoadBenchResult = await loadBench(name);
   const isMockedDemo = isDemoMockSubject(name);
+  const easBundle = await loadLatestAttestationForSubject(name).catch(
+    () => null,
+  );
+  const subjectAddress =
+    result.kind === "loaded"
+      ? (result.evidence.subject.primaryAddress as `0x${string}` | null)
+      : null;
 
   return (
     <main
@@ -78,16 +100,23 @@ export default async function BenchPage(
       data-route="bench"
       data-mock-demo={isMockedDemo ? "true" : "false"}
     >
-      <header className="flex flex-col gap-2">
-        <span className="font-mono text-xs uppercase tracking-[0.18em] text-t2">
-          {BENCH_SUB_BRAND}
-        </span>
-        <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-t1 md:text-4xl">
-          {name}
-        </h1>
-        <p className="font-mono text-xs uppercase tracking-[0.18em] text-verdict-siren">
-          {BENCH_SUB_TAGLINE}
-        </p>
+      <header className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <span className="font-mono text-xs uppercase tracking-[0.18em] text-t2">
+            {BENCH_SUB_BRAND}
+          </span>
+          <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-t1 md:text-4xl">
+            {name}
+          </h1>
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-verdict-siren">
+            {BENCH_SUB_TAGLINE}
+          </p>
+        </div>
+        <BenchPublishWidget
+          subjectName={name}
+          subjectAddress={subjectAddress}
+          easBundle={easBundle}
+        />
       </header>
 
       {isMockedDemo ? (
