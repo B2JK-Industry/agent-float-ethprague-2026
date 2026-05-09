@@ -38,7 +38,7 @@ Tracker-only owners (not picked up by dev agents):
 
 | ID | Title | Owner | Priority | Effort | Status | Depends on |
 |---|---|---|---|---|---|---|
-| US-001 | Foundry workspace with pinned compiler 0.8.24 | A | P0 | S | open | none |
+| US-001 | Foundry workspace with pinned compiler 0.8.24 | A | P0 | S | merged | none |
 | US-002 | EIP-1967 transparent proxy fixture contract | A | P0 | S | open | none |
 | US-003 | VaultV1 baseline implementation | A | P0 | S | open | none |
 | US-004 | VaultV2Safe storage-compatible implementation | A | P0 | M | open | US-003 |
@@ -162,7 +162,7 @@ Stream B items that genuinely run in parallel (no inter-stream deps): US-014, US
 | Sponsor | - |
 | Dependencies | none |
 | Acceptance gates | GATE-15 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
