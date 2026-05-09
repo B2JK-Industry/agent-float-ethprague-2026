@@ -55,3 +55,18 @@ export type {
   RiskySelectorName,
   SelectorMatch,
 } from './diff/abi.js';
+
+export {
+  FOURBYTE_BASE_URL,
+  lookup4byteSelectors,
+} from './sourcify/fourbyte.js';
+
+export type {
+  FourByteError,
+  FourByteFailureReason,
+  FourByteLookupResult,
+  FourByteLookupOk,
+  FourByteLookupError,
+  SelectorCandidate,
+  SelectorLookup,
+} from './sourcify/fourbyte.js';
