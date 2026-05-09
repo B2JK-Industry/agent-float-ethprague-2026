@@ -43,3 +43,15 @@ export type {
 } from './ens/types.js';
 
 export { UPGRADE_SIREN_RECORD_KEYS } from './ens/types.js';
+
+export {
+  RISKY_SELECTOR_NAMES,
+  diffAbiRiskySelectors,
+  isRiskySelectorName,
+} from './diff/abi.js';
+
+export type {
+  AbiRiskyDiff,
+  RiskySelectorName,
+  SelectorMatch,
+} from './diff/abi.js';
