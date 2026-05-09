@@ -166,7 +166,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-116 | ENS-internal source fetcher: registration date, subname count, text record count, last `TextChanged` block via subgraph (own Graph Network API key required) | B | P0 | M | merged | US-017 |
 | US-117 | Multi-source orchestrator: parallel runner with per-source failure isolation; emits typed `MultiSourceEvidence` shape | B | P0 | M | merged | US-111, US-113, US-114, US-115, US-116 |
 | US-118 | Score engine: pure function over `MultiSourceEvidence`. Locked seniority weights (6 components); provisional relevance weights (4 components, swappable in one file before merge); trust-discount 0.6 on unverified components; **RAW-DISCOUNTED axis (no normalization to ceiling — per EPIC Section 10 update 2026-05-09)**; tier ceiling enforcement (no-verified-GitHub → seniority cap 0.70; public-read manifest → tier cap A; **v1 P0 max 66, v1 full max 79** — both cap at tier A); emits `ScoreBreakdown` + tier label. | B | P0 | M | merged | US-117 |
-| US-119 | Storage-Layout Hygiene aggregator across implementation history per proxy (chronological pairwise diff over Sourcify `proxyResolution.implementations`; subject-level avg) | B | P0 | L | open | US-027, US-113 |
+| US-119 | Storage-Layout Hygiene aggregator across implementation history per proxy (chronological pairwise diff over Sourcify `proxyResolution.implementations`; subject-level avg) | B | P0 | L | merged | US-027, US-113 |
 | US-120 | Cross-chain auto-discovery via `/v2/contract/all-chains/{address}` for Sourcify entries | B | P1 | S | merged | US-113 |
 | US-121 | Bytecode similarity submit flow: POST `/v2/verify/similarity/{chainId}/{address}` → poll → re-fetch → re-evaluate score | B | P1 | M | merged | US-113 |
 | US-122 | Cache extension (extends US-032): GitHub / RPC / ENS-subgraph keys with per-namespace TTLs per EPIC Section 12 | B | P0 | S | merged | US-032, US-114, US-115, US-116 |
@@ -3570,7 +3570,7 @@ EPIC reference: US-083. Renumbered to US-118. Daniel's relevance-weight override
 | Sponsor | Sourcify |
 | Dependencies | US-027, US-113 |
 | Acceptance gates | GATE-31 |
-| Status | open (Epic 2) |
+| Status | merged |
 
 #### Scope
 
