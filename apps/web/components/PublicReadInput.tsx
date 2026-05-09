@@ -44,11 +44,14 @@ export function PublicReadInput({
   return (
     <form
       onSubmit={onSubmit}
-      className="flex w-full max-w-md flex-col gap-2"
+      className="flex w-full flex-col gap-3"
       aria-label="Public-read fallback lookup"
     >
-      <label htmlFor="public-read-input" className="text-sm">
-        Address or ENS name (public-read)
+      <label
+        htmlFor="public-read-input"
+        className="font-mono text-[10px] uppercase tracking-[0.18em] text-t3"
+      >
+        Address or ENS name
       </label>
       <input
         id="public-read-input"
@@ -61,8 +64,8 @@ export function PublicReadInput({
           setValue(event.target.value);
           if (error) setError(null);
         }}
-        placeholder="0x... or aave.eth"
-        className="rounded border border-border bg-raised px-3 py-2 text-sm font-mono"
+        placeholder="0x87870Bca…fA4E2 · aave.eth · letadlo.eth"
+        className="border border-border-strong bg-bg px-4 py-3 font-mono text-sm text-t1 placeholder:text-t3 focus:border-accent focus:outline-none"
         aria-invalid={error !== null}
         aria-describedby={error ? "public-read-error" : undefined}
       />
@@ -70,16 +73,17 @@ export function PublicReadInput({
         <p
           id="public-read-error"
           role="alert"
-          className="text-sm text-verdict-siren"
+          className="font-mono text-xs text-verdict-siren"
         >
           {error}
         </p>
       ) : null}
       <button
         type="submit"
-        className="rounded border border-t1 px-3 py-2 text-sm hover:bg-raised"
+        className="inline-flex items-center justify-center gap-2 border border-accent bg-bg px-5 py-3 font-mono text-sm uppercase tracking-[0.18em] text-accent hover:bg-accent hover:text-bg"
       >
         Read public verdict
+        <span aria-hidden>→</span>
       </button>
     </form>
   );
