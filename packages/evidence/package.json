@@ -1,0 +1,28 @@
+{
+  "name": "@upgrade-siren/evidence",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Evidence engine for Upgrade Siren (ENS / Sourcify / on-chain readers, verdict logic).",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@upgrade-siren/shared": "workspace:*",
+    "viem": "^2.21.55"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}
