@@ -185,3 +185,15 @@ export type {
   ManifestChainResult,
   ManifestChainValid,
 } from './manifest/chain.js';
+
+export {
+  SourcifyCache,
+  fetchSourcifyMetadataCached,
+  fetchSourcifyStatusCached,
+} from './sourcify/cache.js';
+
+export type {
+  CachedFetchOptions,
+  SourcifyCacheOptions,
+  SourcifyEndpoint,
+} from './sourcify/cache.js';
