@@ -35,10 +35,13 @@ export function EnsLookupForm({
   return (
     <form
       onSubmit={onSubmit}
-      className="flex w-full max-w-md flex-col gap-2"
+      className="flex w-full flex-col gap-3"
       aria-label="ENS lookup"
     >
-      <label htmlFor="ens-lookup-input" className="text-sm">
+      <label
+        htmlFor="ens-lookup-input"
+        className="font-mono text-[10px] uppercase tracking-[0.18em] text-t3"
+      >
         ENS name
       </label>
       <input
@@ -52,8 +55,8 @@ export function EnsLookupForm({
           setValue(event.target.value);
           if (error) setError(null);
         }}
-        placeholder="vault.demo.upgradesiren.eth"
-        className="rounded border border-border bg-raised px-3 py-2 text-sm"
+        placeholder="safe.upgrade-siren-demo.eth"
+        className="border border-border-strong bg-bg px-4 py-3 font-mono text-sm text-t1 placeholder:text-t3 focus:border-accent focus:outline-none"
         aria-invalid={error !== null}
         aria-describedby={error ? "ens-lookup-error" : undefined}
       />
@@ -61,16 +64,17 @@ export function EnsLookupForm({
         <p
           id="ens-lookup-error"
           role="alert"
-          className="text-sm text-verdict-siren"
+          className="font-mono text-xs text-verdict-siren"
         >
           {error}
         </p>
       ) : null}
       <button
         type="submit"
-        className="rounded border border-t1 px-3 py-2 text-sm hover:bg-raised"
+        className="inline-flex items-center justify-center gap-2 border border-accent bg-bg px-5 py-3 font-mono text-sm uppercase tracking-[0.18em] text-accent hover:bg-accent hover:text-bg"
       >
         Look up verdict
+        <span aria-hidden>→</span>
       </button>
     </form>
   );
