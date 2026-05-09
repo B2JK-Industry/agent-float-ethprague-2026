@@ -124,3 +124,14 @@ export type {
   StorageLayout,
   StorageLayoutEntry,
 } from './diff/storage.js';
+
+export { parseUpgradeManifest } from './manifest/parse.js';
+
+export type {
+  ManifestError,
+  ManifestErrorReason,
+  ParseManifestResult,
+  UpgradeManifest,
+} from './manifest/types.js';
+
+export { MANIFEST_SCHEMA_V1 } from './manifest/types.js';
