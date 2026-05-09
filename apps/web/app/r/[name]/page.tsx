@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { EmptyStateNoRecords } from "../../../components/EmptyStateNoRecords";
 import { EvidenceDrawer } from "../../../components/EvidenceDrawer";
@@ -11,11 +12,7 @@ import {
 } from "../../../components/LoadingChecklist";
 import { VerdictCard } from "../../../components/VerdictCard";
 
-import {
-  FIXTURE_REPORTS,
-  SUBNAME_TO_FIXTURE,
-  publicReadFixture,
-} from "./fixtures";
+import { loadReport } from "./loadReport";
 
 import type { SirenReport } from "@upgrade-siren/shared";
 
@@ -73,6 +70,32 @@ function loadingStepsFor(report: SirenReport): readonly ChecklistStep[] {
   ] as const;
 }
 
+function pendingChecklist(): readonly ChecklistStep[] {
+  return [
+    { key: "ens", label: "ENS · resolve name", status: "running" },
+    {
+      key: "chain",
+      label: "Chain · read EIP-1967 implementation slot",
+      status: "pending",
+    },
+    {
+      key: "sourcify",
+      label: "Sourcify · fetch verified metadata",
+      status: "pending",
+    },
+    {
+      key: "diff",
+      label: "Diff · ABI & storage layout",
+      status: "pending",
+    },
+    {
+      key: "signature",
+      label: "Signature · operator manifest signature",
+      status: "pending",
+    },
+  ] as const;
+}
+
 function abiSummaryFor(report: SirenReport): {
   selectorCount: number;
   riskyAddedCount: number;
@@ -113,69 +136,60 @@ function reportUrlFor(name: string): string {
   return `/r/${encodeURIComponent(name)}/report.json`;
 }
 
-export default async function VerdictResultPage(
-  props: VerdictPageParams,
-): Promise<React.JSX.Element> {
-  const { name: rawName } = await props.params;
-  const search = await props.searchParams;
-  const name = decodeURIComponent(rawName);
-  const modeParam = Array.isArray(search.mode) ? search.mode[0] : search.mode;
-  const isPublicReadIntent = modeParam === "public-read";
+function HeaderNav(): React.JSX.Element {
+  return (
+    <header className="flex items-center justify-between">
+      <Link
+        href="/"
+        className="font-mono text-xs uppercase tracking-[0.18em] text-t2 hover:text-t1"
+      >
+        ← Upgrade Siren
+      </Link>
+      <Link
+        href="/demo"
+        className="font-mono text-xs uppercase tracking-[0.18em] text-t2 hover:text-t1"
+      >
+        Booth demo →
+      </Link>
+    </header>
+  );
+}
 
-  const fixtureKey = SUBNAME_TO_FIXTURE[name];
-  const report: SirenReport | null = fixtureKey
-    ? FIXTURE_REPORTS[fixtureKey]
-    : isPublicReadIntent
-      ? publicReadFixture(name)
-      : null;
+function PendingFallback(): React.JSX.Element {
+  return (
+    <section
+      aria-label="Loading evidence"
+      data-state="loading"
+      className="rounded-md border border-border bg-raised p-4"
+    >
+      <LoadingChecklist steps={pendingChecklist()} />
+    </section>
+  );
+}
 
-  if (report === null) {
-    return (
-      <main className="mx-auto flex min-h-screen max-w-4xl flex-col gap-8 px-6 py-16">
-        <header className="flex items-center justify-between">
-          <Link
-            href="/"
-            className="font-mono text-xs uppercase tracking-[0.18em] text-t2 hover:text-t1"
-          >
-            ← Upgrade Siren
-          </Link>
-          <Link
-            href="/demo"
-            className="font-mono text-xs uppercase tracking-[0.18em] text-t2 hover:text-t1"
-          >
-            Booth demo →
-          </Link>
-        </header>
-        <EmptyStateNoRecords name={name} />
-      </main>
-    );
+async function VerdictResultBody({
+  name,
+  mockMode,
+  publicReadIntent,
+}: {
+  name: string;
+  mockMode: boolean;
+  publicReadIntent: boolean;
+}): Promise<React.JSX.Element> {
+  const result = await loadReport(name, { mockMode, publicReadIntent });
+
+  if (result.kind === "empty" || result.kind === "error") {
+    return <EmptyStateNoRecords name={name} />;
   }
 
+  const { report, source } = result;
   const steps = loadingStepsFor(report);
   const abiSummary = abiSummaryFor(report);
   const storageSummary = storageSummaryFor(report);
   const reportUrl = reportUrlFor(name);
 
   return (
-    <main
-      className="mx-auto flex min-h-screen max-w-5xl flex-col gap-8 px-6 py-12"
-      data-page="verdict-result"
-    >
-      <header className="flex items-center justify-between">
-        <Link
-          href="/"
-          className="font-mono text-xs uppercase tracking-[0.18em] text-t2 hover:text-t1"
-        >
-          ← Upgrade Siren
-        </Link>
-        <Link
-          href="/demo"
-          className="font-mono text-xs uppercase tracking-[0.18em] text-t2 hover:text-t1"
-        >
-          Booth demo →
-        </Link>
-      </header>
-
+    <>
       <VerdictCard
         verdict={report.verdict}
         name={report.name}
@@ -186,7 +200,12 @@ export default async function VerdictResultPage(
         mock={report.mock}
       />
 
-      <section aria-label="Loading evidence" className="rounded-md border border-border bg-raised p-4">
+      <section
+        aria-label="Loading evidence"
+        data-state="loaded"
+        data-source={source}
+        className="rounded-md border border-border bg-raised p-4"
+      >
         <LoadingChecklist steps={steps} />
       </section>
 
@@ -235,6 +254,35 @@ export default async function VerdictResultPage(
           reportUrl={reportUrl}
         />
       </section>
+    </>
+  );
+}
+
+export default async function VerdictResultPage(
+  props: VerdictPageParams,
+): Promise<React.JSX.Element> {
+  const { name: rawName } = await props.params;
+  const search = await props.searchParams;
+  const name = decodeURIComponent(rawName);
+  const modeParam = Array.isArray(search.mode) ? search.mode[0] : search.mode;
+  const mockParam = Array.isArray(search.mock) ? search.mock[0] : search.mock;
+  const publicReadIntent = modeParam === "public-read";
+  const mockMode = mockParam === "true" || mockParam === "1";
+
+  return (
+    <main
+      className="mx-auto flex min-h-screen max-w-5xl flex-col gap-8 px-6 py-12"
+      data-page="verdict-result"
+      data-mode={mockMode ? "mock" : publicReadIntent ? "public-read" : "live"}
+    >
+      <HeaderNav />
+      <Suspense fallback={<PendingFallback />}>
+        <VerdictResultBody
+          name={name}
+          mockMode={mockMode}
+          publicReadIntent={publicReadIntent}
+        />
+      </Suspense>
     </main>
   );
 }
