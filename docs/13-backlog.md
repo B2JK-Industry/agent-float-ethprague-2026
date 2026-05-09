@@ -110,6 +110,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-056 | Siren Agent watchlist config | C | P2 | M | open | US-029 |
 | US-057 | Operator report-signing workflow UX for Siren Agent automation | C | P2 | M | open | US-015, US-056 |
 | US-058 | Umia-style due-diligence panel | C | P2 | M | open | US-029 |
+| US-067 | Brand visual identity assets and Tailwind preset integration | C | P0 | L | open | US-037 |
 
 ### Tracker — Daniel + Orch
 
@@ -2939,3 +2940,68 @@ file assets/brand/devfolio-cover.png
 #### Notes
 
 P1 because Devfolio accepts a default placeholder if the visual identity from `prompts/design-brief.md` arrives late. Do not block submission on this item.
+
+### US-067 - Brand visual identity assets and Tailwind preset integration
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | C |
+| Effort | L |
+| Sponsor | Future Society |
+| Dependencies | US-037 |
+| Acceptance gates | GATE-2, GATE-22 |
+| Status | open |
+
+#### Scope
+
+The Upgrade Siren brand manual (Direction A "Triade Stack" recommended primary, full color/type/motion/icon spec) is realized as a self-contained HTML document. Daniel will paste the canonical HTML content into the Dev C terminal as the source-of-truth artifact. Dev C extracts the tokens into machine-readable form, exports the inline SVG assets as standalone files, wires the tokens into the Next.js Tailwind config, and rebases all open Stream C component PRs (US-038, US-039, US-040, US-041 if still open) so they consume the real verdict tokens instead of placeholder Tailwind colors. Out of scope: production-grade illustration beyond logo + verdict glyphs (per brand manual section 14), Siren Agent watchlist UI, Umia panel.
+
+#### Acceptance Criteria
+
+- [ ] `assets/brand/brand-manual.html` exists with the canonical HTML content (paste from Daniel; treat as immutable artifact, do not edit beyond UTF-8 cleanup)
+- [ ] `assets/brand/brand-tokens.json` lists every CSS variable from the manual's `:root` block as flat key-value (verdict-safe, verdict-review, verdict-siren, verdict-*-on-light, verdict-*-surf, neutrals bg through paper, accent, font families)
+- [ ] `assets/brand/tailwind-preset.ts` exports a Tailwind 4 `@theme` preset consumable by `apps/web/tailwind.config.ts`. Token names match `brand-tokens.json` keys.
+- [ ] `assets/brand/icons/` contains 18 SVG files: 3 verdict glyphs (`verdict-safe.svg`, `verdict-review.svg`, `verdict-siren.svg`) plus 15 UI icons matching the brand manual section 06 grid (`ens-evidence`, `sourcify-evidence`, `eip-1967-slot`, `sig-signed`, `sig-unsigned`, `sig-invalid`, `conf-signed-manifest`, `conf-public-read`, `conf-mock`, `step-pending`, `step-success`, `step-failure`, `copy`, `share`, `expand`, `external-link`, `info`, `alert`). Each SVG is the inline `<svg>` from the brand manual extracted as a standalone file, 1.5px stroke, no fill except verdict glyphs.
+- [ ] `assets/brand/logo/` contains 5 SVG files: `mark-primary.svg` (Direction A Triade Stack), `mark-mono-dark.svg`, `mark-mono-light.svg`, `wordmark-horizontal.svg`, `lockup-stacked.svg`
+- [ ] `assets/brand/README.md` documents the consumption pattern: how Stream C imports the Tailwind preset, which token name maps to which CSS variable, where to add new icons, and the protected-tagline rule.
+- [ ] `apps/web/tailwind.config.ts` imports the preset; placeholder Tailwind utility classes (`text-emerald-500`, `text-amber-500`, `text-red-500`) replaced with semantic verdict tokens (`bg-verdict-safe`, `bg-verdict-review`, `bg-verdict-siren`, `text-verdict-safe`, etc.)
+- [ ] `apps/web/app/page.tsx` and any other US-037-introduced placeholder color usage swapped to semantic tokens
+- [ ] Google Fonts loaded for Space Grotesk (500/600/700), Inter (400/500/600), JetBrains Mono (400/500/700) per brand manual section 05
+- [ ] Encoding cleanup: any mojibake artifacts in the pasted HTML (`Â·`, `â`, `Ã`) replaced with correct UTF-8 (`·`, `—`, `×`)
+- [ ] Verification: `pnpm --filter @upgrade-siren/web build` succeeds; visual smoke test shows verdict colors rendering at correct hex values
+- [ ] PR body references US-067 and confirms which open Stream C PRs need rebase after merge
+
+#### Files
+
+- `assets/brand/brand-manual.html` (seed from Daniel paste)
+- `assets/brand/brand-tokens.json`
+- `assets/brand/tailwind-preset.ts`
+- `assets/brand/icons/*.svg` (18 files)
+- `assets/brand/logo/*.svg` (5 files)
+- `assets/brand/README.md`
+- `apps/web/tailwind.config.ts` (modification)
+- `apps/web/app/page.tsx` (modification — placeholder colors swap)
+- `apps/web/app/globals.css` (modification — Google Fonts import + Tailwind preset import)
+- `apps/web/app/layout.tsx` (modification if Google Fonts loaded via `next/font`)
+
+#### Verification commands
+
+```bash
+pnpm install
+pnpm --filter @upgrade-siren/web build
+pnpm --filter @upgrade-siren/web dev
+# visual smoke test:
+# - http://localhost:3000 shows Space Grotesk display, Inter body, JetBrains Mono mono
+# - inspect element on any verdict color confirms #00D67A / #FFB020 / #FF3B30
+grep -rn "text-emerald-500\|text-amber-500\|text-red-500" apps/web/ && exit 1 || echo "placeholder colors removed: pass"
+```
+
+#### Notes
+
+Single-PR delivery covering brand seed + Tailwind integration + token swap in the existing US-037 scaffold. Effort `L` because it touches 24+ asset files plus Tailwind config and font loading, with verification of color-faithful rendering.
+
+After merge, all open Stream C component PRs that consumed the placeholder color tokens must rebase per Hard Rule 14 and swap utility classes. Specifically: US-038, US-039, US-040, US-041 if still open at merge time.
+
+`prompts/design-brief.md` describes this brand identity from the design side. The brand manual realizes it. After this US-067 merges, `prompts/design-brief.md` may be marked as fulfilled by Orch.
