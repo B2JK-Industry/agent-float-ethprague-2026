@@ -159,3 +159,16 @@ export type {
 export { FINDING_IDS, makeFinding } from './verdict/findings.js';
 
 export type { Finding, FindingId, FindingSeverity } from './verdict/findings.js';
+
+export {
+  DEFAULT_GRACE_SECONDS,
+  applyManifestGracePolicy,
+  readGraceSecondsFromEnv,
+} from './verdict/gracePolicy.js';
+
+export type {
+  ManifestGraceDecision,
+  ManifestGraceInput,
+  ManifestGraceMode,
+  ManifestGraceOptions,
+} from './verdict/gracePolicy.js';
