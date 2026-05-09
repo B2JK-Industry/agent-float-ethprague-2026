@@ -21,3 +21,12 @@ export type {
   UpgradeEventsReadOk,
   UpgradeEventsReadError,
 } from './chain/upgradeEvents.js';
+
+export { verifyReportSignature } from './verify/signature.js';
+
+export type {
+  VerifySignatureResult,
+  VerifySignatureValid,
+  VerifySignatureInvalid,
+  VerifySignatureFailureReason,
+} from './verify/signature.js';
