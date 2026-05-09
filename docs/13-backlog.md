@@ -177,13 +177,13 @@ Tracker-only owners (not picked up by dev agents):
 
 | ID | Title | Owner | Priority | Effort | Status | Depends on |
 |---|---|---|---|---|---|---|
-| US-125 | Playwright e2e harness in `apps/web` with MSW (Mock Service Worker) for fixturing GitHub / Sourcify / RPC / ENS-subgraph responses | A | P0 | M | open | US-117 |
+| US-125 | Playwright e2e harness in `apps/web` with MSW (Mock Service Worker) for fixturing GitHub / Sourcify / RPC / ENS-subgraph responses | A | P0 | M | merged | US-117 |
 | US-126 | Playwright scenario: high-score subject (verified Sourcify + verified GitHub-shaped fixtures) | A | P0 | S | open | US-125, US-118 |
 | US-127 | Playwright scenario: mid-score subject (mixed verification states; demonstrates trust-discount visibly) | A | P0 | S | open | US-125, US-118 |
 | US-128 | Playwright scenario: public-read fallback subject (no `agent-bench:bench_manifest` in fixtures; tier ceiling A) | A | P0 | S | open | US-125, US-112 |
 | US-129 | Playwright scenario: storage-collision-detected subject (fixture data shaped to trigger COLLISION in US-119) | A | P0 | M | open | US-125, US-119 |
 | US-130 | Optional Foundry fixture: deliberate storage-collision proxy upgrade (only if existing demo fixtures do not cover this for live snapshotting; decided Day 2 morning) | A | P2 | M | open | US-001..US-005 |
-| US-146 | Provision one owned `kind:"ai-agent"` ENS subject under `upgrade-siren-demo.eth` with `agent-bench:bench_manifest` text record (operator wallet 0x747E…0cfC, Sourcify projects = our demo proxies, GitHub owner = repo org). Demonstrates universal-subject-registry shape live for ENS AI Agents track judging. Per Section 13 update 2026-05-09. | A | P0 | S | open | US-117 |
+| US-146 | Provision one owned `kind:"ai-agent"` ENS subject under `upgrade-siren-demo.eth` with `agent-bench:bench_manifest` text record (operator wallet 0x747E…0cfC, Sourcify projects = our demo proxies, GitHub owner = repo org). Demonstrates universal-subject-registry shape live for ENS AI Agents track judging. Per Section 13 update 2026-05-09. | A | P0 | S | merged | US-117 |
 
 ### Bench Mode — Stream C (Web UX, /b/[name] route)
 
@@ -3789,7 +3789,7 @@ EPIC reference: US-089. Renumbered to US-124.
 | Sponsor | - |
 | Dependencies | US-117 |
 | Acceptance gates | GATE-34 |
-| Status | open (Epic 2) |
+| Status | merged |
 
 #### Scope
 
@@ -4552,7 +4552,7 @@ If neither key is present, the relevance `onchainRecency` formula falls back to 
 | Sponsor | ENS |
 | Dependencies | US-117 |
 | Acceptance gates | GATE-29 (drawer rendering live), demo Section 14 |
-| Status | open (Epic 2) |
+| Status | merged |
 
 #### Scope
 
