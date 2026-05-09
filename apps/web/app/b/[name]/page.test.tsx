@@ -79,7 +79,7 @@ describe("BenchPage (US-131 foundation)", () => {
     expect(screen.getByText(/no data, no score\./i)).toBeInTheDocument();
   });
 
-  it("foundation banner block exposes score_100, tier, and axis values", async () => {
+  it("renders ScoreBanner exposing score-big, tier monogram, and axis 100-scaled values", async () => {
     loadBenchMock.mockResolvedValue({
       kind: "loaded",
       evidence: SAMPLE_EVIDENCE,
@@ -89,15 +89,20 @@ describe("BenchPage (US-131 foundation)", () => {
     const ui = await BenchPage(pageProps("subject.eth"));
     const { container } = render(ui);
 
-    const score = container.querySelector('[data-field="score_100"]');
-    const tier = container.querySelector('[data-field="tier"]');
-    const seniority = container.querySelector('[data-field="seniority"]');
-    const relevance = container.querySelector('[data-field="relevance"]');
+    const banner = container.querySelector(
+      '[data-section="score-banner"]',
+    );
+    expect(banner?.getAttribute("data-tier")).toBe("B");
 
-    expect(score?.textContent).toBe("63");
-    expect(tier?.textContent).toBe("B");
-    expect(seniority?.textContent).toBe("0.600");
-    expect(relevance?.textContent).toBe("0.660");
+    expect(
+      container.querySelector('[data-field="score-big"]')?.textContent,
+    ).toBe("63");
+    expect(container.querySelector('[data-field="seniority"]')?.textContent).toBe(
+      "60",
+    );
+    expect(container.querySelector('[data-field="relevance"]')?.textContent).toBe(
+      "66",
+    );
   });
 
   it("renders 'manifest' / 'public-read' mode chip from evidence.subject.mode", async () => {

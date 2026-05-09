@@ -24,6 +24,7 @@
 
 import type { Metadata } from "next";
 
+import { ScoreBanner } from "../../../components/bench/ScoreBanner";
 import { BENCH_SUB_BRAND, BENCH_SUB_TAGLINE } from "../../../lib/branding";
 import { loadBench, type LoadBenchResult } from "./loadBench";
 
@@ -135,42 +136,7 @@ function BenchFoundation({
         </span>
       </section>
 
-      <section
-        aria-label="Score foundation"
-        data-section="score-foundation"
-        data-foundation="banner"
-        className="rounded-md border border-border bg-raised p-6"
-      >
-        <p className="text-sm text-t2">
-          Foundation surface (US-131). Score banner ships in US-132;
-          source grid in US-133; breakdown panel in US-134.
-        </p>
-        <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 font-mono text-sm">
-          <dt className="text-t2">score_100</dt>
-          <dd
-            data-field="score_100"
-            className="font-bold text-t1"
-          >
-            {score.score_100}
-          </dd>
-          <dt className="text-t2">tier</dt>
-          <dd data-field="tier" className="font-bold text-t1">
-            {score.tier}
-          </dd>
-          <dt className="text-t2">seniority</dt>
-          <dd data-field="seniority" className="font-bold text-t1">
-            {score.seniority.toFixed(3)}
-          </dd>
-          <dt className="text-t2">relevance</dt>
-          <dd data-field="relevance" className="font-bold text-t1">
-            {score.relevance.toFixed(3)}
-          </dd>
-          <dt className="text-t2">ceiling</dt>
-          <dd data-field="ceiling-applied" className="font-bold text-t1">
-            {score.ceilingApplied}
-          </dd>
-        </dl>
-      </section>
+      <ScoreBanner score={score} />
 
       <section
         aria-label="Source evidence foundation"
