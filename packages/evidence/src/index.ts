@@ -30,3 +30,16 @@ export type {
   VerifySignatureInvalid,
   VerifySignatureFailureReason,
 } from './verify/signature.js';
+
+export { resolveEnsRecords } from './ens/resolve.js';
+
+export type {
+  EnsRecordSet,
+  EnsResolutionError,
+  EnsResolutionFlags,
+  EnsResolutionOk,
+  EnsResolutionResult,
+  UpgradeSirenRecordKey,
+} from './ens/types.js';
+
+export { UPGRADE_SIREN_RECORD_KEYS } from './ens/types.js';
