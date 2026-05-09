@@ -128,11 +128,25 @@ export type LoadBenchError = {
 
 export type LoadBenchResult = LoadBenchLoaded | LoadBenchError;
 
+function envDefaultChainId(): number {
+  const raw = process.env.DEFAULT_BENCH_CHAIN_ID;
+  if (raw === undefined || raw === '') return MAINNET_CHAIN_ID;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed <= 0) return MAINNET_CHAIN_ID;
+  return parsed;
+}
+
 export async function loadBench(
   name: string,
   options: LoadBenchOptions = {},
 ): Promise<LoadBenchResult> {
-  const chainId = options.chainId ?? MAINNET_CHAIN_ID;
+  // Demo subjects (siren-agent-demo, *.upgrade-siren-demo.eth) live on
+  // Sepolia — DEFAULT_BENCH_CHAIN_ID env override flips the default to
+  // 11155111 in production without breaking test fixtures that pin
+  // chainId: 1 explicitly. Tester smoke 2026-05-09 21:42 CET caught that
+  // /b/{Sepolia subject} silently degraded to public-read tier U because
+  // the orchestrator queried mainnet ENS (no manifest there).
+  const chainId = options.chainId ?? envDefaultChainId();
   const nowSeconds = options.nowSeconds ?? Math.floor(Date.now() / 1000);
   const orchestratorTimeoutMs =
     options.orchestratorTimeoutMs ?? DEFAULT_ORCHESTRATOR_TIMEOUT_MS;
