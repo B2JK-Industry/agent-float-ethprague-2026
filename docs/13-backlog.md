@@ -39,8 +39,8 @@ Tracker-only owners (not picked up by dev agents):
 | ID | Title | Owner | Priority | Effort | Status | Depends on |
 |---|---|---|---|---|---|---|
 | US-001 | Foundry workspace with pinned compiler 0.8.24 | A | P0 | S | merged | none |
-| US-002 | EIP-1967 transparent proxy fixture contract | A | P0 | S | open | none |
-| US-003 | VaultV1 baseline implementation | A | P0 | S | open | none |
+| US-002 | EIP-1967 transparent proxy fixture contract | A | P0 | S | merged | none |
+| US-003 | VaultV1 baseline implementation | A | P0 | S | merged | none |
 | US-004 | VaultV2Safe storage-compatible implementation | A | P0 | M | open | US-003 |
 | US-005 | VaultV2Dangerous implementation with sweep and incompatible storage | A | P0 | M | open | US-003 |
 | US-006 | Unverified-implementation deployment scenario contract | A | P0 | S | open | none |
@@ -206,7 +206,7 @@ Compiler version pinning is a Sourcify-verification prerequisite: a non-pinned c
 | Sponsor | - |
 | Dependencies | none |
 | Acceptance gates | GATE-4, GATE-8 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -246,7 +246,7 @@ Using stock OZ here is intentional. A custom proxy would force Stream B to speci
 | Sponsor | - |
 | Dependencies | none |
 | Acceptance gates | GATE-6 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
