@@ -359,6 +359,37 @@ function EntryRow({
       >
         Open per-contract verdict →
       </a>
+
+      {/* US-140 — Similarity cross-link. Opens /lookup/<address> in a
+          new tab so judges can pivot to the per-contract verdict
+          without losing the Bench surface. Distinct from the
+          same-tab deep-dive above: this is the explicit "I want to
+          dig into this contract's similarity neighbourhood" path,
+          aligned with the Sourcify bytecode-similarity flow shipped
+          in US-121.
+          aria-label includes the address verbatim so screen-reader
+          users hear which contract the link targets when navigating
+          a list of entries. */}
+      <a
+        data-field="similarity-button"
+        data-address={entry.address}
+        href={`/lookup/${entry.address}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Open similarity lookup for ${entry.address} in new tab`}
+        className="inline-flex items-center"
+        style={{
+          color: "var(--color-accent)",
+          border: "1px solid var(--color-border)",
+          padding: "12px 16px",
+          fontFamily: "var(--font-mono)",
+          fontSize: "11px",
+          letterSpacing: "0.06em",
+          width: "fit-content",
+        }}
+      >
+        Find similar contracts ↗
+      </a>
     </article>
   );
 }
