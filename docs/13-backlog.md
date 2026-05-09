@@ -132,7 +132,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-059 | Sponsor pitch finalization (start at scope-lock) | Daniel + Orch | P0 | M | open | none |
 | US-060 | Operator wallet / report signer custody decision (start at scope-lock) | Daniel | P0 | S | merged | none |
 | US-061 | ENS parent registration on mainnet (deferred post-hack; Sepolia parent suffices for demo) | Daniel | P1 | M | blocked | US-060 |
-| US-062 | Live public-read protocol target research (start at scope-lock) | Daniel + Orch | P0 | M | open | none |
+| US-062 | Live public-read protocol target research (start at scope-lock) | Daniel + Orch | P0 | M | merged | none |
 | US-063 | Booth fallback artifacts: Anvil, cached fixtures, recorded demo (start at scope-lock) | Orch | P0 | L | merged | US-009, US-050 |
 | US-064 | Devfolio submission materials | Daniel + Orch | P0 | M | open | US-013, US-029, US-050, US-059 |
 | US-065 | 3-minute booth script rehearsal | Daniel | P0 | S | open | US-050 |
@@ -2754,7 +2754,9 @@ This unblocks Stream A US-010 ENS provisioning in production-mode. Stream A can 
 | Sponsor | Sourcify, ENS, Future Society |
 | Dependencies | none |
 | Acceptance gates | GATE-25 |
-| Status | open |
+| Status | merged |
+
+> **2026-05-09 selection: Aave V3 Pool** `0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2` (Ethereum mainnet). Daniel's call. Highest judge name-recognition among DeFi protocols, EIP-1967 transparent proxy, Sourcify-verified current implementation, multiple historical upgrades, governance-controlled by Aave DAO. The live public-read flow on this target correctly caps verdict at REVIEW (cannot SAFE without operator manifest), demonstrating the fallback path with evidence anchored in real chain state + Sourcify metadata. Wired into `apps/web/app/demo/demo.config.ts` 4th scenario in this PR. Alternates pre-warmed in booth fallback cache (US-063): Lido stETH, Compound v3 USDC Comet, Optimism L1 Bridge, EigenLayer DelegationManager, ENS Public Resolver — any can be substituted at booth time.
 
 #### Scope
 

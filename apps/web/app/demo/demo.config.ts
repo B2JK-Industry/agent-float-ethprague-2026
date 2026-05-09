@@ -60,12 +60,12 @@ export const DEMO_SCENARIOS: readonly DemoScenario[] = [
   },
   {
     key: "live-public-read",
-    label: "Live public-read protocol",
-    target: null,
+    label: "Aave V3 Pool (mainnet, live)",
+    target: "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
     mode: "public-read",
     expectedVerdict: "REVIEW",
     description:
-      "Real protocol without upgrade-siren records — public-read fallback. Target pending Tracker US-062.",
+      "Real Aave V3 Pool proxy on Ethereum mainnet (no upgrade-siren records). Public-read fallback: verdict capped at REVIEW (never SAFE without operator manifest); evidence from live chain state + Sourcify metadata.",
   },
 ] as const;
 
