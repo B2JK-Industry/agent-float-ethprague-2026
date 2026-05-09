@@ -43,7 +43,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-003 | VaultV1 baseline implementation | A | P0 | S | merged | none |
 | US-004 | VaultV2Safe storage-compatible implementation | A | P0 | M | open | US-003 |
 | US-005 | VaultV2Dangerous implementation with sweep and incompatible storage | A | P0 | M | open | US-003 |
-| US-006 | Unverified-implementation deployment scenario contract | A | P0 | S | open | none |
+| US-006 | Unverified-implementation deployment scenario contract | A | P0 | S | merged | none |
 | US-007 | Sourcify verification scripts for V1, V2Safe, V2Dangerous | A | P0 | M | open | US-009 |
 | US-008 | Foundry tests: storage-layout assertions, dangerous-selector behavior, upgrade flow | A | P0 | M | open | US-001, US-002, US-003, US-004, US-005 |
 | US-009 | Sepolia deploy script with documented addresses | A | P0 | M | open | US-001, US-002, US-003, US-004, US-005, US-006 |
@@ -66,7 +66,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-019 | Public-read fallback path for absent Upgrade Siren records | B | P0 | M | open | US-017 |
 | US-020 | Absent-record verdict paths (missing manifest, owner, malformed, slot mismatch) | B | P0 | M | open | US-018, US-019 |
 | US-021 | Schema version policy for upgrade-siren-manifest@1 | B | P0 | S | open | US-014, US-018 |
-| US-022 | EIP-1967 implementation slot reader | B | P0 | S | open | none |
+| US-022 | EIP-1967 implementation slot reader | B | P0 | S | merged | none |
 | US-023 | Upgraded(address) event reader | B | P0 | S | open | none |
 | US-024 | Sourcify verification status fetch | B | P0 | M | open | none |
 | US-025 | Sourcify metadata fetch (source, ABI, compiler, storage layout) | B | P0 | M | open | none |
@@ -374,7 +374,7 @@ The danger is two-pronged: storage incompat AND a new privileged selector. Strea
 | Sponsor | Sourcify |
 | Dependencies | none |
 | Acceptance gates | GATE-6 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -1051,7 +1051,7 @@ Schema versioning is a future-proofing item, not a feature. Without it, a future
 | Sponsor | - |
 | Dependencies | none |
 | Acceptance gates | GATE-4, GATE-8 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
