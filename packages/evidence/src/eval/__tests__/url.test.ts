@@ -44,7 +44,7 @@ function ctx(fixture: HeadFixture, calls: string[] = []): EngineContext {
 }
 
 describe('url evaluator', () => {
-  it('calibrates letadlo.eth LinkedIn URL and emits socialPlatformDetected', async () => {
+  it('detects social URL but contributes ZERO to score (Daniel constraint 2026-05-10)', async () => {
     const calls: string[] = [];
     const r = await urlEngine.evaluate(
       record('https://www.linkedin.com/in/artem-starokozhko-715700393/', 'letadlo.eth'),
@@ -52,11 +52,18 @@ describe('url evaluator', () => {
       urlEngine.defaultParams,
     );
     const social = r.signals.seniorityBreakdown.find((s) => s.name === 'socialPlatformDetected');
-    expect(r.seniority).toBeGreaterThanOrEqual(0.4);
-    expect(r.seniority).toBeLessThanOrEqual(0.65);
-    expect(r.relevance).toBeGreaterThanOrEqual(0.4);
-    expect(r.relevance).toBeLessThanOrEqual(0.7);
+    // Social classifier still fires — UI uses this to render the link.
     expect(social?.raw).toMatchObject({ platform: 'linkedin', handle: 'artem-starokozhko-715700393' });
+    // But every score-impacting field is zero.
+    expect(r.seniority).toBe(0);
+    expect(r.relevance).toBe(0);
+    expect(r.weight).toBe(0);
+    expect(r.trust).toBe(0);
+    // Evidence preserves the link for the SocialsPanel to render.
+    expect(r.evidence.find((e) => e.label === 'Social profile URL')?.link).toBe(
+      'https://www.linkedin.com/in/artem-starokozhko-715700393/',
+    );
+    // Still no network call — pattern match short-circuits.
     expect(calls).toEqual([]);
   });
 
