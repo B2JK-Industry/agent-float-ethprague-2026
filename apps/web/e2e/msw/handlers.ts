@@ -63,6 +63,20 @@ export const githubHandlers = [
     http.get(`${GITHUB_BASE}/repos/:owner/:repo/contents/LICENSE`, () => {
         return HttpResponse.json(githubContentReadme);
     }),
+    // packages/evidence/src/sources/github/fetch.ts probes four common
+    // test directory layouts. Returning a deterministic 404 mirrors what
+    // GitHub returns for absent paths and is what the fetcher's
+    // hasTestDir branch normally treats as "no test dir at this path".
+    // Per-scenario tests override one of these via `mswServer.use(...)`
+    // to flip a specific repo to "has test dir" when the scenario needs it.
+    http.get(`${GITHUB_BASE}/repos/:owner/:repo/contents/test`, () =>
+        HttpResponse.json({ message: "Not Found" }, { status: 404 })),
+    http.get(`${GITHUB_BASE}/repos/:owner/:repo/contents/tests`, () =>
+        HttpResponse.json({ message: "Not Found" }, { status: 404 })),
+    http.get(`${GITHUB_BASE}/repos/:owner/:repo/contents/__tests__`, () =>
+        HttpResponse.json({ message: "Not Found" }, { status: 404 })),
+    http.get(`${GITHUB_BASE}/repos/:owner/:repo/contents/spec`, () =>
+        HttpResponse.json({ message: "Not Found" }, { status: 404 })),
 ];
 
 export const ensHandlers = [

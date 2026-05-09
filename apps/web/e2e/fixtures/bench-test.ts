@@ -25,7 +25,14 @@ export const test = base.extend<BenchTestFixtures>({
         use: (value: typeof mswServer) => Promise<void>,
         testInfo,
     ) => {
-        mswServer.listen({ onUnhandledRequest: "warn" });
+        // GATE-34: suite must run green in CI without live network. With
+        // `onUnhandledRequest: "warn"` an unmocked request would only log
+        // and then fall through to the live network, so a missing handler
+        // could pass on a workstation and fail (or worse, pass for the
+        // wrong reason) on CI. `"error"` makes the suite fail loudly the
+        // moment a handler is missing — which is the discipline this
+        // fixture exists to enforce.
+        mswServer.listen({ onUnhandledRequest: "error" });
         await use(mswServer);
         mswServer.resetHandlers();
         mswServer.close();
