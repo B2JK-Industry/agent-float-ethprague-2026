@@ -137,7 +137,7 @@ function FileRow({
     <details
       data-file={file.path}
       open={defaultOpen}
-      className="rounded-md border border-border bg-raised"
+      className="border border-border bg-raised"
     >
       <summary className="flex flex-wrap items-center gap-3 px-3 py-2 cursor-pointer">
         <code className="font-mono text-sm text-t1">{file.path}</code>
@@ -148,19 +148,19 @@ function FileRow({
         ) : null}
         <span
           data-badge="additions"
-          className="ml-auto inline-flex items-center rounded border border-verdict-safe px-1.5 py-0.5 font-mono text-xs text-verdict-safe"
+          className="ml-auto inline-flex items-center border border-verdict-safe px-1.5 py-0.5 font-mono text-xs text-verdict-safe"
         >
           +{file.additionsCount}
         </span>
         <span
           data-badge="deletions"
-          className="inline-flex items-center rounded border border-verdict-siren px-1.5 py-0.5 font-mono text-xs text-verdict-siren"
+          className="inline-flex items-center border border-verdict-siren px-1.5 py-0.5 font-mono text-xs text-verdict-siren"
         >
           −{file.deletionsCount}
         </span>
         <span
           data-badge="hunks"
-          className="inline-flex items-center rounded border border-border-strong px-1.5 py-0.5 font-mono text-xs text-t2"
+          className="inline-flex items-center border border-border-strong px-1.5 py-0.5 font-mono text-xs text-t2"
         >
           {file.hunks.length} hunk{file.hunks.length === 1 ? "" : "s"}
         </span>

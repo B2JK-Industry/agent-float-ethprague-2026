@@ -24,7 +24,7 @@ export function ErrorStateUnsignedReport({
       aria-label="Unsigned production report"
       data-state="error-unsigned-report"
       data-verdict="SIREN"
-      className="flex flex-col items-start gap-3 rounded-md border border-verdict-siren bg-verdict-siren-surf p-6"
+      className="flex flex-col items-start gap-3 border border-verdict-siren bg-verdict-siren-surf p-6"
     >
       <span className="font-mono text-xs uppercase tracking-[0.18em] text-verdict-siren">
         Verdict · do not approve

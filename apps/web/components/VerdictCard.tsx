@@ -113,7 +113,7 @@ export function VerdictCard({
       data-verdict={verdict}
       data-mode={mode}
       data-mock={mock ? "true" : "false"}
-      className={`relative overflow-hidden rounded-md border ${STATE_CLASS[verdict]}`}
+      className={`relative overflow-hidden border ${STATE_CLASS[verdict]}`}
     >
       {mock ? (
         <div className="absolute right-3 top-3 z-10">
@@ -124,7 +124,7 @@ export function VerdictCard({
       <div className="flex flex-col gap-6 p-7 md:flex-row md:items-start">
         <div
           aria-hidden
-          className="flex h-24 w-24 shrink-0 items-center justify-center rounded border-2 border-current"
+          className="flex h-24 w-24 shrink-0 items-center justify-center border-2 border-current"
         >
           <VerdictGlyph verdict={verdict} />
         </div>

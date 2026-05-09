@@ -22,7 +22,7 @@ export function EmptyStateNoRecords({
       role="region"
       aria-label="No upgrade-siren records"
       data-state="empty-no-records"
-      className="flex flex-col items-start gap-3 rounded-md border border-dashed border-border-strong bg-raised p-6"
+      className="flex flex-col items-start gap-3 border border-dashed border-border-strong bg-raised p-6"
     >
       <span className="font-mono text-xs uppercase tracking-[0.18em] text-accent">
         Public-read fallback
@@ -43,7 +43,7 @@ export function EmptyStateNoRecords({
       <Link
         href={publicReadHref}
         data-cta="public-read"
-        className="rounded border border-t1 px-3 py-2 font-mono text-sm uppercase tracking-wider text-t1 hover:bg-bg"
+        className="border border-t1 px-3 py-2 font-mono text-sm uppercase tracking-wider text-t1 hover:bg-bg"
       >
         Continue with public-read
       </Link>

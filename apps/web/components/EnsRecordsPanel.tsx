@@ -62,7 +62,7 @@ function RecordItem({ row }: { row: RecordRow }): React.JSX.Element {
       ) : (
         <span
           data-state="absent"
-          className="inline-block w-fit rounded border border-dashed border-[color:var(--color-border)] px-1.5 py-0.5 text-xs uppercase text-[color:var(--color-t2)]"
+          className="inline-block w-fit border border-dashed border-[color:var(--color-border)] px-1.5 py-0.5 text-xs uppercase text-[color:var(--color-t2)]"
         >
           absent
         </span>
@@ -82,7 +82,7 @@ function ManifestBlock({ raw }: { raw: string | null }): React.JSX.Element {
         </span>
         <span
           data-state="absent"
-          className="ml-2 inline-block rounded border border-dashed border-[color:var(--color-border)] px-1.5 py-0.5 text-xs uppercase text-[color:var(--color-t2)]"
+          className="ml-2 inline-block border border-dashed border-[color:var(--color-border)] px-1.5 py-0.5 text-xs uppercase text-[color:var(--color-t2)]"
         >
           absent
         </span>
@@ -112,7 +112,7 @@ function ManifestBlock({ raw }: { raw: string | null }): React.JSX.Element {
       {expanded ? (
         <pre
           id="manifest-json"
-          className="mt-1 overflow-x-auto rounded border border-[color:var(--color-border)] bg-[color:var(--color-raised)] p-2 font-mono text-xs"
+          className="mt-1 overflow-x-auto border border-[color:var(--color-border)] bg-[color:var(--color-raised)] p-2 font-mono text-xs"
         >
           {pretty}
         </pre>
@@ -129,7 +129,7 @@ export function EnsRecordsPanel({
       <section
         aria-label="ENS records"
         data-state="error"
-        className="rounded border border-[color:var(--color-verdict-siren)] p-3"
+        className="border border-[color:var(--color-verdict-siren)] p-3"
       >
         <h3 className="text-sm font-bold">ENS resolution error</h3>
         <p className="text-xs text-[color:var(--color-verdict-siren)]">

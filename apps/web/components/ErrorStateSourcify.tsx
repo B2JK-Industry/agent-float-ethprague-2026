@@ -16,7 +16,7 @@ export function ErrorStateSourcify({
       role="alert"
       aria-label="Sourcify unavailable"
       data-state="error-sourcify"
-      className="flex flex-col items-start gap-3 rounded-md border border-verdict-review bg-verdict-review-surf p-6"
+      className="flex flex-col items-start gap-3 border border-verdict-review bg-verdict-review-surf p-6"
     >
       <span className="font-mono text-xs uppercase tracking-[0.18em] text-verdict-review">
         Sourcify · {status ? status : "unavailable"}

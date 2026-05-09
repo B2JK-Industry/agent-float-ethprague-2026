@@ -31,7 +31,7 @@ export function ErrorStateRpc({
       role="alert"
       aria-label="RPC provider unreachable"
       data-state="error-rpc"
-      className="flex flex-col items-start gap-3 rounded-md border border-verdict-review bg-verdict-review-surf p-6"
+      className="flex flex-col items-start gap-3 border border-verdict-review bg-verdict-review-surf p-6"
     >
       <span className="font-mono text-xs uppercase tracking-[0.18em] text-verdict-review">
         Chain · provider unreachable{provider ? ` (${provider})` : ""}
@@ -56,14 +56,14 @@ export function ErrorStateRpc({
           type="button"
           onClick={handleRetry}
           data-action="retry"
-          className="rounded border border-t1 bg-t1 px-3 py-2 font-mono text-sm uppercase tracking-wider text-ink hover:opacity-90"
+          className="border border-t1 bg-t1 px-3 py-2 font-mono text-sm uppercase tracking-wider text-ink hover:opacity-90"
         >
           Retry
         </button>
         <Link
           href="/health"
           data-action="health-check"
-          className="rounded border border-t1 px-3 py-2 font-mono text-sm uppercase tracking-wider text-t1 hover:bg-bg"
+          className="border border-t1 px-3 py-2 font-mono text-sm uppercase tracking-wider text-t1 hover:bg-bg"
         >
           Check /health
         </Link>

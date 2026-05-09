@@ -314,7 +314,7 @@ function PrecomputedSnapshotBanner({
     <section
       aria-label="Precomputed snapshot banner"
       data-state="precomputed-snapshot"
-      className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-dashed border-verdict-review bg-raised px-4 py-3"
+      className="flex flex-wrap items-center justify-between gap-3 border border-dashed border-verdict-review bg-raised px-4 py-3"
     >
       <div className="flex flex-col gap-1">
         <span className="font-mono text-xs uppercase tracking-[0.18em] text-verdict-review">
@@ -331,7 +331,7 @@ function PrecomputedSnapshotBanner({
       <Link
         href={liveHref}
         data-action="verify-live-now"
-        className="rounded border border-t1 px-3 py-1 font-mono text-xs uppercase tracking-wider text-t1 hover:bg-bg"
+        className="border border-t1 px-3 py-1 font-mono text-xs uppercase tracking-wider text-t1 hover:bg-bg"
       >
         Verify live now
       </Link>
@@ -363,7 +363,7 @@ function PendingFallback(): React.JSX.Element {
     <section
       aria-label="Loading evidence"
       data-state="loading"
-      className="rounded-md border border-border bg-raised p-4"
+      className="border border-border bg-raised p-4"
     >
       <LoadingChecklist steps={pendingChecklist()} />
     </section>
@@ -414,14 +414,14 @@ async function VerdictResultBody({
           />
           <Link
             href={liveHref}
-            className="rounded border border-t1 px-3 py-1 font-mono text-xs uppercase tracking-wider text-t1 hover:bg-bg"
+            className="border border-t1 px-3 py-1 font-mono text-xs uppercase tracking-wider text-t1 hover:bg-bg"
           >
             Verify live now
           </Link>
         </div>
         <section
           aria-label="Governance comment"
-          className="rounded-md border border-border bg-raised p-6"
+          className="border border-border bg-raised p-6"
         >
           <h2 className="mb-3 font-display text-xl font-semibold text-t1">
             Governance comment
@@ -469,7 +469,7 @@ async function VerdictResultBody({
         aria-label="Loading evidence"
         data-state="loaded"
         data-source={source}
-        className="rounded-md border border-border bg-raised p-4"
+        className="border border-border bg-raised p-4"
       >
         <LoadingChecklist steps={steps} />
       </section>
@@ -506,7 +506,7 @@ async function VerdictResultBody({
         />
         <Link
           href="/demo"
-          className="rounded border border-t1 px-3 py-1 font-mono text-xs uppercase tracking-wider text-t1 hover:bg-bg"
+          className="border border-t1 px-3 py-1 font-mono text-xs uppercase tracking-wider text-t1 hover:bg-bg"
         >
           Pick another scenario
         </Link>
@@ -514,7 +514,7 @@ async function VerdictResultBody({
 
       <section
         aria-label="Governance comment"
-        className="rounded-md border border-border bg-raised p-6"
+        className="border border-border bg-raised p-6"
       >
         <h2 className="mb-3 font-display text-xl font-semibold text-t1">
           Governance comment
@@ -548,7 +548,7 @@ export default async function VerdictResultPage(
 
   return (
     <main
-      className="mx-auto flex min-h-screen max-w-5xl flex-col gap-8 px-6 py-12"
+      className="mx-auto flex min-h-screen max-w-6xl flex-col gap-8 px-6 py-12"
       data-page="verdict-result"
       data-mode={
         precomputed

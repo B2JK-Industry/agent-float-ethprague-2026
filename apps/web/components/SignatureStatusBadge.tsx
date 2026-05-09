@@ -37,7 +37,7 @@ function CopyButton({ value }: { value: string }): React.JSX.Element {
       // blends with the surf background to ~3.8:1 contrast, below the
       // WCAG 2.1 AA 4.5:1 floor for ≤ 14px text. Underline-on-hover gives
       // the affordance signal instead.
-      className="ml-1 rounded text-current underline-offset-2 hover:underline"
+      className="ml-1 text-current underline-offset-2 hover:underline"
     >
       {copied ? "copied" : "copy"}
     </button>
@@ -54,7 +54,7 @@ export function SignatureStatusBadge({
         role="status"
         data-status="signed"
         aria-label={`Signed by ${signer}`}
-        className="inline-flex items-center gap-1 rounded-md border border-[color:var(--color-verdict-safe)] px-2 py-0.5 text-xs text-[color:var(--color-verdict-safe)]"
+        className="inline-flex items-center gap-1 border border-[color:var(--color-verdict-safe)] px-2 py-0.5 text-xs text-[color:var(--color-verdict-safe)]"
       >
         <span aria-hidden>✓</span>
         <span>
@@ -72,7 +72,7 @@ export function SignatureStatusBadge({
         role="status"
         data-status="unsigned"
         aria-label="No operator signature"
-        className="inline-flex items-center gap-1 rounded-md border border-[color:var(--color-verdict-review)] px-2 py-0.5 text-xs text-[color:var(--color-verdict-review)]"
+        className="inline-flex items-center gap-1 border border-[color:var(--color-verdict-review)] px-2 py-0.5 text-xs text-[color:var(--color-verdict-review)]"
       >
         <span aria-hidden>!</span>
         <span>No operator signature</span>
@@ -85,7 +85,7 @@ export function SignatureStatusBadge({
       role="status"
       data-status="signature-invalid"
       aria-label="Signature mismatch"
-      className="inline-flex items-center gap-1 rounded-md border border-[color:var(--color-verdict-siren)] px-2 py-0.5 text-xs text-[color:var(--color-verdict-siren)]"
+      className="inline-flex items-center gap-1 border border-[color:var(--color-verdict-siren)] px-2 py-0.5 text-xs text-[color:var(--color-verdict-siren)]"
     >
       <span aria-hidden>×</span>
       <span>Signature mismatch</span>
