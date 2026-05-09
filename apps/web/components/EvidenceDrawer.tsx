@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, type RefObject } from "react";
 import type { SirenReport } from "@upgrade-siren/shared";
 
+import { SourceDiffRenderer, type SourceDiff } from "./SourceDiffRenderer";
+
 export type EvidenceDrawerAbiSummary = {
   readonly selectorCount: number;
   readonly riskyAddedCount: number;
@@ -17,6 +19,14 @@ export type EvidenceDrawerProps = {
   report: SirenReport;
   abiSummary?: EvidenceDrawerAbiSummary;
   storageSummary?: EvidenceDrawerStorageSummary;
+  /**
+   * Source-level diff between previous and current implementations.
+   * Optional — only present when the verdict pipeline produced one
+   * (Stream B US-075). When absent, the drawer renders a "no source
+   * diff available" stub instead of hiding the section, so the layout
+   * is stable.
+   */
+  sourceDiff?: SourceDiff;
   reportUrl?: string;
   initialOpen?: boolean;
 };
@@ -86,10 +96,12 @@ export function EvidenceDrawer({
   report,
   abiSummary,
   storageSummary,
+  sourceDiff,
   reportUrl,
   initialOpen = false,
 }: EvidenceDrawerProps): React.JSX.Element {
   const [open, setOpen] = useState<boolean>(initialOpen);
+  const [showSourceDiff, setShowSourceDiff] = useState<boolean>(false);
   const drawerRef = useRef<HTMLElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -198,6 +210,49 @@ export function EvidenceDrawer({
             ) : (
               <p className="text-sm text-[color:var(--color-t2)]">
                 no diff available
+              </p>
+            )}
+          </section>
+
+          <section
+            aria-label="Source diff"
+            data-section="source-diff"
+            className="mb-4"
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-sm font-bold">Source diff</h3>
+              {sourceDiff && sourceDiff.files.length > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => setShowSourceDiff((v) => !v)}
+                  aria-expanded={showSourceDiff}
+                  aria-controls="source-diff-panel"
+                  data-action="toggle-source-diff"
+                  className="rounded border border-[color:var(--color-t1)] px-2 py-0.5 font-mono text-xs uppercase tracking-wider"
+                >
+                  {showSourceDiff ? "Hide diff" : "Show diff"}
+                </button>
+              ) : null}
+            </div>
+            {sourceDiff && sourceDiff.files.length > 0 ? (
+              showSourceDiff ? (
+                <div id="source-diff-panel">
+                  <SourceDiffRenderer diff={sourceDiff} />
+                </div>
+              ) : (
+                <p
+                  id="source-diff-panel"
+                  className="text-xs text-[color:var(--color-t2)]"
+                >
+                  {sourceDiff.files.length} file
+                  {sourceDiff.files.length === 1 ? "" : "s"} changed.
+                  Click <span className="font-mono">Show diff</span> to inspect
+                  hunks.
+                </p>
+              )
+            ) : (
+              <p className="text-xs text-[color:var(--color-t2)]">
+                no source diff available
               </p>
             )}
           </section>

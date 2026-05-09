@@ -3,7 +3,30 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { EvidenceDrawer } from "./EvidenceDrawer";
+import type { SourceDiff } from "./SourceDiffRenderer";
 import type { SirenReport } from "@upgrade-siren/shared";
+
+const SAMPLE_SOURCE_DIFF: SourceDiff = {
+  files: [
+    {
+      path: "contracts/VaultV2Dangerous.sol",
+      hunks: [
+        {
+          oldStart: 1,
+          oldLines: 1,
+          newStart: 1,
+          newLines: 2,
+          lines: [
+            { kind: "context", content: "pragma solidity ^0.8.20;", oldLineNo: 1, newLineNo: 1 },
+            { kind: "add", content: "// new comment", newLineNo: 2 },
+          ],
+        },
+      ],
+      additionsCount: 1,
+      deletionsCount: 0,
+    },
+  ],
+};
 
 function reportFixture(overrides: Partial<SirenReport> = {}): SirenReport {
   return {
@@ -149,5 +172,52 @@ describe("EvidenceDrawer", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("renders the Source diff section between ABI and Storage", () => {
+    render(<EvidenceDrawer initialOpen report={reportFixture()} />);
+    const drawer = screen.getByRole("dialog", { name: /evidence drawer/i });
+    const sections = Array.from(
+      drawer.querySelectorAll("section[aria-label]"),
+    ).map((s) => s.getAttribute("aria-label"));
+    const abiIndex = sections.indexOf("ABI summary");
+    const sourceIndex = sections.indexOf("Source diff");
+    const storageIndex = sections.indexOf("Storage layout");
+    expect(abiIndex).toBeGreaterThanOrEqual(0);
+    expect(sourceIndex).toBe(abiIndex + 1);
+    expect(storageIndex).toBe(sourceIndex + 1);
+  });
+
+  it("renders 'no source diff available' when sourceDiff is omitted", () => {
+    render(<EvidenceDrawer initialOpen report={reportFixture()} />);
+    const section = screen
+      .getByRole("dialog", { name: /evidence drawer/i })
+      .querySelector('[data-section="source-diff"]');
+    expect(section?.textContent).toMatch(/no source diff available/i);
+    expect(
+      section?.querySelector('button[data-action="toggle-source-diff"]'),
+    ).toBeNull();
+  });
+
+  it("hides the SourceDiffRenderer behind a 'Show diff' button when sourceDiff is supplied", async () => {
+    const user = userEvent.setup();
+    render(
+      <EvidenceDrawer
+        initialOpen
+        report={reportFixture()}
+        sourceDiff={SAMPLE_SOURCE_DIFF}
+      />,
+    );
+    const toggle = screen.getByRole("button", { name: /show diff/i });
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(
+      screen.queryByTestId("source-diff-renderer"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText(/1 file changed/i)).toBeInTheDocument();
+
+    await user.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(toggle.textContent).toMatch(/hide diff/i);
+    expect(screen.getByTestId("source-diff-renderer")).toBeInTheDocument();
   });
 });
