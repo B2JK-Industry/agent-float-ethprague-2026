@@ -86,6 +86,37 @@ describe('inferSubjectFromPublicRead', () => {
       });
     });
 
+    // audit-round-7 P1 #8 regression: previously `promoteEntries` did
+    // not filter by `match` level — `not_found` entries from the
+    // Sourcify all-chains response were promoted as if they were
+    // verified Sourcify rows. The orchestrator then ran a deep fetch
+    // against an unverified address and surfaced an error in evidence,
+    // confusing the score engine and the Sourcify drawer's pill count.
+    // Fix: only `exact_match` and `match` entries are promoted.
+    it('filters Sourcify all-chains rows to verified match levels (audit-round-7 P1 #8)', async () => {
+      const client = makeClient(async () => ADDR);
+      const mixedBody = [
+        { chainId: 1, address: '0x1111111111111111111111111111111111111111', match: 'exact_match' },
+        // Should be DROPPED — not_found means Sourcify saw the address
+        // but had no verified source.
+        { chainId: 137, address: '0x9999999999999999999999999999999999999999', match: 'not_found' },
+        { chainId: 11155111, address: '0x2222222222222222222222222222222222222222', match: 'match' },
+      ];
+      const sourcifyFetch = vi.fn(async () => jsonResponse(200, mixedBody));
+      const result = await inferSubjectFromPublicRead(NAME, {
+        client,
+        sourcifyOptions: { fetchImpl: sourcifyFetch },
+      });
+      expect(result.kind).toBe('ok');
+      if (result.kind === 'ok') {
+        // 2 promoted (exact_match + match), 1 dropped (not_found).
+        expect(result.value.sources.sourcify).toHaveLength(2);
+        // Discriminating: the polygon not_found entry must NOT appear.
+        const promotedAddrs = result.value.sources.sourcify.map((e) => e.address);
+        expect(promotedAddrs).not.toContain('0x9999999999999999999999999999999999999999');
+      }
+    });
+
     it('passes the addr through unchanged when the all-chains list is empty', async () => {
       const client = makeClient(async () => ADDR);
       const sourcifyFetch = vi.fn(async () => jsonResponse(200, []));

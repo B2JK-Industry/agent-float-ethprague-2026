@@ -244,9 +244,19 @@ async function fetchRepoP0(
   const hasSubstantialReadme = readmeBytes !== null && readmeBytes > readmeBytesThreshold;
   const hasLicense = licenseProbe.kind === 'ok';
 
-  // Per-repo soft-failure: if BOTH README and LICENSE probes errored (not
-  // just absent), mark partial. Test-dir probe is best-effort.
-  const probeErrored = readmeProbe.kind === 'error' && licenseProbe.kind === 'error';
+  // Per-repo soft-failure (audit-round-7 P1 #7): mark partial whenever
+  // EITHER hygiene probe errors (rate-limited, transport failure, 5xx).
+  // The prior code required BOTH to error — so a single-probe failure
+  // silently downgraded the corresponding flag to `false` and reported
+  // `fetchStatus: 'ok'`, conflating "we couldn't fetch the LICENSE" with
+  // "this repo has no LICENSE file". A score that's structurally
+  // discounted by missing data deserves the "partial" provenance label
+  // so the drawer can render a degraded pill instead of a clean zero.
+  // Test-dir probe stays best-effort — fetch errors there are folded
+  // into the boolean directly per probeTestDir's contract.
+  const readmeErrored = readmeProbe.kind === 'error';
+  const licenseErrored = licenseProbe.kind === 'error';
+  const probeErrored = readmeErrored || licenseErrored;
 
   return {
     name: raw.name,
@@ -264,8 +274,9 @@ async function fetchRepoP0(
     ...(probeErrored
       ? {
           fetchStatus: 'partial' as const,
-          errorReason:
-            readmeProbe.kind === 'error' ? readmeProbe.message : (licenseProbe as FetchErr).message,
+          errorReason: readmeErrored
+            ? (readmeProbe as FetchErr).message
+            : (licenseProbe as FetchErr).message,
         }
       : { fetchStatus: 'ok' as const }),
   };

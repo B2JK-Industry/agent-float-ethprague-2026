@@ -99,6 +99,7 @@ describe('summarizeLicenseAndCompiler — compiler', () => {
       major: 0,
       minor: 8,
       patch: 24,
+      prerelease: null,
       commit: 'abcdef0a',
       recent: true,
     });
@@ -126,9 +127,37 @@ describe('summarizeLicenseAndCompiler — compiler', () => {
       major: 0,
       minor: 8,
       patch: 30,
+      prerelease: null,
       commit: null,
       recent: true,
     });
+  });
+
+  // audit-round-7 P1 #11 regression: prerelease tags (rc, nightly,
+  // alpha, beta, dev, …) sit between the patch version and the
+  // optional `+commit` segment in solc's version string. Previously
+  // the regex stopped at the patch and ignored the prerelease, so a
+  // nightly build like `0.8.24-nightly.20240101+commit.abcd` parsed as
+  // a clean `0.8.24` and passed the recency gate. Real-world: nightlies
+  // are not release-quality and shouldn't lift the recency component
+  // at the same level as the corresponding release.
+  it('captures the prerelease tag and flags `recent: false` (audit-round-7 P1 #11)', () => {
+    const summary = summarizeLicenseAndCompiler(
+      withCompiler('0.8.24-nightly.20240101+commit.abcdef0a'),
+    );
+    expect(summary.compiler?.major).toBe(0);
+    expect(summary.compiler?.minor).toBe(8);
+    expect(summary.compiler?.patch).toBe(24);
+    expect(summary.compiler?.prerelease).toBe('nightly.20240101');
+    expect(summary.compiler?.commit).toBe('abcdef0a');
+    // Numeric semver passes 0.8.20 threshold, but prerelease forces false.
+    expect(summary.compiler?.recent).toBe(false);
+  });
+
+  it('captures rc.<n> prerelease and flags `recent: false` (audit-round-7 P1 #11)', () => {
+    const summary = summarizeLicenseAndCompiler(withCompiler('0.8.24-rc.1'));
+    expect(summary.compiler?.prerelease).toBe('rc.1');
+    expect(summary.compiler?.recent).toBe(false);
   });
 
   it('tolerates a leading "v" prefix', () => {

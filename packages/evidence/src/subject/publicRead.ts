@@ -107,12 +107,24 @@ function isZeroAddress(addr: string): boolean {
 // the orchestrator expects. The label is synthesised because public-read
 // has no manifest-author intent — it surfaces "Discovered (chain N)" so
 // the drawer makes the inference visible.
+//
+// audit-round-7 P1 #8: the prior implementation promoted EVERY entry
+// regardless of `match` level. Sourcify's all-chains response includes
+// `not_found` rows (Sourcify saw the address but had no verified source)
+// — promoting those entries downstream caused the orchestrator to
+// surface a "Discovered" Sourcify row that the score engine then
+// scored as a failed-deep-fetch error rather than honestly omitting.
+// The interface comment in `SubjectPublicReadInferredSources` already
+// declared the intent ("Only entries with a recognised match level
+// land here"); the implementation now matches the contract.
 function promoteEntries(entries: ReadonlyArray<SourcifyAllChainsEntry>): SubjectSourcifyEntry[] {
-  return entries.map((e) => ({
-    chainId: e.chainId,
-    address: e.address,
-    label: `Discovered (chain ${e.chainId})`,
-  }));
+  return entries
+    .filter((e) => e.match === 'exact_match' || e.match === 'match')
+    .map((e) => ({
+      chainId: e.chainId,
+      address: e.address,
+      label: `Discovered (chain ${e.chainId})`,
+    }));
 }
 
 // Public-read inference (US-112). Fired when subject ENS name has no

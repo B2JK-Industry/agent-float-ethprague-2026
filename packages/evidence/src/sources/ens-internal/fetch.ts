@@ -40,6 +40,18 @@ function resolveRetryOptions(retry: RetryOptions | true | undefined): RetryOptio
 // GraphQL query — kept as a single template string so the wire format is
 // grep-able. The resolver/subdomainCount/events shape mirrors the public
 // ENS subgraph schema (entity names: Domain, Resolver, TextChanged).
+//
+// audit-round-7 P1 #6: the prior `events(where: { event: "TextChanged" })`
+// filter was schema-invalid — `ResolverEvent` does not expose an `event`
+// field for filtering. The Graph rejects the predicate (or silently
+// returns all event types depending on gateway tolerance), so the parser
+// could pick a non-TextChanged block as `lastRecordUpdateBlock`,
+// inflating recency for events that aren't text-record updates. Fix:
+// drop the broken filter, ask for `__typename` + `blockNumber`, fetch a
+// small head window of events, and filter to TextChanged in code. The
+// head window is bounded so a resolver with a long stream of non-text
+// events won't pull arbitrary amounts.
+const EVENTS_HEAD_WINDOW = 25;
 const GRAPHQL_QUERY = `
 query EnsInternalSignals($name: String!) {
   domains(where: { name: $name }, first: 1) {
@@ -50,7 +62,8 @@ query EnsInternalSignals($name: String!) {
     resolver {
       id
       texts
-      events(orderBy: blockNumber, orderDirection: desc, first: 1, where: { event: "TextChanged" }) {
+      events(orderBy: blockNumber, orderDirection: desc, first: ${EVENTS_HEAD_WINDOW}) {
+        __typename
         blockNumber
       }
     }
@@ -63,7 +76,10 @@ interface DomainNode {
   readonly subdomainCount?: unknown;
   readonly resolver?: {
     readonly texts?: unknown;
-    readonly events?: ReadonlyArray<{ readonly blockNumber?: unknown }>;
+    readonly events?: ReadonlyArray<{
+      readonly __typename?: unknown;
+      readonly blockNumber?: unknown;
+    }>;
   } | null;
 }
 
@@ -89,19 +105,30 @@ function parseTextsLength(raw: unknown): number {
   return Array.isArray(raw) ? raw.length : 0;
 }
 
-function parseLastBlock(events: ReadonlyArray<{ blockNumber?: unknown }> | undefined): bigint | null {
+// audit-round-7 P1 #6: filter to TextChanged in code now that the
+// GraphQL `where` predicate is gone. Older fixtures lacked `__typename`
+// because the buggy query implicitly trusted that every returned event
+// was TextChanged; treat a missing `__typename` as a TextChanged event
+// for backward-compat (the wire change is additive and the fetcher
+// would otherwise break the moment a real subgraph response includes
+// non-TextChanged events ahead of TextChanged ones).
+function parseLastBlock(
+  events: ReadonlyArray<{ readonly __typename?: unknown; readonly blockNumber?: unknown }> | undefined,
+): bigint | null {
   if (!events || events.length === 0) return null;
-  const head = events[0];
-  if (!head) return null;
-  const raw = head.blockNumber;
-  if (typeof raw === 'string') {
-    try {
-      return BigInt(raw);
-    } catch {
-      return null;
+  for (const ev of events) {
+    const typename = ev.__typename;
+    if (typename !== undefined && typename !== 'TextChanged') continue;
+    const raw = ev.blockNumber;
+    if (typeof raw === 'string') {
+      try {
+        return BigInt(raw);
+      } catch {
+        return null;
+      }
     }
+    if (typeof raw === 'number' && Number.isFinite(raw)) return BigInt(Math.trunc(raw));
   }
-  if (typeof raw === 'number' && Number.isFinite(raw)) return BigInt(Math.trunc(raw));
   return null;
 }
 
