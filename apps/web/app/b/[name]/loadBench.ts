@@ -44,11 +44,16 @@
 //   GRAPH_API_KEY         — ENS subgraph (Graph Network) key
 
 import {
-  computeScore,
+  aggregateEngines,
+  ensureEnginesRegistered,
+  isSourceEngine,
+  listRegisteredEngines,
   orchestrateSubject,
-  runEvaluatorBridge,
-  type EvaluatorResult,
-  type EvalBonus,
+  resolvedRecordsFromEvidence,
+  runEngines,
+  type EngineContribution,
+  type EngineId,
+  type EngineParams,
   type MultiSourceEvidence,
   type ScoreResult,
 } from "@upgrade-siren/evidence";
@@ -143,16 +148,12 @@ export type LoadBenchLoaded = {
   readonly evidence: MultiSourceEvidence;
   readonly score: ScoreResult;
   /**
-   * Per-record evaluator engine results. Engines run in parallel with
-   * the orchestrator; their output overlays the score via `evalBonus`.
-   * Empty array when no engines are registered or bridge is disabled.
+   * Per-engine contributions from the unified Engine pipeline. Includes
+   * both source engines (sourcify/github/onchain/ens) and record
+   * engines (addr.eth/description/url). Score is aggregated from these
+   * — they are not an overlay; they ARE the score.
    */
-  readonly evalEngines: ReadonlyArray<EvaluatorResult>;
-  /**
-   * Capped overlay bonus added to score. `score.score_100 +
-   * evalBonus.appliedToScore100` is the user-visible final number.
-   */
-  readonly evalBonus: EvalBonus;
+  readonly engines: ReadonlyArray<EngineContribution>;
 };
 
 export type LoadBenchError = {
@@ -226,11 +227,26 @@ export async function loadBench(
     };
   }
 
-  // computeScore is pure. Any throw here is a bug in the score engine,
-  // not a runtime failure mode — but we still degrade gracefully.
+  // Unified Engine pipeline (refactor 2026-05-09): one runner spawns
+  // every registered engine in parallel — source engines wrapping
+  // existing fetchers (sourcify/github/onchain/ens) AND record engines
+  // (addr.eth/description/url). aggregateEngines sums their
+  // contributions into the same ScoreResult shape the score engine
+  // produced before, so consumers stay unchanged.
+  ensureEnginesRegistered();
+  const engineRecords = resolvedRecordsFromEvidence(evidence, nowSeconds * 1000);
+  const engineParams = buildEngineParams();
+  let engines: ReadonlyArray<EngineContribution> = [];
   let score: ScoreResult;
   try {
-    score = computeScore(evidence, { nowSeconds });
+    const runResult = await runEngines({
+      evidence,
+      records: engineRecords,
+      params: engineParams,
+      context: buildEngineContext(chainId),
+    });
+    engines = Array.from(runResult.contributions.values());
+    score = aggregateEngines(engines, { evidence, nowSeconds });
   } catch (err) {
     return {
       kind: "error",
@@ -239,38 +255,16 @@ export async function loadBench(
     };
   }
 
-  // Eval engine bridge — runs every registered RecordEngine against the
-  // resolved subject and produces a capped overlay bonus on top of the
-  // pure score. NEVER throws: bridge swallows engine failures and
-  // returns an empty bonus on degenerate input. The orchestrator's
-  // 4-source pipeline remains the primary scoring path.
-  let evalEngines: ReadonlyArray<EvaluatorResult> = [];
-  let evalBonus: EvalBonus = { seniority: 0, relevance: 0, appliedToScore100: 0 };
-  try {
-    const bridge = await runEvaluatorBridge({
-      evidence,
-      context: buildBridgeContext(chainId),
-      resolvedAtMs: nowSeconds * 1000,
-    });
-    evalEngines = bridge.engines;
-    evalBonus = bridge.bonus;
-  } catch (err) {
-    // Bridge failure is non-fatal — log and continue with zero overlay.
-    // eslint-disable-next-line no-console
-    console.warn(
-      "[loadBench] eval bridge threw, continuing with empty overlay",
-      err instanceof Error ? err.message : err,
-    );
-  }
-
-  return { kind: "loaded", evidence, score, evalEngines, evalBonus };
+  return { kind: "loaded", evidence, score, engines };
 }
 
-// Builds the EngineContext the bridge needs. We construct fresh viem
-// clients (NOT shared with the orchestrator's internal fetcher) because
-// the engine framework is RPC-naive — it expects two ready clients
-// rather than orchestrator-style per-source RPC URL options.
-function buildBridgeContext(chainId: number): Parameters<typeof runEvaluatorBridge>[0]['context'] {
+// Builds the EngineContext the runner passes to every engine. Source
+// engines mostly ignore RPC + fetch (they read from MultiSourceEvidence
+// which the orchestrator already populated). Record engines (addr.eth,
+// description, url) need real RPC + fetch.
+function buildEngineContext(
+  chainId: number,
+): Parameters<typeof runEngines>[0]['context'] {
   const sepoliaUrl = rpcUrlForChain(11155111);
   const mainnetUrl = rpcUrlForChain(1);
   const cache = new Map<string, { value: unknown; expiresAt: number }>();
@@ -315,8 +309,20 @@ function buildBridgeContext(chainId: number): Parameters<typeof runEvaluatorBrid
       debug: () => {},
       warn: (msg, ctx) => {
         // eslint-disable-next-line no-console
-        console.warn(`[eval] ${msg}`, ctx ?? {});
+        console.warn(`[engine] ${msg}`, ctx ?? {});
       },
     },
   };
+}
+
+// Builds the engine params map for the runner. Each engine carries
+// its own defaultParams (per-engine EPIC weights for source engines,
+// tunable thresholds for record engines).
+function buildEngineParams(): Map<EngineId, EngineParams> {
+  const params = new Map<EngineId, EngineParams>();
+  for (const engine of listRegisteredEngines()) {
+    const id: EngineId = isSourceEngine(engine) ? engine.id : engine.key;
+    params.set(id, engine.defaultParams);
+  }
+  return params;
 }

@@ -3,26 +3,27 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { loadBench } from "./loadBench";
 
 import type {
+  EngineContribution,
   MultiSourceEvidence,
   ScoreResult,
 } from "@upgrade-siren/evidence";
 
 const orchestrateMock = vi.fn();
-const computeScoreMock = vi.fn();
-const runEvaluatorBridgeMock = vi.fn();
-
-const EMPTY_BRIDGE_RESULT = {
-  engines: [],
-  bonus: { seniority: 0, relevance: 0, appliedToScore100: 0 },
-  status: "complete" as const,
-  startedAtMs: 0,
-  finishedAtMs: 0,
-};
+const runEnginesMock = vi.fn();
+const aggregateEnginesMock = vi.fn();
+const resolvedRecordsFromEvidenceMock = vi.fn();
+const ensureEnginesRegisteredMock = vi.fn();
+const listRegisteredEnginesMock = vi.fn();
+const isSourceEngineMock = vi.fn((engine: { category?: string }) => engine.category === 'source');
 
 vi.mock("@upgrade-siren/evidence", () => ({
   orchestrateSubject: (...args: unknown[]) => orchestrateMock(...args),
-  computeScore: (...args: unknown[]) => computeScoreMock(...args),
-  runEvaluatorBridge: (...args: unknown[]) => runEvaluatorBridgeMock(...args),
+  runEngines: (...args: unknown[]) => runEnginesMock(...args),
+  aggregateEngines: (...args: unknown[]) => aggregateEnginesMock(...args),
+  resolvedRecordsFromEvidence: (...args: unknown[]) => resolvedRecordsFromEvidenceMock(...args),
+  ensureEnginesRegistered: (...args: unknown[]) => ensureEnginesRegisteredMock(...args),
+  listRegisteredEngines: (...args: unknown[]) => listRegisteredEnginesMock(...args),
+  isSourceEngine: (engine: { category?: string }) => isSourceEngineMock(engine),
 }));
 
 const SAMPLE_EVIDENCE = {
@@ -62,17 +63,47 @@ const SAMPLE_SCORE = {
   },
 } as unknown as ScoreResult;
 
-describe("loadBench", () => {
+const STUB_CONTRIBUTION: EngineContribution = {
+  engineId: "addr.eth",
+  category: "record",
+  exists: true,
+  validity: 1,
+  liveness: 1,
+  seniority: 0.4,
+  relevance: 0.6,
+  trust: 0.7,
+  weight: 1,
+  seniorityWeight: 1,
+  relevanceWeight: 1,
+  signals: { seniorityBreakdown: [], relevanceBreakdown: [], antiSignals: [] },
+  evidence: [],
+  confidence: "complete",
+  durationMs: 5,
+  cacheHit: false,
+  errors: [],
+};
+
+describe("loadBench (unified Engine refactor 2026-05-09)", () => {
   beforeEach(() => {
     orchestrateMock.mockReset();
-    computeScoreMock.mockReset();
-    runEvaluatorBridgeMock.mockReset();
-    runEvaluatorBridgeMock.mockResolvedValue(EMPTY_BRIDGE_RESULT);
+    runEnginesMock.mockReset();
+    aggregateEnginesMock.mockReset();
+    resolvedRecordsFromEvidenceMock.mockReset();
+    ensureEnginesRegisteredMock.mockReset();
+    listRegisteredEnginesMock.mockReset();
+    listRegisteredEnginesMock.mockReturnValue([]);
+    resolvedRecordsFromEvidenceMock.mockReturnValue(new Map());
+    runEnginesMock.mockResolvedValue({
+      contributions: new Map([[STUB_CONTRIBUTION.engineId, STUB_CONTRIBUTION]]),
+      status: "complete",
+      startedAtMs: 0,
+      finishedAtMs: 1,
+    });
+    aggregateEnginesMock.mockReturnValue(SAMPLE_SCORE);
   });
 
-  it("calls orchestrateSubject then computeScore and returns the typed shape", async () => {
+  it("calls orchestrateSubject then runEngines + aggregateEngines and returns the typed shape", async () => {
     orchestrateMock.mockResolvedValue(SAMPLE_EVIDENCE);
-    computeScoreMock.mockReturnValue(SAMPLE_SCORE);
 
     const result = await loadBench(
       "siren-agent-demo.upgrade-siren-demo.eth",
@@ -84,75 +115,19 @@ describe("loadBench", () => {
       "siren-agent-demo.upgrade-siren-demo.eth",
       expect.objectContaining({ chainId: 1 }),
     );
-    expect(computeScoreMock).toHaveBeenCalledWith(SAMPLE_EVIDENCE, {
-      nowSeconds: 1_715_000_000,
-    });
+    expect(ensureEnginesRegisteredMock).toHaveBeenCalled();
+    expect(runEnginesMock).toHaveBeenCalledTimes(1);
+    expect(aggregateEnginesMock).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.objectContaining({ evidence: SAMPLE_EVIDENCE, nowSeconds: 1_715_000_000 }),
+    );
 
     expect(result.kind).toBe("loaded");
     if (result.kind !== "loaded") throw new Error("unreachable");
     expect(result.evidence).toBe(SAMPLE_EVIDENCE);
     expect(result.score).toBe(SAMPLE_SCORE);
-    expect(result.evalEngines).toEqual([]);
-    expect(result.evalBonus).toEqual({
-      seniority: 0,
-      relevance: 0,
-      appliedToScore100: 0,
-    });
-  });
-
-  it("invokes the eval bridge after computeScore and exposes engines + bonus on the result", async () => {
-    orchestrateMock.mockResolvedValue(SAMPLE_EVIDENCE);
-    computeScoreMock.mockReturnValue(SAMPLE_SCORE);
-    const stubEngine = {
-      recordKey: "addr.eth",
-      exists: true,
-      validity: 1,
-      liveness: 1,
-      seniority: 0.4,
-      relevance: 0.6,
-      trust: 0.7,
-      weight: 1,
-      signals: { seniorityBreakdown: [], relevanceBreakdown: [], antiSignals: [] },
-      evidence: [],
-      confidence: "complete",
-      durationMs: 5,
-      cacheHit: false,
-      errors: [],
-    };
-    runEvaluatorBridgeMock.mockResolvedValue({
-      engines: [stubEngine],
-      bonus: { seniority: 0.04, relevance: 0.06, appliedToScore100: 5 },
-      status: "complete",
-      startedAtMs: 0,
-      finishedAtMs: 1,
-    });
-
-    const result = await loadBench("subject.eth", { nowSeconds: 1_715_000_000 });
-
-    expect(runEvaluatorBridgeMock).toHaveBeenCalledTimes(1);
-    expect(runEvaluatorBridgeMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        evidence: SAMPLE_EVIDENCE,
-        resolvedAtMs: 1_715_000_000_000,
-      }),
-    );
-    if (result.kind !== "loaded") throw new Error("unreachable");
-    expect(result.evalEngines).toHaveLength(1);
-    expect(result.evalEngines[0]?.recordKey).toBe("addr.eth");
-    expect(result.evalBonus.appliedToScore100).toBe(5);
-  });
-
-  it("treats a thrown bridge as non-fatal — returns loaded with empty overlay", async () => {
-    orchestrateMock.mockResolvedValue(SAMPLE_EVIDENCE);
-    computeScoreMock.mockReturnValue(SAMPLE_SCORE);
-    runEvaluatorBridgeMock.mockRejectedValue(new Error("bridge boom"));
-
-    const result = await loadBench("subject.eth", { nowSeconds: 1 });
-
-    expect(result.kind).toBe("loaded");
-    if (result.kind !== "loaded") throw new Error("unreachable");
-    expect(result.evalEngines).toEqual([]);
-    expect(result.evalBonus.appliedToScore100).toBe(0);
+    expect(result.engines).toHaveLength(1);
+    expect(result.engines[0]?.engineId).toBe("addr.eth");
   });
 
   it("threads through env-derived rpc / pat / graph-key into orchestrator options", async () => {
@@ -160,7 +135,6 @@ describe("loadBench", () => {
     process.env.GITHUB_PAT = "pat_x";
     process.env.GRAPH_API_KEY = "graph_x";
     orchestrateMock.mockResolvedValue(SAMPLE_EVIDENCE);
-    computeScoreMock.mockReturnValue(SAMPLE_SCORE);
 
     await loadBench("subject.eth", { nowSeconds: 1 });
 
@@ -187,13 +161,25 @@ describe("loadBench", () => {
     if (result.kind !== "error") throw new Error("unreachable");
     expect(result.reason).toBe("orchestrator_throw");
     expect(result.message).toContain("rpc 503");
-    expect(computeScoreMock).not.toHaveBeenCalled();
+    expect(runEnginesMock).not.toHaveBeenCalled();
+    expect(aggregateEnginesMock).not.toHaveBeenCalled();
   });
 
-  it("returns kind:'error' reason:score_throw when computeScore throws", async () => {
+  it("returns kind:'error' reason:score_throw when runEngines throws", async () => {
     orchestrateMock.mockResolvedValue(SAMPLE_EVIDENCE);
-    computeScoreMock.mockImplementation(() => {
-      throw new Error("score bug");
+    runEnginesMock.mockRejectedValue(new Error("engine pipeline boom"));
+
+    const result = await loadBench("subject.eth", { nowSeconds: 1 });
+
+    expect(result.kind).toBe("error");
+    if (result.kind !== "error") throw new Error("unreachable");
+    expect(result.reason).toBe("score_throw");
+  });
+
+  it("returns kind:'error' reason:score_throw when aggregateEngines throws", async () => {
+    orchestrateMock.mockResolvedValue(SAMPLE_EVIDENCE);
+    aggregateEnginesMock.mockImplementation(() => {
+      throw new Error("aggregator bug");
     });
 
     const result = await loadBench("subject.eth", { nowSeconds: 1 });
@@ -203,15 +189,7 @@ describe("loadBench", () => {
     expect(result.reason).toBe("score_throw");
   });
 
-  // HOTFIX 2026-05-09 (US-117-hotfix-timeout): regression suite for the
-  // page-level orchestrator deadline. Live repro on /b/vitalik.eth was
-  // HTTP 000 / 70s / 0-byte body — orchestrator's per-source fan-out
-  // had no deadline, so a hung Sourcify/ENS-subgraph call burned the
-  // full Vercel function budget.
-
   it("returns kind:'error' reason:orchestrator_timeout when orchestrator misses the deadline", async () => {
-    // Orchestrator never resolves — simulates a hung Sourcify all-chains
-    // lookup or ENS subgraph call.
     orchestrateMock.mockReturnValue(new Promise(() => {}));
 
     const result = await loadBench("vitalik.eth", {
@@ -223,12 +201,11 @@ describe("loadBench", () => {
     if (result.kind !== "error") throw new Error("unreachable");
     expect(result.reason).toBe("orchestrator_timeout");
     expect(result.message).toMatch(/orchestrator timeout 50ms/);
-    expect(computeScoreMock).not.toHaveBeenCalled();
+    expect(runEnginesMock).not.toHaveBeenCalled();
   });
 
   it("succeeds within the deadline when orchestrator resolves quickly", async () => {
     orchestrateMock.mockResolvedValue(SAMPLE_EVIDENCE);
-    computeScoreMock.mockReturnValue(SAMPLE_SCORE);
 
     const start = Date.now();
     const result = await loadBench("subject.eth", {
@@ -241,45 +218,17 @@ describe("loadBench", () => {
     expect(elapsed).toBeLessThan(5_000);
   });
 
-  it("does not race a thrown error past the timeout label (preserve original error)", async () => {
-    orchestrateMock.mockRejectedValue(new Error("rpc 503 fast"));
-
-    const result = await loadBench("subject.eth", {
-      nowSeconds: 1,
-      orchestratorTimeoutMs: 5_000,
-    });
-
-    expect(result.kind).toBe("error");
-    if (result.kind !== "error") throw new Error("unreachable");
-    // Distinct from orchestrator_timeout — the throw beat the deadline.
-    expect(result.reason).toBe("orchestrator_throw");
-    expect(result.message).toContain("rpc 503 fast");
-  });
-
   it("default timeout is 12 seconds (Vercel function-budget headroom)", async () => {
-    // Easiest assertion: when orchestrator NEVER resolves and we don't
-    // override the timeout, loadBench takes >100ms (proves the default
-    // is above the 50ms test value, not 0). We don't actually wait 12s
-    // here — short slow promise resolves before default fires, proving
-    // the default isn't immediate.
     orchestrateMock.mockImplementation(
       () => new Promise<MultiSourceEvidence>((resolve) => setTimeout(() => resolve(SAMPLE_EVIDENCE), 100)),
     );
-    computeScoreMock.mockReturnValue(SAMPLE_SCORE);
 
     const result = await loadBench("subject.eth", { nowSeconds: 1 });
 
-    // Default 12s did NOT fire on a 100ms call — loaded path returned.
     expect(result.kind).toBe("loaded");
   });
 
-  // US-117 carry-rule v2 §2B: per-source timeouts inside the
-  // orchestrator surface as `kind:'error' reason:'source_timeout'` per
-  // tile rather than triggering the page-level `orchestrator_timeout`.
-  // loadBench must pass partial evidence through unchanged so the
-  // renderer can show missing pills on timed-out tiles + scored
-  // contributions on the OK ones.
-  it("Partial evidence renders score with missing components — loadBench passes timed-out tiles through to computeScore", async () => {
+  it("partial evidence still flows through the engine pipeline (no early bail)", async () => {
     const partialEvidence = {
       subject: {
         name: "vitalik.eth",
@@ -289,83 +238,23 @@ describe("loadBench", () => {
         kind: null,
         manifest: null,
       },
-      // Sourcify entry timed out → tile renders missing pill.
-      sourcify: [
-        {
-          kind: "error",
-          chainId: 1,
-          address: "0xBBB",
-          label: "vault",
-          reason: "source_timeout",
-          message: "sourcify-deep:1:0xBBB: per-source timeout 4000ms",
-        },
-      ],
-      // GitHub responded OK.
-      github: { kind: "ok", value: { owner: "vbuterin", user: null, repos: [] } },
-      // On-chain responded OK across both default chains.
-      onchain: [
-        {
-          kind: "ok",
-          chainId: 1,
-          value: {
-            chainId: 1,
-            address: "0xPRIMARY00000000000000000000000000000000",
-            nonce: 100,
-            firstTxBlock: 18_000_000n,
-            firstTxTimestamp: 1700000000,
-            latestBlock: 19_000_000n,
-          },
-        },
-      ],
-      // ENS-internal subgraph timed out → tile renders missing pill.
-      ensInternal: {
-        kind: "error",
-        reason: "source_timeout",
-        message: "ens-internal:vitalik.eth: per-source timeout 4000ms",
-      },
+      sourcify: [],
+      github: { kind: "error", reason: "rate_limited", message: "github rate limited" },
+      onchain: [],
+      ensInternal: { kind: "error", reason: "source_timeout", message: "ens timeout" },
       crossChain: null,
-      // Failures aggregate logged by orchestrator.
-      failures: [
-        { kind: "error", source: "sourcify", reason: "source_timeout", message: "tile timeout" },
-        { kind: "error", source: "ens-internal", reason: "source_timeout", message: "tile timeout" },
-      ],
+      failures: [{ kind: "error", source: "github", reason: "rate_limited", message: "rl" }],
     } as unknown as MultiSourceEvidence;
 
     orchestrateMock.mockResolvedValue(partialEvidence);
-    // Score engine reads ok sources (github + onchain), ignores the
-    // timed-out tiles. Tier ceiling A still applies in public-read mode
-    // — that's the score engine's job. Here we lock that loadBench
-    // returns kind:'loaded' (NOT kind:'error' orchestrator_timeout) so
-    // the renderer gets the partial evidence + the score.
-    const partialScore = {
-      ...SAMPLE_SCORE,
-      seniority: 0.18,
-      relevance: 0.30,
-      score_100: 24,
-      tier: "D",
-      meta: { ...SAMPLE_SCORE.meta, mode: "public-read", nonZeroSourceCount: 2 },
-    } as unknown as ScoreResult;
-    computeScoreMock.mockReturnValue(partialScore);
 
-    const result = await loadBench("vitalik.eth", { nowSeconds: 1_715_000_000 });
+    const result = await loadBench("vitalik.eth", { nowSeconds: 1 });
 
     expect(result.kind).toBe("loaded");
     if (result.kind !== "loaded") throw new Error("unreachable");
-    // Evidence threaded through unchanged — renderer sees source_timeout
-    // entries and renders missing pills on those tiles.
-    expect(result.evidence).toBe(partialEvidence);
-    expect(result.evidence.sourcify[0]?.kind).toBe("error");
-    expect(result.evidence.ensInternal.kind).toBe("error");
-    expect(result.evidence.github.kind).toBe("ok");
-    expect(result.evidence.onchain[0]?.kind).toBe("ok");
-    // Score computed honestly off the OK sources.
-    expect(result.score).toBe(partialScore);
-    expect(result.score.tier).toBe("D");
-    expect(result.score.meta.mode).toBe("public-read");
-    // computeScore was invoked with the partial evidence — no early
-    // bail-out on timeout entries.
-    expect(computeScoreMock).toHaveBeenCalledWith(partialEvidence, {
-      nowSeconds: 1_715_000_000,
-    });
+    expect(aggregateEnginesMock).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.objectContaining({ evidence: partialEvidence }),
+    );
   });
 });

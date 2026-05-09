@@ -368,14 +368,16 @@ describe("ScoreBreakdownPanel (US-134, GATE-30 surface)", () => {
     expect(text).not.toMatch(/→\s*86/);
   });
 
-  describe("evaluator engines overlay (eval bridge)", () => {
+  describe("unified engines section (refactor 2026-05-09)", () => {
     const stubEngine = (
-      recordKey: "addr.eth" | "description" | "url",
+      engineId: "addr.eth" | "description" | "url" | "sourcify" | "github" | "onchain" | "ens",
+      category: "record" | "source",
       seniority: number,
       relevance: number,
       trust: number,
     ) => ({
-      recordKey,
+      engineId,
+      category,
       exists: true,
       validity: 1 as const,
       liveness: 1 as const,
@@ -383,6 +385,8 @@ describe("ScoreBreakdownPanel (US-134, GATE-30 surface)", () => {
       relevance,
       trust,
       weight: 1,
+      seniorityWeight: 1,
+      relevanceWeight: 1,
       signals: { seniorityBreakdown: [], relevanceBreakdown: [], antiSignals: [] },
       evidence: [],
       confidence: "complete" as const,
@@ -391,40 +395,41 @@ describe("ScoreBreakdownPanel (US-134, GATE-30 surface)", () => {
       errors: [],
     });
 
-    it("hides the eval section when both engines list is empty AND no bonus prop", () => {
+    it("hides the engines section when no engines are passed", () => {
       const { container } = render(<ScoreBreakdownPanel score={score()} />);
-      expect(container.querySelector('[data-section="eval-engines"]')).toBeNull();
+      expect(container.querySelector('[data-section="engines"]')).toBeNull();
     });
 
-    it("renders the eval section when engines and a non-zero bonus are passed", () => {
+    it("renders an Engines section listing every contributing engine (source + record)", () => {
       const { container } = render(
         <ScoreBreakdownPanel
           score={score()}
-          evalEngines={[
-            stubEngine("addr.eth", 0.4, 0.6, 0.7),
-            stubEngine("description", 0.3, 0.5, 0.6),
+          engines={[
+            stubEngine("sourcify", "source", 1.0, 1.0, 1.0),
+            stubEngine("github", "source", 0.6, 0.4, 0.6),
+            stubEngine("addr.eth", "record", 0.15, 0.6, 0.7),
+            stubEngine("description", "record", 0.4, 0.5, 0.6),
           ]}
-          evalBonus={{ seniority: 0.04, relevance: 0.06, appliedToScore100: 5 }}
         />,
       );
-      const section = container.querySelector('[data-section="eval-engines"]');
+      const section = container.querySelector('[data-section="engines"]');
       expect(section).not.toBeNull();
-      expect(section?.getAttribute("data-bonus-applied")).toBe("5");
-      expect(container.querySelector('[data-engine="addr.eth"]')).not.toBeNull();
-      expect(container.querySelector('[data-engine="description"]')).not.toBeNull();
-      expect(container.querySelector('[data-field="bonus-applied"]')?.textContent).toBe("+5");
+      expect(section?.getAttribute("data-engine-count")).toBe("4");
+      expect(container.querySelector('[data-engine="sourcify"][data-category="source"]')).not.toBeNull();
+      expect(container.querySelector('[data-engine="github"][data-category="source"]')).not.toBeNull();
+      expect(container.querySelector('[data-engine="addr.eth"][data-category="record"]')).not.toBeNull();
+      expect(container.querySelector('[data-engine="description"][data-category="record"]')).not.toBeNull();
     });
 
-    it("filters out engines with exists:false (only registered + non-empty rows render)", () => {
-      const absent = stubEngine("url", 0, 0, 0);
+    it("filters out engines with exists:false (only contributing rows render)", () => {
+      const absent = stubEngine("url", "record", 0, 0, 0);
       const { container } = render(
         <ScoreBreakdownPanel
           score={score()}
-          evalEngines={[
-            stubEngine("addr.eth", 0.4, 0.6, 0.7),
+          engines={[
+            stubEngine("addr.eth", "record", 0.4, 0.6, 0.7),
             { ...absent, exists: false, validity: 0 as const },
           ]}
-          evalBonus={{ seniority: 0.04, relevance: 0.06, appliedToScore100: 5 }}
         />,
       );
       expect(container.querySelector('[data-engine="addr.eth"]')).not.toBeNull();

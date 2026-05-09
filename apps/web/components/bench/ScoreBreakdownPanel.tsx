@@ -24,8 +24,7 @@
 // --font-serif (italic ceiling labels).
 
 import type {
-  EvalBonus,
-  EvaluatorResult,
+  EngineContribution,
   ScoreAxisBreakdown,
   ScoreComponentBreakdown,
   ScoreResult,
@@ -45,17 +44,12 @@ export type ScoreBreakdownPanelProps = {
   readonly v1FullSeniorityMax?: number;
   readonly v1FullRelevanceMax?: number;
   /**
-   * Per-record evaluator engine results from `runEvaluatorBridge`.
-   * Empty array (or omitted) hides the evaluator overlay section so the
-   * panel stays backward compatible with single-source-only callers.
+   * Unified per-engine contributions (refactor 2026-05-09). When
+   * provided, the panel renders an "Engines" section listing every
+   * source + record engine that contributed to the score. Drops the
+   * old eval-overlay sub-section.
    */
-  readonly evalEngines?: ReadonlyArray<EvaluatorResult>;
-  /**
-   * Capped overlay bonus from the evaluator bridge. When
-   * `appliedToScore100 > 0`, the section renders with the bonus plus
-   * a stacked-on "with overlay" final number alongside the pure score.
-   */
-  readonly evalBonus?: EvalBonus;
+  readonly engines?: ReadonlyArray<EngineContribution>;
 };
 
 const DEFAULT_V1_MAX = 79;
@@ -324,21 +318,19 @@ function AxisBar({
   );
 }
 
-function EvalEnginesSection({
+function EnginesSection({
   engines,
-  bonus,
 }: {
-  readonly engines: ReadonlyArray<EvaluatorResult>;
-  readonly bonus: EvalBonus;
+  readonly engines: ReadonlyArray<EngineContribution>;
 }): React.JSX.Element | null {
   const live = engines.filter((e) => e.exists);
-  if (live.length === 0 && bonus.appliedToScore100 === 0) return null;
+  if (live.length === 0) return null;
 
   return (
     <section
-      data-section="eval-engines"
-      data-bonus-applied={bonus.appliedToScore100}
-      aria-label="Evaluator engines overlay"
+      data-section="engines"
+      data-engine-count={live.length}
+      aria-label="Per-engine contributions"
       style={{
         padding: "16px 20px",
         borderTop: "1px solid var(--color-border)",
@@ -353,7 +345,7 @@ function EvalEnginesSection({
           marginBottom: "10px",
         }}
       >
-        Evaluator engines · per-record overlay (capped +20 score points)
+        Engines · {live.length} contributing · source + record unified
       </header>
 
       <ul
@@ -369,13 +361,14 @@ function EvalEnginesSection({
                 : "var(--color-src-discounted)";
           return (
             <li
-              key={eng.recordKey}
-              data-engine={eng.recordKey}
+              key={eng.engineId}
+              data-engine={eng.engineId}
+              data-category={eng.category}
               data-confidence={eng.confidence}
               className="grid items-center gap-x-4 gap-y-1"
               style={{
                 gridTemplateColumns:
-                  "minmax(170px, 1.6fr) 60px 60px 60px 64px 80px",
+                  "minmax(150px, 1.5fr) 64px 64px 64px 64px 80px",
                 padding: "6px 0",
                 fontFamily: "var(--font-mono)",
                 fontSize: "10px",
@@ -384,8 +377,18 @@ function EvalEnginesSection({
                 borderBottom: "1px dotted var(--color-border)",
               }}
             >
-              <span data-field="record-key" className="text-t1">
-                {eng.recordKey}
+              <span data-field="engine-id" className="text-t1">
+                {eng.engineId}
+                <span
+                  className="ml-2 text-t3"
+                  style={{
+                    fontFamily: "var(--font-serif)",
+                    fontStyle: "italic",
+                    fontSize: "10px",
+                  }}
+                >
+                  ({eng.category})
+                </span>
                 {eng.confidence !== "complete" ? (
                   <span
                     className="ml-2 text-t3"
@@ -395,7 +398,7 @@ function EvalEnginesSection({
                       fontSize: "10px",
                     }}
                   >
-                    ({eng.confidence})
+                    {eng.confidence}
                   </span>
                 ) : null}
               </span>
@@ -453,30 +456,7 @@ function EvalEnginesSection({
       </ul>
 
       <p
-        data-field="eval-bonus-line"
-        className="mt-3 font-mono text-t1"
-        style={{
-          fontSize: "12px",
-          letterSpacing: "0.04em",
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
-        Overlay bonus ={" "}
-        <b data-field="bonus-seniority" className="font-medium">
-          +{fmt(bonus.seniority, 3)}
-        </b>{" "}
-        seniority,{" "}
-        <b data-field="bonus-relevance" className="font-medium">
-          +{fmt(bonus.relevance, 3)}
-        </b>{" "}
-        relevance →{" "}
-        <b data-field="bonus-applied" className="font-medium">
-          +{bonus.appliedToScore100}
-        </b>{" "}
-        score points
-      </p>
-      <p
-        className="mt-1 text-t3"
+        className="mt-3 text-t3"
         style={{
           fontSize: "10px",
           letterSpacing: "0.04em",
@@ -484,8 +464,9 @@ function EvalEnginesSection({
           fontFamily: "var(--font-serif)",
         }}
       >
-        Per-record engines run in parallel with the 4-source pipeline.
-        Bonus is layered on top — never replaces orchestrator math.
+        Source engines wrap orchestrator-fetched data; record engines
+        analyse ENS text records. Both contribute to the same axes —
+        single contract, single sum.
       </p>
     </section>
   );
@@ -496,8 +477,7 @@ export function ScoreBreakdownPanel({
   v1Max = DEFAULT_V1_MAX,
   v1FullSeniorityMax = DEFAULT_V1_FULL_SENIORITY_MAX,
   v1FullRelevanceMax = DEFAULT_V1_FULL_RELEVANCE_MAX,
-  evalEngines = [],
-  evalBonus,
+  engines,
 }: ScoreBreakdownPanelProps): React.JSX.Element {
   const tierColor = TIER_COLOR_VAR[score.tier];
   const seniority100 = axis100(score.seniority);
@@ -660,8 +640,8 @@ export function ScoreBreakdownPanel({
         (max reachable v1 = {v1Max} → A; S reserved for verified-GitHub v2)
       </p>
 
-      {evalBonus !== undefined && (evalEngines.length > 0 || evalBonus.appliedToScore100 > 0) ? (
-        <EvalEnginesSection engines={evalEngines} bonus={evalBonus} />
+      {engines && engines.length > 0 ? (
+        <EnginesSection engines={engines} />
       ) : null}
     </section>
   );
