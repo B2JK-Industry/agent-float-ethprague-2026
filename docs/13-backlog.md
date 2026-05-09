@@ -163,7 +163,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-114b | GitHub source fetcher P1 enrichment: workflow runs (`ciPassRate`), bug-labeled issues (`bugHygiene`), releases (`releaseCadence`), SECURITY.md + dependabot.yml + branch-protection (extends `repoHygiene`). Score engine treats these as null until merged. | B | P1 | M | open | US-114, US-118 |
 | US-115 | On-chain source fetcher P0 (rescoped per review 2026-05-09): `nonce` via `eth_getTransactionCount(latest)`, `firstTxBlock`/`firstTxTimestamp` via binary-search on historical nonce, `contractsDeployedCount` via Sourcify deployer crosswalk. Multi-chain. **NO `eth_getLogs from==` filter (RPC does not support it).** Transfer-count signals (Alchemy Transfers / Etherscan) move to US-115b; `relevance.onchainRecency` falls back to `nonce / cap 1000` when indexer keys absent. | B | P0 | M | merged | US-022 |
 | US-115b | On-chain transfer-count enrichment (P1): integrate Alchemy `alchemy_getAssetTransfers` OR Etherscan `txlist` for `transferCountRecent90d` + `transferCountTotal`. Required env keys: `ALCHEMY_API_KEY` or `ETHERSCAN_API_KEY`. Per-chain failure isolation; one chain rate-limited does not abort fetch. | B | P1 | M | open | US-115 |
-| US-116 | ENS-internal source fetcher: registration date, subname count, text record count, last `TextChanged` block via subgraph (own Graph Network API key required) | B | P0 | M | open | US-017 |
+| US-116 | ENS-internal source fetcher: registration date, subname count, text record count, last `TextChanged` block via subgraph (own Graph Network API key required) | B | P0 | M | merged | US-017 |
 | US-117 | Multi-source orchestrator: parallel runner with per-source failure isolation; emits typed `MultiSourceEvidence` shape | B | P0 | M | open | US-111, US-113, US-114, US-115, US-116 |
 | US-118 | Score engine: pure function over `MultiSourceEvidence`. Locked seniority weights (6 components); provisional relevance weights (4 components, swappable in one file before merge); trust-discount 0.6 on unverified components; **RAW-DISCOUNTED axis (no normalization to ceiling — per EPIC Section 10 update 2026-05-09)**; tier ceiling enforcement (no-verified-GitHub → seniority cap 0.70; public-read manifest → tier cap A; v1 max final score 79); emits `ScoreBreakdown` + tier label. | B | P0 | M | open | US-117 |
 | US-119 | Storage-Layout Hygiene aggregator across implementation history per proxy (chronological pairwise diff over Sourcify `proxyResolution.implementations`; subject-level avg) | B | P0 | L | open | US-027, US-113 |
@@ -3446,7 +3446,7 @@ EPIC reference: US-080. Renumbered to US-115.
 | Sponsor | ENS |
 | Dependencies | US-017 |
 | Acceptance gates | GATE-29 |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | merged |
 
 #### Scope
 
