@@ -49,9 +49,12 @@ export const BENCH_SCHEMA_UIDS: Record<SupportedNetwork, `0x${string}`> = {
     '0x0000000000000000000000000000000000000000000000000000000000000000',
   optimism:
     '0x0000000000000000000000000000000000000000000000000000000000000000',
-  // Sepolia placeholder — fill after Daniel runs the deploy script.
+  // Registered 2026-05-10 by operator 0x747E…0cfC on Sepolia (tx via
+  // sepolia.easscan.org/schema/create UI). Schema string + resolver +
+  // revocable triplet must match `BENCH_ATTESTATION_SCHEMA` constant
+  // above — any drift here breaks the on-chain attestation lookup.
   sepolia:
-    '0x0000000000000000000000000000000000000000000000000000000000000000',
+    '0x75afab249d345d7891a2d79bcf892f1c93a702f4f328e7f657cada9edb241981',
 };
 
 // EAS Explorer URL per network — used by UI to deep-link a UID.
