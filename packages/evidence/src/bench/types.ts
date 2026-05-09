@@ -4,6 +4,7 @@
 
 import type {
   Address,
+  SubjectGithubSource,
   SubjectKind,
   SubjectManifest,
 } from '@upgrade-siren/shared';
@@ -44,6 +45,16 @@ export interface SubjectIdentity {
   readonly kind: SubjectKind | null;
   // Full manifest reference for traceability. null when in public-read.
   readonly manifest: SubjectManifest | null;
+  // C-13 (audit-round-8): public-read fallback now reads standard ENS
+  // text records in parallel with addr(). When `com.github` is present
+  // we synthesise a SubjectGithubSource (verified=false) so the
+  // GitHub source pipeline runs against the inferred owner. Always
+  // null in `manifest` mode — the manifest is authoritative there.
+  readonly inferredGithub?: SubjectGithubSource | null;
+  // The full set of text records read during public-read inference.
+  // Surfaced for drawer evidence display ("ENS announced X = Y").
+  // Empty record in manifest mode.
+  readonly inferredTexts?: Readonly<Record<string, string>>;
 }
 
 // Per-source failure shape. Reason is a free-form string from the

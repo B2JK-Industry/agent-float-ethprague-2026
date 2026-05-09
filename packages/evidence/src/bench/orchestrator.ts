@@ -259,6 +259,13 @@ async function resolveSubject(
       primaryAddress: inferred.value.primaryAddress,
       kind: null,
       manifest: null,
+      // C-13 (audit-round-8): propagate the public-read inferences so
+      // the orchestrator's GitHub fan-out can run against the inferred
+      // owner. Without this, every non-curated ENS subject with a
+      // valid `com.github` text record returned tier U because the
+      // GitHub branch only fired on `manifest.sources.github`.
+      inferredGithub: inferred.value.sources.github,
+      inferredTexts: inferred.value.inferredTexts,
     },
     sources: inferred.value.sources.sourcify ?? [],
     failure: null,
@@ -531,9 +538,16 @@ export async function orchestrateSubject(
         ),
       )
     : Promise.resolve([] as ReadonlyArray<PromiseSettledResult<OnchainEntryEvidence>>);
-  const githubPromise = identity.manifest?.sources.github?.owner
+  // C-13 (audit-round-8): GitHub fan-out reads the manifest's
+  // authored owner first; in public-read mode falls back to the
+  // inferred owner from `com.github` ENS text. Trust-discount × 0.6
+  // still applies in the score engine since `verified: false` either
+  // way until v2 cross-sign lands.
+  const githubOwnerSource =
+    identity.manifest?.sources.github?.owner ?? identity.inferredGithub?.owner ?? null;
+  const githubPromise = githubOwnerSource
     ? fetchGithub(
-        identity.manifest.sources.github.owner,
+        githubOwnerSource,
         options.githubPat,
         options.githubOptions,
         budgets.github,

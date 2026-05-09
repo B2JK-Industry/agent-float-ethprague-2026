@@ -348,6 +348,128 @@ describe('orchestrateSubject', () => {
     });
   });
 
+  // C-13 (audit-round-8): public-read fallback must propagate the
+  // inferred GitHub source so the orchestrator's GitHub fan-out runs
+  // against the inferred owner. Without this, every non-curated ENS
+  // subject with com.github=foo returned tier U because the GitHub
+  // branch only fired on `manifest.sources.github`.
+  describe('C-13 public-read inferred GitHub fan-out', () => {
+    it('public-read with com.github → orchestrator runs GitHub source against the inferred owner', async () => {
+      // No manifest text record on this name → triggers public-read.
+      const records = new Map<string, string | null>([
+        [AGENT_BENCH_RECORD_KEYS.benchManifest, null],
+      ]);
+      const client = makeClient({ recordValues: records, nonceAtLatest: 0 });
+
+      // Stub getEnsAddress + getEnsText for the public-read fallback.
+      type GetEnsAddress = (typeof client)['getEnsAddress'];
+      Object.defineProperty(client, 'getEnsAddress', {
+        value: (async () => PRIMARY as unknown as ViemAddress) as unknown as GetEnsAddress,
+        configurable: true,
+      });
+      type GetEnsText = (typeof client)['getEnsText'];
+      Object.defineProperty(client, 'getEnsText', {
+        value: (async ({ key }: { key: string }) =>
+          key === 'com.github' ? 'vbuterin' : null) as unknown as GetEnsText,
+        configurable: true,
+      });
+
+      const githubFetch = vi.fn(async (url: string) => {
+        if (url.includes('api.github.com/users/')) {
+          return jsonResponse(200, { login: 'vbuterin', public_repos: 5, followers: 12345 });
+        }
+        if (url.includes('api.github.com/users/vbuterin/repos')) {
+          return jsonResponse(200, []);
+        }
+        return jsonResponse(404, {});
+      });
+
+      const fetchImpl = vi.fn(async (url: string) => {
+        if (url.includes('/v2/contract/all-chains/')) return jsonResponse(200, []);
+        if (url.includes('/v2/contract/')) return jsonResponse(404, {});
+        if (url.includes('gateway.thegraph.com/')) return jsonResponse(200, { data: { domains: [] } });
+        return jsonResponse(404, {});
+      });
+
+      const result = await orchestrateSubject(NAME, {
+        client,
+        clients: new Map<number, PublicClient>([[1, client], [11155111, client]]),
+        publicReadOptions: { client, sourcifyOptions: { fetchImpl } },
+        sourcifyDeepOptions: { fetchImpl },
+        metadataOptions: { fetchImpl },
+        crossChainOptions: { fetchImpl },
+        // Critical: PAT must be present for the GitHub fetcher to run
+        // (matches production env wiring).
+        githubPat: 'ghp_test',
+        githubOptions: { fetchImpl: githubFetch, pat: 'ghp_test' },
+        ensInternalOptions: { apiKey: 'k', fetchImpl },
+        graphApiKey: 'k',
+      });
+
+      // Discriminating assertion: github source ran and produced ok
+      // evidence — proving the inferred owner was wired into the
+      // GitHub fan-out branch. Before C-13, this would have been
+      // `kind: 'absent'` because manifest is null and no inferred path
+      // existed.
+      expect(result.subject.mode).toBe('public-read');
+      expect(result.github.kind).toBe('ok');
+      if (result.github.kind === 'ok') {
+        expect(result.github.value.owner).toBe('vbuterin');
+      }
+      // Identity carries the inferred github + texts so the drawer can
+      // render the announced metadata.
+      expect(result.subject.inferredGithub).toEqual({
+        owner: 'vbuterin',
+        verified: false,
+        verificationGist: null,
+      });
+      expect(result.subject.inferredTexts?.['com.github']).toBe('vbuterin');
+    });
+
+    it('public-read without com.github → github stays absent (existing behaviour preserved)', async () => {
+      const records = new Map<string, string | null>([
+        [AGENT_BENCH_RECORD_KEYS.benchManifest, null],
+      ]);
+      const client = makeClient({ recordValues: records, nonceAtLatest: 0 });
+
+      type GetEnsAddress = (typeof client)['getEnsAddress'];
+      Object.defineProperty(client, 'getEnsAddress', {
+        value: (async () => PRIMARY as unknown as ViemAddress) as unknown as GetEnsAddress,
+        configurable: true,
+      });
+      type GetEnsText = (typeof client)['getEnsText'];
+      Object.defineProperty(client, 'getEnsText', {
+        value: (async () => null) as unknown as GetEnsText,
+        configurable: true,
+      });
+
+      const fetchImpl = vi.fn(async (url: string) => {
+        if (url.includes('/v2/contract/all-chains/')) return jsonResponse(200, []);
+        if (url.includes('/v2/contract/')) return jsonResponse(404, {});
+        if (url.includes('gateway.thegraph.com/')) return jsonResponse(200, { data: { domains: [] } });
+        return jsonResponse(404, {});
+      });
+
+      const result = await orchestrateSubject(NAME, {
+        client,
+        clients: new Map<number, PublicClient>([[1, client], [11155111, client]]),
+        publicReadOptions: { client, sourcifyOptions: { fetchImpl } },
+        sourcifyDeepOptions: { fetchImpl },
+        metadataOptions: { fetchImpl },
+        crossChainOptions: { fetchImpl },
+        githubPat: 'ghp_test',
+        ensInternalOptions: { apiKey: 'k', fetchImpl },
+        graphApiKey: 'k',
+      });
+
+      expect(result.subject.mode).toBe('public-read');
+      // No inferred github, so the source stays absent — the score
+      // engine treats that as "user made no claim".
+      expect(result.github.kind).toBe('absent');
+      expect(result.subject.inferredGithub).toBeNull();
+    });
+  });
+
   // US-117 carry-rule v2 §2B: per-source AbortController budgets so a
   // public-read subject (vitalik.eth-style) returns a partial verdict
   // when one source hangs instead of failing the whole 12s page budget.
