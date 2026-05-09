@@ -71,20 +71,71 @@ function fromUrlEngine(engines: ReadonlyArray<EngineContribution>): SocialEntry[
   ];
 }
 
+function buildLinkedInLink(handle: string): string {
+  const clean = handle.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '').replace(/\/$/, '').trim();
+  return `https://www.linkedin.com/in/${clean}`;
+}
+
+function buildFarcasterLink(handle: string): string {
+  const clean = handle.replace(/^@/, '').trim();
+  return `https://warpcast.com/${clean}`;
+}
+
+function buildLensLink(handle: string): string {
+  const clean = handle.replace(/^@/, '').trim();
+  return `https://hey.xyz/u/${clean}`;
+}
+
 function fromInferredTexts(
   evidence: MultiSourceEvidence,
 ): SocialEntry[] {
   const texts = evidence.subject.inferredTexts ?? {};
   const out: SocialEntry[] = [];
 
-  const twitter = trim(texts['com.twitter']);
-  if (twitter) {
+  // X / Twitter — accept both keys (X is the rebrand convention,
+  // com.twitter is the ENSIP-5 canonical key).
+  const xHandle = trim(texts['X']) ?? trim(texts['com.twitter']);
+  const xKey = trim(texts['X']) ? 'X' : 'com.twitter';
+  if (xHandle) {
     out.push({
       platform: 'X',
-      handle: twitter,
-      link: buildXLink(twitter),
+      handle: xHandle,
+      link: buildXLink(xHandle),
       source: 'ens-text',
-      source_label: 'com.twitter',
+      source_label: xKey,
+    });
+  }
+
+  const linkedin = trim(texts['com.linkedin']);
+  if (linkedin) {
+    out.push({
+      platform: 'LinkedIn',
+      handle: linkedin,
+      link: buildLinkedInLink(linkedin),
+      source: 'ens-text',
+      source_label: 'com.linkedin',
+    });
+  }
+
+  const farcaster = trim(texts['xyz.farcaster']);
+  if (farcaster) {
+    out.push({
+      platform: 'Farcaster',
+      handle: farcaster,
+      link: buildFarcasterLink(farcaster),
+      source: 'ens-text',
+      source_label: 'xyz.farcaster',
+    });
+  }
+
+  const lens = trim(texts['org.lens']);
+  if (lens) {
+    out.push({
+      platform: 'Lens',
+      handle: lens,
+      link: buildLensLink(lens),
+      source: 'ens-text',
+      source_label: 'org.lens',
     });
   }
 
@@ -124,17 +175,20 @@ export function SocialsPanel({
     ...fromUrlEngine(engines),
     ...fromInferredTexts(evidence),
   ];
-  if (entries.length === 0) return null;
+  const primaryNameUsed = evidence.subject.primaryNameUsed ?? null;
+  const contentHash = evidence.subject.contentHash ?? null;
+  if (entries.length === 0 && contentHash === null && primaryNameUsed === null) return null;
 
   return (
     <section
       data-section="socials"
       data-entry-count={entries.length}
+      data-primary-name={primaryNameUsed ?? undefined}
       aria-label="Linked social profiles"
       className="border border-border bg-surface"
     >
       <header
-        className="font-mono uppercase text-t3"
+        className="font-mono uppercase text-t3 flex flex-wrap items-baseline justify-between gap-2"
         style={{
           padding: "14px 20px",
           borderBottom: "1px solid var(--color-border)",
@@ -142,7 +196,21 @@ export function SocialsPanel({
           letterSpacing: "0.18em",
         }}
       >
-        Linked profiles · {entries.length} · score-neutral
+        <span>Linked profiles · {entries.length} · score-neutral</span>
+        {primaryNameUsed && (
+          <span
+            data-field="primary-name-badge"
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontStyle: "italic",
+              fontSize: "10px",
+              letterSpacing: 0,
+              color: "var(--color-src-partial)",
+            }}
+          >
+            via primary name {primaryNameUsed}
+          </span>
+        )}
       </header>
 
       <ul
@@ -206,6 +274,36 @@ export function SocialsPanel({
         ))}
       </ul>
 
+      {contentHash && (
+        <div
+          data-block="content-hash"
+          style={{
+            padding: "12px 20px",
+            borderTop: "1px solid var(--color-border)",
+            fontFamily: "var(--font-mono)",
+            fontSize: "11px",
+            letterSpacing: "0.04em",
+          }}
+        >
+          <span
+            className="text-t3 uppercase"
+            style={{ fontSize: "10px", letterSpacing: "0.18em", marginRight: "10px" }}
+          >
+            ENS contentHash
+          </span>
+          <a
+            href={contentHash.startsWith("ipfs://")
+              ? `https://ipfs.io/ipfs/${contentHash.replace(/^ipfs:\/\//, "")}`
+              : contentHash}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-t1 underline-offset-2 hover:underline"
+            style={{ wordBreak: "break-all" }}
+          >
+            {contentHash}
+          </a>
+        </div>
+      )}
       <p
         className="text-t3"
         style={{

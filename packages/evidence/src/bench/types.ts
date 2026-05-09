@@ -55,6 +55,15 @@ export interface SubjectIdentity {
   // Surfaced for drawer evidence display ("ENS announced X = Y").
   // Empty record in manifest mode.
   readonly inferredTexts?: Readonly<Record<string, string>>;
+  // Refactor 2026-05-10: when subject ENS has sparse records but addr
+  // resolves to a wallet whose primary name (reverse-record) carries
+  // richer profile data, the public-read resolver follows the primary
+  // and merges its records. Set to the primary name when the merge
+  // happened. UI surfaces this as "via primary name X" badge.
+  readonly primaryNameUsed?: string | null;
+  // contentHash decoded as URL when present (ipfs://, swarm://, etc).
+  // Surfaced for drawer rendering — score-neutral in v1.
+  readonly contentHash?: string | null;
 }
 
 // Per-source failure shape. Reason is a free-form string from the
