@@ -171,6 +171,21 @@ export interface OrchestrateSubjectOptions {
   // Defaults match `DEFAULT_PER_SOURCE_BUDGETS_MS`. Tests inject smaller
   // values for deterministic assertions.
   readonly perSourceBudgetsMs?: Partial<PerSourceBudgetsMs>;
+  // C-14 (audit-round-8): skip on-chain fan-out legs for chains that
+  // have NO configured RPC. Without this, the default fan-out always
+  // includes mainnet+sepolia; in production with only one RPC configured
+  // the other leg falls through to viem's public default and reliably
+  // hits the per-source timeout, cluttering `failures` with noise.
+  // Default `true` — opt-out via `false` for tests that intentionally
+  // want both legs to attempt without explicit clients.
+  readonly skipUnconfiguredOnchainChains?: boolean;
+  // C-14: per-chain RPC URL map for on-chain fans. When a chainId is
+  // present here, the chain is treated as "configured" and its RPC URL
+  // is threaded into the on-chain fetcher. When absent and no client is
+  // injected, the chain's leg is skipped (under `skipUnconfiguredOnchainChains`).
+  // Tests pass this map to assert per-chain routing without depending
+  // on real env vars.
+  readonly onchainRpcUrls?: Readonly<Record<number, string>>;
 }
 
 const DEFAULT_ONCHAIN_CHAINS: ReadonlyArray<number> = [1, 11155111];
@@ -412,6 +427,57 @@ function dedupeChainIds(
   return [...set];
 }
 
+// C-14 (audit-round-8): per-chain RPC env var map. Production reads
+// `ALCHEMY_RPC_MAINNET` for chainId 1 and `ALCHEMY_RPC_SEPOLIA` for
+// 11155111. Other chains are intentionally not env-discoverable in v1;
+// the test path uses `onchainRpcUrls` instead.
+const CHAIN_ID_TO_RPC_ENV: Readonly<Record<number, string>> = {
+  1: 'ALCHEMY_RPC_MAINNET',
+  11155111: 'ALCHEMY_RPC_SEPOLIA',
+};
+
+function rpcEnvFor(chainId: number): string | undefined {
+  // Read off `process.env` so tests that don't set env vars consistently
+  // skip those chains. We tolerate a missing `process` (e.g. an edge
+  // runtime) by returning undefined.
+  const env = (typeof process !== 'undefined' ? process.env : undefined) as
+    | Readonly<Record<string, string | undefined>>
+    | undefined;
+  if (env === undefined) return undefined;
+  const envName = CHAIN_ID_TO_RPC_ENV[chainId];
+  if (envName === undefined) return undefined;
+  const direct = env[envName];
+  if (direct !== undefined && direct.length > 0) return direct;
+  // Mainnet has a long-standing `ENS_RPC_URL` fallback (Epic 1 single-
+  // contract path uses it). Honor that here so a deploy with only
+  // `ENS_RPC_URL` set still treats mainnet as configured.
+  if (chainId === 1) {
+    const ensRpc = env['ENS_RPC_URL'];
+    if (ensRpc !== undefined && ensRpc.length > 0) return ensRpc;
+  }
+  return undefined;
+}
+
+// A chain is "configured" iff at least one of:
+//   - explicit per-chain client provided in `options.clients`
+//   - legacy single client whose `chain.id` matches
+//   - per-chain RPC URL provided in `options.onchainRpcUrls`
+//   - process env exposes a Alchemy RPC URL for this chainId
+// Anything else is filtered out before fan-out so the per-source budget
+// isn't burned on a leg that will fall through to viem's public default
+// and almost certainly time out.
+function chainHasConfiguredRpc(
+  chainId: number,
+  options: OrchestrateSubjectOptions,
+): boolean {
+  if (options.clients?.has(chainId)) return true;
+  if (options.client?.chain?.id === chainId) return true;
+  if (options.onchainRpcUrls?.[chainId]) return true;
+  const envUrl = rpcEnvFor(chainId);
+  if (envUrl !== undefined && envUrl.length > 0) return true;
+  return false;
+}
+
 async function fetchGithub(
   owner: string | null,
   pat: string | undefined,
@@ -506,7 +572,30 @@ export async function orchestrateSubject(
   const { identity, sources, failure: subjectFailure } = await resolveSubject(name, options);
   if (subjectFailure) failures.push(subjectFailure);
 
-  const onchainChainIds = dedupeChainIds(sources, options.defaultOnchainChains ?? DEFAULT_ONCHAIN_CHAINS);
+  const allChainIds = dedupeChainIds(sources, options.defaultOnchainChains ?? DEFAULT_ONCHAIN_CHAINS);
+  // C-14: pre-filter chains lacking any configured RPC so the on-chain
+  // fan-out doesn't burn its per-source budget on a leg that will fall
+  // through to viem's public default and reliably time out. Skipped
+  // chains surface as a `failures[]` entry with reason
+  // `rpc_unconfigured` so the drawer can render the missing tile
+  // honestly instead of pretending nothing was attempted.
+  const skipUnconfigured = options.skipUnconfiguredOnchainChains ?? true;
+  const onchainChainIds = skipUnconfigured
+    ? allChainIds.filter((id) => chainHasConfiguredRpc(id, options))
+    : allChainIds;
+  if (skipUnconfigured) {
+    for (const id of allChainIds) {
+      if (!onchainChainIds.includes(id)) {
+        failures.push({
+          kind: 'error',
+          source: 'onchain',
+          reason: 'rpc_unconfigured',
+          message: `onchain: no configured RPC for chainId ${id} — leg skipped (set ALCHEMY_RPC_* env or pass clients/onchainRpcUrls)`,
+          chainId: id,
+        });
+      }
+    }
+  }
 
   // Fan-out per-source. Promise.allSettled over already-typed-result
   // promises so no exception escapes the orchestrator. Each per-source
@@ -526,16 +615,26 @@ export async function orchestrateSubject(
   );
   const onchainPromise = identity.primaryAddress
     ? Promise.allSettled(
-        onchainChainIds.map((chainId) =>
-          fetchOneOnchain(
+        onchainChainIds.map((chainId) => {
+          // C-14: per-chain RPC URL flows from options.onchainRpcUrls
+          // (test path) or from env (production). Threading it into
+          // onchainOptions.rpcUrl ensures fetchOnchainActivity's
+          // resolveClient builds a real per-chain client even when no
+          // explicit client was injected.
+          const rpcUrl = options.onchainRpcUrls?.[chainId] ?? rpcEnvFor(chainId);
+          const onchainOpts: FetchOnchainActivityOptions = {
+            ...(options.onchainOptions ?? {}),
+            ...(rpcUrl !== undefined && rpcUrl.length > 0 ? { rpcUrl } : {}),
+          };
+          return fetchOneOnchain(
             chainId,
             identity.primaryAddress as Address,
-            options.onchainOptions,
+            onchainOpts,
             options.client,
             options.clients,
             budgets.onchain,
-          ),
-        ),
+          );
+        }),
       )
     : Promise.resolve([] as ReadonlyArray<PromiseSettledResult<OnchainEntryEvidence>>);
   // C-13 (audit-round-8): GitHub fan-out reads the manifest's
