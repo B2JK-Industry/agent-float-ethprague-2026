@@ -519,7 +519,7 @@ export function ScoreBreakdownPanel({
         className="flex flex-col"
       >
         <AxisBar
-          axisLabel="Seniority"
+          axisLabel="Seniority · quality / track record"
           axis={score.breakdown.seniority}
           axisDataAttr="seniority"
           fullMax100={v1FullSeniorityMax}
@@ -528,7 +528,7 @@ export function ScoreBreakdownPanel({
           style={{ borderTop: "1px solid var(--color-border)" }}
         >
           <AxisBar
-            axisLabel="Relevance"
+            axisLabel="Relevance · legitimacy / anti-scam"
             axis={score.breakdown.relevance}
             axisDataAttr="relevance"
             fullMax100={v1FullRelevanceMax}

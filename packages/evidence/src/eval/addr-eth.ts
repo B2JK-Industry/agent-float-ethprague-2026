@@ -193,7 +193,11 @@ async function fetchReverseRecord(
 export const addrEthEngine: RecordEngine = {
   key: KEY,
   defaultParams: {
-    weight: 1,
+    // Refactor 2026-05-10: weight reduced from 1.0 → 0.075 to fit
+    // proper per-axis distribution. Source engines own the bulk
+    // weight; record engines (addr/description/url) are
+    // supplementary signals, not primary scoring inputs.
+    weight: 0.075,
     trustFloor: 0.7,
     trustCeiling: 1.0,
     timeoutMs: 3000,

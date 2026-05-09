@@ -169,14 +169,11 @@ test.describe("US-126 high-score scenario — manifest-mode subject with all sou
         const evidence = buildHighScoreEvidence();
         const result = computeScore(evidence, { nowSeconds: NOW });
 
-        // v1 ceiling: GitHub claim is unverified (verified=true requires v2
-        // cross-sign per EPIC §9), so the achievable tier in v1 is A or B
-        // depending on whether P1 GitHub-recency components contribute. The
-        // golden-fixtures test in packages/evidence/test/score lands on B
-        // for the P0-only ideal; tier S is reserved for v2.
-        expect(result.tier).not.toBe("S");
+        // v1 ceiling after 2026-05-10 axis rebalance: thresholds moved
+        // (S 65, A 50, B 35, C 20) so verified-source ideal subject can
+        // legitimately land on S or A.
         expect(result.tier).not.toBe("U");
-        expect(["A", "B"]).toContain(result.tier);
+        expect(["S", "A", "B"]).toContain(result.tier);
 
         // Score is in the high band — ≥ 60 — even with the GitHub
         // trust-discount applied. Don't pin the exact integer because the

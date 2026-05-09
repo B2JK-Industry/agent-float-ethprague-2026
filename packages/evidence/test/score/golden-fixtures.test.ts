@@ -169,11 +169,13 @@ describe('Score engine — golden fixtures (H-5 deterministic re-derivation)', (
       expect(result.score_100).toBe(66);
     });
 
-    it('tier = B (in [60,75))', () => {
-      expect(result.tier).toBe('B');
+    it('tier = S (after 2026-05-10 axis rebalance: P0-only ideal hits raw 0.79 ≥ S=65)', () => {
+      // Pre-rebalance: tier=B (in [60,75)) under S=90 threshold.
+      // Post-rebalance: S threshold dropped to 65; 79 ≥ 65 → S.
+      expect(result.tier).toBe('S');
     });
 
-    it('ceilingApplied = none (manifest mode, tier in B range)', () => {
+    it('ceilingApplied = none (manifest mode)', () => {
       expect(result.ceilingApplied).toBe('none');
     });
 
@@ -246,8 +248,10 @@ describe('Score engine — golden fixtures (H-5 deterministic re-derivation)', (
       expect(result.score_100).toBe(48);
     });
 
-    it('tier = C', () => {
-      expect(result.tier).toBe('C');
+    it('tier = B (after 2026-05-10 axis rebalance: 48 ≥ B=35)', () => {
+      // Pre-rebalance: tier=C under B=60 threshold.
+      // Post-rebalance: B threshold dropped to 35; 48 ≥ 35 → B.
+      expect(result.tier).toBe('B');
     });
   });
 
@@ -327,12 +331,11 @@ describe('Score engine — golden fixtures (H-5 deterministic re-derivation)', (
       expect(result.meta.mode).toBe('public-read');
     });
 
-    it('tier = C (ceiling does not lift to or below A from below)', () => {
-      expect(result.tier).toBe('C');
-      // ceilingApplied is `none` because rawTier was already < A — the
-      // public-read cap only fires when math would otherwise produce
-      // S or A. Locking the discriminator keeps the score breakdown
-      // self-explanatory in the drawer.
+    it('tier = B (after 2026-05-10 rebalance; ceiling does not fire below A)', () => {
+      // Pre-rebalance: tier=C under B=60. Post-rebalance: B=35 → tier=B.
+      expect(result.tier).toBe('B');
+      // ceilingApplied stays `none` — public-read cap fires only when
+      // raw tier would otherwise be S or A.
       expect(result.ceilingApplied).toBe('none');
     });
   });
