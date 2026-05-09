@@ -58,7 +58,7 @@ Tracker-only owners (not picked up by dev agents):
 
 | ID | Title | Owner | Priority | Effort | Status | Depends on |
 |---|---|---|---|---|---|---|
-| US-014 | Siren Report JSON schema in packages/shared | B | P0 | S | open | none |
+| US-014 | Siren Report JSON schema in packages/shared | B | P0 | S | merged | none |
 | US-015 | EIP-712 typed-data builder and signReport helper in packages/shared | B | P0 | S | open | US-014 |
 | US-016 | Shared types package for cross-stream consumption | B | P0 | S | open | none |
 | US-017 | ENS live record resolution (stable upgrade-siren records and manifest) | B | P0 | M | open | none |
@@ -712,7 +712,7 @@ This document is what the PR Reviewer (and the Devfolio judges) will read first.
 | Sponsor | Sourcify, ENS |
 | Dependencies | none |
 | Acceptance gates | GATE-9 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
