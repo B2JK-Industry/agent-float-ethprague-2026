@@ -60,6 +60,8 @@ import {
 import { createPublicClient, http } from "viem";
 import { mainnet, sepolia } from "viem/chains";
 
+import { getDemoMock } from "../../../lib/demoMocks";
+
 const SEPOLIA_CHAIN_ID = 11155111;
 const MAINNET_CHAIN_ID = 1;
 
@@ -141,6 +143,12 @@ export type LoadBenchOptions = {
    * leaves headroom under the 60s Vercel budget. Tests pin shorter.
    */
   readonly orchestratorTimeoutMs?: number;
+  /**
+   * Booth-demo bypass: when explicitly false, skip the demoMocks map
+   * even for the four canonical landing subjects. Defaults to true so
+   * the four landing tiles always render their tuned story.
+   */
+  readonly useDemoMock?: boolean;
 };
 
 export type LoadBenchLoaded = {
@@ -176,6 +184,17 @@ export async function loadBench(
   name: string,
   options: LoadBenchOptions = {},
 ): Promise<LoadBenchResult> {
+  // Booth demo subjects (the four /b/[name] tiles on the landing page)
+  // short-circuit to a frozen mocked LoadBenchResult so the tile's
+  // predicted tier always matches what the page renders. Without this,
+  // live RPC / Sourcify / GitHub variance can drift the score across
+  // sessions and blow up the booth narrative.
+  // Bypass with `?live=true` query param if needed.
+  if (options.useDemoMock !== false) {
+    const mock = getDemoMock(name);
+    if (mock) return mock;
+  }
+
   // Demo subjects (siren-agent-demo, *.upgrade-siren-demo.eth) live on
   // Sepolia — DEFAULT_BENCH_CHAIN_ID env override flips the default to
   // 11155111 in production without breaking test fixtures that pin

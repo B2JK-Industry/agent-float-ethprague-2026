@@ -107,7 +107,7 @@ describe("loadBench (unified Engine refactor 2026-05-09)", () => {
 
     const result = await loadBench(
       "siren-agent-demo.upgrade-siren-demo.eth",
-      { nowSeconds: 1_715_000_000 },
+      { nowSeconds: 1_715_000_000, useDemoMock: false },
     );
 
     expect(orchestrateMock).toHaveBeenCalledTimes(1);
@@ -193,6 +193,7 @@ describe("loadBench (unified Engine refactor 2026-05-09)", () => {
     orchestrateMock.mockReturnValue(new Promise(() => {}));
 
     const result = await loadBench("vitalik.eth", {
+      useDemoMock: false,
       nowSeconds: 1,
       orchestratorTimeoutMs: 50,
     });
@@ -248,7 +249,7 @@ describe("loadBench (unified Engine refactor 2026-05-09)", () => {
 
     orchestrateMock.mockResolvedValue(partialEvidence);
 
-    const result = await loadBench("vitalik.eth", { nowSeconds: 1 });
+    const result = await loadBench("vitalik.eth", { useDemoMock: false, nowSeconds: 1 });
 
     expect(result.kind).toBe("loaded");
     if (result.kind !== "loaded") throw new Error("unreachable");
