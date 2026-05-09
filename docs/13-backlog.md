@@ -78,7 +78,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-031 | ENSIP-26 agent-context and agent-endpoint[web] record reading | B | P1 | S | merged | US-017 |
 | US-032 | Sourcify response cache layer with TTL | B | P1 | M | open | US-024, US-025 |
 | US-033 | ENS resolution cache layer | B | P1 | S | merged | US-017 |
-| US-034 | RPC retry/failover and Sourcify rate-limit handling | B | P1 | M | open | US-022, US-024 |
+| US-034 | RPC retry/failover and Sourcify rate-limit handling | B | P1 | M | merged | US-022, US-024 |
 | US-035 | 4byte signature lookup for unverified contracts | B | P1 | S | merged | US-026 |
 | US-036 | Upgrade-window grace policy (P1) | B | P1 | M | open | US-018, US-029 |
 
@@ -88,7 +88,7 @@ Tracker-only owners (not picked up by dev agents):
 
 | ID | Title | Owner | Priority | Effort | Status | Depends on |
 |---|---|---|---|---|---|---|
-| US-037 | Next.js 16 app scaffold with Tailwind 4 | C | P0 | M | open | none |
+| US-037 | Next.js 16 app scaffold with Tailwind 4 | C | P0 | M | merged | none |
 | US-038 | ENS lookup form component | C | P0 | S | open | none |
 | US-039 | Public-read address / ENS-address-record input component | C | P0 | S | open | none |
 | US-040 | Mock-path visible badge component | C | P0 | S | open | none |
@@ -1555,7 +1555,7 @@ ENS RPC calls are rate-limited by Alchemy; caching matters for repeat lookups du
 | Sponsor | Sourcify, ENS |
 | Dependencies | US-022, US-024 |
 | Acceptance gates | - |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -1676,7 +1676,7 @@ Mentor question 60 in `docs/07-sponsor-fit.md` flags this as a sensitive verdict
 | Sponsor | - |
 | Dependencies | none |
 | Acceptance gates | GATE-1 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
