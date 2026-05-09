@@ -100,10 +100,11 @@ export type LoadReportOptions = {
   readonly publicReadIntent: boolean;
   /**
    * Origin of the incoming HTTP request, used to resolve relative paths
-   * (e.g. `/reports/<n>.json`) into absolute URLs that `fetch` accepts on
-   * the server. When the route handler / page has access to the origin,
-   * pass it through; otherwise we fall back to relative-only fetches
-   * (which only work in the browser, not on the server).
+   * (e.g. `/cache/<chainId>/<address>.json`, `/reports/<X>.json`) into
+   * absolute URLs that `fetch` accepts on the server. When the route
+   * handler / page has access to the origin, pass it through; otherwise
+   * we fall back to relative-only fetches (which only resolve on the
+   * client, not on the server).
    */
   readonly origin?: string;
 };
@@ -172,20 +173,28 @@ function loadFixture(name: string): { report: SirenReport } {
 async function tryResolveEns(
   name: string,
 ): Promise<{ ens: EnsResolutionOk; chainId: number } | null> {
-  // Try Sepolia first (demo subnames live there per DEPLOYMENTS.md), fall
-  // through to mainnet if Sepolia returns no upgrade-siren records.
-  const sepolia: EnsResolutionResult = await resolveEnsRecords(name, {
-    chainId: SEPOLIA_CHAIN_ID,
-    rpcUrl: rpcUrlForChain(SEPOLIA_CHAIN_ID),
-  });
+  // US-084: Sepolia + mainnet ENS resolution runs in parallel. The previous
+  // sequential shape ("Sepolia first, mainnet only if Sepolia returns no
+  // records") cost up to 2 round trips for mainnet-only names — pushing
+  // dangerous + unverified well past the 5000ms budget. Running both
+  // concurrently costs one extra RPC call per name (the Sepolia miss for
+  // mainnet names) but keeps the wall-clock to a single round trip.
+  // Selection priority is unchanged: Sepolia + upgrade-siren records →
+  // mainnet → Sepolia (no records) → null.
+  const [sepolia, mainnet] = await Promise.all([
+    resolveEnsRecords(name, {
+      chainId: SEPOLIA_CHAIN_ID,
+      rpcUrl: rpcUrlForChain(SEPOLIA_CHAIN_ID),
+    }),
+    resolveEnsRecords(name, {
+      chainId: MAINNET_CHAIN_ID,
+      rpcUrl: rpcUrlForChain(MAINNET_CHAIN_ID),
+    }),
+  ]);
+
   if (sepolia.kind === "ok" && sepolia.anyUpgradeSirenRecordPresent) {
     return { ens: sepolia, chainId: SEPOLIA_CHAIN_ID };
   }
-
-  const mainnet: EnsResolutionResult = await resolveEnsRecords(name, {
-    chainId: MAINNET_CHAIN_ID,
-    rpcUrl: rpcUrlForChain(MAINNET_CHAIN_ID),
-  });
   if (mainnet.kind === "ok") {
     return { ens: mainnet, chainId: MAINNET_CHAIN_ID };
   }
@@ -346,6 +355,63 @@ function buildPublicReadReportFromAddress(
   };
 }
 
+// US-084: prewarmed cache lookup. When NEXT_PUBLIC_BOOTH_FALLBACK=1 (or the
+// server-side BOOTH_FALLBACK=1 mirror), prefer cached Sourcify + EIP-1967
+// data fetched offline by `scripts/booth/prewarm-cache.ts` over live RPC /
+// Sourcify round trips. Cache files live at
+//   apps/web/public/cache/<chainId>/<address>.json
+// and are static-served by Next.js.
+type PrewarmCacheEntry = {
+  readonly fetchedAt: string;
+  readonly sourcify: { readonly match?: SourcifyMatchLevel | "not_found" } | null;
+  readonly manifestRaw: string | null;
+  readonly eip1967Slot: string | null;
+  readonly ensName?: string | null;
+};
+
+function isBoothFallbackEnabled(): boolean {
+  return (
+    process.env.NEXT_PUBLIC_BOOTH_FALLBACK === "1" ||
+    process.env.BOOTH_FALLBACK === "1"
+  );
+}
+
+async function readPrewarmedCacheEntry(
+  origin: string | undefined,
+  chainId: number,
+  address: Address,
+): Promise<PrewarmCacheEntry | null> {
+  if (!isBoothFallbackEnabled()) return null;
+  const path = `/cache/${chainId}/${address.toLowerCase()}.json`;
+  const url = origin ? `${origin}${path}` : path;
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return null;
+    return (await res.json()) as PrewarmCacheEntry;
+  } catch {
+    return null;
+  }
+}
+
+function cachedSlotImplementation(
+  entry: PrewarmCacheEntry,
+): Address | null {
+  const slot = entry.eip1967Slot;
+  if (!slot || slot.length < 42) return null;
+  // Last 20 bytes (40 hex chars) of the 32-byte slot value.
+  const tail = slot.slice(-40).toLowerCase();
+  if (/^0+$/.test(tail)) return null;
+  return (`0x${tail}`) as Address;
+}
+
+function cachedSourcifyMatch(
+  entry: PrewarmCacheEntry,
+): SourcifyMatchLevel | null {
+  const m = entry.sourcify?.match;
+  if (m === "exact_match" || m === "match" || m === "not_found") return m;
+  return null;
+}
+
 export async function loadReport(
   name: string,
   options: LoadReportOptions,
@@ -414,44 +480,98 @@ export async function loadReport(
   const proxyAddress: Address | null =
     manifest?.proxy ?? parseAddress(ens.records.proxy);
 
-  // Live implementation slot read (EIP-1967).
-  const slotResult =
+  // US-084 ⊕ US-081: parallelize EIP-1967 slot + 2× Sourcify status +
+  // 2× Sourcify metadata + report-bytes fetch. When the manifest is
+  // present, currentImpl + previousImpl are known up front, so the
+  // entire fetch fan-out runs as a single Promise.all batch — landing
+  // in roughly one round trip vs. the previous sequential ~5–10s.
+  //
+  // Cache-first short circuit when NEXT_PUBLIC_BOOTH_FALLBACK=1: read
+  // the prewarmed cache for the proxy address; if the entry is fresh
+  // enough for booth use, skip the EIP-1967 round trip. Sourcify status
+  // still needs the manifest-declared or slot-derived current/previous
+  // impls, which the manifest provides in signed-manifest mode.
+  const proxyCacheEntry =
     proxyAddress !== null
-      ? await readImplementationSlot(proxyChainId, proxyAddress, {
-          rpcUrl: rpcUrlForChain(proxyChainId),
-        })
+      ? await readPrewarmedCacheEntry(options.origin, proxyChainId, proxyAddress)
       : null;
-  const liveImplementation: Address | null =
-    slotResult?.kind === "ok" ? slotResult.implementation : null;
 
-  // Pick prev + curr implementations: manifest authoritative if present,
-  // live-slot otherwise.
-  const currentImpl: Address | null =
-    manifest?.currentImpl ?? liveImplementation;
+  const slotPromise: Promise<Address | null> =
+    proxyAddress === null
+      ? Promise.resolve(null)
+      : proxyCacheEntry !== null
+        ? Promise.resolve(cachedSlotImplementation(proxyCacheEntry))
+        : readImplementationSlot(proxyChainId, proxyAddress, {
+            rpcUrl: rpcUrlForChain(proxyChainId),
+          }).then((slot) =>
+            slot.kind === "ok" ? slot.implementation : null,
+          );
+
+  // Manifest is authoritative for currentImpl / previousImpl. When manifest
+  // is absent (public-read mode), currentImpl falls back to the live slot —
+  // the Sourcify + metadata fetches for that address are therefore deferred
+  // until the slot resolves.
+  const currentImplFromManifest: Address | null = manifest?.currentImpl ?? null;
   const previousImpl: Address | null = manifest?.previousImpl ?? null;
 
-  // Sourcify metadata + status — runs sequentially in this PR; US-084
-  // wraps these in Promise.all for the 5-second perf budget.
-  const currentStatusResult =
-    currentImpl !== null
-      ? await fetchSourcifyStatus(proxyChainId, currentImpl)
-      : null;
-  const previousStatusResult =
-    previousImpl !== null
-      ? await fetchSourcifyStatus(proxyChainId, previousImpl)
-      : null;
+  // Status-fetch helpers honour the prewarmed cache too: cache hit returns
+  // the cached match; cache miss runs the live Sourcify status fetch.
+  const fetchStatusOrCache = async (
+    addr: Address | null,
+  ): Promise<SourcifyMatchLevel | null> => {
+    if (addr === null) return null;
+    const cached = await readPrewarmedCacheEntry(options.origin, proxyChainId, addr);
+    if (cached !== null) {
+      const m = cachedSourcifyMatch(cached);
+      if (m !== null) return m;
+    }
+    const r = await fetchSourcifyStatus(proxyChainId, addr);
+    return r.kind === "ok" ? r.value.match : null;
+  };
 
+  // Report-bytes prefetch: only fires when manifest is present (signed mode).
+  // Independent of all other fetches, so joins the same Promise.all batch.
+  const reportBytesPromise: Promise<Uint8Array | null> =
+    mode === "signed-manifest" && manifest !== null
+      ? fetchReportBytes(manifest.reportUri, options.origin)
+      : Promise.resolve(null);
+
+  // Six independent reads in parallel: slot + 2× sourcify status + 2× sourcify
+  // metadata + report bytes.
+  const [
+    liveImplementation,
+    currentManifestStatus,
+    previousStatus,
+    currentMetadataFromManifest,
+    previousMetadata,
+    reportBytes,
+  ] = await Promise.all([
+    slotPromise,
+    fetchStatusOrCache(currentImplFromManifest),
+    fetchStatusOrCache(previousImpl),
+    fetchMetadataIfAddress(proxyChainId, currentImplFromManifest),
+    fetchMetadataIfAddress(proxyChainId, previousImpl),
+    reportBytesPromise,
+  ]);
+
+  const currentImpl: Address | null =
+    currentImplFromManifest ?? liveImplementation;
+
+  // Public-read fallback path: manifest didn't declare currentImpl, so the
+  // slot read produced it now — do the deferred Sourcify status + metadata
+  // fetches sequentially. Cache-aware; usually a no-op for signed-manifest.
   const currentSourcifyMatch: SourcifyMatchLevel | null =
-    currentStatusResult?.kind === "ok"
-      ? currentStatusResult.value.match
-      : null;
-  const previousSourcifyMatch: SourcifyMatchLevel | null =
-    previousStatusResult?.kind === "ok"
-      ? previousStatusResult.value.match
-      : null;
+    currentManifestStatus !== null || currentImpl === null
+      ? currentManifestStatus
+      : await fetchStatusOrCache(currentImpl);
 
-  const currentMetadata = await fetchMetadataIfAddress(proxyChainId, currentImpl);
-  const previousMetadata = await fetchMetadataIfAddress(proxyChainId, previousImpl);
+  const previousSourcifyMatch: SourcifyMatchLevel | null = previousStatus;
+
+  const currentMetadata: SourcifyMetadata | null =
+    currentMetadataFromManifest ??
+    (currentImpl !== null && currentImplFromManifest === null
+      ? await fetchMetadataIfAddress(proxyChainId, currentImpl)
+      : null);
 
   // Diffs — only meaningful when both metadata present.
   const abiDiff: AbiRiskyDiff | null =
@@ -472,14 +592,12 @@ export async function loadReport(
       ? diffSourceFiles(previousMetadata, currentMetadata)
       : [];
 
-  // Signature verification — fetch report bytes, hash + recover EIP-712
-  // signer, compare against upgrade-siren:owner.
+  // Signature verification — uses the now-prefetched report bytes.
   let signatureVerification: VerifySignatureResult | null = null;
   let signedAt: string | null = null;
   let signatureBytes: `0x${string}` | null = null;
   let signerAddress: Address | null = null;
   if (mode === "signed-manifest" && manifest !== null && ownerAddress !== null) {
-    const reportBytes = await fetchReportBytes(manifest.reportUri, options.origin);
     if (reportBytes === null) {
       signatureVerification = {
         valid: false,
