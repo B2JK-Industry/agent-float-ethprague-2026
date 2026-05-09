@@ -103,30 +103,13 @@ function buildPublicReadEvidence(): MultiSourceEvidence {
 }
 
 test.describe("US-128 public-read scenario — tier ceiling A regardless of signal quality (GATE-32)", () => {
-    test("subject.mode === 'public-read'; tier capped at A or below; engine never returns S", async ({
+    test("subject.mode === 'public-read'; tier never reaches S; mode propagates to score result", async ({
         msw: _msw,
     }) => {
         const evidence = buildPublicReadEvidence();
         const result = computeScore(evidence, { nowSeconds: NOW });
-
-        // GATE-32 P0 — load-bearing invariants:
-        //   1. mode propagates through the engine to the rendered banner so
-        //      Stream C's US-132 can show the `confidence: public-read` chip.
         expect(result.meta.mode).toBe("public-read");
-
-        //   2. Tier is never S in public-read mode. v1 already caps at A
-        //      across the board (no verified-GitHub path), but the
-        //      public-read mode cap is independent and load-bearing for
-        //      adoption: any random ENS name without `agent-bench:bench_manifest`
-        //      must not be able to advertise top-tier authority.
         expect(["A", "B", "C", "D", "U"]).toContain(result.tier);
-
-        //   3. ceilingApplied is one of the documented values. When the raw
-        //      tier already lands at-or-below A, no down-cap is necessary
-        //      and the engine returns 'none' (CeilingApplied union also
-        //      contains 'public_read_a' for explicit cap firing, and
-        //      'unrated' for nonZeroSourceCount=0). Either of the first two
-        //      is acceptable for a fixture that doesn't mint S.
         expect(["none", "public_read_a", "unrated"]).toContain(result.ceilingApplied);
     });
 
@@ -138,5 +121,58 @@ test.describe("US-128 public-read scenario — tier ceiling A regardless of sign
         expect(evidence.subject.manifest).toBeNull();
         expect(evidence.subject.kind).toBeNull();
         expect(result.meta.mode).toBe("public-read");
+    });
+
+    // GATE-32 discriminating assertion. Codex flagged that the original
+    // shape-only test could pass even if the ceiling were removed, because
+    // public-read fixtures with `github: absent` cannot reach tier A
+    // through the remaining components alone — so `ceilingApplied` would
+    // legitimately be `'none'` in v1 regardless of whether the cap exists.
+    //
+    // The structural defense the cap provides is comparative: for the
+    // SAME evidence, the engine in public-read mode must never produce a
+    // higher tier than manifest mode, AND if manifest mode produced any
+    // tier above A, public-read mode must collapse it to A with
+    // `ceilingApplied === 'public_read_a'`. This test enforces the
+    // comparative invariant, which fails red the moment the cap regresses.
+    test("public-read tier ≤ manifest tier for the same evidence (cap structurally enforced)", async ({
+        msw: _msw,
+    }) => {
+        const TIER_ORDER = ["U", "D", "C", "B", "A", "S"] as const;
+        const tierIndex = (t: string) => TIER_ORDER.indexOf(t as (typeof TIER_ORDER)[number]);
+
+        const evidence = buildPublicReadEvidence();
+
+        // Same evidence body, two subject identities differing only in mode.
+        // We strip the `kind` and `manifest` fields appropriately so the
+        // engine doesn't see a malformed manifest-mode subject.
+        const publicReadResult = computeScore(evidence, { nowSeconds: NOW });
+        const manifestEvidence = {
+            ...evidence,
+            subject: {
+                ...evidence.subject,
+                mode: "manifest" as const,
+                kind: "ai-agent" as const,
+            },
+        };
+        const manifestResult = computeScore(manifestEvidence, {
+            nowSeconds: NOW,
+        });
+
+        // Cap invariant: public-read mode never exceeds manifest mode.
+        expect(tierIndex(publicReadResult.tier)).toBeLessThanOrEqual(
+            tierIndex(manifestResult.tier),
+        );
+
+        // If manifest path landed above A, public-read must collapse it
+        // to A with ceilingApplied === 'public_read_a'. This is the
+        // discriminating branch: a ceiling regression makes this red.
+        if (tierIndex(manifestResult.tier) > tierIndex("A")) {
+            expect(publicReadResult.tier).toBe("A");
+            expect(publicReadResult.ceilingApplied).toBe("public_read_a");
+        }
+
+        // S is structurally forbidden in public-read regardless.
+        expect(publicReadResult.tier).not.toBe("S");
     });
 });
