@@ -25,6 +25,7 @@
 import type { Metadata } from "next";
 
 import { ScoreBanner } from "../../../components/bench/ScoreBanner";
+import { SourceGrid } from "../../../components/bench/SourceGrid";
 import { GitHubDrawer } from "../../../components/bench/drawers/GitHubDrawer";
 import { BENCH_SUB_BRAND, BENCH_SUB_TAGLINE } from "../../../lib/branding";
 import { loadBench, type LoadBenchResult } from "./loadBench";
@@ -139,41 +140,18 @@ function BenchFoundation({
 
       <ScoreBanner score={score} />
 
-      <section
-        aria-label="Source evidence foundation"
-        data-section="source-foundation"
-        data-foundation="grid"
-        className="rounded-md border border-border bg-raised p-6"
-      >
-        <h2 className="font-display text-lg font-semibold text-t1">
-          Sources
-        </h2>
-        <ul className="mt-3 flex flex-col gap-2 font-mono text-sm">
-          <li data-source="sourcify">
-            sourcify · {evidence.sourcify.length} entr
-            {evidence.sourcify.length === 1 ? "y" : "ies"}
-          </li>
-          <li data-source="github">github · {evidence.github.kind}</li>
-          <li data-source="onchain">
-            onchain · {evidence.onchain.length} chain
-            {evidence.onchain.length === 1 ? "" : "s"}
-          </li>
-          <li data-source="ens-internal">
-            ens-internal · {evidence.ensInternal.kind}
-          </li>
-        </ul>
-        {evidence.failures.length > 0 ? (
-          <p
-            data-field="failure-count"
-            className="mt-3 text-xs text-verdict-review"
-          >
-            {evidence.failures.length} per-source failure
-            {evidence.failures.length === 1 ? "" : "s"} — Sourcify drawer
-            (US-135), on-chain drawer (US-137), ENS drawer (US-138)
-            surface details when those PRs land.
-          </p>
-        ) : null}
-      </section>
+      <SourceGrid evidence={evidence} />
+
+      {evidence.failures.length > 0 ? (
+        <p
+          data-field="failure-count"
+          className="text-xs text-verdict-review"
+        >
+          {evidence.failures.length} per-source failure
+          {evidence.failures.length === 1 ? "" : "s"} — drawers in
+          US-135..US-138 will surface details.
+        </p>
+      ) : null}
 
       <GitHubDrawer github={evidence.github} />
     </>

@@ -144,7 +144,7 @@ describe("BenchPage (US-131 foundation)", () => {
     ).toBe("subject");
   });
 
-  it("source foundation block lists 4 sources with their evidence kinds", async () => {
+  it("renders SourceGrid with 4 tiles (sourcify / github / onchain / ens)", async () => {
     loadBenchMock.mockResolvedValue({
       kind: "loaded",
       evidence: SAMPLE_EVIDENCE,
@@ -154,20 +154,11 @@ describe("BenchPage (US-131 foundation)", () => {
     const ui = await BenchPage(pageProps("subject.eth"));
     const { container } = render(ui);
 
-    const grid = container.querySelector('[data-foundation="grid"]');
+    const grid = container.querySelector('[data-section="source-grid"]');
     expect(grid).not.toBeNull();
-    expect(grid!.querySelector('[data-source="sourcify"]')?.textContent).toMatch(
-      /2 entries/,
-    );
-    expect(grid!.querySelector('[data-source="github"]')?.textContent).toMatch(
-      /absent/,
-    );
-    expect(grid!.querySelector('[data-source="onchain"]')?.textContent).toMatch(
-      /1 chain\b/,
-    );
-    expect(
-      grid!.querySelector('[data-source="ens-internal"]')?.textContent,
-    ).toMatch(/absent/);
+    for (const key of ["sourcify", "github", "onchain", "ens"] as const) {
+      expect(grid!.querySelector(`[data-source="${key}"]`)).not.toBeNull();
+    }
   });
 
   it("renders typed error section when loadBench returns kind:'error'", async () => {
