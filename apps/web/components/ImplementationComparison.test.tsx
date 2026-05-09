@@ -4,10 +4,11 @@ import userEvent from "@testing-library/user-event";
 
 import {
   ImplementationComparison,
-  type ImplementationSide,
+  type ImplementationCurrentSide,
+  type ImplementationPreviousSide,
 } from "./ImplementationComparison";
 
-const PREV: ImplementationSide = {
+const PREV: ImplementationPreviousSide = {
   address: "0x2222222222222222222222222222222222222222",
   verified: true,
   sourcifyUrl: "https://sourcify.dev/#/lookup/0x2222",
@@ -15,11 +16,16 @@ const PREV: ImplementationSide = {
   changedAt: "2026-04-01T10:00:00Z",
 };
 
-const CURR: ImplementationSide = {
+const CURR: ImplementationCurrentSide = {
   address: "0x3333333333333333333333333333333333333333",
   verified: false,
   deployedAtBlock: 5_000_900,
   changedAt: "2026-05-09T12:00:00Z",
+};
+
+const CURR_VERIFIED_NO_URL: ImplementationCurrentSide = {
+  address: "0x4444444444444444444444444444444444444444",
+  verified: true,
 };
 
 describe("ImplementationComparison", () => {
@@ -58,16 +64,31 @@ describe("ImplementationComparison", () => {
     expect(previous.textContent).toMatch(/none/i);
   });
 
-  it("renders neither verified state honestly when verification is unknown", () => {
+  it("renders 'verification unknown' for the previous side when its verified flag is omitted", () => {
     render(
       <ImplementationComparison
         previous={{ address: PREV.address }}
-        current={{ address: CURR.address }}
+        current={CURR}
       />,
     );
-    const unknowns = screen
-      .getAllByText(/verification unknown/i);
-    expect(unknowns).toHaveLength(2);
+    const previous = screen.getByTestId("impl-previous");
+    expect(
+      previous.querySelector('[data-verification="unknown"]')?.textContent,
+    ).toMatch(/verification unknown/i);
+  });
+
+  it("derives a Sourcify lookup URL for a verified current side that did not ship a pre-baked link (Codex P2 fix)", () => {
+    render(
+      <ImplementationComparison
+        previous={{ address: null }}
+        current={CURR_VERIFIED_NO_URL}
+      />,
+    );
+    const link = screen.getByRole("link", { name: /verified on sourcify/i });
+    expect(link).toHaveAttribute(
+      "href",
+      `https://sourcify.dev/#/lookup/${CURR_VERIFIED_NO_URL.address}`,
+    );
   });
 
   it("copies the full untruncated address when copy is clicked", async () => {

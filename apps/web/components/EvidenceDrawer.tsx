@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type RefObject } from "react";
 import type { SirenReport } from "@upgrade-siren/shared";
 
 export type EvidenceDrawerAbiSummary = {
@@ -35,6 +35,53 @@ function previousVerifiedLabel(value: boolean | null): string {
   return value ? "verified" : "unverified";
 }
 
+const FOCUSABLE_SELECTOR = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
+
+function useFocusTrap(
+  containerRef: RefObject<HTMLElement | null>,
+  active: boolean,
+): void {
+  useEffect(() => {
+    if (!active) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    function onKeyDown(event: KeyboardEvent): void {
+      if (event.key !== "Tab") return;
+      const node = containerRef.current;
+      if (!node) return;
+      const focusable = Array.from(
+        node.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+      ).filter((el) => !el.hasAttribute("disabled"));
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey) {
+        if (active === first || !node.contains(active)) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (active === last || !node.contains(active)) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [active, containerRef]);
+}
+
 export function EvidenceDrawer({
   report,
   abiSummary,
@@ -43,6 +90,7 @@ export function EvidenceDrawer({
   initialOpen = false,
 }: EvidenceDrawerProps): React.JSX.Element {
   const [open, setOpen] = useState<boolean>(initialOpen);
+  const drawerRef = useRef<HTMLElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -60,6 +108,8 @@ export function EvidenceDrawer({
     }
   }, [open]);
 
+  useFocusTrap(drawerRef, open);
+
   return (
     <>
       <button
@@ -74,6 +124,7 @@ export function EvidenceDrawer({
       {open ? (
         <aside
           id="evidence-drawer"
+          ref={drawerRef}
           role="dialog"
           aria-modal="true"
           aria-label="Evidence drawer"
@@ -94,9 +145,19 @@ export function EvidenceDrawer({
           <section aria-label="Sourcify links" className="mb-4">
             <h3 className="mb-2 text-sm font-bold">Sourcify</h3>
             <ul className="flex flex-col gap-1 text-sm">
-              {report.sourcify.links.length === 0 ? (
+              {report.sourcify.links.length === 0 &&
+              report.sourcify.currentVerified === false &&
+              report.sourcify.previousVerified !== true ? (
                 <li className="text-[color:var(--color-t2)]">
                   unverified
+                </li>
+              ) : null}
+              {report.sourcify.links.length === 0 &&
+              (report.sourcify.currentVerified ||
+                report.sourcify.previousVerified === true) ? (
+                <li className="text-xs text-[color:var(--color-t2)]">
+                  no Sourcify URLs supplied; verification status reported
+                  separately below
                 </li>
               ) : null}
               {report.sourcify.links.map((link) => (

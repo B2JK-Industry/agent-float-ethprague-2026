@@ -116,6 +116,33 @@ describe("ErrorStateMalformedManifest", () => {
       screen.getByTestId("malformed-manifest-raw").textContent,
     ).toBe(raw);
   });
+
+  it("locks the verdict to SIREN by default (signed-manifest mode) per the engine rule table (Codex P2 fix)", () => {
+    render(
+      <ErrorStateMalformedManifest
+        raw="{}"
+        reason="invalid JSON"
+      />,
+    );
+    const alert = screen.getByRole("alert");
+    expect(alert.getAttribute("data-mode")).toBe("signed-manifest");
+    expect(alert.getAttribute("data-verdict")).toBe("SIREN");
+    expect(alert.textContent).toMatch(/SIREN/);
+  });
+
+  it("downgrades to REVIEW when caller is already in public-read mode", () => {
+    render(
+      <ErrorStateMalformedManifest
+        raw="{}"
+        reason="invalid JSON"
+        mode="public-read"
+      />,
+    );
+    const alert = screen.getByRole("alert");
+    expect(alert.getAttribute("data-mode")).toBe("public-read");
+    expect(alert.getAttribute("data-verdict")).toBe("REVIEW");
+    expect(alert.textContent).toMatch(/REVIEW/);
+  });
 });
 
 describe("ErrorStateUnsignedReport", () => {

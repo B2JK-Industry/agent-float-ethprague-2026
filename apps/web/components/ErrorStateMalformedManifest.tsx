@@ -5,23 +5,40 @@ export type ErrorStateMalformedManifestProps = {
   raw: string;
   /** Parser error message (e.g. "invalid JSON at line 12"). */
   reason: string;
+  /**
+   * Which mode the verdict engine is in when the malformed manifest is
+   * encountered. Per `packages/evidence/src/verdict/absentRecords.ts`, a
+   * malformed manifest in `signed-manifest` mode is `SIREN`, and `REVIEW`
+   * in `public-read` mode. Defaults to `signed-manifest` because that is
+   * the only mode in which a manifest is even fetched.
+   */
+  mode?: "signed-manifest" | "public-read";
 };
 
 /**
- * Malformed manifest. The verdict engine treats this as no-manifest (per
- * `docs/02-product-architecture.md`), so the user gets public-read mode in
- * the verdict path; this component is the *debug* surface that shows what
- * the operator actually published, so they can fix it.
+ * Malformed manifest. The verdict engine maps this to either SIREN
+ * (signed-manifest mode) or REVIEW (already in public-read mode) per the
+ * canonical rule table in `packages/evidence/src/verdict/absentRecords.ts`.
+ * This component is the *debug* surface that shows what the operator
+ * actually published so they can fix it.
  */
 export function ErrorStateMalformedManifest({
   raw,
   reason,
+  mode = "signed-manifest",
 }: ErrorStateMalformedManifestProps): React.JSX.Element {
+  const isSignedManifest = mode === "signed-manifest";
+  const verdictWord = isSignedManifest ? "SIREN" : "REVIEW";
+  const verdictReason = isSignedManifest
+    ? "the verdict engine cannot trust a malformed manifest in signed-manifest mode and locks the verdict to SIREN"
+    : "the engine continues in public-read mode and downgrades confidence to REVIEW";
   return (
     <section
       role="alert"
       aria-label="Malformed manifest"
       data-state="error-malformed-manifest"
+      data-mode={mode}
+      data-verdict={verdictWord}
       className="flex flex-col items-start gap-3 rounded-md border border-verdict-siren bg-verdict-siren-surf p-6"
     >
       <span className="font-mono text-xs uppercase tracking-[0.18em] text-verdict-siren">
@@ -31,10 +48,10 @@ export function ErrorStateMalformedManifest({
         upgrade-siren:upgrade_manifest is not valid.
       </h2>
       <p className="max-w-prose text-sm text-t2">
-        The verdict engine treats this name as no-manifest and continues in
-        public-read mode. Operators should fix the record at the ENS resolver;
-        the raw record content as currently published is shown below for
-        inspection.
+        Verdict: <span className="font-mono text-verdict-siren">{verdictWord}</span>{" "}
+        — {verdictReason}. Operators should fix the record at the ENS
+        resolver; the raw record content as currently published is shown
+        below for inspection.
       </p>
       <details
         data-record="upgrade-siren:upgrade_manifest"

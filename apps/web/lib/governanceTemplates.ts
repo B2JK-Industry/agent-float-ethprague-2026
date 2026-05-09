@@ -27,8 +27,19 @@ export function shortTemplate(
   reportUrl: string,
 ): string {
   const head = `${SHORT_VERDICT_PHRASE[report.verdict]} for ${name}.`;
-  const text = `${head} ${reportUrl}`.trim();
-  return clampToCap(text, SHORT_MAX_CHARS);
+  // Reserve space for " <reportUrl>" so a long ENS name cannot truncate the
+  // citation away (the short format is meant to fit ≤ 240 chars *including*
+  // the report URL — clamping the entire string would silently drop the URL).
+  const separator = reportUrl.length === 0 ? "" : " ";
+  const reservedForUrl = separator.length + reportUrl.length;
+  // If the report URL alone is at or over the cap, fall back to clamping the
+  // whole string (no honest way to keep it short without dropping the URL).
+  if (reservedForUrl >= SHORT_MAX_CHARS) {
+    return clampToCap(`${head}${separator}${reportUrl}`, SHORT_MAX_CHARS);
+  }
+  const headBudget = SHORT_MAX_CHARS - reservedForUrl;
+  const headText = head.length > headBudget ? clampToCap(head, headBudget) : head;
+  return `${headText}${separator}${reportUrl}`;
 }
 
 export function forumTemplate(

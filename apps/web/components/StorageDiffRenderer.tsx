@@ -40,15 +40,18 @@ const KIND_TONE: Record<
 };
 
 function ChangeRow({
-  index,
   change,
 }: {
-  index: number;
   change: StorageDiffChange;
 }): React.JSX.Element {
   return (
     <tr data-position={change.position}>
-      <td className="px-2 py-1 font-mono text-xs">{index}</td>
+      {/* Render the *storage position* the diff engine computed (which may
+          be later than the row's index when earlier slots are unchanged or
+          when the change is at curr.length for a removal), not the array
+          row number — judges inspecting the slot-by-slot alarm need the
+          actual mismatched slot index. */}
+      <td className="px-2 py-1 font-mono text-xs">{change.position}</td>
       <td className="px-2 py-1 font-mono text-xs">
         {change.previous
           ? `${change.previous.type} ${change.previous.label}`
@@ -122,7 +125,7 @@ export function StorageDiffRenderer({
           </thead>
           <tbody>
             {diff.changes.map((change, i) => (
-              <ChangeRow key={`${change.position}-${i}`} index={i} change={change} />
+              <ChangeRow key={`${change.position}-${i}`} change={change} />
             ))}
           </tbody>
         </table>

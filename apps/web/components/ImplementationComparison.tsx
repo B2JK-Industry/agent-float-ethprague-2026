@@ -3,7 +3,12 @@
 import { useState } from "react";
 import type { Address } from "@upgrade-siren/shared";
 
-export type ImplementationSide = {
+/**
+ * Previous implementation side. May be null when no upgrade has happened yet
+ * (the manifest's `previousImpl` matches `currentImpl`) — matches the
+ * `SirenReport.previousImplementation` shape (`Address | null`).
+ */
+export type ImplementationPreviousSide = {
   readonly address: Address | null;
   readonly verified?: boolean | null;
   readonly sourcifyUrl?: string;
@@ -11,10 +16,48 @@ export type ImplementationSide = {
   readonly changedAt?: string;
 };
 
-export type ImplementationComparisonProps = {
-  previous: ImplementationSide;
-  current: ImplementationSide;
+/**
+ * Current implementation side. The address is required and the verification
+ * status is required as a non-null boolean — matches the canonical
+ * `SirenReport.currentImplementation: Address` and
+ * `SirenReport.sourcify.currentVerified: boolean`. This makes invalid
+ * `current={{ address: null }}` callers a compile error rather than a
+ * silent rendering of `none`/`verification unknown`.
+ */
+export type ImplementationCurrentSide = {
+  readonly address: Address;
+  readonly verified: boolean;
+  readonly sourcifyUrl?: string;
+  readonly deployedAtBlock?: number;
+  readonly changedAt?: string;
 };
+
+/**
+ * @deprecated Kept as an alias for callers that previously accepted either
+ * side; new callers should pick the precise `Previous` / `Current` form.
+ */
+export type ImplementationSide = ImplementationPreviousSide;
+
+export type ImplementationComparisonProps = {
+  previous: ImplementationPreviousSide;
+  current: ImplementationCurrentSide;
+};
+
+const SOURCIFY_LOOKUP_PREFIX = "https://sourcify.dev/#/lookup/";
+
+/**
+ * Build a Sourcify lookup URL for a verified contract that did not ship a
+ * pre-baked link. The Sourcify UI accepts the address directly, so we can
+ * always derive a working link rather than rendering a non-clickable
+ * `verified` label and silently dropping the GATE-9 evidence requirement.
+ */
+function deriveSourcifyUrl(
+  address: string,
+  explicit: string | undefined,
+): string {
+  if (explicit) return explicit;
+  return `${SOURCIFY_LOOKUP_PREFIX}${address}`;
+}
 
 function truncateAddress(address: string): string {
   return address.length >= 10
@@ -50,30 +93,25 @@ function CopyButton({ value }: { value: string }): React.JSX.Element {
 }
 
 function VerificationLabel({
+  address,
   verified,
   sourcifyUrl,
 }: {
+  address: string;
   verified?: boolean | null;
   sourcifyUrl?: string;
 }): React.JSX.Element {
   if (verified === true) {
-    if (sourcifyUrl) {
-      return (
-        <a
-          href={sourcifyUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          data-verification="verified"
-          className="text-xs underline text-[color:var(--color-verdict-safe)]"
-        >
-          verified on Sourcify
-        </a>
-      );
-    }
     return (
-      <span data-verification="verified" className="text-xs text-[color:var(--color-verdict-safe)]">
-        verified
-      </span>
+      <a
+        href={deriveSourcifyUrl(address, sourcifyUrl)}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-verification="verified"
+        className="text-xs underline text-[color:var(--color-verdict-safe)]"
+      >
+        verified on Sourcify
+      </a>
     );
   }
   if (verified === false) {
@@ -96,7 +134,7 @@ function SideColumn({
   testId,
 }: {
   heading: string;
-  side: ImplementationSide;
+  side: ImplementationPreviousSide | ImplementationCurrentSide;
   testId: string;
 }): React.JSX.Element {
   if (side.address === null) {
@@ -123,6 +161,7 @@ function SideColumn({
         <CopyButton value={side.address} />
       </div>
       <VerificationLabel
+        address={side.address}
         verified={side.verified}
         sourcifyUrl={side.sourcifyUrl}
       />

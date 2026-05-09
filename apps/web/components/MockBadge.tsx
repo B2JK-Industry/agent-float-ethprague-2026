@@ -5,7 +5,7 @@ export type MockBadgeProps = {
 
 export function MockBadge({
   visible,
-  label = "MOCK",
+  label = "mock: true",
 }: MockBadgeProps): React.JSX.Element | null {
   if (!visible) return null;
 

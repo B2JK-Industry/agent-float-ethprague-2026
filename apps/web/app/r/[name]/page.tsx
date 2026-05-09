@@ -107,7 +107,10 @@ function storageSummaryFor(report: SirenReport): {
 }
 
 function reportUrlFor(name: string): string {
-  return `/r/${encodeURIComponent(name)}.json`;
+  // Served by `apps/web/app/r/[name]/report.json/route.ts` so the link returns
+  // a real SirenReport JSON payload, not the dynamic-route HTML page that a
+  // bare `.json` suffix on `/r/[name]` would resolve to.
+  return `/r/${encodeURIComponent(name)}/report.json`;
 }
 
 export default async function VerdictResultPage(
