@@ -275,10 +275,21 @@ export type { ResolveSubjectOptions } from './subject/resolver.js';
 export type { ValidateSubjectManifestResult } from './subject/validate.js';
 
 export { fetchOnchainActivity } from './sources/onchain/activity.js';
+export { fetchOnchainTransferCounts } from './sources/onchain/transferCounts.js';
 
 export type {
   FetchOnchainActivityOptions,
 } from './sources/onchain/activity.js';
+
+export type {
+  FetchTransferCountsOptions,
+  TransferCountProvider,
+  TransferCountsError,
+  TransferCountsFailureReason,
+  TransferCountsFetchResult,
+  TransferCountsOk,
+  TransferCountsResult,
+} from './sources/onchain/transferCounts.js';
 
 export type {
   OnchainActivity,

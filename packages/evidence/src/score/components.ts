@@ -142,22 +142,46 @@ export function githubRecency(
   return { value: numer / repos.length, status: 'computed' };
 }
 
-// On-chain recency: per EPIC §8.3 fallback rule, when no indexer key
-// is configured (US-115b not active) we use `nonce / cap 1000` as the
-// degraded signal. This PR ships in the no-indexer regime so the
-// fallback path is the v1 default.
+// On-chain recency: prefers the indexer-backed transferCountRecent90d
+// signal (US-115b — Alchemy alchemy_getAssetTransfers OR Etherscan txlist)
+// when present on at least one chain entry. Falls back to
+// `nonce / cap 1000` (US-115 P0) per EPIC §8.3.
 //
-// Aggregation across chains: we sum nonce across `onchain` entries
-// for the subject's primaryAddress and divide by 1000. This rewards
-// multi-chain activity honestly without double-counting any single
-// chain.
+// Aggregation across chains: sum the chosen metric across `onchain`
+// entries for the subject's primaryAddress and divide by 1000. This
+// rewards multi-chain activity honestly without double-counting any
+// single chain.
 export function onchainRecency(evidence: MultiSourceEvidence): ComponentValue {
   const okOnchain = evidence.onchain.filter(
     (o): o is OnchainEntryEvidence & { kind: 'ok' } => o.kind === 'ok',
   );
   if (okOnchain.length === 0) return NULL_NO_DATA;
+
+  let indexerHit = false;
+  let totalRecent = 0;
   let totalNonce = 0;
-  for (const o of okOnchain) totalNonce += o.value.nonce;
+  let provider: string | null = null;
+  for (const o of okOnchain) {
+    totalNonce += o.value.nonce;
+    if (typeof o.value.transferCountRecent90d === 'number') {
+      indexerHit = true;
+      totalRecent += o.value.transferCountRecent90d;
+      if (provider === null && typeof o.value.transferCountProvider === 'string') {
+        provider = o.value.transferCountProvider;
+      }
+    }
+  }
+
+  if (indexerHit) {
+    return {
+      value: clamp01(totalRecent / 1000),
+      status: 'computed',
+      note:
+        provider !== null
+          ? `transferCountRecent90d / cap 1000 (provider: ${provider})`
+          : 'transferCountRecent90d / cap 1000',
+    };
+  }
   return {
     value: clamp01(totalNonce / 1000),
     status: 'computed',

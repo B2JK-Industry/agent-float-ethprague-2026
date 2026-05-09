@@ -28,6 +28,15 @@ export interface OnchainActivity {
   // rather than fail the whole call).
   readonly firstTxTimestamp: number | null;
   readonly latestBlock: bigint;
+
+  // ----- US-115b indexer-backed enrichment (optional) -----
+  // Populated when fetchOnchainTransferCounts runs against a configured
+  // indexer (Alchemy alchemy_getAssetTransfers OR Etherscan txlist). When
+  // absent, score engine onchainRecency falls back to nonce/cap-1000.
+  readonly transferCountRecent90d?: number | null;
+  readonly transferCountTotal?: number | null;
+  // Provenance label so the drawer can render the source.
+  readonly transferCountProvider?: 'alchemy' | 'etherscan' | null;
 }
 
 export type OnchainActivityFailureReason = 'unsupported_chain' | 'rpc_error';
