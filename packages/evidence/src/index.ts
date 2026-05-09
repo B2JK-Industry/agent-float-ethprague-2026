@@ -88,3 +88,14 @@ export type {
 } from './sourcify/types.js';
 
 export { SOURCIFY_BASE_URL } from './sourcify/types.js';
+
+export { runPublicReadFallback } from './fallback/publicRead.js';
+
+export type {
+  PublicReadResult,
+  PublicReadOk,
+  PublicReadError,
+  PublicReadFailureReason,
+  PublicReadInputKind,
+  RunPublicReadFallbackOptions,
+} from './fallback/publicRead.js';
