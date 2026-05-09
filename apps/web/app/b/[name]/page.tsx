@@ -26,7 +26,9 @@ import type { Metadata } from "next";
 
 import { ScoreBanner } from "../../../components/bench/ScoreBanner";
 import { ScoreBreakdownPanel } from "../../../components/bench/ScoreBreakdownPanel";
+import { SocialsPanel } from "../../../components/bench/SocialsPanel";
 import { SourceGrid } from "../../../components/bench/SourceGrid";
+import { TxAnalyticsPanel } from "../../../components/bench/TxAnalyticsPanel";
 import { EnsDrawer } from "../../../components/bench/drawers/EnsDrawer";
 import { GitHubDrawer } from "../../../components/bench/drawers/GitHubDrawer";
 import { OnchainDrawer } from "../../../components/bench/drawers/OnchainDrawer";
@@ -148,6 +150,10 @@ function BenchFoundation({
       <SourceGrid evidence={evidence} />
 
       <ScoreBreakdownPanel score={score} engines={engines} />
+
+      <TxAnalyticsPanel evidence={evidence} />
+
+      <SocialsPanel evidence={evidence} engines={engines} />
 
       {evidence.failures.length > 0 ? (
         <p

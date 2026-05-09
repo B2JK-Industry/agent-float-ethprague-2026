@@ -111,16 +111,16 @@ export const urlEngine: RecordEngine = {
 
     const social = classifySocial(parsed);
     if (social) {
+      // Daniel constraint 2026-05-10: social platform URLs (LinkedIn /
+      // X.com / Twitter / Discord / Farcaster / Lens) MUST NOT
+      // contribute to the score. The classifier still fires so the UI
+      // can render the link as a "Linked profiles" entry, but the
+      // engine emits seniority=0 / relevance=0 / weight=0 — score
+      // engine treats this as "exists but worth nothing".
       const socialSignal: SignalEntry = {
         name: 'socialPlatformDetected',
-        value: params.thresholds.socialSeniority ?? 0.52,
-        weight: 1,
-        raw: social,
-      };
-      const relevanceSignal: SignalEntry = {
-        name: 'socialProfileUrl',
-        value: params.thresholds.socialRelevance ?? 0.55,
-        weight: 1,
+        value: 0,
+        weight: 0,
         raw: social,
       };
       return {
@@ -128,12 +128,20 @@ export const urlEngine: RecordEngine = {
         exists: true,
         validity: 1,
         liveness: 1,
-        seniority: score([socialSignal]),
-        relevance: score([relevanceSignal]),
-        trust: Math.min(params.trustCeiling, params.trustFloor + 0.1),
-        weight: params.weight,
-        signals: { seniorityBreakdown: [socialSignal], relevanceBreakdown: [relevanceSignal], antiSignals: [] },
-        evidence: [{ label: 'Social platform URL', value: `${social.platform}:${social.handle}`, source: parsed.hostname }],
+        seniority: 0,
+        relevance: 0,
+        trust: 0,
+        weight: 0,
+        signals: { seniorityBreakdown: [socialSignal], relevanceBreakdown: [], antiSignals: [] },
+        evidence: [
+          {
+            label: 'Social profile URL',
+            value: `${social.platform}:${social.handle}`,
+            source: parsed.hostname,
+            link: parsed.toString(),
+          },
+          { label: 'Score impact', value: 'none — social profiles do not contribute to score' },
+        ],
         confidence: 'complete',
         durationMs: Date.now() - started,
         cacheHit: false,
