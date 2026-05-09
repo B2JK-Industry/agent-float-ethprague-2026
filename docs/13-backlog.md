@@ -89,9 +89,9 @@ Tracker-only owners (not picked up by dev agents):
 | ID | Title | Owner | Priority | Effort | Status | Depends on |
 |---|---|---|---|---|---|---|
 | US-037 | Next.js 16 app scaffold with Tailwind 4 | C | P0 | M | merged | none |
-| US-038 | ENS lookup form component | C | P0 | S | open | none |
-| US-039 | Public-read address / ENS-address-record input component | C | P0 | S | open | none |
-| US-040 | Mock-path visible badge component | C | P0 | S | open | none |
+| US-038 | ENS lookup form component | C | P0 | S | merged | none |
+| US-039 | Public-read address / ENS-address-record input component | C | P0 | S | merged | none |
+| US-040 | Mock-path visible badge component | C | P0 | S | merged | none |
 | US-041 | Signature status badge component | C | P0 | S | merged | US-014 |
 | US-042 | Verdict card component (SAFE / REVIEW / SIREN) | C | P0 | M | open | US-037, US-041 |
 | US-043 | Progressive loading checklist (ENS, chain, Sourcify, diff, signature) | C | P0 | M | merged | US-037 |
@@ -1726,7 +1726,7 @@ Scaffold only. The home page is intentionally a placeholder until US-038 lands. 
 | Sponsor | ENS |
 | Dependencies | none |
 | Acceptance gates | GATE-1 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -1769,7 +1769,7 @@ Effort `S` per scheduling guidance: this is one of the four fast-merging Stream 
 | Sponsor | ENS, Sourcify |
 | Dependencies | none |
 | Acceptance gates | GATE-25 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -1810,7 +1810,7 @@ This is the entry point for the read-only fallback flow that makes the product u
 | Sponsor | - |
 | Dependencies | none |
 | Acceptance gates | GATE-14 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
