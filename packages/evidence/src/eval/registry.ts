@@ -1,6 +1,7 @@
 import { descriptionEngine } from './description.js';
 import type { RecordEngine, RecordKey } from './types.js';
 import { addrEthEngine } from './addr-eth.js';
+import { urlEngine } from './url.js';
 
 const REGISTRY = new Map<RecordKey, RecordEngine>();
 
@@ -29,3 +30,4 @@ export function clearRegistry(): void {
 
 register(addrEthEngine);
 register(descriptionEngine);
+register(urlEngine);
