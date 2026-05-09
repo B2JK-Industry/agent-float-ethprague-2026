@@ -113,11 +113,17 @@ echo "$MANIFEST" | jq
 REPORT_URI=$(echo "$MANIFEST" | jq -r .reportUri)
 REPORT_HASH=$(echo "$MANIFEST" | jq -r .reportHash)
 
-# Fetch the report bytes:
-REPORT_BYTES=$(curl -fsS "$REPORT_URI")
+# Fetch the report directly to a file. Writing to a file (rather than via
+# REPORT_BYTES=$(curl ...)) is load-bearing: bash command substitution strips
+# trailing newlines, but `scripts/sign-reports.ts` writes
+# `JSON.stringify(report, null, 2) + "\n"` — the trailing newline is part of
+# the bytes the manifest reportHash is computed over.
+curl -fsS "$REPORT_URI" -o /tmp/report.json
 
-# keccak256 of the file bytes:
-COMPUTED=$(echo -n "$REPORT_BYTES" | cast keccak)
+# keccak256 of the exact file bytes. xxd hex-encodes the file (including the
+# trailing newline); `tr -d '\n'` strips xxd's column-wrap newlines from the
+# encoding output (NOT from the encoded data); cast keccak hashes the hex.
+COMPUTED=$(cast keccak "0x$(xxd -p /tmp/report.json | tr -d '\n')")
 
 # Confirm the manifest reportHash matches the actual file:
 [ "$REPORT_HASH" = "$COMPUTED" ] && echo "OK: hash match" || echo "FAIL: hash mismatch"
@@ -134,8 +140,10 @@ OWNER_HEX=$(cast call --rpc-url $ALCHEMY_RPC_SEPOLIA \
   "upgrade-siren:owner")
 OWNER=$(cast --to-utf8 "$OWNER_HEX")
 
-# Use scripts/verify-reports.ts to recover the signer and check it matches:
-echo "$REPORT_BYTES" > /tmp/report.json
+# Use scripts/verify-reports.ts to recover the signer and check it matches.
+# The script reads /tmp/report.json with Node fs.readFileSync (preserves
+# trailing newline), recomputes keccak256 the same way sign-reports.ts wrote
+# it, recovers the EIP-712 signer, and asserts signer == --owner.
 pnpm tsx scripts/verify-reports.ts /tmp/report.json --owner "$OWNER"
 # Expected:
 #   OK: signature recovers to auth.signer and matches --owner
