@@ -144,3 +144,18 @@ export type {
   AbsentRecordVerdict,
   AbsentRecordVerdictReason,
 } from './verdict/absentRecords.js';
+
+export { computeVerdict } from './verdict/engine.js';
+
+export type {
+  ComputeVerdictInput,
+  ComputeVerdictResult,
+  StorageDiffResultLike,
+  Verdict,
+  VerdictConfidence,
+  VerdictMode,
+} from './verdict/engine.js';
+
+export { FINDING_IDS, makeFinding } from './verdict/findings.js';
+
+export type { Finding, FindingId, FindingSeverity } from './verdict/findings.js';
