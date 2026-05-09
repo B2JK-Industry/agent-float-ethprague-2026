@@ -63,13 +63,13 @@ Tracker-only owners (not picked up by dev agents):
 | US-016 | Shared types package for cross-stream consumption | B | P0 | S | open | none |
 | US-017 | ENS live record resolution (stable upgrade-siren records and manifest) | B | P0 | M | merged | none |
 | US-018 | Atomic upgrade-siren:upgrade_manifest parser and validator | B | P0 | M | open | US-014, US-017 |
-| US-019 | Public-read fallback path for absent Upgrade Siren records | B | P0 | M | open | US-017 |
+| US-019 | Public-read fallback path for absent Upgrade Siren records | B | P0 | M | merged | US-017 |
 | US-020 | Absent-record verdict paths (missing manifest, owner, malformed, slot mismatch) | B | P0 | M | open | US-018, US-019 |
 | US-021 | Schema version policy for upgrade-siren-manifest@1 | B | P0 | S | open | US-014, US-018 |
 | US-022 | EIP-1967 implementation slot reader | B | P0 | S | merged | none |
 | US-023 | Upgraded(address) event reader | B | P0 | S | merged | none |
 | US-024 | Sourcify verification status fetch | B | P0 | M | merged | none |
-| US-025 | Sourcify metadata fetch (source, ABI, compiler, storage layout) | B | P0 | M | open | none |
+| US-025 | Sourcify metadata fetch (source, ABI, compiler, storage layout) | B | P0 | M | merged | none |
 | US-026 | ABI risky-selector diff | B | P0 | M | merged | US-025 |
 | US-027 | Storage-layout compatibility diff | B | P0 | M | open | US-025 |
 | US-028 | EIP-712 Siren Report signature verification against upgrade-siren:owner | B | P0 | M | merged | US-014, US-015, US-017 |
@@ -931,7 +931,7 @@ The `unknown_schema_version` error is the bridge to US-021 (schema version polic
 | Sponsor | ENS, Sourcify |
 | Dependencies | US-017 |
 | Acceptance gates | GATE-25 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -1178,7 +1178,7 @@ Uses Sourcify's v2 endpoint per the API decision in `prompts/write-backlog.md` S
 | Sponsor | Sourcify |
 | Dependencies | none |
 | Acceptance gates | GATE-9, GATE-16 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
