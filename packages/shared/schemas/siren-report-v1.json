@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://upgradesiren.app/schemas/siren-report-v1.json",
+  "title": "Siren Report v1",
+  "description": "Canonical Upgrade Siren report schema. Source of truth: docs/04-technical-design.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "name",
+    "chainId",
+    "proxy",
+    "previousImplementation",
+    "currentImplementation",
+    "verdict",
+    "summary",
+    "findings",
+    "sourcify",
+    "mode",
+    "confidence",
+    "ens",
+    "auth",
+    "recommendedAction",
+    "mock",
+    "generatedAt"
+  ],
+  "properties": {
+    "schema": { "const": "siren-report@1" },
+    "name": { "type": "string", "minLength": 1 },
+    "chainId": { "type": "integer", "minimum": 1 },
+    "proxy": { "$ref": "#/$defs/Address" },
+    "previousImplementation": {
+      "oneOf": [{ "$ref": "#/$defs/Address" }, { "type": "null" }]
+    },
+    "currentImplementation": { "$ref": "#/$defs/Address" },
+    "verdict": { "enum": ["SAFE", "REVIEW", "SIREN"] },
+    "summary": { "type": "string" },
+    "findings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Finding" }
+    },
+    "sourcify": { "$ref": "#/$defs/Sourcify" },
+    "mode": { "enum": ["signed-manifest", "public-read", "mock"] },
+    "confidence": { "enum": ["operator-signed", "public-read", "mock"] },
+    "ens": { "$ref": "#/$defs/Ens" },
+    "auth": { "$ref": "#/$defs/Auth" },
+    "recommendedAction": { "enum": ["approve", "review", "reject", "wait"] },
+    "mock": { "type": "boolean" },
+    "generatedAt": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "Address": {
+      "type": "string",
+      "pattern": "^0x[a-fA-F0-9]{40}$"
+    },
+    "Hex32": {
+      "type": "string",
+      "pattern": "^0x[a-fA-F0-9]{64}$"
+    },
+    "Eip712Signature": {
+      "type": "string",
+      "pattern": "^0x[a-fA-F0-9]{130}$"
+    },
+    "Finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "severity", "title", "evidence"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "severity": { "enum": ["info", "warning", "critical"] },
+        "title": { "type": "string", "minLength": 1 },
+        "evidence": { "type": "object" }
+      }
+    },
+    "SourcifyLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "url"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "format": "uri" }
+      }
+    },
+    "Sourcify": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["previousVerified", "currentVerified", "links"],
+      "properties": {
+        "previousVerified": { "type": ["boolean", "null"] },
+        "currentVerified": { "type": "boolean" },
+        "links": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/SourcifyLink" }
+        }
+      }
+    },
+    "Ens": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recordsResolvedLive", "manifestHash", "owner"],
+      "properties": {
+        "recordsResolvedLive": { "type": "boolean" },
+        "manifestHash": {
+          "oneOf": [{ "$ref": "#/$defs/Hex32" }, { "type": "null" }]
+        },
+        "owner": {
+          "oneOf": [{ "$ref": "#/$defs/Address" }, { "type": "null" }]
+        }
+      }
+    },
+    "Auth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "signatureType", "signer", "signature", "signedAt"],
+      "properties": {
+        "status": { "enum": ["valid", "unsigned", "invalid"] },
+        "signatureType": {
+          "oneOf": [{ "const": "EIP-712" }, { "type": "null" }]
+        },
+        "signer": {
+          "oneOf": [{ "$ref": "#/$defs/Address" }, { "type": "null" }]
+        },
+        "signature": {
+          "oneOf": [{ "$ref": "#/$defs/Eip712Signature" }, { "type": "null" }]
+        },
+        "signedAt": {
+          "oneOf": [{ "type": "string", "format": "date-time" }, { "type": "null" }]
+        }
+      },
+      "allOf": [
+        {
+          "description": "When status=valid, all signature fields must be populated.",
+          "if": { "properties": { "status": { "const": "valid" } } },
+          "then": {
+            "properties": {
+              "signatureType": { "const": "EIP-712" },
+              "signer": { "$ref": "#/$defs/Address" },
+              "signature": { "$ref": "#/$defs/Eip712Signature" },
+              "signedAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        },
+        {
+          "description": "When status=unsigned, all signature fields must be null.",
+          "if": { "properties": { "status": { "const": "unsigned" } } },
+          "then": {
+            "properties": {
+              "signatureType": { "type": "null" },
+              "signer": { "type": "null" },
+              "signature": { "type": "null" },
+              "signedAt": { "type": "null" }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

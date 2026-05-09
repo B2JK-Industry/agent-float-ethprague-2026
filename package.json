@@ -1,0 +1,16 @@
+{
+  "name": "upgrade-siren",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Upgrade Siren — public upgrade-risk alarm for Ethereum contracts.",
+  "license": "MIT",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint"
+  }
+}
