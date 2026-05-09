@@ -1,50 +1,68 @@
-// US-068 — Live verdict pipeline. Bridges the Stream B `@upgrade-siren/evidence`
-// engine to the `/r/[name]` route's `<VerdictCard>` rendering surface.
+// US-068 + US-081 — Live verdict pipeline. Bridges the Stream B
+// `@upgrade-siren/evidence` engine to the `/r/[name]` route's
+// `<VerdictCard>` rendering surface.
+//
+// US-081 wires four primitives that the original US-068 pipeline left as
+// `null` placeholders:
+//
+//   verifyReportFromManifest (US-069)  — fetch report bytes, hash + verify
+//                                        EIP-712 signature against
+//                                        `upgrade-siren:owner`.
+//   fetchSourcifyMetadata    (US-025)  — full ABI + storage layout +
+//                                        sources for prev + curr impls.
+//   diffAbiRiskySelectors   (US-026)  — added/removed risky selectors.
+//   diffStorageLayout       (US-027)  — slot-by-slot compatibility.
+//   diffSourceFiles         (US-075)  — per-file source diffs.
+//
+// The result is fed to `computeVerdict` so the engine sees real evidence
+// rather than the previous `signatureVerification: null, abiDiff: null,
+// storageDiff: null` empty-features call (which forced SIREN even on the
+// V1 baseline because absent signature in signed-manifest mode is a hard
+// SIREN trigger).
 //
 // Modes:
 //   ?mock=true            → render the FIXTURE_REPORTS entry for the name
 //                           (booth fallback; explicit user opt-in).
-//   default (signed)      → ENS resolves with `upgrade-siren:*` records →
-//                           signed-manifest path: parseUpgradeManifest +
-//                           readImplementationSlot + fetchSourcifyStatus +
-//                           computeVerdict.
-//   ?mode=public-read     → caller intent is public-read; same chain reads
-//                           but mode is forced to "public-read" so the
-//                           verdict caps at REVIEW.
-//   ENS resolves, no records, no public-read intent → empty state caller.
-//   ENS does not resolve → empty state caller.
+//   default (signed)      → live path; signed-manifest if upgrade-siren:*
+//                           records present, public-read fallback otherwise.
+//   ?mode=public-read     → caller intent; mode forced to "public-read".
+//   ENS resolves, no records, no public-read intent → empty state.
+//   ENS does not resolve → empty state.
 //
-// All fetches happen on the server (this module is imported only from
-// `page.tsx` and `report.json/route.ts`, both server-only). RPC URLs come
-// from env vars set on Vercel: `ALCHEMY_RPC_SEPOLIA`, `ALCHEMY_RPC_MAINNET`,
-// `ENS_RPC_URL`. Sepolia is tried first because the demo subnames
-// (`*.upgrade-siren-demo.eth`) live there per `contracts/DEPLOYMENTS.md`.
+// All fetches happen on the server. RPC URLs come from env vars set on
+// Vercel: `ALCHEMY_RPC_SEPOLIA`, `ALCHEMY_RPC_MAINNET`, `ENS_RPC_URL`.
 //
-// Out of scope for this PR (Stream B follow-up):
-//   * Fetching the report JSON from `manifest.reportUri` and verifying its
-//     EIP-712 signature with `verifyReportSignature` — done here would make
-//     every demo lookup go through `https://upgradesiren.app/r/<n>.json`,
-//     which is not yet deployed. We pass `signatureVerification: null` and
-//     let `computeVerdict` handle missing-signature per the rule table
-//     (SIREN in signed-manifest mode without a verified signature).
-//   * Full ABI / storage diff — requires fetching both implementation
-//     metadata via `fetchSourcifyMetadata`. Engine accepts `null` for those
-//     and skips the corresponding findings. Stream C ships the renderers
-//     in US-046/US-047 already; full pipeline wiring is future work.
+// Report-bytes resolution: the manifest's `reportUri` is rewritten from
+// `https://upgradesiren.app/r/<X>.json` to `/reports/<X>.json` so that
+// the static asset hosted by Next.js (apps/web/public/reports/*.json)
+// satisfies the fetch even when the canonical domain is not yet
+// reachable. If the rewrite fails, the original URL is tried.
 
 import {
   computeVerdict,
+  diffAbiRiskySelectors,
+  diffSourceFiles,
+  diffStorageLayout,
+  fetchSourcifyMetadata,
   fetchSourcifyStatus,
   hashManifest,
   parseUpgradeManifest,
   readImplementationSlot,
   resolveEnsRecords,
+  verifyReportFromManifest,
+  type AbiRiskyDiff,
   type ComputeVerdictResult,
   type EnsResolutionOk,
   type EnsResolutionResult,
+  type ReportTrustResult,
+  type SourceFileDiff,
   type SourcifyMatchLevel,
+  type SourcifyMetadata,
+  type StorageDiffResult,
   type UpgradeManifest,
   type Verdict as EngineVerdict,
+  type VerifySignatureFailureReason,
+  type VerifySignatureResult,
 } from "@upgrade-siren/evidence";
 
 import type {
@@ -65,13 +83,40 @@ const SEPOLIA_CHAIN_ID = 11155111;
 const MAINNET_CHAIN_ID = 1;
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" as Address;
 
+const REPORT_URI_HOST_REWRITES: ReadonlyArray<{
+  match: RegExp;
+  rewrite: string;
+}> = [
+  // Production canonical → static asset hosted by apps/web/public/reports/.
+  { match: /^https?:\/\/upgradesiren\.app\/r\//i, rewrite: "/reports/" },
+  // Future-proof for upgradesiren.eth ENS gateway:
+  { match: /^https?:\/\/upgradesiren\.eth\/r\//i, rewrite: "/reports/" },
+];
+
 export type LoadReportOptions = {
   readonly mockMode: boolean;
   readonly publicReadIntent: boolean;
+  /**
+   * Origin of the incoming HTTP request, used to resolve relative paths
+   * (e.g. `/reports/<n>.json`) into absolute URLs that `fetch` accepts on
+   * the server. When the route handler / page has access to the origin,
+   * pass it through; otherwise we fall back to relative-only fetches
+   * (which only work in the browser, not on the server).
+   */
+  readonly origin?: string;
+};
+
+export type LoadReportLoaded = {
+  readonly kind: "loaded";
+  readonly report: SirenReport;
+  readonly source: "fixture" | "live";
+  readonly abiDiff?: AbiRiskyDiff;
+  readonly storageDiff?: StorageDiffResult;
+  readonly sourceFileDiffs?: ReadonlyArray<SourceFileDiff>;
 };
 
 export type LoadReportResult =
-  | { readonly kind: "loaded"; readonly report: SirenReport; readonly source: "fixture" | "live" }
+  | LoadReportLoaded
   | { readonly kind: "empty"; readonly reason: "ens_not_found" | "no_records_no_intent" }
   | { readonly kind: "error"; readonly reason: string; readonly message: string };
 
@@ -150,6 +195,82 @@ async function tryResolveEns(
   return null;
 }
 
+/**
+ * Translate a manifest reportUri to a URL we can actually fetch from this
+ * deployment. Production canonical hosts (upgradesiren.app /
+ * upgradesiren.eth) rewrite to the local `/reports/` static asset path so
+ * the fetch lands on the bytes that ship with apps/web/public.
+ */
+function candidateReportUrls(reportUri: string, origin: string | undefined): string[] {
+  const out: string[] = [];
+  for (const { match, rewrite } of REPORT_URI_HOST_REWRITES) {
+    if (match.test(reportUri)) {
+      const path = reportUri.replace(match, rewrite);
+      if (origin) out.push(`${origin}${path}`);
+      out.push(path);
+      break;
+    }
+  }
+  out.push(reportUri);
+  return out;
+}
+
+async function fetchReportBytes(
+  reportUri: string,
+  origin: string | undefined,
+): Promise<Uint8Array | null> {
+  for (const url of candidateReportUrls(reportUri, origin)) {
+    try {
+      const res = await fetch(url, {
+        cache: "no-store",
+        headers: { accept: "application/json" },
+      });
+      if (!res.ok) continue;
+      const buf = await res.arrayBuffer();
+      return new Uint8Array(buf);
+    } catch {
+      // try next candidate
+    }
+  }
+  return null;
+}
+
+const REPORT_TRUST_REASON_MAP: Record<
+  Exclude<ReportTrustResult, { kind: "ok" }>["reason"],
+  VerifySignatureFailureReason
+> = {
+  malformed_json: "malformed_signature",
+  malformed_report_shape: "malformed_signature",
+  hash_mismatch: "malformed_signature",
+  signature_missing: "missing_signature",
+  signature_invalid: "malformed_signature",
+  unsupported_signature_type: "unsupported_signature_type",
+  owner_mismatch: "owner_mismatch",
+};
+
+function reportTrustToVerifyResult(
+  trust: ReportTrustResult,
+): VerifySignatureResult {
+  if (trust.kind === "ok") {
+    return { valid: true, recovered: trust.signer };
+  }
+  return {
+    valid: false,
+    reason: REPORT_TRUST_REASON_MAP[trust.reason],
+    message: trust.message,
+    recovered: trust.recovered,
+  };
+}
+
+async function fetchMetadataIfAddress(
+  chainId: number,
+  address: Address | null,
+): Promise<SourcifyMetadata | null> {
+  if (address === null) return null;
+  const result = await fetchSourcifyMetadata(chainId, address);
+  return result.kind === "ok" ? result.value : null;
+}
+
 export async function loadReport(
   name: string,
   options: LoadReportOptions,
@@ -167,9 +288,6 @@ export async function loadReport(
 
   const hasUpgradeSirenRecords = ens.anyUpgradeSirenRecordPresent;
   if (!hasUpgradeSirenRecords && !options.publicReadIntent) {
-    // ENS resolves but has no upgrade-siren records and the caller did not
-    // ask for public-read fallback explicitly. The caller renders an empty
-    // state with a public-read CTA.
     return { kind: "empty", reason: "no_records_no_intent" };
   }
 
@@ -177,7 +295,7 @@ export async function loadReport(
     ? "signed-manifest"
     : "public-read";
 
-  // Manifest parse (signed-manifest mode only)
+  // Manifest parse (signed-manifest mode only).
   const manifestRaw = ens.records.upgradeManifestRaw;
   const manifestPresent = manifestRaw !== null;
   let manifest: UpgradeManifest | null = null;
@@ -193,41 +311,99 @@ export async function loadReport(
   const ownerAddress = parseAddress(ens.records.owner);
   const ownerPresent = ownerAddress !== null;
 
-  // chainId for proxy + Sourcify reads — manifest authoritative when present,
-  // otherwise the ENS resolution chain.
+  // chainId for proxy + Sourcify reads — manifest authoritative when present.
   const proxyChainId = manifest?.chainId ?? ensChainId;
   const proxyAddress: Address | null =
     manifest?.proxy ?? parseAddress(ens.records.proxy);
 
   // Live implementation slot read (EIP-1967).
-  let liveImplementation: Address | null = null;
-  if (proxyAddress !== null) {
-    const slot = await readImplementationSlot(proxyChainId, proxyAddress, {
-      rpcUrl: rpcUrlForChain(proxyChainId),
-    });
-    if (slot.kind === "ok") {
-      liveImplementation = slot.implementation;
-    }
-  }
+  const slotResult =
+    proxyAddress !== null
+      ? await readImplementationSlot(proxyChainId, proxyAddress, {
+          rpcUrl: rpcUrlForChain(proxyChainId),
+        })
+      : null;
+  const liveImplementation: Address | null =
+    slotResult?.kind === "ok" ? slotResult.implementation : null;
 
-  // Sourcify status for current + previous (manifest-declared or live-derived).
+  // Pick prev + curr implementations: manifest authoritative if present,
+  // live-slot otherwise.
   const currentImpl: Address | null =
     manifest?.currentImpl ?? liveImplementation;
   const previousImpl: Address | null = manifest?.previousImpl ?? null;
 
-  let currentSourcifyMatch: SourcifyMatchLevel | null = null;
-  if (currentImpl !== null) {
-    const r = await fetchSourcifyStatus(proxyChainId, currentImpl);
-    if (r.kind === "ok") currentSourcifyMatch = r.value.match;
+  // Sourcify metadata + status — runs sequentially in this PR; US-084
+  // wraps these in Promise.all for the 5-second perf budget.
+  const currentStatusResult =
+    currentImpl !== null
+      ? await fetchSourcifyStatus(proxyChainId, currentImpl)
+      : null;
+  const previousStatusResult =
+    previousImpl !== null
+      ? await fetchSourcifyStatus(proxyChainId, previousImpl)
+      : null;
+
+  const currentSourcifyMatch: SourcifyMatchLevel | null =
+    currentStatusResult?.kind === "ok"
+      ? currentStatusResult.value.match
+      : null;
+  const previousSourcifyMatch: SourcifyMatchLevel | null =
+    previousStatusResult?.kind === "ok"
+      ? previousStatusResult.value.match
+      : null;
+
+  const currentMetadata = await fetchMetadataIfAddress(proxyChainId, currentImpl);
+  const previousMetadata = await fetchMetadataIfAddress(proxyChainId, previousImpl);
+
+  // Diffs — only meaningful when both metadata present.
+  const abiDiff: AbiRiskyDiff | null =
+    currentMetadata && previousMetadata
+      ? diffAbiRiskySelectors(previousMetadata.abi, currentMetadata.abi)
+      : null;
+
+  const storageDiff: StorageDiffResult | null =
+    currentMetadata && previousMetadata
+      ? diffStorageLayout(
+          previousMetadata.storageLayout ?? null,
+          currentMetadata.storageLayout ?? null,
+        )
+      : null;
+
+  const sourceFileDiffs: ReadonlyArray<SourceFileDiff> =
+    currentMetadata && previousMetadata
+      ? diffSourceFiles(previousMetadata, currentMetadata)
+      : [];
+
+  // Signature verification — fetch report bytes, hash + recover EIP-712
+  // signer, compare against upgrade-siren:owner.
+  let signatureVerification: VerifySignatureResult | null = null;
+  let signedAt: string | null = null;
+  let signatureBytes: `0x${string}` | null = null;
+  let signerAddress: Address | null = null;
+  if (mode === "signed-manifest" && manifest !== null && ownerAddress !== null) {
+    const reportBytes = await fetchReportBytes(manifest.reportUri, options.origin);
+    if (reportBytes === null) {
+      signatureVerification = {
+        valid: false,
+        reason: "missing_signature",
+        message: `report bytes unavailable from ${manifest.reportUri}`,
+      };
+    } else {
+      const trust = await verifyReportFromManifest(
+        manifest,
+        reportBytes,
+        ownerAddress,
+      );
+      signatureVerification = reportTrustToVerifyResult(trust);
+      if (trust.kind === "ok") {
+        signerAddress = trust.signer;
+        signedAt = trust.report.auth.signedAt;
+        signatureBytes = trust.report.auth.signature;
+      }
+    }
   }
 
-  let previousSourcifyMatch: SourcifyMatchLevel | null = null;
-  if (previousImpl !== null) {
-    const r = await fetchSourcifyStatus(proxyChainId, previousImpl);
-    if (r.kind === "ok") previousSourcifyMatch = r.value.match;
-  }
-
-  // Compute the verdict deterministically from what we have.
+  // Compute the verdict deterministically from the now-populated inputs.
   const verdictResult = computeVerdict({
     mode,
     mock: false,
@@ -239,11 +415,9 @@ export async function loadReport(
     liveImplementation,
     currentSourcifyMatch,
     previousSourcifyMatch,
-    abiDiff: null,
-    storageDiff: null,
-    // signature verification deferred — see header note. Engine handles
-    // null in signed-manifest mode by emitting SIGNATURE_MISSING.
-    signatureVerification: null,
+    abiDiff,
+    storageDiff,
+    signatureVerification,
   });
 
   const sourcifyLinks = [
@@ -262,6 +436,15 @@ export async function loadReport(
   ].filter((link): link is { label: string; url: string } => link !== null);
 
   const manifestHash = manifest ? hashManifest(manifest) : null;
+
+  const authStatus: SirenReport["auth"]["status"] =
+    signatureVerification === null
+      ? "unsigned"
+      : signatureVerification.valid
+        ? "valid"
+        : signatureVerification.reason === "missing_signature"
+          ? "unsigned"
+          : "invalid";
 
   const report: SirenReport = {
     schema: "siren-report@1",
@@ -289,22 +472,23 @@ export async function loadReport(
       owner: ownerAddress,
     },
     auth: {
-      // Signature path is not wired in this PR — the report bytes that the
-      // signature would attest live behind `manifest.reportUri`, which is not
-      // yet hosted. The engine has already accounted for this by emitting a
-      // SIGNATURE_MISSING finding; we mirror that in the auth field so the
-      // rendered SignatureStatusBadge says "no operator signature" rather
-      // than fabricating a state.
-      status: "unsigned",
-      signatureType: null,
-      signer: null,
-      signature: null,
-      signedAt: null,
+      status: authStatus,
+      signatureType: authStatus === "valid" ? "EIP-712" : null,
+      signer: signerAddress,
+      signature: signatureBytes,
+      signedAt,
     },
     recommendedAction: recommendedActionFor(verdictResult.verdict),
     mock: false,
     generatedAt: new Date().toISOString(),
   };
 
-  return { kind: "loaded", report, source: "live" };
+  return {
+    kind: "loaded",
+    report,
+    source: "live",
+    abiDiff: abiDiff ?? undefined,
+    storageDiff: storageDiff ?? undefined,
+    sourceFileDiffs,
+  };
 }

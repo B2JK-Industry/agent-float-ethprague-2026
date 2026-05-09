@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -15,7 +16,18 @@ import { VerdictCard } from "../../../components/VerdictCard";
 
 import { loadReport } from "./loadReport";
 
+import type {
+  AbiRiskyDiff,
+  SourceFileDiff,
+  StorageDiffResult,
+} from "@upgrade-siren/evidence";
 import type { Address, SirenReport, Verdict } from "@upgrade-siren/shared";
+import type {
+  SourceDiff,
+  SourceDiffFile,
+  SourceDiffHunk,
+  SourceDiffLine,
+} from "../../../components/SourceDiffRenderer";
 
 const VERDICT_VALUES: ReadonlySet<Verdict> = new Set([
   "SAFE",
@@ -107,10 +119,24 @@ function pendingChecklist(): readonly ChecklistStep[] {
   ] as const;
 }
 
-function abiSummaryFor(report: SirenReport): {
+/**
+ * Build the EvidenceDrawer ABI summary chip from the engine's `AbiRiskyDiff`
+ * (preferred) or, if the diff is absent (sourcify metadata not available),
+ * a heuristic over the report's findings as a graceful fallback.
+ */
+function abiSummaryFor(
+  report: SirenReport,
+  abiDiff: AbiRiskyDiff | undefined,
+): {
   selectorCount: number;
   riskyAddedCount: number;
 } {
+  if (abiDiff) {
+    return {
+      selectorCount: abiDiff.added.length + abiDiff.removed.length,
+      riskyAddedCount: abiDiff.added.length,
+    };
+  }
   const riskyAdded = report.findings.filter((f) =>
     /selector|sweep|admin/i.test(f.title),
   ).length;
@@ -120,10 +146,20 @@ function abiSummaryFor(report: SirenReport): {
   };
 }
 
-function storageSummaryFor(report: SirenReport): {
+function storageSummaryFor(
+  report: SirenReport,
+  storageDiff: StorageDiffResult | undefined,
+): {
   tag: "compatible" | "incompatible" | "unknown";
   label: string;
 } {
+  if (storageDiff) {
+    const kind = storageDiff.kind;
+    if (kind === "unknown_missing_layout") return { tag: "unknown", label: kind };
+    if (kind.startsWith("incompatible"))
+      return { tag: "incompatible", label: kind };
+    return { tag: "compatible", label: kind };
+  }
   const finding = report.findings.find((f) =>
     /storage layout/i.test(f.title),
   );
@@ -138,6 +174,76 @@ function storageSummaryFor(report: SirenReport): {
     return { tag: "compatible", label: tag };
   }
   return { tag: "unknown", label: "unknown_missing_layout" };
+}
+
+const HUNK_HEADER_RE = /^@@\s+-(\d+)(?:,(\d+))?\s+\+(\d+)(?:,(\d+))?\s+@@(.*)$/;
+
+/**
+ * Adapt the canonical `SourceFileDiff[]` (US-075) into the richer parsed
+ * `SourceDiff` shape that `<SourceDiffRenderer>` (US-076) consumes.
+ *
+ * The engine emits a unified-diff text per file; the renderer wants
+ * pre-parsed hunks with per-line metadata. Parse here so the renderer
+ * stays a pure presentational component.
+ */
+function adaptSourceFileDiffs(
+  diffs: ReadonlyArray<SourceFileDiff> | undefined,
+): SourceDiff | undefined {
+  if (!diffs || diffs.length === 0) return undefined;
+  const files: SourceDiffFile[] = [];
+  for (const d of diffs) {
+    if (d.status === "identical") continue;
+    const hunks: SourceDiffHunk[] = [];
+    let current: { hunk: SourceDiffHunk; lines: SourceDiffLine[] } | null = null;
+    for (const raw of d.unifiedDiff.split("\n")) {
+      if (raw.startsWith("+++ ") || raw.startsWith("--- ")) continue;
+      const match = HUNK_HEADER_RE.exec(raw);
+      if (match) {
+        if (current) {
+          hunks.push({ ...current.hunk, lines: current.lines });
+        }
+        const header = match[5]?.trim();
+        current = {
+          hunk: {
+            oldStart: Number(match[1]),
+            oldLines: match[2] === undefined ? 1 : Number(match[2]),
+            newStart: Number(match[3]),
+            newLines: match[4] === undefined ? 1 : Number(match[4]),
+            header: header && header.length > 0 ? header : undefined,
+            lines: [],
+          },
+          lines: [],
+        };
+        continue;
+      }
+      if (!current) continue;
+      let kind: SourceDiffLine["kind"];
+      let content: string;
+      if (raw.startsWith("+")) {
+        kind = "add";
+        content = raw.slice(1);
+      } else if (raw.startsWith("-")) {
+        kind = "remove";
+        content = raw.slice(1);
+      } else if (raw.startsWith(" ") || raw.length === 0) {
+        kind = "context";
+        content = raw.startsWith(" ") ? raw.slice(1) : raw;
+      } else {
+        continue;
+      }
+      current.lines.push({ kind, content });
+    }
+    if (current) {
+      hunks.push({ ...current.hunk, lines: current.lines });
+    }
+    files.push({
+      path: d.path,
+      hunks,
+      additionsCount: d.hunks.added,
+      deletionsCount: d.hunks.removed,
+    });
+  }
+  return files.length === 0 ? undefined : { files };
 }
 
 function reportUrlFor(name: string): string {
@@ -269,11 +375,13 @@ async function VerdictResultBody({
   mockMode,
   publicReadIntent,
   precomputed,
+  origin,
 }: {
   name: string;
   mockMode: boolean;
   publicReadIntent: boolean;
   precomputed: { verdict: Verdict; timestamp: string } | null;
+  origin: string | undefined;
 }): Promise<React.JSX.Element> {
   if (precomputed !== null) {
     const report = buildPrecomputedReport(
@@ -328,7 +436,11 @@ async function VerdictResultBody({
     );
   }
 
-  const result = await loadReport(name, { mockMode, publicReadIntent });
+  const result = await loadReport(name, {
+    mockMode,
+    publicReadIntent,
+    origin,
+  });
 
   if (result.kind === "empty" || result.kind === "error") {
     return <EmptyStateNoRecords name={name} />;
@@ -336,8 +448,9 @@ async function VerdictResultBody({
 
   const { report, source } = result;
   const steps = loadingStepsFor(report);
-  const abiSummary = abiSummaryFor(report);
-  const storageSummary = storageSummaryFor(report);
+  const abiSummary = abiSummaryFor(report, result.abiDiff);
+  const storageSummary = storageSummaryFor(report, result.storageDiff);
+  const sourceDiff = adaptSourceFileDiffs(result.sourceFileDiffs);
   const reportUrl = reportUrlFor(name);
 
   return (
@@ -383,6 +496,7 @@ async function VerdictResultBody({
           report={report}
           abiSummary={abiSummary}
           storageSummary={storageSummary}
+          sourceDiff={sourceDiff}
           reportUrl={reportUrl}
         />
         <ShareVerdictLink
@@ -453,8 +567,33 @@ export default async function VerdictResultPage(
           mockMode={mockMode}
           publicReadIntent={publicReadIntent}
           precomputed={precomputed}
+          origin={await deriveOrigin()}
         />
       </Suspense>
     </main>
   );
+}
+
+/**
+ * Best-effort origin lookup for server-side report-bytes fetching.
+ * Reads `x-forwarded-host` / `host` + `x-forwarded-proto` from the
+ * request headers (set by Vercel + most reverse proxies). Returns
+ * undefined when not available — `loadReport` falls back to the
+ * absolute URL the manifest specified.
+ */
+async function deriveOrigin(): Promise<string | undefined> {
+  try {
+    const h = await headers();
+    const forwardedHost = h.get("x-forwarded-host");
+    const host = forwardedHost ?? h.get("host");
+    if (host === null) return undefined;
+    const proto =
+      h.get("x-forwarded-proto") ??
+      (host.startsWith("localhost") || host.startsWith("127.")
+        ? "http"
+        : "https");
+    return `${proto}://${host}`;
+  } catch {
+    return undefined;
+  }
 }

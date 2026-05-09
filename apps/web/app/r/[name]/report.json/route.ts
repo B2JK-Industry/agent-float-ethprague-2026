@@ -25,8 +25,13 @@ export async function GET(
     url.searchParams.get("mock") === "true" ||
     url.searchParams.get("mock") === "1";
   const publicReadIntent = url.searchParams.get("mode") === "public-read";
+  const origin = url.origin;
 
-  const result = await loadReport(name, { mockMode, publicReadIntent });
+  const result = await loadReport(name, {
+    mockMode,
+    publicReadIntent,
+    origin,
+  });
 
   if (result.kind === "empty") {
     return NextResponse.json(

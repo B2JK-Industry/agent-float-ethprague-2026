@@ -20,9 +20,30 @@ vi.mock("@upgrade-siren/evidence", () => {
     resolveEnsRecords: vi.fn(),
     readImplementationSlot: vi.fn(),
     fetchSourcifyStatus: vi.fn(),
+    fetchSourcifyMetadata: vi.fn().mockResolvedValue({
+      kind: "error",
+      error: { reason: "not_found", message: "no metadata" },
+    }),
     parseUpgradeManifest: vi.fn(),
     computeVerdict: vi.fn(),
     hashManifest: vi.fn(() => "0x" + "ab".repeat(32)),
+    verifyReportFromManifest: vi.fn().mockResolvedValue({
+      kind: "error",
+      reason: "signature_missing",
+      message: "no report bytes",
+    }),
+    diffAbiRiskySelectors: vi.fn(() => ({
+      added: [],
+      removed: [],
+      addedAny: false,
+      removedAny: false,
+    })),
+    diffStorageLayout: vi.fn(() => ({
+      kind: "unknown_missing_layout",
+      changes: [],
+      appended: [],
+    })),
+    diffSourceFiles: vi.fn(() => []),
   };
 });
 
@@ -33,6 +54,18 @@ import {
   parseUpgradeManifest,
   computeVerdict,
 } from "@upgrade-siren/evidence";
+
+beforeEach(() => {
+  // Stub the global fetch so the live signed-manifest path's
+  // `fetchReportBytes` returns null (→ signatureVerification missing).
+  // Tests that exercise verifyReportFromManifest's success path can
+  // override per-test.
+  global.fetch = vi.fn().mockResolvedValue({
+    ok: false,
+    status: 404,
+    arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+  });
+});
 
 const PROXY = "0x8391fa804d3755493e3C9D362D49c339C4469388" as const;
 const VAULT_V1 = "0xC53d3879aCF9Dd9d6fCF8Ed9B335A410Cc66Eb30" as const;
@@ -274,7 +307,54 @@ describe("loadReport — live signed-manifest path", () => {
     );
   });
 
-  it("never fabricates auth status — auth.status is always 'unsigned' on the live path until Stream B wires verifyReportSignature", async () => {
+  it("threads a valid signature through to auth.status='valid' + signer when verifyReportFromManifest succeeds", async () => {
+    vi.mocked(resolveEnsRecords).mockResolvedValueOnce(
+      ensSepoliaWithRecords(),
+    );
+    vi.mocked(parseUpgradeManifest).mockReturnValueOnce(parsedManifestForSafe());
+    vi.mocked(readImplementationSlot).mockResolvedValueOnce(
+      liveImplOk(VAULT_V2_SAFE),
+    );
+    vi.mocked(fetchSourcifyStatus)
+      .mockResolvedValueOnce(sourcifyExact(11155111, VAULT_V2_SAFE))
+      .mockResolvedValueOnce(sourcifyExact(11155111, VAULT_V1));
+    vi.mocked(computeVerdict).mockReturnValueOnce(computeSafe());
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      arrayBuffer: () =>
+        Promise.resolve(new TextEncoder().encode("{}").buffer),
+    });
+
+    const ev = await import("@upgrade-siren/evidence");
+    vi.mocked(ev.verifyReportFromManifest).mockResolvedValueOnce({
+      kind: "ok",
+      report: {
+        auth: {
+          status: "valid",
+          signatureType: "EIP-712",
+          signer: OPERATOR,
+          signature: ("0x" + "ab".repeat(65)) as `0x${string}`,
+          signedAt: "2026-05-09T12:00:00Z",
+        },
+      } as never,
+      signer: OPERATOR,
+      reportHash: ("0x" + "cd".repeat(32)) as `0x${string}`,
+    });
+
+    const result = await loadReport(FIXTURE_SUBNAMES.safe, {
+      mockMode: false,
+      publicReadIntent: false,
+    });
+    expect(result.kind).toBe("loaded");
+    if (result.kind !== "loaded") return;
+    expect(result.report.auth.status).toBe("valid");
+    expect(result.report.auth.signer).toBe(OPERATOR);
+    expect(result.report.auth.signatureType).toBe("EIP-712");
+  });
+
+  it("renders auth.status='unsigned' when report-bytes fetch fails", async () => {
     vi.mocked(resolveEnsRecords).mockResolvedValueOnce(
       ensSepoliaWithRecords(),
     );
@@ -296,6 +376,62 @@ describe("loadReport — live signed-manifest path", () => {
     if (result.kind !== "loaded") return;
     expect(result.report.auth.status).toBe("unsigned");
     expect(result.report.auth.signer).toBeNull();
+  });
+
+  it("threads abiDiff/storageDiff/sourceFileDiffs through to LoadReportLoaded", async () => {
+    vi.mocked(resolveEnsRecords).mockResolvedValueOnce(
+      ensSepoliaWithRecords(),
+    );
+    vi.mocked(parseUpgradeManifest).mockReturnValueOnce(parsedManifestForSafe());
+    vi.mocked(readImplementationSlot).mockResolvedValueOnce(
+      liveImplOk(VAULT_V2_SAFE),
+    );
+    vi.mocked(fetchSourcifyStatus)
+      .mockResolvedValueOnce(sourcifyExact(11155111, VAULT_V2_SAFE))
+      .mockResolvedValueOnce(sourcifyExact(11155111, VAULT_V1));
+    vi.mocked(computeVerdict).mockReturnValueOnce(computeSafe());
+
+    const ev = await import("@upgrade-siren/evidence");
+    vi.mocked(ev.fetchSourcifyMetadata)
+      .mockResolvedValueOnce({
+        kind: "ok",
+        value: { abi: [], storageLayout: null, sources: {} } as never,
+      })
+      .mockResolvedValueOnce({
+        kind: "ok",
+        value: { abi: [], storageLayout: null, sources: {} } as never,
+      });
+    vi.mocked(ev.diffAbiRiskySelectors).mockReturnValueOnce({
+      added: [],
+      removed: [],
+      addedAny: false,
+      removedAny: false,
+    });
+    vi.mocked(ev.diffStorageLayout).mockReturnValueOnce({
+      kind: "compatible_appended_only",
+      changes: [],
+      appended: [],
+    });
+    vi.mocked(ev.diffSourceFiles).mockReturnValueOnce([
+      {
+        path: "Vault.sol",
+        status: "modified",
+        unifiedDiff:
+          "--- a/Vault.sol\n+++ b/Vault.sol\n@@ -1,1 +1,1 @@\n-old\n+new",
+        hunks: { added: 1, removed: 1 },
+      },
+    ]);
+
+    const result = await loadReport(FIXTURE_SUBNAMES.safe, {
+      mockMode: false,
+      publicReadIntent: false,
+    });
+    expect(result.kind).toBe("loaded");
+    if (result.kind !== "loaded") return;
+    expect(result.abiDiff).toBeDefined();
+    expect(result.storageDiff?.kind).toBe("compatible_appended_only");
+    expect(result.sourceFileDiffs?.length).toBe(1);
+    expect(result.sourceFileDiffs?.[0]?.path).toBe("Vault.sol");
   });
 });
 
