@@ -193,7 +193,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-132 | Score banner component: 0–100, both axis values, tier badge (S/A/B/C/D/U), honest-claims disclaimer copy | C | P0 | M | merged | US-118 |
 | US-133 | Source grid component: 4 tiles (Sourcify / GitHub / On-chain / ENS) with verified/unverified badges and contribution numbers | C | P0 | M | merged | US-117, US-118 |
 | US-134 | Score breakdown panel: full component-by-component table with `weight × value × trust` math visible per component | C | P0 | M | merged | US-118 |
-| US-135 | Sourcify source drawer (reuses `/r/[name]` UI as embedded component, plus storage-history timeline per proxy) | C | P0 | L | open | US-068, US-119 |
+| US-135 | Sourcify source drawer (reuses `/r/[name]` UI as embedded component, plus storage-history timeline per proxy) | C | P0 | L | merged | US-068, US-119 |
 | US-136 | GitHub source drawer (top-20 repos card grid: name, last push, CI badge, test presence, repo-hygiene score, releases count, link out) | C | P0 | M | merged | US-114 |
 | US-137 | On-chain source drawer (first tx, totals, recent activity, primary address chip) | C | P1 | S | open | US-115 |
 | US-138 | ENS source drawer (registration date, subname / record counts, raw `agent-bench:bench_manifest` JSON viewer) | C | P1 | S | open | US-116 |
@@ -4124,7 +4124,7 @@ EPIC reference: US-099. Renumbered to US-134.
 | Sponsor | Sourcify |
 | Dependencies | US-068, US-119 |
 | Acceptance gates | GATE-31 |
-| Status | open (Epic 2) |
+| Status | merged |
 
 #### Scope
 
