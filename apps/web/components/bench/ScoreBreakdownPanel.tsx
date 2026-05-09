@@ -213,13 +213,14 @@ function AxisBar({
               data-component={comp.id}
               data-status={comp.status}
               data-trust={comp.trust}
-              className="flex flex-wrap items-baseline gap-x-3 gap-y-1"
+              className="flex items-baseline gap-x-3"
               style={{
                 padding: "8px 0",
                 fontFamily: "var(--font-mono)",
                 fontSize: "11px",
                 letterSpacing: "0.04em",
                 lineHeight: 1.5,
+                flexWrap: "nowrap",
                 borderBottom: "1px dotted var(--color-border)",
               }}
             >
@@ -517,10 +518,17 @@ export function ScoreBreakdownPanel({
         Score math · how {score.score_100} was built · open ledger
       </header>
 
-      {/* Two-axis grid (responsive 1-col below 780px per L-F pattern) */}
+      {/* Two-axis layout — stacked vertically so each axis spans the
+          full panel width. Previous side-by-side md:grid-cols-2 squeezed
+          long component labels (`releaseCadence (P1, awaits US-114b)`)
+          into ~440px, causing the math expression to overlap with the
+          neighbouring axis. Daniel screenshot 2026-05-09 22:33 + 22:56
+          CET both flagged "stredna sekcia uzka". Vertical stack gives
+          each axis the full 4xl width (~870px) — math expression has
+          breathing room and no flex-wrap-driven row collisions. */}
       <div
         data-block="math-grid"
-        className="grid grid-cols-1 md:grid-cols-2"
+        className="flex flex-col"
       >
         <AxisBar
           axisLabel="Seniority"
@@ -529,8 +537,7 @@ export function ScoreBreakdownPanel({
           fullMax100={v1FullSeniorityMax}
         />
         <div
-          className="md:border-l md:border-border"
-          style={{ borderLeft: "1px solid var(--color-border)" }}
+          style={{ borderTop: "1px solid var(--color-border)" }}
         >
           <AxisBar
             axisLabel="Relevance"
