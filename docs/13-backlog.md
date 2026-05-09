@@ -195,7 +195,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-134 | Score breakdown panel: full component-by-component table with `weight × value × trust` math visible per component | C | P0 | M | merged | US-118 |
 | US-135 | Sourcify source drawer (reuses `/r/[name]` UI as embedded component, plus storage-history timeline per proxy) | C | P0 | L | merged | US-068, US-119 |
 | US-136 | GitHub source drawer (top-20 repos card grid: name, last push, CI badge, test presence, repo-hygiene score, releases count, link out) | C | P0 | M | merged | US-114 |
-| US-137 | On-chain source drawer (first tx, totals, recent activity, primary address chip) | C | P1 | S | open | US-115 |
+| US-137 | On-chain source drawer (first tx, totals, recent activity, primary address chip) | C | P1 | S | merged | US-115 |
 | US-138 | ENS source drawer (registration date, subname / record counts, raw `agent-bench:bench_manifest` JSON viewer) | C | P1 | S | merged | US-116 |
 | US-139 | Honest-claims disclaimer copy reviewed by Daniel/Orch; integrated into score banner | C | P0 | XS | merged | US-132 |
 | US-140 | Bytecode similarity-submit button + optimistic re-render after Sourcify confirms | C | P1 | S | merged | US-121 |
@@ -4190,7 +4190,7 @@ EPIC reference: US-101. Renumbered to US-136.
 | Sponsor | - |
 | Dependencies | US-115 |
 | Acceptance gates | - |
-| Status | open (Epic 2) |
+| Status | merged |
 
 #### Scope
 
