@@ -103,7 +103,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-049 | Governance comment generator (short, forum, vote-reason) | C | P0 | M | merged | US-014, US-037 |
 | US-050 | Demo mode runner with four scenarios | C | P0 | M | merged | US-009, US-010, US-011, US-029, US-037, US-042 |
 | US-051 | Empty/error states for absent records, RPC, Sourcify, malformed manifest, unsigned report | C | P0 | M | merged | US-019, US-020, US-037 |
-| US-052 | Five-second-rule performance check | C | P0 | S | open | US-042, US-043, US-068 |
+| US-052 | Five-second-rule performance check | C | P0 | S | merged | US-042, US-043, US-068 |
 | US-053 | Share-verdict link with precomputed result | C | P1 | M | open | US-042 |
 | US-054 | Mobile responsive layout check (viewport <= 768px) | C | P1 | S | open | US-042, US-045 |
 | US-055 | Accessibility pass for WCAG AA and screen-reader status labels | C | P1 | M | open | US-042, US-045 |
@@ -2383,7 +2383,7 @@ If the test fails, the fix lies in caching (US-032, US-033) or the progressive l
 | Sponsor | Future Society |
 | Dependencies | US-042 |
 | Acceptance gates | - |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
