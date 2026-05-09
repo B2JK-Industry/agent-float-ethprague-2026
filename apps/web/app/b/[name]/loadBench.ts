@@ -46,9 +46,14 @@
 import {
   computeScore,
   orchestrateSubject,
+  runEvaluatorBridge,
+  type EvaluatorResult,
+  type EvalBonus,
   type MultiSourceEvidence,
   type ScoreResult,
 } from "@upgrade-siren/evidence";
+import { createPublicClient, http } from "viem";
+import { mainnet, sepolia } from "viem/chains";
 
 const SEPOLIA_CHAIN_ID = 11155111;
 const MAINNET_CHAIN_ID = 1;
@@ -137,6 +142,17 @@ export type LoadBenchLoaded = {
   readonly kind: "loaded";
   readonly evidence: MultiSourceEvidence;
   readonly score: ScoreResult;
+  /**
+   * Per-record evaluator engine results. Engines run in parallel with
+   * the orchestrator; their output overlays the score via `evalBonus`.
+   * Empty array when no engines are registered or bridge is disabled.
+   */
+  readonly evalEngines: ReadonlyArray<EvaluatorResult>;
+  /**
+   * Capped overlay bonus added to score. `score.score_100 +
+   * evalBonus.appliedToScore100` is the user-visible final number.
+   */
+  readonly evalBonus: EvalBonus;
 };
 
 export type LoadBenchError = {
@@ -223,5 +239,84 @@ export async function loadBench(
     };
   }
 
-  return { kind: "loaded", evidence, score };
+  // Eval engine bridge — runs every registered RecordEngine against the
+  // resolved subject and produces a capped overlay bonus on top of the
+  // pure score. NEVER throws: bridge swallows engine failures and
+  // returns an empty bonus on degenerate input. The orchestrator's
+  // 4-source pipeline remains the primary scoring path.
+  let evalEngines: ReadonlyArray<EvaluatorResult> = [];
+  let evalBonus: EvalBonus = { seniority: 0, relevance: 0, appliedToScore100: 0 };
+  try {
+    const bridge = await runEvaluatorBridge({
+      evidence,
+      context: buildBridgeContext(chainId),
+      resolvedAtMs: nowSeconds * 1000,
+    });
+    evalEngines = bridge.engines;
+    evalBonus = bridge.bonus;
+  } catch (err) {
+    // Bridge failure is non-fatal — log and continue with zero overlay.
+    // eslint-disable-next-line no-console
+    console.warn(
+      "[loadBench] eval bridge threw, continuing with empty overlay",
+      err instanceof Error ? err.message : err,
+    );
+  }
+
+  return { kind: "loaded", evidence, score, evalEngines, evalBonus };
+}
+
+// Builds the EngineContext the bridge needs. We construct fresh viem
+// clients (NOT shared with the orchestrator's internal fetcher) because
+// the engine framework is RPC-naive — it expects two ready clients
+// rather than orchestrator-style per-source RPC URL options.
+function buildBridgeContext(chainId: number): Parameters<typeof runEvaluatorBridge>[0]['context'] {
+  const sepoliaUrl = rpcUrlForChain(11155111);
+  const mainnetUrl = rpcUrlForChain(1);
+  const cache = new Map<string, { value: unknown; expiresAt: number }>();
+  return {
+    rpc: {
+      mainnet: createPublicClient({
+        chain: mainnet,
+        transport: mainnetUrl ? http(mainnetUrl) : http(),
+      }),
+      sepolia: createPublicClient({
+        chain: sepolia,
+        transport: sepoliaUrl ? http(sepoliaUrl) : http(),
+      }),
+    },
+    fetch: async (url, init) => {
+      const response = await fetch(url, init);
+      return {
+        ok: response.ok,
+        status: response.status,
+        headers: response.headers,
+        text: () => response.text(),
+        async json<T = unknown>(): Promise<T> {
+          return (await response.json()) as T;
+        },
+      };
+    },
+    cache: {
+      get<T>(key: string): T | undefined {
+        const entry = cache.get(key);
+        if (!entry) return undefined;
+        if (entry.expiresAt < Date.now()) {
+          cache.delete(key);
+          return undefined;
+        }
+        return entry.value as T;
+      },
+      set<T>(key: string, value: T, ttlMs: number): void {
+        cache.set(key, { value, expiresAt: Date.now() + ttlMs });
+      },
+    },
+    logger: {
+      debug: () => {},
+      warn: (msg, ctx) => {
+        // eslint-disable-next-line no-console
+        console.warn(`[eval] ${msg}`, ctx ?? {});
+      },
+    },
+  };
 }

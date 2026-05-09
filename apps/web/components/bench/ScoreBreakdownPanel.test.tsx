@@ -364,4 +364,68 @@ describe("ScoreBreakdownPanel (US-134, GATE-30 surface)", () => {
     // contexts like ENS expirations etc. (none in this panel).
     expect(text).not.toMatch(/→\s*86/);
   });
+
+  describe("evaluator engines overlay (eval bridge)", () => {
+    const stubEngine = (
+      recordKey: "addr.eth" | "description" | "url",
+      seniority: number,
+      relevance: number,
+      trust: number,
+    ) => ({
+      recordKey,
+      exists: true,
+      validity: 1 as const,
+      liveness: 1 as const,
+      seniority,
+      relevance,
+      trust,
+      weight: 1,
+      signals: { seniorityBreakdown: [], relevanceBreakdown: [], antiSignals: [] },
+      evidence: [],
+      confidence: "complete" as const,
+      durationMs: 5,
+      cacheHit: false,
+      errors: [],
+    });
+
+    it("hides the eval section when both engines list is empty AND no bonus prop", () => {
+      const { container } = render(<ScoreBreakdownPanel score={score()} />);
+      expect(container.querySelector('[data-section="eval-engines"]')).toBeNull();
+    });
+
+    it("renders the eval section when engines and a non-zero bonus are passed", () => {
+      const { container } = render(
+        <ScoreBreakdownPanel
+          score={score()}
+          evalEngines={[
+            stubEngine("addr.eth", 0.4, 0.6, 0.7),
+            stubEngine("description", 0.3, 0.5, 0.6),
+          ]}
+          evalBonus={{ seniority: 0.04, relevance: 0.06, appliedToScore100: 5 }}
+        />,
+      );
+      const section = container.querySelector('[data-section="eval-engines"]');
+      expect(section).not.toBeNull();
+      expect(section?.getAttribute("data-bonus-applied")).toBe("5");
+      expect(container.querySelector('[data-engine="addr.eth"]')).not.toBeNull();
+      expect(container.querySelector('[data-engine="description"]')).not.toBeNull();
+      expect(container.querySelector('[data-field="bonus-applied"]')?.textContent).toBe("+5");
+    });
+
+    it("filters out engines with exists:false (only registered + non-empty rows render)", () => {
+      const absent = stubEngine("url", 0, 0, 0);
+      const { container } = render(
+        <ScoreBreakdownPanel
+          score={score()}
+          evalEngines={[
+            stubEngine("addr.eth", 0.4, 0.6, 0.7),
+            { ...absent, exists: false, validity: 0 as const },
+          ]}
+          evalBonus={{ seniority: 0.04, relevance: 0.06, appliedToScore100: 5 }}
+        />,
+      );
+      expect(container.querySelector('[data-engine="addr.eth"]')).not.toBeNull();
+      expect(container.querySelector('[data-engine="url"]')).toBeNull();
+    });
+  });
 });
