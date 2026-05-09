@@ -93,7 +93,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-039 | Public-read address / ENS-address-record input component | C | P0 | S | merged | none |
 | US-040 | Mock-path visible badge component | C | P0 | S | merged | none |
 | US-041 | Signature status badge component | C | P0 | S | merged | US-014 |
-| US-042 | Verdict card component (SAFE / REVIEW / SIREN) | C | P0 | M | open | US-037, US-041 |
+| US-042 | Verdict card component (SAFE / REVIEW / SIREN) | C | P0 | M | merged | US-037, US-041 |
 | US-043 | Progressive loading checklist (ENS, chain, Sourcify, diff, signature) | C | P0 | M | merged | US-037 |
 | US-044 | Before/after implementation comparison view | C | P0 | M | merged | US-014, US-037 |
 | US-045 | Evidence drawer with Sourcify links | C | P0 | M | merged | US-014, US-025, US-037 |
@@ -1894,7 +1894,7 @@ Critical for GATE-24: signature failures must be visible, not hidden in the evid
 | Sponsor | Future Society |
 | Dependencies | US-037, US-041 |
 | Acceptance gates | GATE-1, GATE-2, GATE-22 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
