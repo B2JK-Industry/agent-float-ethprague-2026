@@ -168,7 +168,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-118 | Score engine: pure function over `MultiSourceEvidence`. Locked seniority weights (6 components); provisional relevance weights (4 components, swappable in one file before merge); trust-discount 0.6 on unverified components; **RAW-DISCOUNTED axis (no normalization to ceiling — per EPIC Section 10 update 2026-05-09)**; tier ceiling enforcement (no-verified-GitHub → seniority cap 0.70; public-read manifest → tier cap A; v1 max final score 79); emits `ScoreBreakdown` + tier label. | B | P0 | M | open | US-117 |
 | US-119 | Storage-Layout Hygiene aggregator across implementation history per proxy (chronological pairwise diff over Sourcify `proxyResolution.implementations`; subject-level avg) | B | P0 | L | open | US-027, US-113 |
 | US-120 | Cross-chain auto-discovery via `/v2/contract/all-chains/{address}` for Sourcify entries | B | P1 | S | merged | US-113 |
-| US-121 | Bytecode similarity submit flow: POST `/v2/verify/similarity/{chainId}/{address}` → poll → re-fetch → re-evaluate score | B | P1 | M | open | US-113 |
+| US-121 | Bytecode similarity submit flow: POST `/v2/verify/similarity/{chainId}/{address}` → poll → re-fetch → re-evaluate score | B | P1 | M | merged | US-113 |
 | US-122 | Cache extension (extends US-032): GitHub / RPC / ENS-subgraph keys with per-namespace TTLs per EPIC Section 12 | B | P0 | S | merged | US-032, US-114, US-115, US-116 |
 | US-123 | Source-pattern detection from Sourcify `sources` (Pausable, Ownable, UUPS, AccessControl) for drawer badges | B | P1 | M | open | US-113 |
 | US-124 | License + compiler-recency extraction (data path; available for drawer + future relevance redesign; not yet a score component in v1) | B | P1 | S | merged | US-113 |
@@ -3650,7 +3650,7 @@ EPIC reference: US-085. Renumbered to US-120.
 | Sponsor | Sourcify |
 | Dependencies | US-113 |
 | Acceptance gates | GATE-33 |
-| Status | open (Epic 2) |
+| Status | merged |
 
 #### Scope
 
