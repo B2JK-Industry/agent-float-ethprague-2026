@@ -604,6 +604,42 @@ describe("loadReport — raw 0x address bypass (US-082)", () => {
     expect(vi.mocked(resolveEnsRecords)).not.toHaveBeenCalled();
   });
 
+  it("serves raw-address public-read from prewarmed cache when available", async () => {
+    const RAW = "0x87870BCA3F3fd6335C3F4ce8392D69350B4fA4E2";
+    const implementation =
+      "0x05f2e3ca9c8b9ce7b5b80e57db2f4bd8e8fb3322";
+    const slot =
+      `0x${"0".repeat(24)}${implementation.slice(2)}` as const;
+    global.fetch = vi.fn().mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          eip1967Slot: slot,
+          sourcify: { match: "exact_match" },
+        }),
+    });
+
+    const ev = await import("@upgrade-siren/evidence");
+    const result = await loadReport(RAW, {
+      mockMode: false,
+      publicReadIntent: true,
+      origin: "https://upgrade-siren.vercel.app",
+    });
+
+    expect(result.kind).toBe("loaded");
+    if (result.kind !== "loaded") return;
+    expect(result.report.mode).toBe("public-read");
+    expect(result.report.verdict).toBe("REVIEW");
+    expect(result.report.currentImplementation.toLowerCase()).toBe(
+      implementation,
+    );
+    expect(result.report.sourcify.currentVerified).toBe(true);
+    expect(result.report.findings.map((f) => f.title)).toContain(
+      "prewarmed booth cache hit for public-read target",
+    );
+    expect(vi.mocked(ev.runPublicReadFallback)).not.toHaveBeenCalled();
+  });
+
   it("forwards a public-read fallback engine error as kind:'error'", async () => {
     const ev = await import("@upgrade-siren/evidence");
     vi.mocked(ev.runPublicReadFallback).mockResolvedValueOnce({

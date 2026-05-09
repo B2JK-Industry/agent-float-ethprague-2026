@@ -35,7 +35,7 @@ describe("demo.config", () => {
     expect(dangerous.target).toBe("dangerous.upgrade-siren-demo.eth");
     expect(dangerous.expectedVerdict).toBe("SIREN");
     expect(buildScenarioHref(dangerous)).toBe(
-      "/r/dangerous.upgrade-siren-demo.eth",
+      "/r/dangerous.upgrade-siren-demo.eth?mock=true",
     );
   });
 
@@ -44,7 +44,7 @@ describe("demo.config", () => {
     expect(unverified.target).toBe("unverified.upgrade-siren-demo.eth");
     expect(unverified.expectedVerdict).toBe("SIREN");
     expect(buildScenarioHref(unverified)).toBe(
-      "/r/unverified.upgrade-siren-demo.eth",
+      "/r/unverified.upgrade-siren-demo.eth?mock=true",
     );
   });
 
@@ -113,10 +113,10 @@ describe("DemoPage", () => {
     ).toHaveAttribute("href", "/r/safe.upgrade-siren-demo.eth");
     expect(
       screen.getByRole("link", { name: /dangerous upgrade/i }),
-    ).toHaveAttribute("href", "/r/dangerous.upgrade-siren-demo.eth");
+    ).toHaveAttribute("href", "/r/dangerous.upgrade-siren-demo.eth?mock=true");
     expect(
       screen.getByRole("link", { name: /unverified upgrade/i }),
-    ).toHaveAttribute("href", "/r/unverified.upgrade-siren-demo.eth");
+    ).toHaveAttribute("href", "/r/unverified.upgrade-siren-demo.eth?mock=true");
   });
 
   it("renders the live-public-read row as an active link to the Aave V3 Pool target", () => {

@@ -380,8 +380,9 @@ async function readPrewarmedCacheEntry(
   origin: string | undefined,
   chainId: number,
   address: Address,
+  options: { readonly force?: boolean } = {},
 ): Promise<PrewarmCacheEntry | null> {
-  if (!isBoothFallbackEnabled()) return null;
+  if (!options.force && !isBoothFallbackEnabled()) return null;
   const path = `/cache/${chainId}/${address.toLowerCase()}.json`;
   const url = origin ? `${origin}${path}` : path;
   try {
@@ -426,6 +427,35 @@ export async function loadReport(
   // addresses (only plausible ENS names), so without this branch the
   // Aave V3 Pool / arbitrary-contract scenario fails at the ENS gate.
   if (isRawAddress(name)) {
+    const proxyAddress = name.trim() as Address;
+    const cacheEntry = await readPrewarmedCacheEntry(
+      options.origin,
+      MAINNET_CHAIN_ID,
+      proxyAddress,
+      { force: true },
+    );
+    if (cacheEntry !== null) {
+      return {
+        kind: "loaded",
+        report: buildPublicReadReportFromAddress(name, {
+          kind: "ok",
+          mode: "public-read",
+          confidence: "public-read",
+          inputKind: "address",
+          inputName: null,
+          proxyAddress,
+          currentImplementation: cachedSlotImplementation(cacheEntry),
+          sourcifyStatus: cachedSourcifyMatch(cacheEntry),
+          sourcifyMetadata: null,
+          notes: [
+            "input recognised as raw 0x address",
+            "prewarmed booth cache hit for public-read target",
+          ],
+        }),
+        source: "live",
+      };
+    }
+
     const fallback = await runPublicReadFallback(name.trim(), {
       chainId: MAINNET_CHAIN_ID,
       rpcUrl: rpcUrlForChain(MAINNET_CHAIN_ID),

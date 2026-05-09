@@ -26,6 +26,7 @@ export type DemoScenario = {
   /** ENS name or 0x address. `null` = pending US-062, render greyed-out. */
   readonly target: string | null;
   readonly mode: DemoScenarioMode;
+  readonly useMock?: boolean;
   readonly expectedVerdict: Verdict | "REVIEW";
   readonly description: string;
 };
@@ -45,18 +46,20 @@ export const DEMO_SCENARIOS: readonly DemoScenario[] = [
     label: "Dangerous upgrade",
     target: "dangerous.upgrade-siren-demo.eth",
     mode: "signed-manifest",
+    useMock: true,
     expectedVerdict: "SIREN",
     description:
-      "V2 adds sweep() and reorders storage — drains the vault.",
+      "Booth snapshot: V2 adds sweep() and reorders storage — drains the vault.",
   },
   {
     key: "unverified",
     label: "Unverified upgrade",
     target: "unverified.upgrade-siren-demo.eth",
     mode: "signed-manifest",
+    useMock: true,
     expectedVerdict: "SIREN",
     description:
-      "Current implementation is not verified on Sourcify. No source, no upgrade.",
+      "Booth snapshot: current implementation is not verified on Sourcify. No source, no upgrade.",
   },
   {
     key: "live-public-read",
@@ -76,7 +79,11 @@ export const DEMO_SCENARIOS: readonly DemoScenario[] = [
 export function buildScenarioHref(scenario: DemoScenario): string | null {
   if (scenario.target === null) return null;
   const path = `/r/${encodeURIComponent(scenario.target)}`;
-  return scenario.mode === "public-read" ? `${path}?mode=public-read` : path;
+  const params = new URLSearchParams();
+  if (scenario.mode === "public-read") params.set("mode", "public-read");
+  if (scenario.useMock === true) params.set("mock", "true");
+  const query = params.toString();
+  return query.length > 0 ? `${path}?${query}` : path;
 }
 
 export function findScenario(key: DemoScenarioKey): DemoScenario {

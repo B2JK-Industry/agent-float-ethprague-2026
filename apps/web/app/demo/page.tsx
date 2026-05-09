@@ -25,10 +25,9 @@ export default function DemoPage(): React.JSX.Element {
           Demo runner
         </h1>
         <p className="max-w-2xl text-sm text-t2">
-          Four scenarios. ENS resolves, the proxy implementation is read from
-          chain, Sourcify evidence loads, the operator signature is verified —
-          all in under five seconds. Each row leads to the live verdict page on
-          Sepolia.
+          Four scenarios. Safe and Aave read live evidence; dangerous and
+          unverified use booth snapshots so the risk story stays focused on
+          selector, storage, and verification findings.
         </p>
       </header>
 
