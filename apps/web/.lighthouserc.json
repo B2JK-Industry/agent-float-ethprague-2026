@@ -2,7 +2,10 @@
   "ci": {
     "collect": {
       "startServerCommand": "pnpm dev",
-      "url": ["http://localhost:3000/demo"],
+      "url": [
+        "http://localhost:3000/r/vault.upgrade-siren-demo.eth?mock=true",
+        "http://localhost:3000/demo"
+      ],
       "numberOfRuns": 1,
       "settings": {
         "preset": "desktop"
