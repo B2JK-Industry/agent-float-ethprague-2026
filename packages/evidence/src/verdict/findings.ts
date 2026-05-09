@@ -38,6 +38,11 @@ export const FINDING_IDS = {
   // Mode
   PUBLIC_READ_MODE: 'PUBLIC_READ_MODE',
   MOCK_MODE: 'MOCK_MODE',
+
+  // V1-anchored bytecode interpretation (US-078). Supplants
+  // VERIFICATION_CURRENT_UNVERIFIED's critical severity when the
+  // unverified current bytecode is byte-equivalent to a verified V1.
+  IMPLEMENTATION_HYPOTHESIS_V1_DERIVED: 'IMPLEMENTATION_HYPOTHESIS_V1_DERIVED',
 } as const;
 
 export type FindingId = (typeof FINDING_IDS)[keyof typeof FINDING_IDS];

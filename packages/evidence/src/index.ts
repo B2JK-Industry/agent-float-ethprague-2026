@@ -137,6 +137,22 @@ export type {
   StorageLayoutEntry,
 } from './diff/storage.js';
 
+export {
+  bytecodeNgramConfidence,
+  detectStorageLayoutMarkers,
+  matchAgainstV1,
+  qualifiesForV1DerivedReview,
+  stripMetadataFooter,
+} from './diff/bytecodeMatch.js';
+
+export type {
+  BytecodeHypothesis,
+  BytecodeMatchResult,
+  MatchAgainstV1Options,
+  SelectorWithName,
+  StorageLayoutMarkers,
+} from './diff/bytecodeMatch.js';
+
 export { diffSourceFiles } from './diff/source.js';
 
 export type {
