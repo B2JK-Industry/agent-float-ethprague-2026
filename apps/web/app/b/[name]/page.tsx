@@ -34,6 +34,7 @@ import { GitHubDrawer } from "../../../components/bench/drawers/GitHubDrawer";
 import { OnchainDrawer } from "../../../components/bench/drawers/OnchainDrawer";
 import { SourcifyDrawer } from "../../../components/bench/drawers/SourcifyDrawer";
 import { BENCH_SUB_BRAND, BENCH_SUB_TAGLINE } from "../../../lib/branding";
+import { isDemoMockSubject } from "../../../lib/demoMocks";
 import { loadBench, type LoadBenchResult } from "./loadBench";
 
 type PageProps = {
@@ -69,11 +70,13 @@ export default async function BenchPage(
   const { name: rawName } = await props.params;
   const name = decodeURIComponent(rawName);
   const result: LoadBenchResult = await loadBench(name);
+  const isMockedDemo = isDemoMockSubject(name);
 
   return (
     <main
       className="mx-auto flex min-h-screen max-w-6xl flex-col gap-8 px-6 py-12"
       data-route="bench"
+      data-mock-demo={isMockedDemo ? "true" : "false"}
     >
       <header className="flex flex-col gap-2">
         <span className="font-mono text-xs uppercase tracking-[0.18em] text-t2">
@@ -86,6 +89,25 @@ export default async function BenchPage(
           {BENCH_SUB_TAGLINE}
         </p>
       </header>
+
+      {isMockedDemo ? (
+        <section
+          aria-label="Booth demo notice"
+          data-section="booth-demo-notice"
+          className="flex flex-wrap items-center justify-between gap-3 border border-dashed border-tier-c bg-bg px-4 py-3"
+        >
+          <div className="flex flex-col gap-1">
+            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-tier-c">
+              Booth demo · curated snapshot
+            </span>
+            <span className="text-sm text-t2">
+              Score below is a tuned booth fixture so the predicted tier
+              on the landing tile matches what you see here. Live four-source
+              orchestration runs for any other ENS name you type in.
+            </span>
+          </div>
+        </section>
+      ) : null}
 
       {result.kind === "error" ? (
         <section

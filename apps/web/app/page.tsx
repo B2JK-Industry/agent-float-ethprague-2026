@@ -12,6 +12,17 @@ const TIER_TONE_CLASS: Record<string, string> = {
   U: "border-tier-u text-tier-u",
 };
 
+// Score thresholds match packages/evidence/src/score/weights.ts. v1
+// final-score ceiling is 79; S is reserved for verified-GitHub v2.
+const TIER_RANGE: Record<string, string> = {
+  S: "90+",
+  A: "75–89",
+  B: "60–74",
+  C: "45–59",
+  D: "0–44",
+  U: "no data",
+};
+
 export default function HomePage(): React.JSX.Element {
   return (
     <main
@@ -59,7 +70,7 @@ export default function HomePage(): React.JSX.Element {
               <div
                 key={t}
                 data-tier={t}
-                className={`flex items-center justify-between gap-3 border bg-bg px-4 py-3 font-mono text-sm uppercase tracking-[0.16em] ${TIER_TONE_CLASS[t]}`}
+                className={`flex items-center justify-between gap-3 border bg-bg px-4 py-3 font-mono uppercase tracking-[0.16em] ${TIER_TONE_CLASS[t]}`}
               >
                 <span
                   aria-hidden
@@ -67,8 +78,11 @@ export default function HomePage(): React.JSX.Element {
                 >
                   {t}
                 </span>
-                <span className="text-[10px] tracking-[0.18em] text-t3">
-                  tier
+                <span
+                  className="text-right text-[10px] tracking-[0.18em] text-t3"
+                  style={{ fontVariantNumeric: "tabular-nums" }}
+                >
+                  {TIER_RANGE[t]}
                 </span>
               </div>
             ))}
