@@ -1,4 +1,5 @@
 import type { RecordEngine, RecordKey } from './types.js';
+import { addrEthEngine } from './addr-eth.js';
 
 const REGISTRY = new Map<RecordKey, RecordEngine>();
 
@@ -24,3 +25,5 @@ export function hasEngine(key: RecordKey): boolean {
 export function clearRegistry(): void {
   REGISTRY.clear();
 }
+
+register(addrEthEngine);
