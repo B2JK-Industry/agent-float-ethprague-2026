@@ -297,3 +297,19 @@ export type {
   DeployerCrosswalkResult,
   DeployerLookup,
 } from './sources/onchain/crosswalk.js';
+
+export { fetchEnsInternalSignals } from './sources/ens-internal/fetch.js';
+
+export type { FetchEnsInternalSignalsOptions } from './sources/ens-internal/fetch.js';
+
+export {
+  ENS_SUBGRAPH_ID,
+} from './sources/ens-internal/types.js';
+
+export type {
+  EnsInternalError,
+  EnsInternalFailureReason,
+  EnsInternalOk,
+  EnsInternalResult,
+  EnsInternalSignals,
+} from './sources/ens-internal/types.js';
