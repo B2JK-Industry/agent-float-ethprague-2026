@@ -41,8 +41,8 @@ Tracker-only owners (not picked up by dev agents):
 | US-001 | Foundry workspace with pinned compiler 0.8.24 | A | P0 | S | merged | none |
 | US-002 | EIP-1967 transparent proxy fixture contract | A | P0 | S | merged | none |
 | US-003 | VaultV1 baseline implementation | A | P0 | S | merged | none |
-| US-004 | VaultV2Safe storage-compatible implementation | A | P0 | M | open | US-003 |
-| US-005 | VaultV2Dangerous implementation with sweep and incompatible storage | A | P0 | M | open | US-003 |
+| US-004 | VaultV2Safe storage-compatible implementation | A | P0 | M | merged | US-003 |
+| US-005 | VaultV2Dangerous implementation with sweep and incompatible storage | A | P0 | M | merged | US-003 |
 | US-006 | Unverified-implementation deployment scenario contract | A | P0 | S | merged | none |
 | US-007 | Sourcify verification scripts for V1, V2Safe, V2Dangerous | A | P0 | M | open | US-009 |
 | US-008 | Foundry tests: storage-layout assertions, dangerous-selector behavior, upgrade flow | A | P0 | M | open | US-001, US-002, US-003, US-004, US-005 |
@@ -288,7 +288,7 @@ V1 storage layout is the reference for V2Safe (US-004 must be storage-compatible
 | Sponsor | - |
 | Dependencies | US-003 |
 | Acceptance gates | GATE-6 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -332,7 +332,7 @@ The diff command in verification is the human-readable check that V1 and V2Safe 
 | Sponsor | Sourcify |
 | Dependencies | US-003 |
 | Acceptance gates | GATE-6, GATE-11 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
