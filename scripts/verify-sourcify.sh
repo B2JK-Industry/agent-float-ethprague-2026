@@ -5,12 +5,16 @@
 # scenario requires Sourcify to return `not_found` for that contract address.
 #
 # Idempotent: forge verify-contract reports `already verified` for re-runs, and
-# this script exits 0 in that case.
+# this script exits 0 in that case. Per-target verification failures are
+# tracked and the script exits NON-ZERO when any verification failed, so a
+# silent CI/operator run cannot mistake a partial verification for success.
 #
 # Prerequisites:
 #   - deployments/sepolia.json populated by scripts/deploy/Deploy.s.sol --broadcast
 #   - forge installed (uses `forge verify-contract --verifier sourcify`)
 #   - jq installed
+#   - ALCHEMY_RPC_SEPOLIA exported. Without it, forge defaults to
+#     http://localhost:8545 and the verification queries the wrong chain.
 #
 # Reproducible verification of the published, deterministic build:
 #   - solc pinned at 0.8.24 in foundry.toml
@@ -40,6 +44,16 @@ if [ "$V1" = "$ZERO_ADDR" ] \
     exit 0
 fi
 
+if [ -z "${ALCHEMY_RPC_SEPOLIA:-}" ]; then
+    echo "ERROR: ALCHEMY_RPC_SEPOLIA is unset." >&2
+    echo "Without --rpc-url, forge verify-contract defaults to http://localhost:8545" >&2
+    echo "and queries the wrong chain. Tracker US-060." >&2
+    exit 1
+fi
+
+# Track per-target outcomes so a partial verification can never look like success.
+FAILED_LABELS=()
+
 verify_one() {
     local addr="$1"
     local target="$2"
@@ -52,6 +66,7 @@ verify_one() {
 
     echo "VERIFY $label  $addr  ->  $target"
     if forge verify-contract \
+        --rpc-url "$ALCHEMY_RPC_SEPOLIA" \
         --chain sepolia \
         --verifier sourcify \
         --watch \
@@ -60,7 +75,8 @@ verify_one() {
     then
         echo "OK     $label verified at https://sourcify.dev/#/lookup/$addr"
     else
-        echo "WARN   $label verification command exited non-zero; check Sourcify status manually" >&2
+        echo "FAIL   $label verification command exited non-zero" >&2
+        FAILED_LABELS+=("$label")
     fi
 }
 
@@ -83,3 +99,10 @@ cat <<EOF
 | VaultV2Dangerous| $V2DANGEROUS | https://sourcify.dev/#/lookup/$V2DANGEROUS |
 | UnverifiedImpl  | $UNVERIFIED | (intentionally not verified)      |
 EOF
+
+if [ "${#FAILED_LABELS[@]}" -gt 0 ]; then
+    echo
+    echo "ERROR: ${#FAILED_LABELS[@]} verification(s) failed: ${FAILED_LABELS[*]}" >&2
+    echo "Inspect Sourcify status manually before treating the demo as verified." >&2
+    exit 1
+fi
