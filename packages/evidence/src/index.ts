@@ -264,3 +264,27 @@ export type {
 
 export type { ResolveSubjectOptions } from './subject/resolver.js';
 export type { ValidateSubjectManifestResult } from './subject/validate.js';
+
+export { fetchOnchainActivity } from './sources/onchain/activity.js';
+
+export type {
+  FetchOnchainActivityOptions,
+} from './sources/onchain/activity.js';
+
+export type {
+  OnchainActivity,
+  OnchainActivityError,
+  OnchainActivityFailureReason,
+  OnchainActivityOk,
+  OnchainActivityResult,
+} from './sources/onchain/types.js';
+
+export {
+  countContractsDeployedBy,
+  crosswalkDeployers,
+} from './sources/onchain/crosswalk.js';
+
+export type {
+  DeployerCrosswalkResult,
+  DeployerLookup,
+} from './sources/onchain/crosswalk.js';
