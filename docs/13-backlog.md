@@ -70,7 +70,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-023 | Upgraded(address) event reader | B | P0 | S | merged | none |
 | US-024 | Sourcify verification status fetch | B | P0 | M | open | none |
 | US-025 | Sourcify metadata fetch (source, ABI, compiler, storage layout) | B | P0 | M | open | none |
-| US-026 | ABI risky-selector diff | B | P0 | M | open | US-025 |
+| US-026 | ABI risky-selector diff | B | P0 | M | merged | US-025 |
 | US-027 | Storage-layout compatibility diff | B | P0 | M | open | US-025 |
 | US-028 | EIP-712 Siren Report signature verification against upgrade-siren:owner | B | P0 | M | merged | US-014, US-015, US-017 |
 | US-029 | Verdict engine: SAFE / REVIEW / SIREN rules | B | P0 | L | open | US-018, US-019, US-020, US-022, US-026, US-027, US-028 |
@@ -79,7 +79,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-032 | Sourcify response cache layer with TTL | B | P1 | M | open | US-024, US-025 |
 | US-033 | ENS resolution cache layer | B | P1 | S | merged | US-017 |
 | US-034 | RPC retry/failover and Sourcify rate-limit handling | B | P1 | M | open | US-022, US-024 |
-| US-035 | 4byte signature lookup for unverified contracts | B | P1 | S | open | US-026 |
+| US-035 | 4byte signature lookup for unverified contracts | B | P1 | S | merged | US-026 |
 | US-036 | Upgrade-window grace policy (P1) | B | P1 | M | open | US-018, US-029 |
 
 ### Stream C — Web UX and Siren Agent
@@ -1219,7 +1219,7 @@ Storage layout being `null` is a legitimate state, not an error: many older cont
 | Sponsor | Sourcify |
 | Dependencies | US-025 |
 | Acceptance gates | GATE-11 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -1596,7 +1596,7 @@ Booth-day risk mitigation. Without retries, a single Alchemy hiccup can render t
 | Sponsor | Sourcify |
 | Dependencies | US-026 |
 | Acceptance gates | - |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
