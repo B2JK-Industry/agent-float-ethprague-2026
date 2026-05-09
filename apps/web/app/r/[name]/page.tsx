@@ -341,7 +341,10 @@ function PrecomputedSnapshotBanner({
 
 function HeaderNav(): React.JSX.Element {
   return (
-    <header className="flex items-center justify-between">
+    <nav
+      aria-label="Top navigation"
+      className="flex items-center justify-between"
+    >
       <Link
         href="/"
         className="font-mono text-xs uppercase tracking-[0.18em] text-t2 hover:text-t1"
@@ -354,6 +357,27 @@ function HeaderNav(): React.JSX.Element {
       >
         Booth demo →
       </Link>
+    </nav>
+  );
+}
+
+/**
+ * Page-level hero header — mirrors the /b/[name] Bench Mode page so the
+ * two routes feel like sibling surfaces, not unrelated screens. Daniel
+ * 2026-05-10: "preco vyzera /r/safe.* inak ako /b/letadlo.eth".
+ */
+function PageHero({ name }: { name: string }): React.JSX.Element {
+  return (
+    <header className="flex flex-col gap-2">
+      <span className="font-mono text-xs uppercase tracking-[0.18em] text-t2">
+        Upgrade Siren · Single-Contract Mode
+      </span>
+      <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-t1 md:text-4xl">
+        {name}
+      </h1>
+      <p className="font-mono text-xs uppercase tracking-[0.18em] text-verdict-siren">
+        No source, no upgrade.
+      </p>
     </header>
   );
 }
@@ -363,7 +387,7 @@ function PendingFallback(): React.JSX.Element {
     <section
       aria-label="Loading evidence"
       data-state="loading"
-      className="border border-border bg-raised p-4"
+      className="border border-border bg-surface p-4"
     >
       <LoadingChecklist steps={pendingChecklist()} />
     </section>
@@ -421,7 +445,7 @@ async function VerdictResultBody({
         </div>
         <section
           aria-label="Governance comment"
-          className="border border-border bg-raised p-6"
+          className="border border-border bg-surface p-6"
         >
           <h2 className="mb-3 font-display text-xl font-semibold text-t1">
             Governance comment
@@ -469,7 +493,7 @@ async function VerdictResultBody({
         aria-label="Loading evidence"
         data-state="loaded"
         data-source={source}
-        className="border border-border bg-raised p-4"
+        className="border border-border bg-surface p-4"
       >
         <LoadingChecklist steps={steps} />
       </section>
@@ -514,7 +538,7 @@ async function VerdictResultBody({
 
       <section
         aria-label="Governance comment"
-        className="border border-border bg-raised p-6"
+        className="border border-border bg-surface p-6"
       >
         <h2 className="mb-3 font-display text-xl font-semibold text-t1">
           Governance comment
@@ -561,6 +585,7 @@ export default async function VerdictResultPage(
       }
     >
       <HeaderNav />
+      <PageHero name={name} />
       <Suspense fallback={<PendingFallback />}>
         <VerdictResultBody
           name={name}
