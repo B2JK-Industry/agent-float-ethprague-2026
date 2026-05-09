@@ -353,8 +353,10 @@ export type {
 } from './sourcify/licenseCompiler.js';
 
 export { fetchGithubP0Source } from './sources/github/fetch.js';
+export { fetchGithubP1Enrichment } from './sources/github/p1.js';
 
 export type { FetchGithubP0SourceOptions } from './sources/github/fetch.js';
+export type { FetchGithubP1EnrichmentOptions } from './sources/github/p1.js';
 
 export type {
   GithubFailureReason,
