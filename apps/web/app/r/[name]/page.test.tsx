@@ -62,6 +62,38 @@ describe("VerdictResultPage", () => {
     });
   });
 
+  it("recognises ?v=<verdict>&t=<timestamp> as precomputed snapshot mode", async () => {
+    const main = await renderPage(
+      paramsFor(FIXTURE_SUBNAMES.safe, {
+        v: "SAFE",
+        t: "2026-05-09T12:00:00Z",
+      }),
+    );
+    expect(main.getAttribute("data-mode")).toBe("precomputed");
+    // loadReport must NOT be called on the precomputed path — the verdict
+    // is read straight from the URL params, no engine round-trip.
+    expect(loadReport).not.toHaveBeenCalled();
+  });
+
+  it("ignores ?v=<verdict> when t= is missing (falls through to live)", async () => {
+    const main = await renderPage(
+      paramsFor(FIXTURE_SUBNAMES.safe, { v: "SAFE" }),
+    );
+    expect(main.getAttribute("data-mode")).toBe("live");
+    expect(loadReport).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores ?v=garbage even with t= present (must be SAFE/REVIEW/SIREN)", async () => {
+    const main = await renderPage(
+      paramsFor(FIXTURE_SUBNAMES.safe, {
+        v: "MAYBE",
+        t: "2026-05-09T12:00:00Z",
+      }),
+    );
+    expect(main.getAttribute("data-mode")).toBe("live");
+    expect(loadReport).toHaveBeenCalledTimes(1);
+  });
+
   it("threads ?mock=true into mockMode and tags the page data-mode='mock'", async () => {
     const main = await renderPage(
       paramsFor(FIXTURE_SUBNAMES.dangerous, { mock: "true" }),

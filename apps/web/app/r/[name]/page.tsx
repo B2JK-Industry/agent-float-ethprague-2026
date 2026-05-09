@@ -10,11 +10,22 @@ import {
   LoadingChecklist,
   type ChecklistStep,
 } from "../../../components/LoadingChecklist";
+import { ShareVerdictLink } from "../../../components/ShareVerdictLink";
 import { VerdictCard } from "../../../components/VerdictCard";
 
 import { loadReport } from "./loadReport";
 
-import type { SirenReport } from "@upgrade-siren/shared";
+import type { Address, SirenReport, Verdict } from "@upgrade-siren/shared";
+
+const VERDICT_VALUES: ReadonlySet<Verdict> = new Set([
+  "SAFE",
+  "REVIEW",
+  "SIREN",
+]);
+
+function isVerdict(value: string | undefined): value is Verdict {
+  return value !== undefined && VERDICT_VALUES.has(value as Verdict);
+}
 
 export const metadata: Metadata = {
   title: "Verdict — Upgrade Siren",
@@ -136,6 +147,92 @@ function reportUrlFor(name: string): string {
   return `/r/${encodeURIComponent(name)}/report.json`;
 }
 
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" as Address;
+
+/**
+ * Build a synthetic SirenReport for the precomputed-snapshot path (US-053).
+ * The verdict word + timestamp are taken verbatim from the URL params; every
+ * other field is filled with honest placeholders so the rendered card carries
+ * `mock: true` and a "Showing precomputed snapshot — verify live now" banner
+ * surfaces the situation to the reader.
+ */
+function buildPrecomputedReport(
+  name: string,
+  verdict: Verdict,
+  timestamp: string,
+): SirenReport {
+  return {
+    schema: "siren-report@1",
+    name,
+    chainId: 0,
+    proxy: ZERO_ADDRESS,
+    previousImplementation: null,
+    currentImplementation: ZERO_ADDRESS,
+    verdict,
+    summary: `Precomputed snapshot of a ${verdict} verdict at ${timestamp}. Live state may differ — click "Verify live now" to re-fetch.`,
+    findings: [],
+    sourcify: {
+      previousVerified: null,
+      currentVerified: false,
+      links: [],
+    },
+    mode: "mock",
+    confidence: "mock",
+    ens: {
+      recordsResolvedLive: false,
+      manifestHash: null,
+      owner: null,
+    },
+    auth: {
+      status: "unsigned",
+      signatureType: null,
+      signer: null,
+      signature: null,
+      signedAt: null,
+    },
+    recommendedAction:
+      verdict === "SAFE" ? "approve" : verdict === "REVIEW" ? "review" : "reject",
+    mock: true,
+    generatedAt: timestamp,
+  };
+}
+
+function PrecomputedSnapshotBanner({
+  timestamp,
+  liveHref,
+}: {
+  timestamp: string;
+  liveHref: string;
+}): React.JSX.Element {
+  return (
+    <section
+      aria-label="Precomputed snapshot banner"
+      data-state="precomputed-snapshot"
+      className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-dashed border-verdict-review bg-raised px-4 py-3"
+    >
+      <div className="flex flex-col gap-1">
+        <span className="font-mono text-xs uppercase tracking-[0.18em] text-verdict-review">
+          Precomputed snapshot
+        </span>
+        <span className="text-sm text-t2">
+          Original generation timestamp{" "}
+          <time dateTime={timestamp} className="font-mono text-t1">
+            {timestamp}
+          </time>
+          . Live state may differ.
+        </span>
+      </div>
+      <Link
+        href={liveHref}
+        data-action="verify-live-now"
+        className="rounded border border-t1 px-3 py-1 font-mono text-xs uppercase tracking-wider text-t1 hover:bg-bg"
+      >
+        Verify live now
+      </Link>
+    </section>
+  );
+}
+
 function HeaderNav(): React.JSX.Element {
   return (
     <header className="flex items-center justify-between">
@@ -171,11 +268,66 @@ async function VerdictResultBody({
   name,
   mockMode,
   publicReadIntent,
+  precomputed,
 }: {
   name: string;
   mockMode: boolean;
   publicReadIntent: boolean;
+  precomputed: { verdict: Verdict; timestamp: string } | null;
 }): Promise<React.JSX.Element> {
+  if (precomputed !== null) {
+    const report = buildPrecomputedReport(
+      name,
+      precomputed.verdict,
+      precomputed.timestamp,
+    );
+    const reportUrl = reportUrlFor(name);
+    const liveHref = `/r/${encodeURIComponent(name)}`;
+    return (
+      <>
+        <PrecomputedSnapshotBanner
+          timestamp={precomputed.timestamp}
+          liveHref={liveHref}
+        />
+        <VerdictCard
+          verdict={report.verdict}
+          name={report.name}
+          proxy={report.proxy}
+          summary={report.summary}
+          auth={report.auth}
+          mode={report.mode}
+          mock={report.mock}
+        />
+        <div className="flex flex-wrap items-start gap-3">
+          <ShareVerdictLink
+            name={name}
+            verdict={report.verdict}
+            generatedAt={report.generatedAt}
+          />
+          <Link
+            href={liveHref}
+            className="rounded border border-t1 px-3 py-1 font-mono text-xs uppercase tracking-wider text-t1 hover:bg-bg"
+          >
+            Verify live now
+          </Link>
+        </div>
+        <section
+          aria-label="Governance comment"
+          className="rounded-md border border-border bg-raised p-6"
+        >
+          <h2 className="mb-3 font-display text-xl font-semibold text-t1">
+            Governance comment
+          </h2>
+          <GovernanceComment
+            report={report}
+            name={report.name}
+            reportUrl={reportUrl}
+          />
+        </section>
+      </>
+    );
+  }
+
   const result = await loadReport(name, { mockMode, publicReadIntent });
 
   if (result.kind === "empty" || result.kind === "error") {
@@ -233,6 +385,11 @@ async function VerdictResultBody({
           storageSummary={storageSummary}
           reportUrl={reportUrl}
         />
+        <ShareVerdictLink
+          name={report.name}
+          verdict={report.verdict}
+          generatedAt={report.generatedAt}
+        />
         <Link
           href="/demo"
           className="rounded border border-t1 px-3 py-1 font-mono text-xs uppercase tracking-wider text-t1 hover:bg-bg"
@@ -266,14 +423,28 @@ export default async function VerdictResultPage(
   const name = decodeURIComponent(rawName);
   const modeParam = Array.isArray(search.mode) ? search.mode[0] : search.mode;
   const mockParam = Array.isArray(search.mock) ? search.mock[0] : search.mock;
+  const vParam = Array.isArray(search.v) ? search.v[0] : search.v;
+  const tParam = Array.isArray(search.t) ? search.t[0] : search.t;
   const publicReadIntent = modeParam === "public-read";
   const mockMode = mockParam === "true" || mockParam === "1";
+  const precomputed =
+    isVerdict(vParam) && typeof tParam === "string" && tParam.length > 0
+      ? { verdict: vParam, timestamp: tParam }
+      : null;
 
   return (
     <main
       className="mx-auto flex min-h-screen max-w-5xl flex-col gap-8 px-6 py-12"
       data-page="verdict-result"
-      data-mode={mockMode ? "mock" : publicReadIntent ? "public-read" : "live"}
+      data-mode={
+        precomputed
+          ? "precomputed"
+          : mockMode
+            ? "mock"
+            : publicReadIntent
+              ? "public-read"
+              : "live"
+      }
     >
       <HeaderNav />
       <Suspense fallback={<PendingFallback />}>
@@ -281,6 +452,7 @@ export default async function VerdictResultPage(
           name={name}
           mockMode={mockMode}
           publicReadIntent={publicReadIntent}
+          precomputed={precomputed}
         />
       </Suspense>
     </main>
