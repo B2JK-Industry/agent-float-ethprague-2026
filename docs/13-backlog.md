@@ -62,10 +62,10 @@ Tracker-only owners (not picked up by dev agents):
 | US-015 | EIP-712 typed-data builder and signReport helper in packages/shared | B | P0 | S | merged | US-014 |
 | US-016 | Shared types package for cross-stream consumption | B | P0 | S | merged | none |
 | US-017 | ENS live record resolution (stable upgrade-siren records and manifest) | B | P0 | M | merged | none |
-| US-018 | Atomic upgrade-siren:upgrade_manifest parser and validator | B | P0 | M | open | US-014, US-017 |
+| US-018 | Atomic upgrade-siren:upgrade_manifest parser and validator | B | P0 | M | merged | US-014, US-017 |
 | US-019 | Public-read fallback path for absent Upgrade Siren records | B | P0 | M | merged | US-017 |
-| US-020 | Absent-record verdict paths (missing manifest, owner, malformed, slot mismatch) | B | P0 | M | open | US-018, US-019 |
-| US-021 | Schema version policy for upgrade-siren-manifest@1 | B | P0 | S | open | US-014, US-018 |
+| US-020 | Absent-record verdict paths (missing manifest, owner, malformed, slot mismatch) | B | P0 | M | merged | US-018, US-019 |
+| US-021 | Schema version policy for upgrade-siren-manifest@1 | B | P0 | S | merged | US-014, US-018 |
 | US-022 | EIP-1967 implementation slot reader | B | P0 | S | merged | none |
 | US-023 | Upgraded(address) event reader | B | P0 | S | merged | none |
 | US-024 | Sourcify verification status fetch | B | P0 | M | merged | none |
@@ -73,14 +73,14 @@ Tracker-only owners (not picked up by dev agents):
 | US-026 | ABI risky-selector diff | B | P0 | M | merged | US-025 |
 | US-027 | Storage-layout compatibility diff | B | P0 | M | merged | US-025 |
 | US-028 | EIP-712 Siren Report signature verification against upgrade-siren:owner | B | P0 | M | merged | US-014, US-015, US-017 |
-| US-029 | Verdict engine: SAFE / REVIEW / SIREN rules | B | P0 | L | open | US-018, US-019, US-020, US-022, US-026, US-027, US-028 |
+| US-029 | Verdict engine: SAFE / REVIEW / SIREN rules | B | P0 | L | merged | US-018, US-019, US-020, US-022, US-026, US-027, US-028 |
 | US-030 | Manifest hash-chain validation using previousManifestHash | B | P1 | S | open | US-018 |
 | US-031 | ENSIP-26 agent-context and agent-endpoint[web] record reading | B | P1 | S | merged | US-017 |
 | US-032 | Sourcify response cache layer with TTL | B | P1 | M | open | US-024, US-025 |
 | US-033 | ENS resolution cache layer | B | P1 | S | merged | US-017 |
 | US-034 | RPC retry/failover and Sourcify rate-limit handling | B | P1 | M | merged | US-022, US-024 |
 | US-035 | 4byte signature lookup for unverified contracts | B | P1 | S | merged | US-026 |
-| US-036 | Upgrade-window grace policy (P1) | B | P1 | M | open | US-018, US-029 |
+| US-036 | Upgrade-window grace policy (P1) | B | P1 | M | merged | US-018, US-029 |
 
 ### Stream C — Web UX and Siren Agent
 
@@ -888,7 +888,7 @@ This is the core ENS reader. Live resolution is the GATE-3 + GATE-17 invariant; 
 | Sponsor | ENS |
 | Dependencies | US-014, US-017 |
 | Acceptance gates | GATE-10 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -901,7 +901,7 @@ Implement `parseUpgradeManifest(raw: string)` in `packages/evidence/src/manifest
 - [ ] Address fields validated as 0x-prefixed 20-byte hex
 - [ ] `reportHash` validated as 0x-prefixed 32-byte hex
 - [ ] `effectiveFrom` validated as ISO-8601 string
-- [ ] `schema` field equals `siren-upgrade-manifest@1` for known version; unknown versions return `unknown_schema_version` error
+- [ ] `schema` field equals `upgrade-siren-manifest@1` for known version; unknown versions return `unknown_schema_version` error
 - [ ] Five unit tests covering each error branch + happy path
 - [ ] PR body references US-018
 
@@ -972,7 +972,7 @@ This is the addition that makes Upgrade Siren useful for protocols that have not
 | Sponsor | - |
 | Dependencies | US-018, US-019 |
 | Acceptance gates | GATE-13 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -1013,15 +1013,15 @@ These edge cases are the difference between a verdict engine that handles real-w
 | Sponsor | - |
 | Dependencies | US-014, US-018 |
 | Acceptance gates | - |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
-Document and enforce the schema version policy: `siren-upgrade-manifest@1` is the only known version at hackathon time. Unknown versions parsed by US-018 must surface a `unknown_schema_version` reason that the verdict engine treats as `REVIEW`. Document the upgrade path for v2: introduce a new schema, dual-read for a deprecation window, then sunset v1. Out of scope: implementing v2.
+Document and enforce the schema version policy: `upgrade-siren-manifest@1` is the only known version at hackathon time. Unknown versions parsed by US-018 must surface a `unknown_schema_version` reason that the verdict engine treats as `REVIEW`. Document the upgrade path for v2: introduce a new schema, dual-read for a deprecation window, then sunset v1. Out of scope: implementing v2.
 
 #### Acceptance Criteria
 
-- [ ] `packages/evidence/src/manifest/versionPolicy.ts` exports `KNOWN_MANIFEST_VERSIONS=["siren-upgrade-manifest@1"]`
+- [ ] `packages/evidence/src/manifest/versionPolicy.ts` exports `KNOWN_MANIFEST_VERSIONS=["upgrade-siren-manifest@1"]`
 - [ ] Parser (US-018) imports this list and rejects unknown versions
 - [ ] `packages/evidence/MANIFEST_VERSIONING.md` documents: how to add a new version, dual-read window, and sunset criteria
 - [ ] PR body references US-021
@@ -1347,7 +1347,7 @@ This is the GATE-24 enforcement point. Verdict engine (US-029) uses this; if the
 | Sponsor | Sourcify, ENS, Future Society |
 | Dependencies | US-018, US-019, US-020, US-022, US-026, US-027, US-028 |
 | Acceptance gates | GATE-2, GATE-13 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -1636,7 +1636,7 @@ P1 because the unverified demo scenario already returns `SIREN` from the verific
 | Sponsor | - |
 | Dependencies | US-018, US-029 |
 | Acceptance gates | - |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
