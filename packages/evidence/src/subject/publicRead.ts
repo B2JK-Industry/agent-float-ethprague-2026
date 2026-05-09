@@ -50,10 +50,21 @@ export interface SubjectPublicReadInference {
   readonly primaryAddress: Address | null;
   readonly sources: SubjectPublicReadInferredSources;
   // C-13: full set of text records read during inference (com.github,
-  // description, url, com.twitter, com.discord, org.telegram). Surfaced
+  // description, url, com.twitter, com.discord, org.telegram, X,
+  // com.linkedin, xyz.farcaster, org.lens, avatar). Surfaced
   // so the drawer can render the announced metadata as evidence rows
   // ("ENS announced X = Y") without re-reading the chain.
   readonly inferredTexts: Readonly<Record<string, string>>;
+  // Refactor 2026-05-10: when subject ENS has sparse records but addr
+  // resolves to a wallet whose primary name (reverse-record) carries
+  // richer profile data, we follow the primary and merge its records.
+  // Set to the primary name when the merge happened; null otherwise.
+  // UI surfaces this as "via primary name X" badge.
+  readonly primaryNameUsed?: string | null;
+  // contentHash decoded as URL when present (ipfs://, swarm://,
+  // arweave://, https:// etc). null when absent. Surfaced for drawer
+  // rendering — score-neutral in v1.
+  readonly contentHash?: string | null;
 }
 
 export interface SubjectPublicReadOk {
@@ -164,6 +175,17 @@ export const PUBLIC_READ_TEXT_KEYS = [
   'com.twitter',
   'com.discord',
   'org.telegram',
+  // Refactor 2026-05-10: extra social keys that ENS app surfaces
+  // automatically (X is Twitter rebrand; LinkedIn + Farcaster + Lens
+  // commonly used in modern ENS profiles).
+  'X',
+  'com.linkedin',
+  'xyz.farcaster',
+  'org.lens',
+  // Avatar — drives drawer + score-neutral profile chip.
+  'avatar',
+  // contentHash is read separately via contenthash() resolver call,
+  // not text(). Keep this list text-only.
 ] as const;
 
 // GitHub owner sanity gate. Public-read inference must NOT trust
@@ -235,6 +257,80 @@ export async function inferSubjectFromPublicRead(
     if (typeof v === 'string' && v.length > 0) inferredTexts[key] = v;
   });
 
+  // ---- Refactor 2026-05-10: primary-name fallback ----
+  // ENS app convention: when an alias name (e.g. scorer.eth) resolves
+  // to address X whose primary name (reverse-record) is poldo.eth,
+  // app.ens.domains shows poldo.eth's records on scorer.eth's page.
+  // We follow the same convention: if the subject has sparse text
+  // records (≤ 1 non-default), fall back to the primary name's records.
+  let primaryNameUsed: string | null = null;
+  const nonDefaultRecordCount = Object.entries(inferredTexts).filter(([k, v]) => {
+    // `avatar` set to default ENS gateway URL (euc.li / metadata.ens.domains)
+    // is treated as "no real avatar" — common pattern when nothing custom set.
+    if (k === 'avatar' && /^https?:\/\/(euc\.li|metadata\.ens\.domains)\//.test(v)) return false;
+    return true;
+  }).length;
+
+  if (primaryAddress !== null && nonDefaultRecordCount <= 1) {
+    try {
+      const primary = await client.getEnsName({ address: primaryAddress as ViemAddress });
+      if (typeof primary === 'string' && primary.length > 0 && primary !== name) {
+        // Pull records from the primary name. Don't replace existing
+        // subject keys — primary fills gaps only.
+        const primaryTexts = await Promise.all(
+          PUBLIC_READ_TEXT_KEYS.map((key) =>
+            client
+              .getEnsText({ name: primary, key })
+              .then((v) => (typeof v === 'string' && v.length > 0 ? v : null))
+              .catch(() => null),
+          ),
+        );
+        let merged = false;
+        PUBLIC_READ_TEXT_KEYS.forEach((key, i) => {
+          if (inferredTexts[key]) return; // subject's own record wins
+          const v = primaryTexts[i];
+          if (typeof v === 'string' && v.length > 0) {
+            inferredTexts[key] = v;
+            merged = true;
+          }
+        });
+        if (merged) primaryNameUsed = primary;
+      }
+    } catch {
+      // Reverse lookup is best-effort — never abort the subject
+      // resolution for a primary-name miss.
+    }
+  }
+
+  // ---- Refactor 2026-05-10: contentHash decoding (score-neutral evidence) ----
+  let contentHash: string | null = null;
+  try {
+    // viem auto-decodes contentHash to a URL string on getEnsText for
+    // certain implementations, but the canonical method is raw resolver
+    // call. Lightweight approach: only attempt when we already have an
+    // address (otherwise resolver lookup is wasted).
+    if (primaryAddress !== null) {
+      // viem PublicClient.getEnsText doesn't expose contenthash; use a
+      // separate helper. Fail silently — contentHash is decoration only.
+      const resolverContentHash = await (client as PublicClient & {
+        getEnsContentHash?: (opts: { name: string }) => Promise<string | null>;
+      }).getEnsContentHash?.({ name }).catch(() => null) ?? null;
+      if (typeof resolverContentHash === 'string' && resolverContentHash.length > 0) {
+        contentHash = resolverContentHash;
+      } else if (primaryNameUsed) {
+        // Try primary name's contentHash too.
+        const primaryContentHash = await (client as PublicClient & {
+          getEnsContentHash?: (opts: { name: string }) => Promise<string | null>;
+        }).getEnsContentHash?.({ name: primaryNameUsed }).catch(() => null) ?? null;
+        if (typeof primaryContentHash === 'string' && primaryContentHash.length > 0) {
+          contentHash = primaryContentHash;
+        }
+      }
+    }
+  } catch {
+    // Ignore — contentHash is optional decoration.
+  }
+
   // Synthesise the inferred GitHub source from com.github when the
   // value passes the owner regex. Anything that fails the regex is
   // dropped silently — we'd rather degrade to "no GitHub" than chase
@@ -275,6 +371,8 @@ export async function inferSubjectFromPublicRead(
         github: inferredGithub,
       },
       inferredTexts,
+      ...(primaryNameUsed !== null ? { primaryNameUsed } : {}),
+      ...(contentHash !== null ? { contentHash } : {}),
     },
   };
 }

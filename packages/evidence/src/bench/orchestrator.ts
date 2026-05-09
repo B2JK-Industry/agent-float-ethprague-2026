@@ -284,6 +284,14 @@ async function resolveSubject(
       // GitHub branch only fired on `manifest.sources.github`.
       inferredGithub: inferred.value.sources.github,
       inferredTexts: inferred.value.inferredTexts,
+      // Refactor 2026-05-10: surface primary-name fallback + contentHash
+      // when public-read followed reverse-record to merge richer profile.
+      ...(inferred.value.primaryNameUsed !== undefined && inferred.value.primaryNameUsed !== null
+        ? { primaryNameUsed: inferred.value.primaryNameUsed }
+        : {}),
+      ...(inferred.value.contentHash !== undefined && inferred.value.contentHash !== null
+        ? { contentHash: inferred.value.contentHash }
+        : {}),
     },
     sources: inferred.value.sources.sourcify ?? [],
     failure: null,

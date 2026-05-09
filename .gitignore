@@ -54,3 +54,7 @@ secrets/
 
 # Vercel
 .vercel
+auth-wal
+db
+db-wal
+auth
