@@ -27,6 +27,7 @@ import type { Metadata } from "next";
 import { ScoreBanner } from "../../../components/bench/ScoreBanner";
 import { ScoreBreakdownPanel } from "../../../components/bench/ScoreBreakdownPanel";
 import { SourceGrid } from "../../../components/bench/SourceGrid";
+import { EnsDrawer } from "../../../components/bench/drawers/EnsDrawer";
 import { GitHubDrawer } from "../../../components/bench/drawers/GitHubDrawer";
 import { SourcifyDrawer } from "../../../components/bench/drawers/SourcifyDrawer";
 import { BENCH_SUB_BRAND, BENCH_SUB_TAGLINE } from "../../../lib/branding";
@@ -160,6 +161,11 @@ function BenchFoundation({
       <SourcifyDrawer entries={evidence.sourcify} />
 
       <GitHubDrawer github={evidence.github} />
+
+      <EnsDrawer
+        subjectName={evidence.subject.name}
+        ens={evidence.ensInternal}
+      />
     </>
   );
 }
