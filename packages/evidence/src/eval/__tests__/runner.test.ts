@@ -109,7 +109,9 @@ describe('runBench — hard deadline enforcement', () => {
     });
     const elapsed = Date.now() - start;
 
-    expect(elapsed).toBeLessThanOrEqual(180);
+    // Brief target: ≤130ms wall time for hardDeadlineMs=100. We allow +20ms slack
+    // for vitest worker scheduling jitter on CI.
+    expect(elapsed).toBeLessThanOrEqual(150);
 
     const fast = out.results.get('addr.eth');
     expect(fast?.confidence).toBe('complete');
@@ -145,6 +147,52 @@ describe('runBench — hard deadline enforcement', () => {
     const r = out.results.get('addr.eth');
     expect(r?.confidence).toBe('degraded');
     expect(r?.errors).toEqual(['timeout']);
+  });
+
+  it('absorbs engine rejection that fires AFTER the timeout race has settled', async () => {
+    let lateReject: ((err: Error) => void) | null = null;
+    const lateRejecter: RecordEngine = {
+      key: 'addr.eth',
+      defaultParams: params,
+      evaluate() {
+        return new Promise((_, reject) => {
+          lateReject = reject;
+        });
+      },
+    };
+    register(lateRejecter);
+
+    const records = new Map<RecordKey, ResolvedRecord>([['addr.eth', record('addr.eth')]]);
+    const paramsMap = new Map<RecordKey, EngineParams>([
+      ['addr.eth', { ...params, timeoutMs: 30 }],
+    ]);
+
+    const out = await runBench({
+      ensName: 'x.eth',
+      records,
+      params: paramsMap,
+      context: context(),
+      hardDeadlineMs: 200,
+    });
+
+    expect(out.results.get('addr.eth')?.confidence).toBe('degraded');
+    expect(out.results.get('addr.eth')?.errors).toEqual(['timeout']);
+
+    // Now fire the engine's rejection AFTER runner returned. Without the silent .catch in
+    // runner.ts this would raise an unhandledRejection event and (in strict Node) kill the process.
+    const unhandled: unknown[] = [];
+    const handler = (err: unknown): void => {
+      unhandled.push(err);
+    };
+    process.on('unhandledRejection', handler);
+
+    expect(lateReject).not.toBeNull();
+    lateReject!(new Error('post-timeout-throw'));
+    // Yield several microtasks so any unhandled rejection has a chance to surface.
+    await new Promise((r) => setTimeout(r, 50));
+
+    process.removeListener('unhandledRejection', handler);
+    expect(unhandled).toEqual([]);
   });
 
   it('streams onResult synchronously per engine completion', async () => {

@@ -89,6 +89,24 @@ const defaultSleep = (ms: number): Promise<void> =>
     setTimeout(res, ms);
   });
 
+function abortableSleep(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    if (signal.aborted) {
+      reject(signal.reason ?? new DOMException('Aborted', 'AbortError'));
+      return;
+    }
+    const onAbort = (): void => {
+      clearTimeout(timer);
+      reject(signal.reason ?? new DOMException('Aborted', 'AbortError'));
+    };
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    signal.addEventListener('abort', onAbort, { once: true });
+  });
+}
+
 export function createSharedFetch(options: CreateSharedFetchOptions = {}): SharedFetch {
   const fetchImpl = options.fetchImpl ?? fetch;
   const now = options.now ?? Date.now;
@@ -146,7 +164,7 @@ export function createSharedFetch(options: CreateSharedFetchOptions = {}): Share
         }
         const needed = 1 - bucket.tokens;
         const waitMs = Math.max(10, Math.ceil(needed / bucket.refillPerMs));
-        await sleep(waitMs);
+        await abortableSleep(waitMs, signal);
       }
     } finally {
       release();
