@@ -11,6 +11,7 @@ import {
   buildSirenReportTypedData,
   computeSirenReportContentHash,
   signReport,
+  type Address,
   type SirenReport,
 } from '../src/index.js';
 
@@ -95,7 +96,9 @@ describe('buildSirenReportTypedData', () => {
       'summary',
       'recommendedAction',
       'mock',
-      'contentHash',
+      'findingsHash',
+      'sourcifyLinksHash',
+      'signedAt',
     ]);
   });
 });
@@ -134,7 +137,10 @@ describe('signReport', () => {
     expect(result.report.auth.signature).toBe(result.signature);
     expect(result.signature).toMatch(/^0x[a-fA-F0-9]{130}$/);
 
-    const td = buildSirenReportTypedData(baseReport);
+    // US-074: typed-data binds auth.signedAt, so the verifier reconstructs
+    // against the SIGNED report (which has signedAt populated), not the
+    // unsigned input.
+    const td = buildSirenReportTypedData(result.report);
     const recovered = await recoverTypedDataAddress({
       domain: td.domain,
       types: td.types,
@@ -164,16 +170,107 @@ describe('signReport', () => {
     }
   });
 
-  it('returns the original report fields untouched apart from auth', async () => {
+  it('returns the original report fields untouched apart from auth.signedAt + signature/signer/status', async () => {
     const privateKey = generatePrivateKey();
     const result = await signReport(baseReport, privateKey);
 
-    const { auth: _ignoredA, ...restSigned } = result.report;
-    const { auth: _ignoredB, ...restOriginal } = baseReport;
-    void _ignoredA;
-    void _ignoredB;
-
+    // US-074: signedAt is now bound by the signature so it must be set on
+    // the returned report. Other report fields (findings, sourcify, etc.)
+    // are unchanged.
+    const { auth: _signedAuth, ...restSigned } = result.report;
+    const { auth: _originalAuth, ...restOriginal } = baseReport;
+    void _signedAuth;
+    void _originalAuth;
     expect(restSigned).toEqual(restOriginal);
+    expect(result.report.auth.signedAt).not.toBeNull();
+  });
+});
+
+describe('US-074 — typed-data binds full report payload', () => {
+  async function signAndAttempt(
+    pk: `0x${string}`,
+    tamper: (signed: SirenReport) => SirenReport,
+  ): Promise<{ originalSigner: Address; recoveredAfter: Address }> {
+    const account = privateKeyToAccount(pk);
+    const signed = await signReport(baseReport, pk);
+    const tampered = tamper(signed.report);
+    const td = buildSirenReportTypedData(tampered);
+    const recovered = await recoverTypedDataAddress({
+      domain: td.domain,
+      types: td.types,
+      primaryType: td.primaryType,
+      message: td.message,
+      signature: signed.signature,
+    });
+    return {
+      originalSigner: account.address as Address,
+      recoveredAfter: recovered as Address,
+    };
+  }
+
+  it('flipping a finding breaks recovery (findingsHash bound)', async () => {
+    const pk = generatePrivateKey();
+    const { originalSigner, recoveredAfter } = await signAndAttempt(pk, (r) => ({
+      ...r,
+      findings: [
+        { id: 'INJECTED', severity: 'info', title: 'fake all-clear', evidence: {} },
+      ],
+    }));
+    expect(recoveredAfter.toLowerCase()).not.toBe(originalSigner.toLowerCase());
+  });
+
+  it('changing a sourcify link breaks recovery (sourcifyLinksHash bound)', async () => {
+    const pk = generatePrivateKey();
+    const { originalSigner, recoveredAfter } = await signAndAttempt(pk, (r) => ({
+      ...r,
+      sourcify: {
+        ...r.sourcify,
+        links: [{ label: 'attacker mirror', url: 'https://evil.example.com' }],
+      },
+    }));
+    expect(recoveredAfter.toLowerCase()).not.toBe(originalSigner.toLowerCase());
+  });
+
+  it('flipping recommendedAction breaks recovery (recommendedAction bound)', async () => {
+    const pk = generatePrivateKey();
+    const { originalSigner, recoveredAfter } = await signAndAttempt(pk, (r) => ({
+      ...r,
+      recommendedAction: 'reject',
+    }));
+    expect(recoveredAfter.toLowerCase()).not.toBe(originalSigner.toLowerCase());
+  });
+
+  it('flipping mock breaks recovery (mock bound)', async () => {
+    const pk = generatePrivateKey();
+    const { originalSigner, recoveredAfter } = await signAndAttempt(pk, (r) => ({
+      ...r,
+      mock: !r.mock,
+    }));
+    expect(recoveredAfter.toLowerCase()).not.toBe(originalSigner.toLowerCase());
+  });
+
+  it('flipping auth.signedAt breaks recovery (signedAt bound)', async () => {
+    const pk = generatePrivateKey();
+    const { originalSigner, recoveredAfter } = await signAndAttempt(pk, (r) => ({
+      ...r,
+      auth: { ...r.auth, signedAt: '2099-01-01T00:00:00.000Z' },
+    }));
+    expect(recoveredAfter.toLowerCase()).not.toBe(originalSigner.toLowerCase());
+  });
+
+  it('the canonical happy-path round trip still recovers to the signer', async () => {
+    const pk = generatePrivateKey();
+    const account = privateKeyToAccount(pk);
+    const signed = await signReport(baseReport, pk);
+    const td = buildSirenReportTypedData(signed.report);
+    const recovered = await recoverTypedDataAddress({
+      domain: td.domain,
+      types: td.types,
+      primaryType: td.primaryType,
+      message: td.message,
+      signature: signed.signature,
+    });
+    expect(recovered.toLowerCase()).toBe(account.address.toLowerCase());
   });
 });
 
@@ -265,14 +362,20 @@ describe('signed-report tampering attack surface', () => {
     expect(recovered.toLowerCase()).not.toBe(account.address.toLowerCase());
   });
 
-  it('changing sourcify post-signing breaks recovery', async () => {
+  it('changing sourcify.links post-signing breaks recovery (sourcifyLinksHash bound)', async () => {
     const privateKey = generatePrivateKey();
     const account = privateKeyToAccount(privateKey);
     const signed = await signReport(baseReport, privateKey);
 
+    // US-074 binds sourcify.links via sourcifyLinksHash; the previousVerified
+    // / currentVerified booleans are NOT bound by design (Daniel-spec). Tamper
+    // the links array — the field that IS bound — to assert the protection.
     const tampered: SirenReport = {
       ...signed.report,
-      sourcify: { previousVerified: false, currentVerified: false, links: [] },
+      sourcify: {
+        ...signed.report.sourcify,
+        links: [{ label: 'attacker mirror', url: 'https://evil.example.com' }],
+      },
     };
 
     const td = buildSirenReportTypedData(tampered);
