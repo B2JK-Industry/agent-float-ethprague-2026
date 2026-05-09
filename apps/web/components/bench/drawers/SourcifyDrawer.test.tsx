@@ -268,4 +268,99 @@ describe("SourcifyDrawer (US-135)", () => {
         ?.textContent,
     ).toMatch(/sepolia/i);
   });
+
+  // ─── US-140: similarity cross-link button ───
+  // Opens /lookup/<address> in a new tab. One per kind:'ok' entry.
+  // Carries an aria-label including the address verbatim for SR users.
+
+  it("US-140: renders a similarity-button per kind:'ok' Sourcify entry", () => {
+    const { container } = render(
+      <SourcifyDrawer
+        entries={[
+          okEntry({ address: "0xAAA" as `0x${string}` }),
+          okEntry({ address: "0xBBB" as `0x${string}` }),
+        ]}
+        initialOpen
+      />,
+    );
+    const buttons = container.querySelectorAll('[data-field="similarity-button"]');
+    expect(buttons.length).toBe(2);
+    expect(buttons[0]?.getAttribute("data-address")).toBe("0xAAA");
+    expect(buttons[1]?.getAttribute("data-address")).toBe("0xBBB");
+  });
+
+  it("US-140: similarity-button does NOT render on kind:'error' entries", () => {
+    const { container } = render(
+      <SourcifyDrawer entries={[errEntry()]} initialOpen />,
+    );
+    expect(
+      container.querySelector('[data-field="similarity-button"]'),
+    ).toBeNull();
+  });
+
+  it("US-140: similarity-button href format is /lookup/<address>", () => {
+    const { container } = render(
+      <SourcifyDrawer
+        entries={[okEntry({ address: "0xDEADBEEF" as `0x${string}` })]}
+        initialOpen
+      />,
+    );
+    const button = container.querySelector(
+      '[data-field="similarity-button"]',
+    ) as HTMLAnchorElement;
+    expect(button.getAttribute("href")).toBe("/lookup/0xDEADBEEF");
+  });
+
+  it("US-140: similarity-button opens in a new tab with rel=noopener,noreferrer (security)", () => {
+    const { container } = render(
+      <SourcifyDrawer entries={[okEntry()]} initialOpen />,
+    );
+    const button = container.querySelector(
+      '[data-field="similarity-button"]',
+    ) as HTMLAnchorElement;
+    expect(button.getAttribute("target")).toBe("_blank");
+    expect(button.getAttribute("rel")).toMatch(/noopener/);
+    expect(button.getAttribute("rel")).toMatch(/noreferrer/);
+  });
+
+  it("US-140: similarity-button copy is 'Find similar contracts ↗'", () => {
+    const { container } = render(
+      <SourcifyDrawer entries={[okEntry()]} initialOpen />,
+    );
+    const button = container.querySelector(
+      '[data-field="similarity-button"]',
+    );
+    expect(button?.textContent).toBe("Find similar contracts ↗");
+  });
+
+  it("US-140: similarity-button aria-label includes the entry's address verbatim (a11y)", () => {
+    const { container } = render(
+      <SourcifyDrawer
+        entries={[okEntry({ address: "0xABC123" as `0x${string}` })]}
+        initialOpen
+      />,
+    );
+    const button = container.querySelector(
+      '[data-field="similarity-button"]',
+    );
+    expect(button?.getAttribute("aria-label")).toBe(
+      "Open similarity lookup for 0xABC123 in new tab",
+    );
+  });
+
+  it("US-140: similarity-button is distinct from the same-tab deep-dive r-name-link", () => {
+    const { container } = render(
+      <SourcifyDrawer entries={[okEntry()]} initialOpen />,
+    );
+    const article = container.querySelector("[data-entry-index]");
+    const deepDive = article?.querySelector('[data-field="r-name-link"]');
+    const similarity = article?.querySelector(
+      '[data-field="similarity-button"]',
+    );
+    expect(deepDive).not.toBeNull();
+    expect(similarity).not.toBeNull();
+    // Different tab targets.
+    expect(deepDive?.getAttribute("target")).toBeNull(); // same tab
+    expect(similarity?.getAttribute("target")).toBe("_blank"); // new tab
+  });
 });
