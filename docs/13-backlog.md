@@ -102,7 +102,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-048 | ENS records resolved live panel | C | P0 | M | merged | US-017, US-037 |
 | US-049 | Governance comment generator (short, forum, vote-reason) | C | P0 | M | merged | US-014, US-037 |
 | US-050 | Demo mode runner with four scenarios | C | P0 | M | merged | US-009, US-010, US-011, US-029, US-037, US-042 |
-| US-051 | Empty/error states for absent records, RPC, Sourcify, malformed manifest, unsigned report | C | P0 | M | open | US-019, US-020, US-037 |
+| US-051 | Empty/error states for absent records, RPC, Sourcify, malformed manifest, unsigned report | C | P0 | M | merged | US-019, US-020, US-037 |
 | US-052 | Five-second-rule performance check | C | P0 | S | open | US-042, US-043 |
 | US-053 | Share-verdict link with precomputed result | C | P1 | M | open | US-042 |
 | US-054 | Mobile responsive layout check (viewport <= 768px) | C | P1 | S | open | US-042, US-045 |
@@ -2287,7 +2287,7 @@ Four-scenario picker is the booth demo orchestration. The live public-read scena
 | Sponsor | - |
 | Dependencies | US-019, US-020, US-037 |
 | Acceptance gates | GATE-13, GATE-26 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
