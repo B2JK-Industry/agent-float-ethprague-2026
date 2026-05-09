@@ -1,0 +1,39 @@
+{
+  "storage": [
+    {
+      "astId": 13,
+      "contract": "contracts/VaultV2Dangerous.sol:VaultV2Dangerous",
+      "label": "balances",
+      "offset": 0,
+      "slot": "0",
+      "type": "t_mapping(t_address,t_uint256)"
+    },
+    {
+      "astId": 16,
+      "contract": "contracts/VaultV2Dangerous.sol:VaultV2Dangerous",
+      "label": "owner",
+      "offset": 0,
+      "slot": "1",
+      "type": "t_address"
+    }
+  ],
+  "types": {
+    "t_address": {
+      "encoding": "inplace",
+      "label": "address",
+      "numberOfBytes": "20"
+    },
+    "t_mapping(t_address,t_uint256)": {
+      "encoding": "mapping",
+      "key": "t_address",
+      "label": "mapping(address => uint256)",
+      "numberOfBytes": "32",
+      "value": "t_uint256"
+    },
+    "t_uint256": {
+      "encoding": "inplace",
+      "label": "uint256",
+      "numberOfBytes": "32"
+    }
+  }
+}
