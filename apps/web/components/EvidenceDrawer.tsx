@@ -129,7 +129,9 @@ export function EvidenceDrawer({
         onClick={() => setOpen(true)}
         aria-expanded={open}
         aria-controls="evidence-drawer"
-        className="rounded border border-[color:var(--color-t1)] px-3 py-1 text-sm"
+        // min-h/-w 44px enforces the iOS HIG / WCAG 2.5.5 minimum tap-target
+        // size on touch viewports — asserted by the US-054 mobile e2e spec.
+        className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded border border-[color:var(--color-t1)] px-4 py-2 text-sm"
       >
         Evidence
       </button>
