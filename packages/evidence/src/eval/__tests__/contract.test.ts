@@ -176,6 +176,8 @@ describe('runBench — contract aggregation', () => {
     expect(r).toBeDefined();
     expect(r?.errors).toEqual(['boom']);
     expect(r?.exists).toBe(false);
+    // Brief: throw → EMPTY_RESULT keeps confidence 'complete' (only timeout flips to 'degraded').
+    expect(r?.confidence).toBe('complete');
     expect(out.status).toBe('partial');
   });
 

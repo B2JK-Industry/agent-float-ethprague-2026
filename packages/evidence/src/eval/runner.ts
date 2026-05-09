@@ -82,8 +82,13 @@ async function runEngine(
     }, engineTimeoutMs);
   });
 
+  const enginePromise = engine.evaluate(record, ctx, params);
+  // Absorb any rejection that arrives AFTER the timeout race has already settled —
+  // without this, an engine that throws post-timeout becomes an unhandledRejection.
+  enginePromise.catch(() => {});
+
   try {
-    const winner = await Promise.race([engine.evaluate(record, ctx, params), timeoutPromise]);
+    const winner = await Promise.race([enginePromise, timeoutPromise]);
     if (winner === TIMEOUT_SENTINEL) {
       const durationMs = performance.now() - start;
       const empty = EMPTY_RESULT(key, params.weight, durationMs, ['timeout']);
