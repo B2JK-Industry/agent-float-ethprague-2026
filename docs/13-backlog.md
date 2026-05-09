@@ -103,7 +103,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-049 | Governance comment generator (short, forum, vote-reason) | C | P0 | M | merged | US-014, US-037 |
 | US-050 | Demo mode runner with four scenarios | C | P0 | M | merged | US-009, US-010, US-011, US-029, US-037, US-042 |
 | US-051 | Empty/error states for absent records, RPC, Sourcify, malformed manifest, unsigned report | C | P0 | M | merged | US-019, US-020, US-037 |
-| US-052 | Five-second-rule performance check | C | P0 | S | merged | US-042, US-043 |
+| US-052 | Five-second-rule performance check | C | P0 | S | open | US-042, US-043, US-068 |
 | US-053 | Share-verdict link with precomputed result | C | P1 | M | open | US-042 |
 | US-054 | Mobile responsive layout check (viewport <= 768px) | C | P1 | S | open | US-042, US-045 |
 | US-055 | Accessibility pass for WCAG AA and screen-reader status labels | C | P1 | M | open | US-042, US-045 |
@@ -111,6 +111,11 @@ Tracker-only owners (not picked up by dev agents):
 | US-057 | Operator report-signing workflow UX for Siren Agent automation | C | P2 | M | open | US-015, US-056 |
 | US-058 | Umia-style due-diligence panel | C | P2 | M | open | US-029 |
 | US-067 | Brand visual identity assets and Tailwind preset integration | C | P0 | L | merged | US-037 |
+| US-068 | Live verdict pipeline integration in /r/[name] route (real ENS + chain + Sourcify fetch via @upgrade-siren/evidence; replace fixture reads) | C | P0 | L | open | US-017, US-022, US-024, US-025, US-028, US-029 |
+| US-069 | Server-side report-hash + signature trust path runtime (fetch reportUri, verify bytes hash, recover EIP-712 signer, gate verdict) | B | P0 | M | open | US-014, US-015, US-028, US-068 |
+| US-070 | Replace homepage scaffold copy with live product framing (lookup CTA wired to /r/[name], remove "ships later" wording) | C | P0 | S | open | US-068 |
+| US-073 | Refresh README current-status section to reflect live-deployment state (this PR) | Orch | P1 | S | merged | none |
+| US-074 | Extend EIP-712 typed-data domain to sign full report payload (findings + sourcify links + recommendedAction + auth.signedAt) | B | P1 | M | open | US-014, US-015, US-068 |
 
 ### Tracker — Daniel + Orch
 
