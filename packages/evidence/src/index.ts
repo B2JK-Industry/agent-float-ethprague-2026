@@ -342,3 +342,12 @@ export type {
   CrossChainDiscoveryResult,
   DiscoverCrossChainOptions,
 } from './sourcify/crossChainDiscovery.js';
+
+export { summarizeLicenseAndCompiler } from './sourcify/licenseCompiler.js';
+
+export type {
+  CompilerRecencyThreshold,
+  CompilerSummary,
+  LicenseCompilerSummary,
+  LicenseCount,
+} from './sourcify/licenseCompiler.js';
