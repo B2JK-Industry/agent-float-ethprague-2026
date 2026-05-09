@@ -470,6 +470,123 @@ describe('orchestrateSubject', () => {
     });
   });
 
+  // C-14 (audit-round-8): orchestrator pre-filters on-chain fan-out
+  // legs lacking any configured RPC. Without this, production with
+  // only ALCHEMY_RPC_SEPOLIA set always emitted a source_timeout for
+  // mainnet because the leg fell through to viem's public default.
+  describe('C-14 skip unconfigured on-chain chains', () => {
+    it('skips chains lacking any configured RPC and surfaces rpc_unconfigured failures', async () => {
+      const records = new Map<string, string | null>([
+        [AGENT_BENCH_RECORD_KEYS.benchManifest, JSON.stringify(fullManifest)],
+      ]);
+      const client = makeClient({ recordValues: records });
+      const fetchImpl = vi.fn(async () => jsonResponse(200, {}));
+
+      // Critical: pass legacy `client` (mainnet by chain.id === 1)
+      // but NO clients map and NO env / onchainRpcUrls. So mainnet is
+      // configured (via legacy client), sepolia is NOT configured.
+      // The orchestrator must filter sepolia out and add a
+      // `rpc_unconfigured` failure for it instead of letting it hit
+      // the per-source timeout.
+      const result = await orchestrateSubject(NAME, {
+        client,
+        sourcifyDeepOptions: { fetchImpl },
+        metadataOptions: { fetchImpl },
+        crossChainOptions: { fetchImpl },
+        graphApiKey: 'k',
+        ensInternalOptions: { apiKey: 'k', fetchImpl },
+      });
+
+      // Mainnet leg ran (its chain matches client.chain.id).
+      const mainnet1 = result.onchain.find((e) => e.chainId === 1);
+      expect(mainnet1).toBeDefined();
+      // Sepolia leg was filtered — no entry at all.
+      const sepolia = result.onchain.find((e) => e.chainId === 11155111);
+      expect(sepolia).toBeUndefined();
+      // Skipped chain surfaced as observable failure (drawer renders
+      // "missing tile, RPC not configured").
+      const skipFailure = result.failures.find(
+        (f) => f.source === 'onchain' && f.reason === 'rpc_unconfigured',
+      );
+      expect(skipFailure).toBeDefined();
+      expect(skipFailure?.chainId).toBe(11155111);
+      // No source_timeout for the skipped chain (the whole point).
+      expect(
+        result.failures.find((f) => f.source === 'onchain' && f.reason === 'source_timeout'),
+      ).toBeUndefined();
+    });
+
+    it('runs both chains when both have configured RPCs (clients map)', async () => {
+      const records = new Map<string, string | null>([
+        [AGENT_BENCH_RECORD_KEYS.benchManifest, JSON.stringify(fullManifest)],
+      ]);
+      const client = makeClient({ recordValues: records });
+      const clients = new Map<number, PublicClient>([[1, client], [11155111, client]]);
+      const fetchImpl = vi.fn(async () => jsonResponse(200, {}));
+      const result = await orchestrateSubject(NAME, {
+        client,
+        clients,
+        sourcifyDeepOptions: { fetchImpl },
+        metadataOptions: { fetchImpl },
+        crossChainOptions: { fetchImpl },
+      });
+      expect(result.onchain).toHaveLength(2);
+      // No skip-failures when every chain is configured.
+      expect(
+        result.failures.find((f) => f.reason === 'rpc_unconfigured'),
+      ).toBeUndefined();
+    });
+
+    it('runs both chains when onchainRpcUrls provides URLs (test path for env-driven config)', async () => {
+      const records = new Map<string, string | null>([
+        [AGENT_BENCH_RECORD_KEYS.benchManifest, JSON.stringify(fullManifest)],
+      ]);
+      const client = makeClient({ recordValues: records });
+      const clients = new Map<number, PublicClient>([[1, client], [11155111, client]]);
+      const fetchImpl = vi.fn(async () => jsonResponse(200, {}));
+      const result = await orchestrateSubject(NAME, {
+        client,
+        clients,
+        // Even though clients are present (so the filter would pass anyway),
+        // the URL map is the discriminator we want to assert is honored.
+        onchainRpcUrls: {
+          1: 'https://example.test/mainnet',
+          11155111: 'https://example.test/sepolia',
+        },
+        sourcifyDeepOptions: { fetchImpl },
+        metadataOptions: { fetchImpl },
+        crossChainOptions: { fetchImpl },
+      });
+      expect(result.onchain).toHaveLength(2);
+      expect(
+        result.failures.find((f) => f.reason === 'rpc_unconfigured'),
+      ).toBeUndefined();
+    });
+
+    it('opt-out via skipUnconfiguredOnchainChains=false runs every chain (legacy behaviour)', async () => {
+      const records = new Map<string, string | null>([
+        [AGENT_BENCH_RECORD_KEYS.benchManifest, JSON.stringify(fullManifest)],
+      ]);
+      const client = makeClient({ recordValues: records });
+      const clients = new Map<number, PublicClient>([[1, client], [11155111, client]]);
+      const fetchImpl = vi.fn(async () => jsonResponse(200, {}));
+      const result = await orchestrateSubject(NAME, {
+        client,
+        clients,
+        skipUnconfiguredOnchainChains: false,
+        sourcifyDeepOptions: { fetchImpl },
+        metadataOptions: { fetchImpl },
+        crossChainOptions: { fetchImpl },
+      });
+      // Behaviour matches the prior unfiltered path — both chains
+      // attempted, no rpc_unconfigured failures emitted.
+      expect(result.onchain).toHaveLength(2);
+      expect(
+        result.failures.find((f) => f.reason === 'rpc_unconfigured'),
+      ).toBeUndefined();
+    });
+  });
+
   // US-117 carry-rule v2 §2B: per-source AbortController budgets so a
   // public-read subject (vitalik.eth-style) returns a partial verdict
   // when one source hangs instead of failing the whole 12s page budget.
