@@ -121,7 +121,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-077 | Five-second moment overlay: animate the most-dangerous diff line as floating overlay during SAFE→SIREN flip (booth polish) | C | P2 | S | open | US-076 |
 | US-078 | V1-anchored interpretation of unverified V2 bytecode (function-body matching + storage-layout-constants detection + library-link patterns; downgrades SIREN→REVIEW when verified-V1 substring match >= 0.9 and no risky selectors; never SAFE without metadata trail) | B | P1 | M | open | US-024, US-025, US-026 |
 | US-079 | UI hypothesis renderer: confidence percentage + matched-vs-unmatched selector list + "metadata trail missing" badge + summary "implementation hypothesis: V1-derived" copy | C | P1 | S | open | US-045, US-067, US-078 |
-| US-080 | Demo fixture VaultV1Derivative: deploy V1 bytecode-equivalent contract without Sourcify verification; demonstrates V1-anchored REVIEW path; current UnverifiedImpl is intentionally divergent per US-006 spec and shows different scenario | A | P2 | S | open | US-001, US-003 |
+| US-080 | Demo fixture VaultV1Derivative: deploy V1 bytecode-equivalent contract without Sourcify verification; demonstrates V1-anchored REVIEW path; current UnverifiedImpl is intentionally divergent per US-006 spec and shows different scenario | A | P2 | S | merged | US-001, US-003 |
 
 ### Tracker — Daniel + Orch
 
