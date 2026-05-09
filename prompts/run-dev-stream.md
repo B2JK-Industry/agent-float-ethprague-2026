@@ -35,6 +35,7 @@ Do not modify files outside your stream unless the backlog item explicitly autho
 11. No emoji.
 12. **You do not exit voluntarily.** Stopping conditions are listed at the bottom; finishing a PR is not one of them.
 13. Do not trust production Siren Reports from hash alone. EIP-712 signature verification against `upgrade-siren:owner` is a P0 invariant.
+14. **Rebase open PRs after every dependency merge.** When any US-NNN item merges to `main`, immediately re-fetch `main` and rebase every open PR you own that depends on the merged item. Resolve schema drifts, type drifts, and contract drifts in the rebase commit. Force-push the rebased branch. Do not let an open PR drift behind merged dependencies for more than one loop tick. There is no schedule; you simply react to merges as they happen.
 
 ## Agent Personality
 
@@ -91,6 +92,8 @@ Voice in PR descriptions: includes screenshots or ASCII mockups; calls out user-
 
 ## The Non-Stop Loop
 
+There is no schedule. There is no "day one". You react to events: a merge, a review comment, a backlog change. Between events you poll.
+
 ```text
 loop:
   fetch latest main (git fetch && git rebase origin/main if local main moved)
@@ -98,6 +101,19 @@ loop:
   list open PRs (gh pr list)
   list merged commits since your last loop tick
 
+  // 1. Rebase any of YOUR open PRs whose dependencies just merged.
+  for pr in (your open PRs):
+    if any US-NNN dependency of pr just merged to main this loop tick:
+      git fetch origin main
+      git checkout pr.branch
+      git rebase origin/main
+      resolve schema/type/contract drifts; do not paper over breaks
+      run local checks (forge test / pnpm test / pnpm lint / pnpm typecheck)
+      git push --force-with-lease
+      add a one-line PR comment: "rebased on US-XXX merge"
+      continue (you may have several PRs to rebase before picking new work)
+
+  // 2. After rebasing, look for new work.
   candidate = first item in priority order (P0 > P1 > P2 > P3) where:
     - owner == your stream letter
     - status == open
@@ -122,9 +138,12 @@ loop:
 
 ### Polling cadence
 
-- **Active work available:** no sleep; immediately start the next item after opening a PR.
-- **All in-flight items blocked on dependency merge:** sleep 60 seconds, then re-poll. Cap at 30 polls (30 minutes). After 30 minutes of no progress, post a single `@daniel` comment on the highest-priority blocked item explaining the blocker. Continue polling.
+There is no schedule and no deadline budget. The cadence is event-driven; sleep durations are upper bounds between checks.
+
+- **Active work available:** no sleep; immediately start the next item after opening a PR or finishing a rebase.
+- **All in-flight items blocked on dependency merge:** sleep 60 seconds, then re-poll. After 30 idle polls without any merge or new item, post a single `@daniel` comment on the highest-priority blocked item explaining the blocker. Continue polling.
 - **Review-requested-changes on one of your PRs:** address review comments on that branch as the next unit of work. Do not abandon your other open PRs.
+- **Dependency just merged:** rebase every open PR of yours that depended on it (see loop step 1). This takes priority over picking new work.
 
 ### When You Run Out of Work
 

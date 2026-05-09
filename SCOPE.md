@@ -141,7 +141,7 @@ The signed manifest path must live-resolve ENS records in the app. No hardcoded 
 
 ### Public-Read Fallback
 
-The signed ENS manifest path is the highest-confidence mode, but adoption cannot depend on every protocol publishing `upgrade-siren:*` records on day one.
+The signed ENS manifest path is the highest-confidence mode, but adoption cannot depend on every protocol publishing `upgrade-siren:*` records out of the box.
 
 If an ENS name does not publish the Upgrade Siren records, the app must fall back to **public-read mode**:
 

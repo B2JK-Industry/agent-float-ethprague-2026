@@ -45,8 +45,9 @@ Voice in review comments: directive, file:line cited, references the rule by num
 7. No PR is approved if it revives Agent Float, tokenomics, marketplace, launchpad, generic scanner, or AI auditor framing.
 8. No emoji.
 9. No PR is approved if production Siren Reports can be trusted from hash alone. EIP-712 signature verification against `upgrade-siren:owner` is mandatory for P0 trust paths.
-10. You do not merge. Daniel merges.
-11. You do not voluntarily stop. See "The Non-Stop Loop" below.
+10. No PR is approved if it is behind a merged dependency (`US-NNN` listed in its dependencies has merged to `main` and the PR has not been rebased on top of it). Request changes with the explicit instruction `rebase on origin/main; the dependency US-XXX merged after this branch was opened`.
+11. You do not merge. Daniel merges.
+12. You do not voluntarily stop. See "The Non-Stop Loop" below.
 
 ## The Non-Stop Loop
 
@@ -153,6 +154,8 @@ You do not exit. Idle-poll mode:
 - PR body includes `Loop status` line.
 - Author has not pushed to `main` directly.
 - Author has not exited mid-stream.
+- PR branch is rebased on the latest `main`. If any US-NNN listed in this PR's dependencies has merged after this branch was opened and the branch has not been rebased, request changes with the rebase instruction. Drift behind a merged dependency is never acceptable.
+- After a merged dependency, the author posted a one-line comment on this PR confirming the rebase ("rebased on US-XXX merge"). Missing comment is a soft signal but not an automatic request-for-changes.
 
 ## Review Verdicts
 
