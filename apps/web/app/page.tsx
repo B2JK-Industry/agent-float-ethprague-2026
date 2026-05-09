@@ -2,6 +2,19 @@ import Link from "next/link";
 
 import { EnsLookupForm } from "../components/EnsLookupForm";
 import { PublicReadInput } from "../components/PublicReadInput";
+import { DEMO_SCENARIOS, buildScenarioHref } from "./demo/demo.config";
+
+const VERDICT_TONE_CLASS: Record<string, string> = {
+  SAFE: "border-verdict-safe text-verdict-safe",
+  REVIEW: "border-verdict-review text-verdict-review",
+  SIREN: "border-verdict-siren text-verdict-siren",
+};
+
+const VERDICT_GLYPH: Record<string, string> = {
+  SAFE: "✓",
+  REVIEW: "▤",
+  SIREN: "▮",
+};
 
 export default function HomePage(): React.JSX.Element {
   return (
@@ -14,9 +27,9 @@ export default function HomePage(): React.JSX.Element {
           Verdict in five seconds.
         </h1>
         <p className="max-w-2xl text-lg text-t2">
-          Enter the ENS name of any Ethereum protocol. We resolve the proxy,
-          fetch Sourcify evidence, and tell you whether the next upgrade is
-          safe to approve.
+          Enter the ENS name of any Ethereum protocol. Upgrade Siren resolves
+          the proxy, fetches Sourcify evidence, verifies the operator
+          signature, and renders a single SAFE / REVIEW / SIREN verdict.
           <span className="block pt-2 font-mono text-xs uppercase tracking-[0.18em] text-verdict-siren">
             No source, no upgrade.
           </span>
@@ -33,7 +46,7 @@ export default function HomePage(): React.JSX.Element {
         <p className="text-sm text-t2">
           For protocols that publish{" "}
           <code className="font-mono text-accent">upgrade-siren:*</code>{" "}
-          records — the highest-confidence verdict.
+          records — operator-signed, the highest-confidence verdict.
         </p>
         <EnsLookupForm />
       </section>
@@ -52,6 +65,68 @@ export default function HomePage(): React.JSX.Element {
           <span className="text-verdict-safe">SAFE</span>.
         </p>
         <PublicReadInput />
+      </section>
+
+      <section
+        aria-label="Try the booth scenarios"
+        className="flex flex-col gap-3 rounded-md border border-border bg-raised p-6"
+      >
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-display text-lg font-semibold text-t1">
+            Try the booth scenarios
+          </h2>
+          <Link
+            href="/demo"
+            className="font-mono text-xs uppercase tracking-[0.18em] text-accent hover:text-t1"
+          >
+            Open demo runner →
+          </Link>
+        </div>
+        <p className="text-sm text-t2">
+          Four canonical Sepolia scenarios — each clicks through to the live
+          verdict result page.
+        </p>
+        <ul
+          role="list"
+          aria-label="Canonical demo scenarios"
+          className="flex flex-wrap gap-2 pt-1"
+        >
+          {DEMO_SCENARIOS.map((scenario) => {
+            const href = buildScenarioHref(scenario);
+            const tone =
+              VERDICT_TONE_CLASS[scenario.expectedVerdict] ??
+              "border-border text-t2";
+            const glyph = VERDICT_GLYPH[scenario.expectedVerdict] ?? "·";
+
+            if (href === null) {
+              return (
+                <li key={scenario.key} data-scenario={scenario.key}>
+                  <span
+                    aria-disabled="true"
+                    data-state="pending-target"
+                    className={`inline-flex cursor-not-allowed items-center gap-2 rounded-full border border-dashed px-3 py-1 font-mono text-xs opacity-60 ${tone}`}
+                  >
+                    <span aria-hidden>{glyph}</span>
+                    {scenario.label}
+                    <span className="text-t3">· pending US-062</span>
+                  </span>
+                </li>
+              );
+            }
+
+            return (
+              <li key={scenario.key} data-scenario={scenario.key}>
+                <Link
+                  href={href}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 font-mono text-xs hover:bg-bg ${tone}`}
+                >
+                  <span aria-hidden>{glyph}</span>
+                  {scenario.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       </section>
 
       <section
