@@ -31,6 +31,18 @@ export type {
   VerifySignatureFailureReason,
 } from './verify/signature.js';
 
+export {
+  computeReportBytesHash,
+  verifyReportFromManifest,
+} from './verify/reportTrust.js';
+
+export type {
+  ReportTrustFailureReason,
+  ReportTrustOk,
+  ReportTrustError,
+  ReportTrustResult,
+} from './verify/reportTrust.js';
+
 export { resolveEnsRecords } from './ens/resolve.js';
 
 export type {
