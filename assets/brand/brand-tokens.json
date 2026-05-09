@@ -1,0 +1,37 @@
+{
+  "$schema": "./brand-tokens.schema.json",
+  "version": "1.0.0",
+  "source": "assets/brand/brand-manual.html (:root block)",
+  "colors": {
+    "verdict-safe": "#00D67A",
+    "verdict-review": "#FFB020",
+    "verdict-siren": "#FF3B30",
+    "verdict-safe-on-light": "#00703F",
+    "verdict-review-on-light": "#8E4400",
+    "verdict-siren-on-light": "#B9140C",
+    "verdict-safe-surf": "#062A1B",
+    "verdict-review-surf": "#2A1C00",
+    "verdict-siren-surf": "#2D0B09",
+    "bg": "#0A0E10",
+    "surface": "#14191C",
+    "raised": "#1B2125",
+    "border": "#232A2F",
+    "border-strong": "#39434A",
+    "t3": "#5C6770",
+    "t2": "#8B969C",
+    "t1": "#E8EDEF",
+    "accent": "#00B8D9",
+    "paper": "#FAFAF8",
+    "ink": "#0A0E10"
+  },
+  "fonts": {
+    "display": "\"Space Grotesk\", ui-sans-serif, system-ui, sans-serif",
+    "body": "\"Inter\", ui-sans-serif, system-ui, sans-serif",
+    "mono": "\"JetBrains Mono\", ui-monospace, SFMono-Regular, Menlo, monospace"
+  },
+  "fontWeights": {
+    "display": [500, 600, 700],
+    "body": [400, 500, 600],
+    "mono": [400, 500, 700]
+  }
+}
