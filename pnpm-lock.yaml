@@ -28,6 +28,10 @@ importers:
         version: 2.1.9(@types/node@22.19.18)
 
   packages/shared:
+    dependencies:
+      viem:
+        specifier: ^2.21.55
+        version: 2.48.11(typescript@5.9.3)
     devDependencies:
       '@types/node':
         specifier: ^22.10.0
