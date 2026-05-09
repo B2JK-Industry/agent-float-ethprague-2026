@@ -1,0 +1,26 @@
+{
+  "schema": "agent-bench-manifest@1",
+  "kind": "ai-agent",
+  "sources": {
+    "sourcify": [
+      { "chainId": 11155111, "address": "0xC53d3879aCF9Dd9d6fCF8Ed9B335A410Cc66Eb30", "label": "VaultV1" },
+      { "chainId": 11155111, "address": "0x9A9DCb4CE0F03aCB6aa8e26905D6aBb93c95B774", "label": "VaultV2Safe" },
+      { "chainId": 11155111, "address": "0xfD7F5B48C260a32102AA05117C13a599B0d4d568", "label": "VaultV2Dangerous" },
+      { "chainId": 11155111, "address": "0x819326b9d318e1bb8c3EA73e744dEEC0c9aAbe77", "label": "UnverifiedImpl" }
+    ],
+    "github": {
+      "owner": "B2JK-Industry",
+      "verified": false,
+      "verificationGist": null
+    },
+    "onchain": {
+      "primaryAddress": "0x747E453F13B5B14313E25393Eb443fbAaA250cfC",
+      "claimedFirstTxHash": null
+    },
+    "ensInternal": {
+      "rootName": "siren-agent-demo.upgrade-siren-demo.eth"
+    }
+  },
+  "version": 1,
+  "previousManifestHash": null
+}
