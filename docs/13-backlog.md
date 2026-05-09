@@ -171,7 +171,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-121 | Bytecode similarity submit flow: POST `/v2/verify/similarity/{chainId}/{address}` → poll → re-fetch → re-evaluate score | B | P1 | M | open | US-113 |
 | US-122 | Cache extension (extends US-032): GitHub / RPC / ENS-subgraph keys with per-namespace TTLs per EPIC Section 12 | B | P0 | S | merged | US-032, US-114, US-115, US-116 |
 | US-123 | Source-pattern detection from Sourcify `sources` (Pausable, Ownable, UUPS, AccessControl) for drawer badges | B | P1 | M | open | US-113 |
-| US-124 | License + compiler-recency extraction (data path; available for drawer + future relevance redesign; not yet a score component in v1) | B | P1 | S | open | US-113 |
+| US-124 | License + compiler-recency extraction (data path; available for drawer + future relevance redesign; not yet a score component in v1) | B | P1 | S | merged | US-113 |
 
 ### Bench Mode — Stream A (Playwright e2e suite, replaces demo-subject provisioning)
 
@@ -3759,7 +3759,7 @@ EPIC reference: US-088. Renumbered to US-123.
 | Sponsor | Sourcify |
 | Dependencies | US-113 |
 | Acceptance gates | - |
-| Status | open (Epic 2 — blocked on Section 21) |
+| Status | merged |
 
 #### Scope
 
