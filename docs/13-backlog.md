@@ -115,7 +115,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-069 | Server-side report-hash + signature trust path runtime (fetch reportUri, verify bytes hash, recover EIP-712 signer, gate verdict) | B | P0 | M | merged | US-014, US-015, US-028, US-068 |
 | US-070 | Replace homepage scaffold copy with live product framing (lookup CTA wired to /r/[name], remove "ships later" wording) | C | P0 | S | merged | US-068 |
 | US-073 | Refresh README current-status section to reflect live-deployment state (this PR) | Orch | P1 | S | merged | none |
-| US-074 | Extend EIP-712 typed-data domain to sign full report payload (findings + sourcify links + recommendedAction + auth.signedAt) | B | P1 | M | open | US-014, US-015, US-068 |
+| US-074 | Extend EIP-712 typed-data domain to sign full report payload (findings + sourcify links + recommendedAction + auth.signedAt) | B | P1 | M | merged | US-014, US-015, US-068 |
 | US-075 | Source-file diff primitive in packages/evidence (compute unified diff between previous and current implementation source files from Sourcify metadata) | B | P1 | M | open | US-025 |
 | US-076 | Source diff renderer component with Solidity syntax highlight + EvidenceDrawer integration | C | P1 | M | open | US-045, US-067, US-075 |
 | US-077 | Five-second moment overlay: animate the most-dangerous diff line as floating overlay during SAFE→SIREN flip (booth polish) | C | P2 | S | open | US-076 |
