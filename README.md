@@ -146,8 +146,8 @@ Scope locked 2026-05-09. Backlog `docs/13-backlog.md` generated, dev pipeline ex
 
 - **Stream A (Contract Fixtures):** 13/13 merged. Fixtures deployed and Sourcify-verified on Sepolia (chain 11155111). ENS parent `upgrade-siren-demo.eth` registered, four demo subnames provisioned (`vault` / `safe` / `dangerous` / `unverified`), three signed Siren Reports hosted with EIP-712 signatures recovering to `upgrade-siren:owner`.
 - **Stream B (Evidence Engine):** 23/23 merged. Verdict engine (SAFE / REVIEW / SIREN) with deterministic findings, ENS resolver, EIP-1967 slot reader, Sourcify v2 fetch, ABI / storage diff, manifest parser with hash-chain validation, EIP-712 verification.
-- **Stream C (Web UX):** scaffold + verdict card + evidence drawer + ABI/storage diff renderers + governance comment generator + demo runner all merged. Live `/r/[name]` orchestration page is the next P0 (US-068) — current implementation reads fixture data; full live data pipeline is in progress.
-- **Tracker:** US-060 custody decision merged. US-061 mainnet ENS parent descoped to P1 / post-hack (Sepolia parent suffices for demo).
+- **Stream C (Web UX):** scaffold + verdict card + evidence drawer + ABI/storage/source diff renderers + governance comment generator + demo runner + share-verdict link + mobile responsive + WCAG AA a11y + live `/r/[name]` orchestration all merged (US-037..US-070, US-076). Open integration polish: US-081 wire trust path + diffs into loadReport, US-082 raw-address public-read path, US-084 5-second perf fix.
+- **Tracker:** US-060 custody, US-062 Aave V3 Pool live target, US-063 booth fallback artifacts merged. US-061 mainnet ENS parent descoped to P1 / post-hack (Sepolia parent suffices for demo).
 
 Read order:
 
