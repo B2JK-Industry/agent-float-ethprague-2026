@@ -45,7 +45,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-005 | VaultV2Dangerous implementation with sweep and incompatible storage | A | P0 | M | merged | US-003 |
 | US-006 | Unverified-implementation deployment scenario contract | A | P0 | S | merged | none |
 | US-007 | Sourcify verification scripts for V1, V2Safe, V2Dangerous | A | P0 | M | open | US-009 |
-| US-008 | Foundry tests: storage-layout assertions, dangerous-selector behavior, upgrade flow | A | P0 | M | open | US-001, US-002, US-003, US-004, US-005 |
+| US-008 | Foundry tests: storage-layout assertions, dangerous-selector behavior, upgrade flow | A | P0 | M | merged | US-001, US-002, US-003, US-004, US-005 |
 | US-009 | Sepolia deploy script with documented addresses | A | P0 | M | open | US-001, US-002, US-003, US-004, US-005, US-006 |
 | US-010 | ENS subname provisioning script with stable records and atomic upgrade_manifest | A | P0 | L | open | US-009 |
 | US-011 | Signed and hosted Siren Reports for safe, dangerous, unverified, live public-read | A | P0 | M | open | US-009, US-010, US-014, US-015 |
@@ -72,7 +72,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-025 | Sourcify metadata fetch (source, ABI, compiler, storage layout) | B | P0 | M | open | none |
 | US-026 | ABI risky-selector diff | B | P0 | M | open | US-025 |
 | US-027 | Storage-layout compatibility diff | B | P0 | M | open | US-025 |
-| US-028 | EIP-712 Siren Report signature verification against upgrade-siren:owner | B | P0 | M | open | US-014, US-015, US-017 |
+| US-028 | EIP-712 Siren Report signature verification against upgrade-siren:owner | B | P0 | M | merged | US-014, US-015, US-017 |
 | US-029 | Verdict engine: SAFE / REVIEW / SIREN rules | B | P0 | L | open | US-018, US-019, US-020, US-022, US-026, US-027, US-028 |
 | US-030 | Manifest hash-chain validation using previousManifestHash | B | P1 | S | open | US-018 |
 | US-031 | ENSIP-26 agent-context and agent-endpoint[web] record reading | B | P1 | S | open | US-017 |
@@ -455,7 +455,7 @@ Sourcify verification is a hard prerequisite for the SAFE and dangerous-but-veri
 | Sponsor | - |
 | Dependencies | US-001, US-002, US-003, US-004, US-005 |
 | Acceptance gates | GATE-11, GATE-12 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
@@ -1304,7 +1304,7 @@ Diff result feeds the verdict engine (US-029). `unknown_missing_layout` is the h
 | Sponsor | Sourcify, ENS |
 | Dependencies | US-014, US-015, US-017 |
 | Acceptance gates | GATE-24 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
