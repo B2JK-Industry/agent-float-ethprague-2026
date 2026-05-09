@@ -125,17 +125,60 @@ function isPlaceholder(d: Deployments): boolean {
 }
 
 /**
- * keccak256 of the bytes of `reports/<scenario>.json`. Returns ZERO_HASH if the
- * report file is absent (e.g. signing has not yet run for this scenario).
+ * keccak256 of the bytes of `reports/<scenario>.json`, BUT only if the report's
+ * internal proxy/previousImplementation/currentImplementation fields match the
+ * deployment we are about to provision.
+ *
+ * Returns ZERO_HASH when:
+ *   - scenario is null (vault baseline; no scenario report)
+ *   - the report file is absent
+ *   - the report file is malformed JSON
+ *   - the report's internal addresses do not match the deployment
+ *
+ * The mismatch case is the load-bearing one. Without this check, `provision-ens`
+ * would happily publish a non-zero `reportHash` for a stale `reports/*.json`
+ * left over from a previous deployment — the on-chain manifest would point at a
+ * `reportUri` whose payload addresses do not match the live `proxy`/`v1`/etc.,
+ * silently breaking the §4.3 verifier even though every individual record looks
+ * well-formed. Returning ZERO_HASH here keeps the manifest honest about
+ * "no report for this deployment yet" until `scripts/sign-reports.ts` is rerun.
  */
-function readReportHash(scenario: ReportScenario | null): Hex {
+function readReportHash(
+    scenario: ReportScenario | null,
+    expectedProxy: Address,
+    expectedPreviousImpl: Address,
+    expectedCurrentImpl: Address,
+): Hex {
     if (!scenario) return ZERO_HASH;
+    let bytes: string;
     try {
-        const bytes = readFileSync(`reports/${scenario}.json`, "utf8");
-        return keccak256(toBytes(bytes));
+        bytes = readFileSync(`reports/${scenario}.json`, "utf8");
     } catch {
         return ZERO_HASH;
     }
+
+    let parsed: {
+        proxy?: string;
+        previousImplementation?: string;
+        currentImplementation?: string;
+    };
+    try {
+        parsed = JSON.parse(bytes) as typeof parsed;
+    } catch {
+        return ZERO_HASH;
+    }
+
+    const eq = (a: string | undefined, b: string): boolean =>
+        typeof a === "string" && a.toLowerCase() === b.toLowerCase();
+    if (
+        !eq(parsed.proxy, expectedProxy)
+        || !eq(parsed.previousImplementation, expectedPreviousImpl)
+        || !eq(parsed.currentImplementation, expectedCurrentImpl)
+    ) {
+        return ZERO_HASH;
+    }
+
+    return keccak256(toBytes(bytes));
 }
 
 function labelHash(label: string): Hex {
@@ -181,7 +224,10 @@ async function ensureSubnode(
         args: [parentNode, labelHash(label), operator, SEPOLIA_PUBLIC_RESOLVER, 0n],
         chain: sepolia,
     });
-    await publicClient.waitForTransactionReceipt({ hash: txHash });
+    const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+    if (receipt.status !== "success") {
+        throw new Error(`setSubnodeRecord reverted (tx ${txHash})`);
+    }
     return txHash;
 }
 
@@ -269,7 +315,10 @@ async function setTextIfChanged(
         args: [node, key, value],
         chain: sepolia,
     });
-    await publicClient.waitForTransactionReceipt({ hash: txHash });
+    const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+    if (receipt.status !== "success") {
+        throw new Error(`setText(${key}) reverted (tx ${txHash})`);
+    }
     return txHash;
 }
 
@@ -337,7 +386,12 @@ async function main(): Promise<void> {
         );
         console.log(`  ${sub.name}  subnode -> ${subnodeResult}`);
 
-        const reportHash = readReportHash(sub.reportScenario);
+        const reportHash = readReportHash(
+            sub.reportScenario,
+            d.proxy,
+            d.v1,
+            d[sub.currentImplKey],
+        );
         const existing = await readExistingManifest(publicClient, node);
         const manifest = buildManifest(sub, d, reportHash, existing, nowIso);
         const manifestJson = JSON.stringify(manifest);
