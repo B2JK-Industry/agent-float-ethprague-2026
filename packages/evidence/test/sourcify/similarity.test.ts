@@ -137,6 +137,59 @@ describe('submitSimilarityVerification', () => {
       if (result.kind === 'error') expect(result.error.reason).toBe('rate_limited');
     });
 
+    // audit-round-7 P1 #12 regression: Sourcify v2's `/verify/{id}` poll
+    // endpoint returns the verification result under an `isJobCompleted`
+    // envelope rather than as a top-level `status` string. Previously
+    // the parser only recognised the legacy top-level shape, so a real
+    // production poll always tripped "malformed_response" and the
+    // submit→poll loop never converged. The fix recognises both shapes.
+    it('reads Sourcify v2 isJobCompleted envelope: pending → completed/exact_match (audit-round-7 P1 #12)', async () => {
+      let pollCount = 0;
+      const fetchImpl = vi.fn(async (_url: string, init?: RequestInit) => {
+        if (init?.method === 'POST') {
+          return jsonResponse(200, { verificationId: 'id-v2', status: 'pending' });
+        }
+        pollCount += 1;
+        // First two polls — job still running. v2 wire has no top-level
+        // `status` field; the discriminator is `isJobCompleted: false`.
+        if (pollCount < 3) return jsonResponse(200, { isJobCompleted: false, verificationId: 'id-v2' });
+        // Final poll — job done with verified contract.
+        return jsonResponse(200, {
+          isJobCompleted: true,
+          contract: { match: 'exact_match', creationMatch: 'exact_match', runtimeMatch: 'exact_match' },
+        });
+      });
+      const result = await submitSimilarityVerification(1, ADDR, { fetchImpl, sleep: noSleep });
+      expect(result.kind).toBe('ok');
+      if (result.kind === 'ok') {
+        expect(result.value.status).toBe('verified');
+        expect(result.value.attempts).toBe(3);
+      }
+    });
+
+    it('reads Sourcify v2 envelope: completed/no_match maps to no_match terminal (audit-round-7 P1 #12)', async () => {
+      const fetchImpl = vi.fn(async (_url: string, init?: RequestInit) => {
+        if (init?.method === 'POST') return jsonResponse(200, { verificationId: 'id-v2', status: 'pending' });
+        return jsonResponse(200, { isJobCompleted: true, contract: { match: null } });
+      });
+      const result = await submitSimilarityVerification(1, ADDR, { fetchImpl, sleep: noSleep });
+      expect(result.kind).toBe('ok');
+      if (result.kind === 'ok') expect(result.value.status).toBe('no_match');
+    });
+
+    it('reads Sourcify v2 envelope: completed with error field maps to failed (audit-round-7 P1 #12)', async () => {
+      const fetchImpl = vi.fn(async (_url: string, init?: RequestInit) => {
+        if (init?.method === 'POST') return jsonResponse(200, { verificationId: 'id-v2', status: 'pending' });
+        return jsonResponse(200, { isJobCompleted: true, error: 'compiler mismatch' });
+      });
+      const result = await submitSimilarityVerification(1, ADDR, { fetchImpl, sleep: noSleep });
+      expect(result.kind).toBe('ok');
+      if (result.kind === 'ok') {
+        expect(result.value.status).toBe('failed');
+        expect(result.value.raw['error']).toBe('compiler mismatch');
+      }
+    });
+
     it('surfaces poll-phase malformed status string', async () => {
       const fetchImpl = vi.fn(async (_url: string, init?: RequestInit) => {
         if (init?.method === 'POST') return jsonResponse(200, { verificationId: 'id-1', status: 'pending' });

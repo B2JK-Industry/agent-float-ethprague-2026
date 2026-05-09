@@ -47,6 +47,14 @@ export type TransferCountsFetchResult = TransferCountsOk | TransferCountsError;
 export interface FetchTransferCountsOptions {
   // Anchor for the 90-day window. Pure-function discipline.
   readonly nowSeconds: number;
+  // audit-round-7 P1 #14: real chain head, used to anchor the
+  // `fromBlock` for Alchemy's recent-90d window. Without this, the
+  // previous code computed `fromBlock = cutoffSec / 12` ≈ 148M (treating
+  // every unix second since epoch as a 12s mainnet block) — far above
+  // the real mainnet head ~22M, so Alchemy returned 0 transfers for
+  // every address. Callers (orchestrator) inject the real `latestBlock`
+  // they already fetched in fetchOnchainActivity.
+  readonly nowBlock?: bigint;
   // Optional indexer backend selection. When neither key is present,
   // returns kind:'error' reason:'no_provider_configured' so the
   // orchestrator falls back to the nonce path.
@@ -60,16 +68,21 @@ export interface FetchTransferCountsOptions {
   readonly retry?: RetryOptions | true;
   readonly alchemyBaseUrl?: string;
   readonly etherscanBaseUrl?: string;
-  // Block cutoff for the 90-day window. If unset, computed from
-  // nowSeconds - 90 days assuming 12s mainnet block time. Tests override
-  // for determinism.
+  // Block cutoff for the 90-day window. When set, takes precedence over
+  // nowBlock-derived computation. Tests use this for determinism.
   readonly fromBlockOverride?: bigint;
 }
 
 const SECONDS_PER_DAY = 86_400;
 const MAINNET_BLOCK_TIME_SECONDS = 12;
 const DEFAULT_ALCHEMY_BASE = 'https://eth-mainnet.g.alchemy.com/v2';
-const DEFAULT_ETHERSCAN_BASE = 'https://api.etherscan.io/api';
+// audit-round-7 P1 #14 (V1 vs V2): Etherscan's multichain endpoint is
+// served at `/v2/api` with a `chainid=` query parameter. The previous
+// `/api` path was Etherscan v1 (chain-specific subdomains, no chainid).
+// Hybridising — v1 path with v2 chainid query — works for mainnet by
+// luck on the fallback to api.etherscan.io but fails for sepolia and
+// produces inconsistent rate-limit and key handling.
+const DEFAULT_ETHERSCAN_BASE = 'https://api.etherscan.io/v2/api';
 
 function resolveRetryOptions(retry: RetryOptions | true | undefined): RetryOptions | undefined {
   if (retry === undefined) return undefined;
@@ -131,30 +144,28 @@ function parseEtherscanTxlistCount(raw: unknown, nowCutoffSec?: number): number 
   return count;
 }
 
-async function fetchAlchemyAssetTransfers(
-  chainId: number,
-  address: Address,
-  fromBlock: bigint,
-  apiKey: string,
+// audit-round-7 P1 #14 (outbound-only): Alchemy's
+// `alchemy_getAssetTransfers` filters by `fromAddress` OR `toAddress`,
+// not both at once. The previous implementation only sent `fromAddress`,
+// missing every inbound transfer. EPIC §8.3 mandates Σ outbound +
+// inbound. Issue two RPC calls per category and sum the results. Two
+// extra RPC trips per address but still well under the per-source
+// budget; the score quality bump for inbound-heavy addresses (every
+// receiver-style contract) is significant.
+async function alchemyTransferCountForDirection(
+  url: string,
+  fromBlockHex: string,
+  filterField: 'fromAddress' | 'toAddress',
+  filterValue: Address,
   fetchImpl: FetchLike,
-  baseUrl: string,
-  category: 'recent' | 'total',
 ): Promise<{ kind: 'count'; value: number } | TransferCountsError> {
-  const subdomain = alchemyChainSubdomain(chainId);
-  if (subdomain === null) {
-    return { kind: 'error', reason: 'unsupported_chain', message: `alchemy: unsupported chainId ${chainId}` };
-  }
-  const url = `${baseUrl.replace('eth-mainnet', subdomain)}/${apiKey}`;
-  // alchemy_getAssetTransfers parameters per Alchemy SDK docs.
   const params = {
-    fromAddress: address,
+    [filterField]: filterValue,
     category: ['external', 'erc20', 'erc721', 'erc1155'],
     withMetadata: false,
     excludeZeroValue: false,
     maxCount: '0x3e8',
-    ...(category === 'recent'
-      ? { fromBlock: `0x${fromBlock.toString(16)}` }
-      : { fromBlock: '0x0' }),
+    fromBlock: fromBlockHex,
   };
   let response: Response;
   try {
@@ -186,6 +197,33 @@ async function fetchAlchemyAssetTransfers(
   const count = parseAlchemyTransferCount(body);
   if (count === null) return { kind: 'error', reason: 'malformed_response', message: 'alchemy: missing result.transfers' };
   return { kind: 'count', value: count };
+}
+
+async function fetchAlchemyAssetTransfers(
+  chainId: number,
+  address: Address,
+  fromBlock: bigint,
+  apiKey: string,
+  fetchImpl: FetchLike,
+  baseUrl: string,
+  category: 'recent' | 'total',
+): Promise<{ kind: 'count'; value: number } | TransferCountsError> {
+  const subdomain = alchemyChainSubdomain(chainId);
+  if (subdomain === null) {
+    return { kind: 'error', reason: 'unsupported_chain', message: `alchemy: unsupported chainId ${chainId}` };
+  }
+  const url = `${baseUrl.replace('eth-mainnet', subdomain)}/${apiKey}`;
+  const fromBlockHex = category === 'recent' ? `0x${fromBlock.toString(16)}` : '0x0';
+
+  // Issue two RPCs in parallel: outbound (fromAddress) + inbound
+  // (toAddress). Sum the results — bidirectional transfer count.
+  const [outRes, inRes] = await Promise.all([
+    alchemyTransferCountForDirection(url, fromBlockHex, 'fromAddress', address, fetchImpl),
+    alchemyTransferCountForDirection(url, fromBlockHex, 'toAddress', address, fetchImpl),
+  ]);
+  if (outRes.kind === 'error') return outRes;
+  if (inRes.kind === 'error') return inRes;
+  return { kind: 'count', value: outRes.value + inRes.value };
 }
 
 async function fetchEtherscanTxlist(
@@ -242,8 +280,20 @@ export async function fetchOnchainTransferCounts(
 
   const order: ReadonlyArray<TransferCountProvider> = options.providerOrder ?? ['alchemy', 'etherscan'];
   const cutoffSec = options.nowSeconds - 90 * SECONDS_PER_DAY;
+  // audit-round-7 P1 #14 (nowBlock): when caller supplies a real
+  // `nowBlock` (the latest block they observed in fetchOnchainActivity),
+  // derive `fromBlock = nowBlock - (90 days / 12s)`. Without that
+  // anchor the previous formula `cutoffSec / 12` ≈ 148M dwarfed real
+  // mainnet head ~22M, so the Alchemy filter never matched any blocks
+  // and recent-90d transfer counts came back as 0 even for active
+  // contracts. fromBlockOverride still wins (test determinism).
+  const blocksPerWindow = BigInt(Math.floor((90 * SECONDS_PER_DAY) / MAINNET_BLOCK_TIME_SECONDS));
+  const fromBlockFromNowBlock = options.nowBlock !== undefined
+    ? (options.nowBlock > blocksPerWindow ? options.nowBlock - blocksPerWindow : 0n)
+    : undefined;
+  const fromBlockFromCutoff = BigInt(Math.max(0, Math.floor(cutoffSec / MAINNET_BLOCK_TIME_SECONDS)));
   const fromBlock =
-    options.fromBlockOverride ?? BigInt(Math.max(0, Math.floor(cutoffSec / MAINNET_BLOCK_TIME_SECONDS)));
+    options.fromBlockOverride ?? fromBlockFromNowBlock ?? fromBlockFromCutoff;
 
   let firstError: TransferCountsError | null = null;
 

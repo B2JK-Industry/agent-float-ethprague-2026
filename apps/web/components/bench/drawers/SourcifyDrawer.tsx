@@ -48,13 +48,37 @@ export type SourcifyDrawerProps = {
 
 const SOURCE_TAG = "SOURCIFY"; // v3 §C-11 canonical tag
 
+// audit-round-7 P1 #15 (verified flag): the score engine's compileSuccess
+// requires BOTH `creationMatch === 'exact_match'` AND `runtimeMatch ===
+// 'exact_match'` to count an entry as fully verified. Sourcify v2's
+// top-level `match` field is a permissive summary — it can read
+// `exact_match` even when one of the underlying creation/runtime is just
+// `match`. Rendering "verified × 1.00" off the top-level summary alone
+// could over-credit a partially-matched entry that the engine itself
+// treats as ≤ partial. Take both fields when present so the pill matches
+// what the engine actually scored.
+type SourcifyMatchLevel = "exact_match" | "match" | "not_found" | null | undefined;
 function matchVariant(
-  match: "exact_match" | "match" | "not_found" | null | undefined,
+  match: SourcifyMatchLevel,
+  creationMatch: SourcifyMatchLevel = undefined,
+  runtimeMatch: SourcifyMatchLevel = undefined,
 ): { variant: TrustPillVariant; label: string } {
+  // When both per-side fields are present, they're authoritative. Joint
+  // exact_match × exact_match → verified. Anything weaker → partial.
+  if (creationMatch !== undefined && runtimeMatch !== undefined) {
+    if (creationMatch === "exact_match" && runtimeMatch === "exact_match") {
+      return { variant: "verified", label: "× 1.00" };
+    }
+    if (creationMatch === "not_found" && runtimeMatch === "not_found") {
+      return { variant: "missing", label: "× 0.00" };
+    }
+    return { variant: "partial", label: "× 0.85" };
+  }
+  // Fall back to the top-level summary when per-side fields are absent
+  // (older fixtures, malformed Sourcify responses).
   if (match === "exact_match") return { variant: "verified", label: "× 1.00" };
   if (match === "match") return { variant: "partial", label: "× 0.85" };
-  if (match === "not_found")
-    return { variant: "missing", label: "× 0.00" };
+  if (match === "not_found") return { variant: "missing", label: "× 0.00" };
   return { variant: "missing", label: "× 0.00" };
 }
 
@@ -175,8 +199,14 @@ function EntryRow({
   // `entry.deep` is required on SourcifyEntryOk per the type, but
   // page-level test fixtures spread cast-through-unknown; defensively
   // fall back to "missing" so the drawer doesn't crash on synthetic
-  // shapes that omit it.
-  const pill = matchVariant(entry.deep?.match);
+  // shapes that omit it. audit-round-7 P1 #15: pass creation + runtime
+  // match through so the drawer renders the SAME verification verdict
+  // the score engine's compileSuccess uses.
+  const pill = matchVariant(
+    entry.deep?.match,
+    entry.deep?.creationMatch as SourcifyMatchLevel,
+    entry.deep?.runtimeMatch as SourcifyMatchLevel,
+  );
   const impls = entry.deep?.proxyResolution?.implementations ?? [];
 
   return (
