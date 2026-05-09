@@ -159,7 +159,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-111 | Subject ENS resolver: parse `agent-bench:bench_manifest` text record + JSON schema validator | B | P0 | M | merged | US-017 |
 | US-112 | Public-read fallback resolver: infer partial manifest from ENS `addr()` + Sourcify `all-chains` lookup | B | P0 | M | merged | US-111 |
 | US-113 | Sourcify source fetcher with deep field selectors (`compileSuccess`, `signatures.function/event`, `proxyResolution`, `creationMatch`, `runtimeMatch`, `metadata.sources[].license`, `userdoc/devdoc`) | B | P0 | M | merged | US-024, US-025 |
-| US-114 | GitHub source fetcher P0 (narrowed per review 2026-05-09): `/users/{owner}`, top-20 `/users/{owner}/repos`, per-repo `/repos/{o}/{r}` (esp. pushed_at), test-dir probes, README + LICENSE contents. PAT-backed cache, server-side only. CI/bug/releases/branch-protection/SECURITY/dependabot move to US-114b. | B | P0 | M | open | US-111 |
+| US-114 | GitHub source fetcher P0 (narrowed per review 2026-05-09): `/users/{owner}`, top-20 `/users/{owner}/repos`, per-repo `/repos/{o}/{r}` (esp. pushed_at), test-dir probes, README + LICENSE contents. PAT-backed cache, server-side only. CI/bug/releases/branch-protection/SECURITY/dependabot move to US-114b. | B | P0 | M | merged | US-111 |
 | US-114b | GitHub source fetcher P1 enrichment: workflow runs (`ciPassRate`), bug-labeled issues (`bugHygiene`), releases (`releaseCadence`), SECURITY.md + dependabot.yml + branch-protection (extends `repoHygiene`). Score engine treats these as null until merged. | B | P1 | M | open | US-114, US-118 |
 | US-115 | On-chain source fetcher P0 (rescoped per review 2026-05-09): `nonce` via `eth_getTransactionCount(latest)`, `firstTxBlock`/`firstTxTimestamp` via binary-search on historical nonce, `contractsDeployedCount` via Sourcify deployer crosswalk. Multi-chain. **NO `eth_getLogs from==` filter (RPC does not support it).** Transfer-count signals (Alchemy Transfers / Etherscan) move to US-115b; `relevance.onchainRecency` falls back to `nonce / cap 1000` when indexer keys absent. | B | P0 | M | merged | US-022 |
 | US-115b | On-chain transfer-count enrichment (P1): integrate Alchemy `alchemy_getAssetTransfers` OR Etherscan `txlist` for `transferCountRecent90d` + `transferCountTotal`. Required env keys: `ALCHEMY_API_KEY` or `ETHERSCAN_API_KEY`. Per-chain failure isolation; one chain rate-limited does not abort fetch. | B | P1 | M | open | US-115 |
@@ -3368,7 +3368,7 @@ EPIC reference: US-078. Renumbered to US-113. Use cases for the new fields are l
 | Sponsor | - |
 | Dependencies | US-111 |
 | Acceptance gates | GATE-29 |
-| Status | open (Epic 2) |
+| Status | merged |
 
 #### Scope
 
