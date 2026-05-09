@@ -25,7 +25,11 @@ export function EnsLookupForm({
       return;
     }
     setError(null);
-    router.push(`/r/${encodeURIComponent(trimmed)}`);
+    // US-131: route through /lookup/[name] for server-side mode
+    // detection. The lookup handler 307-redirects to /r/[name] when
+    // upgrade-siren:proxy is present (existing single-contract flow,
+    // unchanged) or to /b/[name] for Bench Mode otherwise.
+    router.push(`/lookup/${encodeURIComponent(trimmed)}`);
   }
 
   return (

@@ -22,7 +22,7 @@ describe("EnsLookupForm", () => {
     pushMock.mockReset();
   });
 
-  it("navigates to /r/<encoded-name> on valid submit", async () => {
+  it("navigates to /lookup/<encoded-name> on valid submit (mode-detection per US-131)", async () => {
     const user = userEvent.setup();
     render(<EnsLookupForm />);
 
@@ -33,7 +33,9 @@ describe("EnsLookupForm", () => {
     await user.click(screen.getByRole("button", { name: /look up/i }));
 
     expect(pushMock).toHaveBeenCalledTimes(1);
-    expect(pushMock).toHaveBeenCalledWith("/r/vault.demo.upgradesiren.eth");
+    expect(pushMock).toHaveBeenCalledWith(
+      "/lookup/vault.demo.upgradesiren.eth",
+    );
   });
 
   it("shows inline error and does not navigate when input has no dot", async () => {
