@@ -26,7 +26,12 @@ function resolveRetryOptions(retry: RetryOptions | true | undefined): RetryOptio
 }
 
 function buildUrl(baseUrl: string, chainId: number, address: Address): string {
-  return `${baseUrl}/contract/${chainId}/${address}?fields=match`;
+  // Sourcify v2 rejects `fields=match` with HTTP 400 ("Field selector match is
+  // not a valid field"). `runtimeMatch` is a valid selector and the response
+  // includes the headline `match` field regardless, which is all this status
+  // probe reads. Without this fix every Sourcify status call 400s in
+  // production and the verdict engine sees both impls as unverified.
+  return `${baseUrl}/contract/${chainId}/${address}?fields=runtimeMatch`;
 }
 
 function parseMatchLevel(raw: unknown): SourcifyMatchLevel | null {

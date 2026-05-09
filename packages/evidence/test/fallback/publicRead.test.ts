@@ -55,7 +55,7 @@ function makeFetch(handlers: {
     const chainId = Number(m[1]);
     const address = m[2] ?? '';
     const fields = m[3];
-    if (fields === 'match') return handlers.status(chainId, address);
+    if (fields === 'runtimeMatch') return handlers.status(chainId, address);
     if (fields === 'all') return handlers.metadata(chainId, address);
     return new Response('unknown fields', { status: 400 });
   }) as unknown as FetchLike;

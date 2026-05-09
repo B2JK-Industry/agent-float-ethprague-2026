@@ -18,7 +18,7 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 describe('fetchSourcifyStatus', () => {
-  it('builds the v2 URL with fields=match and parses exact_match', async () => {
+  it('builds the v2 URL with fields=runtimeMatch and parses exact_match', async () => {
     let observedUrl: string | undefined;
     const fetchImpl = makeFetch(async (url) => {
       observedUrl = url;
@@ -27,7 +27,7 @@ describe('fetchSourcifyStatus', () => {
 
     const result = await fetchSourcifyStatus(CHAIN_ID, ADDRESS, { fetchImpl });
 
-    expect(observedUrl).toBe(`${SOURCIFY_BASE_URL}/contract/${CHAIN_ID}/${ADDRESS}?fields=match`);
+    expect(observedUrl).toBe(`${SOURCIFY_BASE_URL}/contract/${CHAIN_ID}/${ADDRESS}?fields=runtimeMatch`);
     expect(result.kind).toBe('ok');
     if (result.kind === 'ok') {
       expect(result.value.match).toBe('exact_match');
@@ -120,7 +120,7 @@ describe('fetchSourcifyStatus', () => {
       baseUrl: 'https://custom.example.com/server/v2',
     });
     expect(observedUrl).toBe(
-      `https://custom.example.com/server/v2/contract/${CHAIN_ID}/${ADDRESS}?fields=match`,
+      `https://custom.example.com/server/v2/contract/${CHAIN_ID}/${ADDRESS}?fields=runtimeMatch`,
     );
   });
 

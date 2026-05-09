@@ -49,10 +49,10 @@
     "status": "valid",
     "signatureType": "EIP-712",
     "signer": "0x747E453F13B5B14313E25393Eb443fbAaA250cfC",
-    "signature": "0xf1c55f0a81621986b10ee792033ee5a1aefd0d0ba33445d3657e1a0ea7985df70c7dec0d6f7d587123c7698d5b6cf26368f2efa94780f35daf7493fd196de0831c",
-    "signedAt": "2026-05-09T07:44:31.801Z"
+    "signature": "0xe6290df3ebd7bb4996a399872e3da0f51611471069495d7d78b4933e384faee066c0c73b2febb0f72ea6560f1dbbcde0c60ca3ae783b0a32cd8600ba3492d77b1b",
+    "signedAt": "2026-05-09T13:22:51.951Z"
   },
   "recommendedAction": "reject",
   "mock": false,
-  "generatedAt": "2026-05-09T07:44:31Z"
+  "generatedAt": "2026-05-09T13:22:51Z"
 }
