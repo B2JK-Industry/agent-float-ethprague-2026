@@ -71,7 +71,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-024 | Sourcify verification status fetch | B | P0 | M | merged | none |
 | US-025 | Sourcify metadata fetch (source, ABI, compiler, storage layout) | B | P0 | M | merged | none |
 | US-026 | ABI risky-selector diff | B | P0 | M | merged | US-025 |
-| US-027 | Storage-layout compatibility diff | B | P0 | M | open | US-025 |
+| US-027 | Storage-layout compatibility diff | B | P0 | M | merged | US-025 |
 | US-028 | EIP-712 Siren Report signature verification against upgrade-siren:owner | B | P0 | M | merged | US-014, US-015, US-017 |
 | US-029 | Verdict engine: SAFE / REVIEW / SIREN rules | B | P0 | L | open | US-018, US-019, US-020, US-022, US-026, US-027, US-028 |
 | US-030 | Manifest hash-chain validation using previousManifestHash | B | P1 | S | open | US-018 |
@@ -1261,7 +1261,7 @@ The list is a closed set per `docs/04-technical-design.md`. Adding a selector to
 | Sponsor | Sourcify |
 | Dependencies | US-025 |
 | Acceptance gates | GATE-12 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
