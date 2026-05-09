@@ -37,6 +37,7 @@ import {
   type FetchGithubP0SourceOptions,
 } from '../sources/github/fetch.js';
 import { fetchSourcifyMetadata } from '../sourcify/metadata.js';
+import type { FetchLike } from '../sourcify/types.js';
 
 // fetchSourcifyMetadata's options interface isn't exported; inline the
 // caller-facing subset so OrchestrateSubjectOptions stays expressive.
@@ -50,6 +51,90 @@ import type {
   SourcifyEntryEvidence,
   SubjectIdentity,
 } from './types.js';
+
+// ─── Per-source timeout budgets (US-117 follow-up, Stream B carry-rule v2 §2B) ───
+//
+// PR #137 added a 12s page-level deadline. That works for fast subjects but
+// drops "evaluation failed" on /b/vitalik.eth-style public-read subjects
+// where one slow source (ENS subgraph cold start, GitHub rate-limit cool-
+// down, Sourcify all-chains scan) burns the whole budget. Per-source
+// budgets let the orchestrator return a partial verdict with `kind:'error'
+// reason:'source_timeout'` on the slow tile while delivering the fast
+// tiles to the renderer.
+//
+// Budgets are belt-and-braces under the 12s page cap — page-level race
+// stays in apps/web. These values cap individual source contribution to
+// the page budget.
+export const DEFAULT_PER_SOURCE_BUDGETS_MS = {
+  sourcifyDeep: 4_000,
+  sourcifyAllChains: 6_000,
+  github: 6_000,
+  onchain: 4_000,
+  ensInternal: 4_000,
+  crossChain: 4_000,
+} as const;
+
+export type PerSourceBudgetKey = keyof typeof DEFAULT_PER_SOURCE_BUDGETS_MS;
+export type PerSourceBudgetsMs = { readonly [K in PerSourceBudgetKey]: number };
+
+// Internal sentinel error so the orchestrator can distinguish "fetch
+// returned typed error" from "we aborted past the per-source budget".
+class SourceTimeoutError extends Error {
+  constructor(
+    readonly label: string,
+    readonly ms: number,
+  ) {
+    super(`${label}: per-source timeout ${ms}ms`);
+    this.name = 'SourceTimeoutError';
+  }
+}
+
+// Race a thunk against an AbortController-backed timeout. The thunk
+// receives the signal so HTTP-based fetchers can thread it into the
+// underlying fetch call (true cancellation). For viem-based callers
+// the race still wins → orchestrator returns; the underlying RPC
+// settles in the background and is GC'd on the next response cycle.
+async function withSourceTimeout<T>(
+  thunk: (signal: AbortSignal) => Promise<T>,
+  ms: number,
+  label: string,
+): Promise<T> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await Promise.race([
+      thunk(ctrl.signal),
+      new Promise<T>((_, reject) => {
+        // If the signal already fired before .race() got here, reject
+        // synchronously on the next microtask; the addEventListener
+        // path is the common case.
+        if (ctrl.signal.aborted) {
+          reject(new SourceTimeoutError(label, ms));
+          return;
+        }
+        ctrl.signal.addEventListener('abort', () => {
+          reject(new SourceTimeoutError(label, ms));
+        });
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+    if (!ctrl.signal.aborted) ctrl.abort();
+  }
+}
+
+// Wrap a FetchLike so every call carries the timeout's AbortSignal. When
+// the orchestrator times out, in-flight fetch requests are aborted at
+// the transport layer rather than left dangling on the event loop.
+function injectSignal(fetchImpl: FetchLike | undefined, signal: AbortSignal): FetchLike {
+  const base: FetchLike = fetchImpl ?? globalThis.fetch.bind(globalThis);
+  return (input, init) => base(input, { ...(init ?? {}), signal });
+}
+
+function resolveBudgets(opts?: Partial<PerSourceBudgetsMs>): PerSourceBudgetsMs {
+  if (opts === undefined) return DEFAULT_PER_SOURCE_BUDGETS_MS;
+  return { ...DEFAULT_PER_SOURCE_BUDGETS_MS, ...opts };
+}
 
 export interface OrchestrateSubjectOptions {
   readonly chainId?: number;
@@ -73,6 +158,10 @@ export interface OrchestrateSubjectOptions {
   // Default chains that always get an on-chain activity fetch in addition
   // to the chains the manifest declares.
   readonly defaultOnchainChains?: ReadonlyArray<number>;
+  // Per-source timeout budgets in milliseconds (US-117 carry-rule v2 §2B).
+  // Defaults match `DEFAULT_PER_SOURCE_BUDGETS_MS`. Tests inject smaller
+  // values for deterministic assertions.
+  readonly perSourceBudgetsMs?: Partial<PerSourceBudgetsMs>;
 }
 
 const DEFAULT_ONCHAIN_CHAINS: ReadonlyArray<number> = [1, 11155111];
@@ -171,40 +260,72 @@ async function fetchOneSourcifyEntry(
   entry: SubjectSourcifyEntry,
   deepOptions: FetchSourcifyDeepOptions | undefined,
   metadataOptions: FetchSourcifyMetadataOptions | undefined,
+  budgetMs: number,
 ): Promise<SourcifyEntryEvidence> {
-  // Two parallel fetches per entry: deep (for score-engine evidence) and
-  // metadata (for source-pattern detection — patterns read source file
-  // contents). When the metadata fetch errors but deep succeeds, the
-  // entry surfaces with empty patterns rather than failing the whole entry.
-  const [deep, metadata] = await Promise.all([
-    fetchSourcifyDeep(entry.chainId, entry.address, deepOptions),
-    fetchSourcifyMetadata(entry.chainId, entry.address, metadataOptions ?? {}),
-  ]);
-  if (deep.kind === 'error') {
-    return {
-      kind: 'error',
-      chainId: entry.chainId,
-      address: entry.address,
-      label: entry.label,
-      reason: deep.error.reason,
-      message: deep.error.message,
-    };
+  const label = `sourcify-deep:${entry.chainId}:${entry.address}`;
+  try {
+    return await withSourceTimeout(
+      async (signal) => {
+        // Inject AbortSignal into both per-entry fetches so an orchestrator
+        // timeout aborts at the transport layer (vs leaving requests
+        // dangling).
+        const deepWithSignal: FetchSourcifyDeepOptions = {
+          ...(deepOptions ?? {}),
+          fetchImpl: injectSignal(deepOptions?.fetchImpl, signal),
+        };
+        const metaWithSignal: FetchSourcifyMetadataOptions = {
+          ...(metadataOptions ?? {}),
+          fetchImpl: injectSignal(metadataOptions?.fetchImpl, signal),
+        };
+        // Two parallel fetches per entry: deep (for score-engine evidence)
+        // and metadata (for source-pattern detection — patterns read source
+        // file contents). When metadata errors but deep succeeds, the entry
+        // surfaces with empty patterns rather than failing the whole entry.
+        const [deep, metadata] = await Promise.all([
+          fetchSourcifyDeep(entry.chainId, entry.address, deepWithSignal),
+          fetchSourcifyMetadata(entry.chainId, entry.address, metaWithSignal),
+        ]);
+        if (deep.kind === 'error') {
+          return {
+            kind: 'error' as const,
+            chainId: entry.chainId,
+            address: entry.address,
+            label: entry.label,
+            reason: deep.error.reason,
+            message: deep.error.message,
+          };
+        }
+        // US-123 source-pattern detection wires in once that PR merges;
+        // until then orchestrator emits `patterns: []`.
+        void metadata;
+        const patterns: ReadonlyArray<never> = [];
+        const licenseCompiler = summarizeLicenseAndCompiler(deep.value);
+        return {
+          kind: 'ok' as const,
+          chainId: entry.chainId,
+          address: entry.address,
+          label: entry.label,
+          deep: deep.value,
+          patterns,
+          licenseCompiler,
+        };
+      },
+      budgetMs,
+      label,
+    );
+  } catch (err) {
+    if (err instanceof SourceTimeoutError) {
+      return {
+        kind: 'error',
+        chainId: entry.chainId,
+        address: entry.address,
+        label: entry.label,
+        reason: 'source_timeout',
+        message: err.message,
+      };
+    }
+    throw err;
   }
-  // US-123 source-pattern detection wires in once that PR merges; until
-  // then orchestrator emits `patterns: []` for every entry. Score engine
-  // tolerates an empty array.
-  void metadata;
-  const patterns: ReadonlyArray<never> = [];
-  const licenseCompiler = summarizeLicenseAndCompiler(deep.value);
-  return {
-    kind: 'ok',
-    chainId: entry.chainId,
-    address: entry.address,
-    label: entry.label,
-    deep: deep.value,
-    patterns,
-    licenseCompiler,
-  };
 }
 
 async function fetchOneOnchain(
@@ -212,21 +333,36 @@ async function fetchOneOnchain(
   address: Address,
   options: FetchOnchainActivityOptions | undefined,
   fallbackClient: PublicClient | undefined,
+  budgetMs: number,
 ): Promise<OnchainEntryEvidence> {
-  // Threading the orchestrator's top-level client through to the on-chain
-  // fetcher when the caller has not supplied a per-fetch client. Avoids a
-  // real-RPC fallback (createPublicClient + http()) inside test paths
-  // that mock the client at the orchestrator level.
-  const baseOpts = options ?? {};
-  const opts: FetchOnchainActivityOptions =
-    baseOpts.client === undefined && fallbackClient !== undefined
-      ? { ...baseOpts, client: fallbackClient }
-      : { ...baseOpts };
-  const res = await fetchOnchainActivity(chainId, address, opts);
-  if (res.kind === 'error') {
-    return { kind: 'error', chainId, reason: res.reason, message: res.message };
+  const label = `onchain:${chainId}:${address}`;
+  try {
+    return await withSourceTimeout(
+      // viem PublicClient does not expose a per-call AbortSignal; the
+      // race wins on timeout but the underlying RPC settles in the
+      // background and is GC'd. Best-effort cancellation; the demo
+      // outcome (orchestrator returns within budget) is preserved.
+      async (_signal) => {
+        const baseOpts = options ?? {};
+        const opts: FetchOnchainActivityOptions =
+          baseOpts.client === undefined && fallbackClient !== undefined
+            ? { ...baseOpts, client: fallbackClient }
+            : { ...baseOpts };
+        const res = await fetchOnchainActivity(chainId, address, opts);
+        if (res.kind === 'error') {
+          return { kind: 'error' as const, chainId, reason: res.reason, message: res.message };
+        }
+        return { kind: 'ok' as const, chainId, value: res.value };
+      },
+      budgetMs,
+      label,
+    );
+  } catch (err) {
+    if (err instanceof SourceTimeoutError) {
+      return { kind: 'error', chainId, reason: 'source_timeout', message: err.message };
+    }
+    throw err;
   }
-  return { kind: 'ok', chainId, value: res.value };
 }
 
 function dedupeChainIds(
@@ -242,33 +378,72 @@ async function fetchGithub(
   owner: string | null,
   pat: string | undefined,
   options: FetchGithubP0SourceOptions | undefined,
+  budgetMs: number,
 ): Promise<GithubEvidence> {
   if (owner === null || owner.length === 0) return { kind: 'absent' };
   if (!pat || pat.length === 0) return { kind: 'absent' };
-  const res = await fetchGithubP0Source(owner, { ...(options ?? {}), pat });
-  if (res.kind === 'error') {
-    if (isMissingPatReason(res.reason)) return { kind: 'absent' };
-    return { kind: 'error', reason: res.reason, message: res.message };
+  const label = `github:${owner}`;
+  try {
+    return await withSourceTimeout(
+      async (signal) => {
+        const opts: FetchGithubP0SourceOptions = {
+          ...(options ?? {}),
+          pat,
+          fetchImpl: injectSignal(options?.fetchImpl, signal),
+        };
+        const res = await fetchGithubP0Source(owner, opts);
+        if (res.kind === 'error') {
+          if (isMissingPatReason(res.reason)) return { kind: 'absent' as const };
+          return { kind: 'error' as const, reason: res.reason, message: res.message };
+        }
+        return { kind: 'ok' as const, value: res.value };
+      },
+      budgetMs,
+      label,
+    );
+  } catch (err) {
+    if (err instanceof SourceTimeoutError) {
+      return { kind: 'error', reason: 'source_timeout', message: err.message };
+    }
+    throw err;
   }
-  return { kind: 'ok', value: res.value };
 }
 
 async function fetchEnsInternal(
   name: string,
   apiKey: string | undefined,
   options: FetchEnsInternalSignalsOptions | undefined,
+  budgetMs: number,
 ): Promise<EnsInternalEvidence> {
   if (!apiKey || apiKey.length === 0) return { kind: 'absent' };
-  // FetchEnsInternalSignalsOptions requires apiKey. Spread caller options
-  // first, then force the resolved apiKey on top so the orchestrator's
-  // env-derived key wins when both are present.
-  const merged: FetchEnsInternalSignalsOptions = { ...(options ?? {}), apiKey };
-  const res = await fetchEnsInternalSignals(name, merged);
-  if (res.kind === 'error') {
-    if (isMissingPatReason(res.reason)) return { kind: 'absent' };
-    return { kind: 'error', reason: res.reason, message: res.message };
+  const label = `ens-internal:${name}`;
+  try {
+    return await withSourceTimeout(
+      async (signal) => {
+        // FetchEnsInternalSignalsOptions requires apiKey. Spread caller
+        // options first, force apiKey on top so the orchestrator's env-
+        // derived key wins, then inject signal on the fetchImpl.
+        const merged: FetchEnsInternalSignalsOptions = {
+          ...(options ?? {}),
+          apiKey,
+          fetchImpl: injectSignal(options?.fetchImpl, signal),
+        };
+        const res = await fetchEnsInternalSignals(name, merged);
+        if (res.kind === 'error') {
+          if (isMissingPatReason(res.reason)) return { kind: 'absent' as const };
+          return { kind: 'error' as const, reason: res.reason, message: res.message };
+        }
+        return { kind: 'ok' as const, value: res.value };
+      },
+      budgetMs,
+      label,
+    );
+  } catch (err) {
+    if (err instanceof SourceTimeoutError) {
+      return { kind: 'error', reason: 'source_timeout', message: err.message };
+    }
+    throw err;
   }
-  return { kind: 'ok', value: res.value };
 }
 
 // US-117 multi-source orchestrator. Per launch prompt non-negotiables:
@@ -288,6 +463,7 @@ export async function orchestrateSubject(
   options: OrchestrateSubjectOptions = {},
 ): Promise<MultiSourceEvidence> {
   const failures: SourceFailure[] = [];
+  const budgets = resolveBudgets(options.perSourceBudgetsMs);
 
   const { identity, sources, failure: subjectFailure } = await resolveSubject(name, options);
   if (subjectFailure) failures.push(subjectFailure);
@@ -295,10 +471,19 @@ export async function orchestrateSubject(
   const onchainChainIds = dedupeChainIds(sources, options.defaultOnchainChains ?? DEFAULT_ONCHAIN_CHAINS);
 
   // Fan-out per-source. Promise.allSettled over already-typed-result
-  // promises so no exception escapes the orchestrator.
+  // promises so no exception escapes the orchestrator. Each per-source
+  // helper is wrapped in withSourceTimeout — slow tiles surface as
+  // kind:'error' reason:'source_timeout' so the renderer can show a
+  // dashed-border missing pill (carry-rule v2 §2B) without the whole
+  // request blocking on the slowest fetch.
   const sourcifyPromise = Promise.allSettled(
     sources.map((entry) =>
-      fetchOneSourcifyEntry(entry, options.sourcifyDeepOptions, options.metadataOptions),
+      fetchOneSourcifyEntry(
+        entry,
+        options.sourcifyDeepOptions,
+        options.metadataOptions,
+        budgets.sourcifyDeep,
+      ),
     ),
   );
   const onchainPromise = identity.primaryAddress
@@ -309,16 +494,52 @@ export async function orchestrateSubject(
             identity.primaryAddress as Address,
             options.onchainOptions,
             options.client,
+            budgets.onchain,
           ),
         ),
       )
     : Promise.resolve([] as ReadonlyArray<PromiseSettledResult<OnchainEntryEvidence>>);
   const githubPromise = identity.manifest?.sources.github?.owner
-    ? fetchGithub(identity.manifest.sources.github.owner, options.githubPat, options.githubOptions)
+    ? fetchGithub(
+        identity.manifest.sources.github.owner,
+        options.githubPat,
+        options.githubOptions,
+        budgets.github,
+      )
     : Promise.resolve<GithubEvidence>({ kind: 'absent' });
-  const ensInternalPromise = fetchEnsInternal(name, options.graphApiKey, options.ensInternalOptions);
+  const ensInternalPromise = fetchEnsInternal(
+    name,
+    options.graphApiKey,
+    options.ensInternalOptions,
+    budgets.ensInternal,
+  );
   const crossChainPromise = sources.length > 0
-    ? discoverCrossChainPresence(sources, options.crossChainOptions ?? {})
+    ? withSourceTimeout(
+        async (signal) => {
+          const opts: DiscoverCrossChainOptions = {
+            ...(options.crossChainOptions ?? {}),
+            fetchImpl: injectSignal(options.crossChainOptions?.fetchImpl, signal),
+          };
+          return discoverCrossChainPresence(sources, opts);
+        },
+        budgets.crossChain,
+        'cross-chain',
+      ).catch((err: unknown) => {
+        if (err instanceof SourceTimeoutError) {
+          // Surface the cross-chain timeout as a non-fatal failure on the
+          // result; the orchestrator returns null for the discovery block
+          // so the renderer marks the cross-chain badge missing rather
+          // than dropping the whole bench card.
+          failures.push({
+            kind: 'error',
+            source: 'cross-chain',
+            reason: 'source_timeout',
+            message: err.message,
+          });
+          return null;
+        }
+        throw err;
+      })
     : Promise.resolve(null);
 
   const [sourcifySettled, onchainSettled, github, ensInternal, crossChain] = await Promise.all([
