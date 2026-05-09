@@ -198,8 +198,8 @@ Use the structure shown below. Reproduce all sections exactly. The worked exampl
 - Priority: P0 (must ship) / P1 (polish) / P2 (stretch) / P3 (post-hack)
 - Effort: XS (<1h) / S (1-2h) / M (half-day) / L (1 day) / XL (split required)
 - Owner: A / B / C / Daniel / Orch
-- Status: open / pr-open / merged / blocked
-- Dependencies: list of US-NNN ids that must be `merged` before this item can start. PR-open does not unblock.
+- Status: open / merged / blocked (the existence of an open PR is tracked in GitHub; do not duplicate it here)
+- Dependencies: list of US-NNN ids that must be `merged` before this item can start. An open PR on a dependency does not unblock its consumers.
 
 ## Stream Ownership Map
 

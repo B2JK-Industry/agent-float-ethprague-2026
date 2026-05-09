@@ -1,8 +1,15 @@
 # Launch prompt — Dev A (Contract Fixtures)
 
-> Paste this prompt as the first message of a new Claude Code session.
-> Recommended invocation: `claude --dangerously-skip-permissions` in the repo root.
 > Repo: `https://github.com/B2JK-Industry/Upgrade-Siren-ETHPrague2026`
+> Recommended invocation: `claude --dangerously-skip-permissions` in the repo root.
+
+## ACTIVATION
+
+**This is not a passive document. The act of reading this file IS the launch signal.**
+
+If you (the Claude Code session) just received this file's path or content as a user message, the user's intent is for you to **become Dev A immediately**. Do not summarize. Do not ask "what do you want me to do". Do not list options. Confirm the role in one sentence, then execute the contract below.
+
+The first concrete action after this preamble is: read `prompts/run-dev-stream.md` end-to-end, then start the non-stop loop with US-001.
 
 ---
 
