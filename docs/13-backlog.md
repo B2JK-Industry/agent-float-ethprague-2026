@@ -204,11 +204,11 @@ Tracker-only owners (not picked up by dev agents):
 
 | ID | Title | Owner | Priority | Effort | Status | Depends on |
 |---|---|---|---|---|---|---|
-| US-141 | Update demo script (`docs/05-demo-script.md`) with 90-second Bench Mode segment per EPIC Section 14 | Orch | P0 | S | open | US-132 |
-| US-142 | Update sponsor pitch (`docs/07-sponsor-fit.md`) with Bench Mode delta: ENS AI-Agents track positioning + Sourcify "only verified seniority source" framing | Orch | P0 | S | open | US-117 |
+| US-141 | Update demo script (`docs/05-demo-script.md`) with 90-second Bench Mode segment per EPIC Section 14 | Orch | P0 | S | merged | US-132 |
+| US-142 | Update sponsor pitch (`docs/07-sponsor-fit.md`) with Bench Mode delta: ENS AI-Agents track positioning + Sourcify "only verified seniority source" framing | Orch | P0 | S | merged | US-117 |
 | US-143 | Naming-collision check for "Upgrade Siren Bench" sub-brand (existing crypto / web3 products named "Bench" or "Siren Bench"); fallback list "Profile" / "Score" / "Stand"; outcome documented in `docs/14-naming-bench.md` | Daniel + Orch | P0 | XS | open | none |
 | US-144 | Mentor sweep on Sourcify (similarity submit + storage-history use) and ENS (AI-Agents track judging criteria) | Daniel | P0 | S | open | US-117 |
-| US-145 | Update `SCOPE.md` Section 1 + Section 5 with Bench Mode delta after this epic merges; append GATE-27..GATE-34 to `docs/06-acceptance-gates.md` | Orch | P0 | S | open | US-117, US-132 |
+| US-145 | Update `SCOPE.md` Section 1 + Section 5 with Bench Mode delta after this epic merges; append GATE-27..GATE-34 to `docs/06-acceptance-gates.md` | Orch | P0 | S | merged | US-117, US-132 |
 
 ## Dependency DAG (text form)
 
@@ -4316,7 +4316,7 @@ EPIC reference: US-105. Renumbered to US-140. **First cut** behind US-121 if Day
 | Sponsor | - |
 | Dependencies | US-132 |
 | Acceptance gates | - |
-| Status | open (Epic 2) |
+| Status | merged |
 
 #### Scope
 
@@ -4346,7 +4346,7 @@ EPIC reference: US-106. Renumbered to US-141.
 | Sponsor | - |
 | Dependencies | US-117 |
 | Acceptance gates | - |
-| Status | open (Epic 2) |
+| Status | merged |
 
 #### Scope
 
@@ -4444,7 +4444,7 @@ EPIC reference: US-109. Renumbered to US-144.
 | Sponsor | - |
 | Dependencies | US-117, US-132 |
 | Acceptance gates | - |
-| Status | open (Epic 2) |
+| Status | merged |
 
 #### Scope
 
