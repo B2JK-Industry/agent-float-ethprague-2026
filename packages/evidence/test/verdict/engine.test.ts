@@ -367,3 +367,110 @@ describe('computeVerdict — Sourcify status null (data missing)', () => {
     expect(r.confidence).toBe('public-read');
   });
 });
+
+describe('US-078 — V1-anchored bytecode interpretation', () => {
+  // VaultV1Derivative scenario: the current implementation is unverified on
+  // Sourcify (`not_found`), but its bytecode matches the verified V1
+  // reference closely enough that the engine downgrades the verdict from
+  // SIREN to REVIEW with an explicit "implementation hypothesis: V1-derived"
+  // finding. SAFE remains unreachable because there's no metadata trail.
+
+  const v1DerivedMatch = {
+    confidence: 1,
+    hypothesis: 'v1_derived' as const,
+    matchedSelectors: ['0xc4d66de8' as `0x${string}`, '0xd0e30db0' as `0x${string}`],
+    unmatchedSelectors: [] as ReadonlyArray<`0x${string}`>,
+    riskySelectorsInUnmatched: [] as ReadonlyArray<string>,
+    storageLayoutMarkers: {
+      eip1967ImplementationSlot: true,
+      eip1967AdminSlot: false,
+      eip1967BeaconSlot: false,
+      initializableNamespace: true,
+      ozOwnableMarker: false,
+    },
+    rationale: 'bytecode n-gram coverage 100.0%; 2 matched + 0 unmatched',
+  };
+
+  const lowConfidenceMatch = {
+    ...v1DerivedMatch,
+    confidence: 0.45,
+    hypothesis: 'partial_match' as const,
+  };
+
+  const matchWithRiskySelector = {
+    ...v1DerivedMatch,
+    unmatchedSelectors: ['0x01681a62' as `0x${string}`] as ReadonlyArray<`0x${string}`>,
+    riskySelectorsInUnmatched: ['sweep'] as ReadonlyArray<string>,
+  };
+
+  const unverifiedCurrent: ComputeVerdictInput = {
+    ...happySigned,
+    currentSourcifyMatch: 'not_found',
+  };
+
+  it('SIREN when current is unverified and no bytecodeMatch is supplied (no V1 anchor)', () => {
+    const r = computeVerdict(unverifiedCurrent);
+    expect(r.verdict).toBe('SIREN');
+    expect(r.findings.some((f) => f.id === 'VERIFICATION_CURRENT_UNVERIFIED' && f.severity === 'critical')).toBe(true);
+    expect(r.findings.some((f) => f.id === 'IMPLEMENTATION_HYPOTHESIS_V1_DERIVED')).toBe(false);
+  });
+
+  it('REVIEW with V1-derived hypothesis when bytecodeMatch.confidence >= 0.9 and no risky selectors', () => {
+    const r = computeVerdict({ ...unverifiedCurrent, bytecodeMatch: v1DerivedMatch });
+    expect(r.verdict).toBe('REVIEW');
+    expect(r.findings.some((f) => f.id === 'IMPLEMENTATION_HYPOTHESIS_V1_DERIVED' && f.severity === 'warning')).toBe(true);
+    expect(r.findings.some((f) => f.id === 'VERIFICATION_CURRENT_UNVERIFIED')).toBe(false);
+  });
+
+  it('still SIREN when bytecodeMatch.confidence < 0.9 (partial match)', () => {
+    const r = computeVerdict({ ...unverifiedCurrent, bytecodeMatch: lowConfidenceMatch });
+    expect(r.verdict).toBe('SIREN');
+    expect(r.findings.some((f) => f.id === 'IMPLEMENTATION_HYPOTHESIS_V1_DERIVED')).toBe(false);
+    const unverified = r.findings.find((f) => f.id === 'VERIFICATION_CURRENT_UNVERIFIED');
+    expect(unverified?.evidence).toMatchObject({
+      bytecodeMatchConfidence: 0.45,
+      bytecodeMatchHypothesis: 'partial_match',
+    });
+  });
+
+  it('still SIREN when bytecodeMatch contains risky unmatched selectors (sweep added)', () => {
+    const r = computeVerdict({ ...unverifiedCurrent, bytecodeMatch: matchWithRiskySelector });
+    expect(r.verdict).toBe('SIREN');
+    expect(r.findings.some((f) => f.id === 'IMPLEMENTATION_HYPOTHESIS_V1_DERIVED')).toBe(false);
+  });
+
+  it('still SIREN when abiDiff has risky additions even if bytecode confidence is high', () => {
+    const r = computeVerdict({
+      ...unverifiedCurrent,
+      bytecodeMatch: v1DerivedMatch,
+      abiDiff: {
+        added: [
+          { name: 'sweep', selector: '0x01681a62', stateMutability: 'nonpayable', inputs: ['address'] },
+        ],
+        removed: [],
+        addedAny: true,
+        removedAny: false,
+      },
+    });
+    expect(r.verdict).toBe('SIREN');
+    expect(r.findings.some((f) => f.id === 'IMPLEMENTATION_HYPOTHESIS_V1_DERIVED')).toBe(false);
+  });
+
+  it('never returns SAFE on the V1-derived path even when no other warning fires', () => {
+    const r = computeVerdict({ ...unverifiedCurrent, bytecodeMatch: v1DerivedMatch });
+    expect(r.verdict).toBe('REVIEW');
+    expect(r.verdict).not.toBe('SAFE');
+  });
+
+  it('hypothesis finding evidence carries confidence + matched/unmatched + storage markers for the UI', () => {
+    const r = computeVerdict({ ...unverifiedCurrent, bytecodeMatch: v1DerivedMatch });
+    const f = r.findings.find((x) => x.id === 'IMPLEMENTATION_HYPOTHESIS_V1_DERIVED');
+    expect(f?.evidence).toMatchObject({
+      confidence: 1,
+      hypothesis: 'v1_derived',
+      matchedSelectors: ['0xc4d66de8', '0xd0e30db0'],
+      unmatchedSelectors: [],
+      storageLayoutMarkers: { eip1967ImplementationSlot: true, initializableNamespace: true },
+    });
+  });
+});

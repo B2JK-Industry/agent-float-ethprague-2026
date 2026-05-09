@@ -8,6 +8,10 @@
 import type { Address } from '@upgrade-siren/shared';
 
 import type { AbiRiskyDiff } from '../diff/abi.js';
+import {
+  qualifiesForV1DerivedReview,
+  type BytecodeMatchResult,
+} from '../diff/bytecodeMatch.js';
 import type { StorageDiffResult } from '../diff/storage.js';
 import type { SourcifyMatchLevel } from '../sourcify/types.js';
 import type { UpgradeManifest } from '../manifest/types.js';
@@ -49,6 +53,15 @@ export interface ComputeVerdictInput {
 
   // Authentication layer (signed-manifest only)
   readonly signatureVerification: VerifySignatureResult | null;
+
+  // US-078: V1-anchored bytecode interpretation. Optional. When the
+  // current implementation is unverified on Sourcify but matches a verified
+  // V1 reference at >=0.9 with no risky selectors added, the engine
+  // downgrades the verdict from SIREN to REVIEW with an explicit
+  // "implementation hypothesis: V1-derived" finding. SAFE remains
+  // unreachable on this path because there's no metadata trail proving
+  // origin.
+  readonly bytecodeMatch?: BytecodeMatchResult | null;
 }
 
 export interface ComputeVerdictResult {
@@ -276,14 +289,48 @@ function addSourcifyFindings(input: ComputeVerdictInput, findings: Finding[]): v
       ),
     );
   } else if (current === 'not_found') {
-    findings.push(
-      makeFinding(
-        FINDING_IDS.VERIFICATION_CURRENT_UNVERIFIED,
-        'critical',
-        'current implementation is not verified on Sourcify',
-        { match: current },
-      ),
-    );
+    // US-078: V1-anchored hypothesis. If we have a bytecode-match result
+    // showing the unverified current is byte-equivalent to a verified V1
+    // (>=0.9 confidence, no risky selectors added), downgrade the verdict
+    // path from critical SIREN to warning REVIEW. SAFE stays unreachable
+    // because there's no metadata trail.
+    const m = input.bytecodeMatch;
+    const hasRiskyAddedFromAbi = input.abiDiff?.addedAny ?? false;
+    if (m && qualifiesForV1DerivedReview(m, hasRiskyAddedFromAbi)) {
+      findings.push(
+        makeFinding(
+          FINDING_IDS.IMPLEMENTATION_HYPOTHESIS_V1_DERIVED,
+          'warning',
+          `implementation hypothesis: V1-derived (bytecode match ${(m.confidence * 100).toFixed(1)}%, no risky selectors added). REVIEW — no metadata trail proves origin.`,
+          {
+            confidence: m.confidence,
+            hypothesis: m.hypothesis,
+            matchedSelectors: m.matchedSelectors,
+            unmatchedSelectors: m.unmatchedSelectors,
+            storageLayoutMarkers: m.storageLayoutMarkers,
+            rationale: m.rationale,
+          },
+        ),
+      );
+    } else {
+      findings.push(
+        makeFinding(
+          FINDING_IDS.VERIFICATION_CURRENT_UNVERIFIED,
+          'critical',
+          'current implementation is not verified on Sourcify',
+          {
+            match: current,
+            ...(m
+              ? {
+                  bytecodeMatchConfidence: m.confidence,
+                  bytecodeMatchHypothesis: m.hypothesis,
+                  riskySelectorsInUnmatched: m.riskySelectorsInUnmatched,
+                }
+              : {}),
+          },
+        ),
+      );
+    }
   } else if (current === 'exact_match' || current === 'match') {
     findings.push(
       makeFinding(
