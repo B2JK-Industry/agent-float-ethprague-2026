@@ -451,28 +451,41 @@ For Bench Mode (`/b/[name]`) routes, this state machine is inactive — Bench sh
 
 ---
 
-## 16. Extrapolation Tracker
+## 16. Extrapolation Tracker (waiting on Bench v3)
 
-Items below are NOT literally specified in v1 or v2 manuals — they are extrapolated from the operating principles. Replace with canonical values when Manual 03 (Components) ships.
+Items below are NOT specified in v1+v2 Bench manuals. **Do not pull from `assets/brand/brand-manual.html`** — that is US-067 / Single-Contract Mode spec, a different visual system. Bench Mode awaits Manual v3 (Components) per v2 footer. Until v3 lands, apply operating principles (§0) and add `// EXTRAPOLATED FROM v2 PRINCIPLES — NOT IN MANUAL` code comments.
 
 ```
-// EXTRAPOLATED FROM v2 PRINCIPLES — NOT IN MANUAL
-- Button hover/focus/disabled paddings beyond the nav-btn pattern in §3
-- Input field borders, focus rings, error states (form components don't appear in v1 layout)
+// EXTRAPOLATED FROM v2 PRINCIPLES — NOT IN MANUAL (waiting on v3)
+- Button anatomy beyond v1 nav-btn (hover / focus / disabled / ghost / danger)
+- Input field anatomy (default / focus / loading / error)
 - Tooltip / popover anatomy
 - Toast / notification anatomy
 - Modal / drawer overlay scrim
-- Loading skeleton patterns (spinner → progress bar → 5-second checklist)
-- Empty state mockups (zero subjects, zero results)
-- Mobile breakpoint behavior below 780px (some layouts collapse explicitly; others not specified)
+- Loading skeleton patterns (spinner → progress bar transitions)
+- Empty state mockups
+- Mobile breakpoint behavior below 780px
+- Bench-mode score banner anatomy beyond §5 of this file
+- Pill / chip anatomy beyond v1 outcome chips and signal chips (§5, §10)
 ```
 
-When implementing any of the above in Stream C (US-131..US-140), apply the operating principles:
+When implementing any of the above in Stream C (US-131..US-140), apply v2 §0 operating principles:
 - Right angles only (`--r-0`)
-- Border weight is the language (no shadows, no gradients)
-- Pair color with glyph + label (carry-rule)
+- Border weight is the language (no shadows, no gradients on surfaces)
+- Pair color with glyph + label (carry-rule v2 §2B)
 - Use existing tokens; never hex literals
 - Motion stays within the 7 timings + 3 easings of v2 §5
+- Trust gradient stays cool→warm→alarm; do not reuse `--src-*` colors for outcome chips
+
+When v3 lands, replace each `// EXTRAPOLATED` site with the canonical anatomy in a follow-up PR. Engine signature does not change.
+
+## 17. Sources
+
+- `Bench v2 - Foundations.html` — DEV MANUAL 02 OF 06, v0.7 (2026-05-09 19:14 CET). Tokens spec.
+- `Bench v1 - Sequential Review.html` — FILE 01 OF 04, v1.1 (2026-05-09 19:15 CET). UI mockup with Agent North/Meridian/Halo flow.
+- `Bench v3 - Components.html` — DEV MANUAL 03 OF 06. **Pending from Daniel.** When supplied, this file's §16 will be rewritten to resolve all extrapolation markers.
+
+`assets/brand/brand-manual.html` (US-067 v1.0) is the **Single-Contract Mode (`/r/[name]`)** brand spec. It is NOT applicable to Bench Mode (`/b/[name]`); the two surfaces use distinct visual systems sharing only the verdict-* token names where Bench Mode embeds Single-Contract UI inside the Sourcify drawer (per US-135).
 
 ---
 
