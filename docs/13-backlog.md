@@ -119,6 +119,9 @@ Tracker-only owners (not picked up by dev agents):
 | US-075 | Source-file diff primitive in packages/evidence (compute unified diff between previous and current implementation source files from Sourcify metadata) | B | P1 | M | merged | US-025 |
 | US-076 | Source diff renderer component with Solidity syntax highlight + EvidenceDrawer integration | C | P1 | M | merged | US-045, US-067, US-075 |
 | US-077 | Five-second moment overlay: animate the most-dangerous diff line as floating overlay during SAFE→SIREN flip (booth polish) | C | P2 | S | open | US-076 |
+| US-078 | V1-anchored interpretation of unverified V2 bytecode (function-body matching + storage-layout-constants detection + library-link patterns; downgrades SIREN→REVIEW when verified-V1 substring match >= 0.9 and no risky selectors; never SAFE without metadata trail) | B | P1 | M | open | US-024, US-025, US-026 |
+| US-079 | UI hypothesis renderer: confidence percentage + matched-vs-unmatched selector list + "metadata trail missing" badge + summary "implementation hypothesis: V1-derived" copy | C | P1 | S | open | US-045, US-067, US-078 |
+| US-080 | Demo fixture VaultV1Derivative: deploy V1 bytecode-equivalent contract without Sourcify verification; demonstrates V1-anchored REVIEW path; current UnverifiedImpl is intentionally divergent per US-006 spec and shows different scenario | A | P2 | S | open | US-001, US-003 |
 
 ### Tracker — Daniel + Orch
 
@@ -130,7 +133,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-060 | Operator wallet / report signer custody decision (start at scope-lock) | Daniel | P0 | S | merged | none |
 | US-061 | ENS parent registration on mainnet (deferred post-hack; Sepolia parent suffices for demo) | Daniel | P1 | M | blocked | US-060 |
 | US-062 | Live public-read protocol target research (start at scope-lock) | Daniel + Orch | P0 | M | open | none |
-| US-063 | Booth fallback artifacts: Anvil, cached fixtures, recorded demo (start at scope-lock) | Orch | P0 | L | open | US-009, US-050 |
+| US-063 | Booth fallback artifacts: Anvil, cached fixtures, recorded demo (start at scope-lock) | Orch | P0 | L | merged | US-009, US-050 |
 | US-064 | Devfolio submission materials | Daniel + Orch | P0 | M | open | US-013, US-029, US-050, US-059 |
 | US-065 | 3-minute booth script rehearsal | Daniel | P0 | S | open | US-050 |
 | US-066 | Devfolio logo and cover asset | Daniel + Orch | P1 | S | open | none |
@@ -2793,7 +2796,7 @@ grep -A10 "live public-read target" BRAINSTORM.md
 | Sponsor | - |
 | Dependencies | US-009, US-050 |
 | Acceptance gates | - |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
