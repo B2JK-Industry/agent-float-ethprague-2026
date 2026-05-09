@@ -119,7 +119,7 @@ Tracker-only owners (not picked up by dev agents):
 | ID | Title | Owner | Priority | Effort | Status | Depends on |
 |---|---|---|---|---|---|---|
 | US-059 | Sponsor pitch finalization (start at scope-lock) | Daniel + Orch | P0 | M | open | none |
-| US-060 | Operator wallet / report signer custody decision (start at scope-lock) | Daniel | P0 | S | open | none |
+| US-060 | Operator wallet / report signer custody decision (start at scope-lock) | Daniel | P0 | S | merged | none |
 | US-061 | ENS parent registration and operator wallet provisioning | Daniel | P0 | M | open | US-060 |
 | US-062 | Live public-read protocol target research (start at scope-lock) | Daniel + Orch | P0 | M | open | none |
 | US-063 | Booth fallback artifacts: Anvil, cached fixtures, recorded demo (start at scope-lock) | Orch | P0 | L | open | US-009, US-050 |
@@ -2661,7 +2661,7 @@ cat docs/07-sponsor-fit.md | head -50
 | Sponsor | - |
 | Dependencies | none |
 | Acceptance gates | GATE-24 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
