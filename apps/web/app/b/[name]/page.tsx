@@ -70,7 +70,7 @@ export default async function BenchPage(
 
   return (
     <main
-      className="mx-auto flex min-h-screen max-w-4xl flex-col gap-8 px-6 py-12"
+      className="mx-auto flex min-h-screen max-w-6xl flex-col gap-8 px-6 py-12"
       data-route="bench"
     >
       <header className="flex flex-col gap-2">

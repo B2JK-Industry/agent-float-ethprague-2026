@@ -194,12 +194,16 @@ function AxisBar({
         />
       </div>
 
-      {/* Line items — each component's weight × value × trust = contribution.
-          GATE-30: × 0.6 column never hidden. */}
+      {/* Tile grid — each component is a self-contained card with
+          label/badge header → divider → math expression footer. Scales
+          to 20+ components without vertical row sprawl; visually mirrors
+          the top-of-page Source tiles (Sourcify/GitHub/On-chain/ENS).
+          Responsive: 1-col mobile, 2-col tablet, 3-col laptop, 4-col
+          desktop. GATE-30: × 0.6 element rendered on every unverified
+          component, never hidden. */}
       <ul
-        className="m-0 list-none p-0"
+        className="m-0 grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         data-block="line-items"
-        style={{ borderTop: "1px dotted var(--color-border)" }}
       >
         {axis.components.map((comp) => {
           const badge = statusBadge(comp);
@@ -213,23 +217,27 @@ function AxisBar({
               data-component={comp.id}
               data-status={comp.status}
               data-trust={comp.trust}
-              className="flex items-baseline gap-x-3"
+              className="flex flex-col"
               style={{
-                padding: "8px 0",
+                padding: "10px 12px",
                 fontFamily: "var(--font-mono)",
                 fontSize: "11px",
                 letterSpacing: "0.04em",
-                lineHeight: 1.5,
-                flexWrap: "nowrap",
-                borderBottom: "1px dotted var(--color-border)",
+                lineHeight: 1.4,
+                border: "1px solid var(--color-border)",
+                background: "var(--color-surface)",
+                gap: "8px",
               }}
             >
-              <span data-field="label" className="text-t1 whitespace-nowrap">
-                {comp.id}
+              {/* Header: component id + (optional) status badge */}
+              <div className="flex flex-col gap-0.5">
+                <span data-field="label" className="text-t1">
+                  {comp.id}
+                </span>
                 {badge ? (
                   <span
                     data-field="status-badge"
-                    className="ml-2 text-t3"
+                    className="text-t3"
                     style={{
                       fontFamily: "var(--font-serif)",
                       fontStyle: "italic",
@@ -240,20 +248,20 @@ function AxisBar({
                     {badge}
                   </span>
                 ) : null}
-              </span>
-              <span
+              </div>
+
+              {/* Divider */}
+              <div
                 aria-hidden="true"
-                data-field="leader"
-                className="flex-1"
                 style={{
-                  borderBottom: "1px dotted var(--color-border)",
+                  borderTop: "1px dotted var(--color-border)",
                   height: 0,
-                  marginBottom: "4px",
-                  minWidth: "16px",
                 }}
               />
-              <span
-                className="inline-flex items-baseline gap-1.5 whitespace-nowrap text-right text-t1"
+
+              {/* Math expression: weight × value × trust = contribution */}
+              <div
+                className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-t1"
                 style={{ fontVariantNumeric: "tabular-nums" }}
               >
                 <span data-field="weight">{fmt(comp.weight, 2)}</span>
@@ -270,10 +278,10 @@ function AxisBar({
                   × {fmt(comp.trustFactor, 1)}
                 </span>
                 <span className="text-t3">=</span>
-                <span data-field="contribution">
+                <span data-field="contribution" className="font-medium">
                   {fmt(comp.contribution, 3)}
                 </span>
-              </span>
+              </div>
             </li>
           );
         })}
