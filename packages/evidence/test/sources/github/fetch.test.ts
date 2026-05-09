@@ -298,6 +298,67 @@ describe('fetchGithubP0Source', () => {
       }
     });
 
+    // audit-round-7 P1 #7 regression: previously a single-probe error
+    // (e.g. README 503 while LICENSE 200) silently downgraded the
+    // hygiene flag and marked the repo `fetchStatus: 'ok'`. That hid
+    // partial-failure data behind a clean-looking score. Now any single
+    // hygiene-probe error trips `fetchStatus: 'partial'` so the drawer
+    // can render a degraded provenance pill.
+    it('marks repo fetchStatus=partial when only README errors and LICENSE succeeds (audit-round-7 P1 #7)', async () => {
+      const repos = [{
+        name: 'r', full_name: 'vbuterin/r', created_at: null, pushed_at: null,
+        archived: false, default_branch: 'main', license: null, topics: [],
+      }];
+      const fetchImpl = makeRouter([
+        { test: /\/users\/vbuterin$/, handler: () => jsonResponse(200, userBody) },
+        { test: /\/users\/vbuterin\/repos/, handler: () => jsonResponse(200, repos) },
+        { test: /\/contents\/test$/, handler: () => jsonResponse(404, {}) },
+        { test: /\/contents\/tests$/, handler: () => jsonResponse(404, {}) },
+        { test: /\/contents\/__tests__$/, handler: () => jsonResponse(404, {}) },
+        { test: /\/contents\/spec$/, handler: () => jsonResponse(404, {}) },
+        { test: /\/contents\/README\.md$/, handler: () => jsonResponse(503, {}) },
+        { test: /\/contents\/LICENSE$/, handler: () =>
+          jsonResponse(200, { type: 'file', size: 1024, name: 'LICENSE', path: 'LICENSE' }) },
+      ]);
+      const result = await fetchGithubP0Source(OWNER, { pat: PAT, fetchImpl });
+      expect(result.kind).toBe('ok');
+      if (result.kind === 'ok') {
+        const r = result.value.repos[0]!;
+        expect(r.fetchStatus).toBe('partial');
+        if (r.fetchStatus === 'partial') {
+          // README 503 surfaced as the partial-failure provenance.
+          expect(r.errorReason).toMatch(/README|503/i);
+        }
+      }
+    });
+
+    it('marks repo fetchStatus=partial when only LICENSE errors and README succeeds (audit-round-7 P1 #7)', async () => {
+      const repos = [{
+        name: 'r', full_name: 'vbuterin/r', created_at: null, pushed_at: null,
+        archived: false, default_branch: 'main', license: null, topics: [],
+      }];
+      const fetchImpl = makeRouter([
+        { test: /\/users\/vbuterin$/, handler: () => jsonResponse(200, userBody) },
+        { test: /\/users\/vbuterin\/repos/, handler: () => jsonResponse(200, repos) },
+        { test: /\/contents\/test$/, handler: () => jsonResponse(404, {}) },
+        { test: /\/contents\/tests$/, handler: () => jsonResponse(404, {}) },
+        { test: /\/contents\/__tests__$/, handler: () => jsonResponse(404, {}) },
+        { test: /\/contents\/spec$/, handler: () => jsonResponse(404, {}) },
+        { test: /\/contents\/README\.md$/, handler: () =>
+          jsonResponse(200, { type: 'file', size: 4096, name: 'README.md', path: 'README.md' }) },
+        { test: /\/contents\/LICENSE$/, handler: () => jsonResponse(503, {}) },
+      ]);
+      const result = await fetchGithubP0Source(OWNER, { pat: PAT, fetchImpl });
+      expect(result.kind).toBe('ok');
+      if (result.kind === 'ok') {
+        const r = result.value.repos[0]!;
+        expect(r.fetchStatus).toBe('partial');
+        if (r.fetchStatus === 'partial') {
+          expect(r.errorReason).toMatch(/LICENSE|503/i);
+        }
+      }
+    });
+
     it('keeps repo fetchStatus=ok when README is 404 and LICENSE is 404 (just absent, not erroring)', async () => {
       const repos = [{
         name: 'r', full_name: 'vbuterin/r', created_at: null, pushed_at: null,

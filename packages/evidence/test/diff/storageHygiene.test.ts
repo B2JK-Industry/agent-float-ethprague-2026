@@ -157,6 +157,95 @@ describe('classifyImplementationPair', () => {
     expect(pair.score).toBeNull();
   });
 
+  // audit-round-7 P1 #9 (storage:[] null): a layout with `storage`
+  // literally null/undefined is NOT the same as a layout with an empty
+  // storage array. The previous behaviour `prev.storage ?? []` defaulted
+  // both to [] and then classified every entry on the other side as
+  // `safe_append` → score 1.0. That's a false-positive "all good"
+  // verdict on a pair we have no information about. The fix surfaces
+  // this as `unknown_layout`.
+  it('returns kind=unknown_layout when previous.storage is null (audit-round-7 P1 #9)', () => {
+    const previousNull = { types: TYPES, storage: null as unknown as ReadonlyArray<never> };
+    const pair = classifyImplementationPair(
+      IMPL_A,
+      IMPL_B,
+      previousNull as StorageLayout,
+      baseLayout,
+    );
+    expect(pair.kind).toBe('unknown_layout');
+    expect(pair.score).toBeNull();
+  });
+
+  it('returns kind=unknown_layout when current.storage is null (audit-round-7 P1 #9)', () => {
+    const currentNull = { types: TYPES, storage: null as unknown as ReadonlyArray<never> };
+    const pair = classifyImplementationPair(
+      IMPL_A,
+      IMPL_B,
+      baseLayout,
+      currentNull as StorageLayout,
+    );
+    expect(pair.kind).toBe('unknown_layout');
+    expect(pair.score).toBeNull();
+  });
+
+  // audit-round-7 P1 #9 (safe_append misclass): EPIC §8.1 requires that
+  // safe_append fire only when the new variable's slot is strictly
+  // beyond prev's max slot. The previous code tagged any "null in prev,
+  // value in curr at same array position" as safe_append (1.0). With
+  // mismatched-length layouts where the longer side reuses prev's slot
+  // numbers, the misclass produced false-1.0 scores for what should be
+  // collisions. Construct that scenario.
+  it('classifies as collision when curr inserts a new entry inside prev\'s used slot range (audit-round-7 P1 #9)', () => {
+    // prev uses slots 0 and 1.
+    const prev: StorageLayout = {
+      types: TYPES,
+      storage: [
+        entry('0', 0, 't_uint256', 'a'),
+        entry('1', 0, 't_address', 'b'),
+      ],
+    };
+    // curr is longer and the extra entry sits at slot 1 (NOT beyond
+    // prev's max slot 1). In array-position terms, curr[2] is new — but
+    // its slot collides with prev's used range, which means EPIC §8.1
+    // demands collision, not safe_append.
+    const curr: StorageLayout = {
+      types: TYPES,
+      storage: [
+        entry('0', 0, 't_uint256', 'a'),
+        entry('1', 0, 't_address', 'b'),
+        entry('1', 16, 't_uint128', 'c-inserted'),
+      ],
+    };
+    const pair = classifyImplementationPair(IMPL_A, IMPL_B, prev, curr);
+    expect(pair.kind).toBe('computed');
+    const inserted = pair.slots.find((s) => s.current?.label === 'c-inserted');
+    expect(inserted?.classification).toBe('collision');
+    // score reflects: 2 SAFE + 1 COLLISION = (1+1+0)/3 = 0.6666...
+    expect(pair.score).toBeCloseTo(2 / 3, 6);
+  });
+
+  it('still allows safe_append when the new entry is strictly beyond prev\'s max slot (audit-round-7 P1 #9 — happy path)', () => {
+    const prev: StorageLayout = {
+      types: TYPES,
+      storage: [
+        entry('0', 0, 't_uint256', 'a'),
+        entry('1', 0, 't_address', 'b'),
+      ],
+    };
+    const curr: StorageLayout = {
+      types: TYPES,
+      storage: [
+        entry('0', 0, 't_uint256', 'a'),
+        entry('1', 0, 't_address', 'b'),
+        entry('2', 0, 't_uint256', 'c-appended'), // slot 2 > prev max slot 1
+      ],
+    };
+    const pair = classifyImplementationPair(IMPL_A, IMPL_B, prev, curr);
+    const appended = pair.slots.find((s) => s.current?.label === 'c-appended');
+    expect(appended?.classification).toBe('safe_append');
+    expect(pair.score).toBe(1.0);
+  });
+
   it('falls back to literal type-string equality when types maps are absent', () => {
     // Without types: same type string at same slot → SAFE.
     const previous: StorageLayout = { storage: [entry('0', 0, 't_uint256', 'a')] };

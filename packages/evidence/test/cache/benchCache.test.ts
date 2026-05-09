@@ -166,6 +166,36 @@ describe('BenchCache', () => {
     expect(cache.get('d')).toBe(4);
   });
 
+  // audit-round-7 P1 #5: when the cache is at capacity, prune() must
+  // first sweep expired entries before falling back to FIFO eviction.
+  // Previously a stale-but-untouched entry consumed capacity and forced
+  // eviction of the oldest LIVE entry. Discriminating shape: load up
+  // capacity with three entries, expire one of them via clock advance,
+  // then insert a fourth. The expired entry is the only one that should
+  // be evicted; the oldest live entry must stay.
+  it('prunes expired entries before FIFO-evicting live ones (audit-round-7 P1 #5)', () => {
+    let now = 1_000;
+    const cache = new BenchCache({ maxEntries: 3, clock: () => now });
+    cache.set('expired-soon', 'x', 100);
+    cache.set('live-old', 'old', 60_000);
+    cache.set('live-mid', 'mid', 60_000);
+    expect(cache.size()).toBe(3);
+
+    // Advance past expired-soon's TTL but well within live entries' TTL.
+    now = 5_000;
+
+    cache.set('live-new', 'new', 60_000);
+
+    // Critical: the expired entry was reclaimed; the oldest LIVE entry
+    // (`live-old`) survived. Without expired-sweep prune, `live-old`
+    // would have been FIFO-evicted to make room for `live-new`.
+    expect(cache.size()).toBe(3);
+    expect(cache.get('expired-soon')).toBeUndefined();
+    expect(cache.get('live-old')).toBe('old');
+    expect(cache.get('live-mid')).toBe('mid');
+    expect(cache.get('live-new')).toBe('new');
+  });
+
   it('treats different namespaces as disjoint identities', () => {
     const cache = new BenchCache();
     const k1 = BENCH_CACHE_KEYS.githubMeta('alice');

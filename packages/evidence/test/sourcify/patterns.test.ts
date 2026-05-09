@@ -57,6 +57,26 @@ describe('detectSourcePatterns', () => {
       );
       expect(matches.find((m) => m.pattern === 'ownable')).toBeUndefined();
     });
+
+    // audit-round-7 P1 #10 regression: previously path matching used
+    // `path.includes(s)`, so a path like `…/access/Ownable.solidity_old/foo.sol`
+    // would falsely match `access/Ownable.sol` as a substring and set
+    // `openzeppelin: true`. The fix tightens path matching to suffix-only,
+    // so only paths actually ending in the canonical OZ filename count.
+    it('does NOT match a path that merely contains the OZ filename as a substring (audit-round-7 P1 #10)', () => {
+      const matches = detectSourcePatterns(
+        sources({
+          // Path includes "access/Ownable.sol" as a substring but does not end
+          // with it. Must NOT be flagged as an OZ Ownable import; in particular,
+          // openzeppelin must remain false (no OZ-style file present in this map).
+          'src/access/Ownable.solidity_archive/legacy/Foo.sol': 'contract Foo {}',
+        }),
+      );
+      const ownable = matches.find((m) => m.pattern === 'ownable');
+      // No OZ-style import means no openzeppelin-flagged Ownable match. The
+      // path-substring match would have produced one before the fix.
+      expect(ownable).toBeUndefined();
+    });
   });
 
   describe('Pausable', () => {

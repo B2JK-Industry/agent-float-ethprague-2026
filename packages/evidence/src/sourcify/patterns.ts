@@ -102,9 +102,17 @@ function matchesAny(content: string, regexes: ReadonlyArray<RegExp>): boolean {
   return false;
 }
 
+// audit-round-7 P1 #10: OZ import signatures must match as a SUFFIX of
+// the file path. The previous `path.includes(s)` matched anywhere in
+// the path, so paths like `…/access/Ownable.solidity_old/foo.sol`
+// false-triggered Ownable detection — and worse, set `openzeppelin: true`
+// for a file that wasn't an OZ contract at all. Suffix matching means a
+// path ending in `access/Ownable.sol` is treated as that file (the
+// canonical OZ filename), not "any file that happens to mention the
+// path fragment".
 function pathMentionsImport(path: string, signatures: ReadonlyArray<string>): boolean {
   for (const s of signatures) {
-    if (path.includes(s)) return true;
+    if (path.endsWith(s)) return true;
   }
   return false;
 }

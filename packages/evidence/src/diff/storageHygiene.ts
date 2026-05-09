@@ -75,24 +75,56 @@ export interface SubjectHygiene {
 // equality is structural via typesDeepEqual when both type-maps are
 // provided; falls back to raw-string equality otherwise (mirrors the
 // US-027 pattern).
+//
+// audit-round-7 P1 #9 (safe_append misclass): previously, ANY position
+// where prev was null-at-array-index and curr had an entry was tagged
+// `safe_append`. EPIC §8.1 specifies that safe_append requires the new
+// variable's slot to be BEYOND prev's max slot — appending after the
+// last existing storage slot. Without that gate, an insert at an
+// existing slot range was marked safe (1.0) when it should be marked
+// `collision` (0.0). The classifier now takes `prevMaxSlot` and only
+// honors safe_append when the new entry's slot is strictly greater.
+function parseSlotNum(s: string | undefined | null): bigint | null {
+  if (s === undefined || s === null) return null;
+  try {
+    return BigInt(s);
+  } catch {
+    return null;
+  }
+}
 export function classifySlot(
   position: number,
   previous: StorageLayoutEntry | null,
   current: StorageLayoutEntry | null,
   prevTypes: Readonly<Record<string, unknown>> | undefined,
   currTypes: Readonly<Record<string, unknown>> | undefined,
+  prevMaxSlot: bigint | null = null,
 ): SlotHygieneEntry {
   if (previous === null && current === null) {
     // Should not happen in practice — guard for safety.
     return { position, previous: null, current: null, classification: 'unknown', note: 'both sides null' };
   }
   if (previous === null && current !== null) {
+    const currSlot = parseSlotNum(current.slot);
+    // Append iff the new variable lives strictly beyond the prev's max
+    // slot (or prev has no slots at all). Otherwise a "new" entry at an
+    // existing slot range is a collision.
+    const isAppend = prevMaxSlot === null || (currSlot !== null && currSlot > prevMaxSlot);
+    if (isAppend) {
+      return {
+        position,
+        previous: null,
+        current,
+        classification: 'safe_append',
+        note: `appended new variable ${current.label} at slot ${current.slot}`,
+      };
+    }
     return {
       position,
       previous: null,
       current,
-      classification: 'safe_append',
-      note: `appended new variable ${current.label} at slot ${current.slot}`,
+      classification: 'collision',
+      note: `new variable ${current.label} at slot ${current.slot} overlaps prev's used slot range (max ${prevMaxSlot})`,
     };
   }
   if (previous !== null && current === null) {
@@ -182,8 +214,39 @@ export function classifyImplementationPair(
     };
   }
 
-  const prevEntries = previous.storage ?? [];
-  const currEntries = current.storage ?? [];
+  // audit-round-7 P1 #9 (storage:[] null): a layout that arrived with
+  // `storage` literally null/undefined is NOT the same as a layout with
+  // an empty storage array. The previous code defaulted both to `[]`,
+  // which made every entry on the other side classify as `safe_append`
+  // (1.0) — falsely reporting "all changes safe" when we actually had
+  // no information about that side's storage. Treat null/undefined
+  // storage on either side as `unknown_layout`.
+  if (
+    !Array.isArray((previous as { storage?: unknown }).storage) ||
+    !Array.isArray((current as { storage?: unknown }).storage)
+  ) {
+    return {
+      previousAddress,
+      currentAddress,
+      kind: 'unknown_layout',
+      slots: [],
+      score: null,
+    };
+  }
+
+  const prevEntries = previous.storage;
+  const currEntries = current.storage;
+
+  // Compute prev's max slot for the safe_append gate. EPIC §8.1: a
+  // variable is safely appended iff it lives at a slot strictly beyond
+  // anything previously used.
+  let prevMaxSlot: bigint | null = null;
+  for (const e of prevEntries) {
+    const s = parseSlotNum(e.slot);
+    if (s === null) continue;
+    if (prevMaxSlot === null || s > prevMaxSlot) prevMaxSlot = s;
+  }
+
   // EPIC step 3 walks "consecutive pair (impl[i], impl[i+1])" by aligning
   // the two storage[] arrays. We align by array position (both Sourcify
   // and OZ Upgrades order entries by declaration order). Mismatched
@@ -194,7 +257,7 @@ export function classifyImplementationPair(
   for (let i = 0; i < length; i++) {
     const p = i < prevEntries.length ? (prevEntries[i] ?? null) : null;
     const c = i < currEntries.length ? (currEntries[i] ?? null) : null;
-    slots.push(classifySlot(i, p, c, previous.types, current.types));
+    slots.push(classifySlot(i, p, c, previous.types, current.types, prevMaxSlot));
   }
 
   let sum = 0;

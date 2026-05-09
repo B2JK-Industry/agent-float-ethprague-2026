@@ -141,6 +141,74 @@ describe('fetchEnsInternalSignals', () => {
       }
     });
 
+    // audit-round-7 P1 #6 regression: the GraphQL query previously
+    // filtered with `where: { event: "TextChanged" }` — a predicate the
+    // ENS subgraph schema doesn't support. With the broken filter
+    // ignored, non-TextChanged events at the head of the events list
+    // would set `lastRecordUpdateBlock` to a block that wasn't actually
+    // a record update. Fix: drop the broken filter, ask for `__typename`,
+    // skip non-TextChanged in code.
+    it('skips non-TextChanged events and picks the first TextChanged blockNumber (audit-round-7 P1 #6)', async () => {
+      const fetchImpl = makeFetch(() =>
+        jsonResponse(200, {
+          data: {
+            domains: [
+              {
+                createdAt: '1700000000',
+                subdomainCount: '0',
+                resolver: {
+                  texts: ['url'],
+                  // Real subgraph response: mixed event types ordered
+                  // desc by blockNumber. The most-recent two are
+                  // AddrChanged + ContenthashChanged; only the third
+                  // is TextChanged. The parser must skip the first two.
+                  events: [
+                    { __typename: 'AddrChanged', blockNumber: '20000000' },
+                    { __typename: 'ContenthashChanged', blockNumber: '19_900_000' },
+                    { __typename: 'TextChanged', blockNumber: '19500000' },
+                    { __typename: 'TextChanged', blockNumber: '19000000' },
+                  ],
+                },
+              },
+            ],
+          },
+        }),
+      );
+      const result = await fetchEnsInternalSignals(NAME, { apiKey: KEY, fetchImpl });
+      expect(result.kind).toBe('ok');
+      if (result.kind === 'ok') {
+        // Must NOT be 20_000_000n (AddrChanged) or 19_900_000n (ContenthashChanged).
+        expect(result.value.lastRecordUpdateBlock).toBe(19_500_000n);
+      }
+    });
+
+    it('returns null when the events head window contains no TextChanged (audit-round-7 P1 #6)', async () => {
+      const fetchImpl = makeFetch(() =>
+        jsonResponse(200, {
+          data: {
+            domains: [
+              {
+                createdAt: '1700000000',
+                subdomainCount: '0',
+                resolver: {
+                  texts: [],
+                  events: [
+                    { __typename: 'AddrChanged', blockNumber: '20000000' },
+                    { __typename: 'ContenthashChanged', blockNumber: '19900000' },
+                  ],
+                },
+              },
+            ],
+          },
+        }),
+      );
+      const result = await fetchEnsInternalSignals(NAME, { apiKey: KEY, fetchImpl });
+      expect(result.kind).toBe('ok');
+      if (result.kind === 'ok') {
+        expect(result.value.lastRecordUpdateBlock).toBeNull();
+      }
+    });
+
     it('treats resolver without events as null lastRecordUpdateBlock', async () => {
       const fetchImpl = makeFetch(() =>
         jsonResponse(200, {

@@ -123,10 +123,19 @@ export class BenchCache {
     return this.store.size;
   }
 
-  // FIFO-ish eviction: drops the oldest insertion when at capacity. Map
-  // iteration order is insertion order. Sufficient for v1; a real LRU is
-  // overkill for the call volume Bench Mode produces.
+  // Eviction strategy (audit-round-7 P1 #5 fix): prune expired entries
+  // first — then, only if still at capacity, FIFO-evict the oldest live
+  // entry. The previous version only ever dropped one oldest entry,
+  // which means stale-but-not-yet-accessed entries hogged capacity and
+  // forced eviction of fresh ones. Sweeping expired entries on every
+  // `set` keeps the working set live without changing the FIFO shape
+  // when no entry has actually expired.
   private prune(): void {
+    if (this.store.size < this.maxEntries) return;
+    const now = this.clock();
+    for (const [key, entry] of this.store) {
+      if (now >= entry.expiresAt) this.store.delete(key);
+    }
     if (this.store.size < this.maxEntries) return;
     const firstKey = this.store.keys().next().value;
     if (firstKey !== undefined) this.store.delete(firstKey);
