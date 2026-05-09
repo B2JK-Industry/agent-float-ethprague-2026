@@ -1,0 +1,11 @@
+{
+  "description": "Calibration anchor for an ENS subject whose com.github text record is absent (e.g. agent-kikiriki.eth). The engine must short-circuit to the EMPTY_RESULT shape without spending any GitHub API calls — exists=false, seniority=0, trust=0, errors=[].",
+  "raw": null,
+  "expected": {
+    "exists": false,
+    "seniority": 0,
+    "relevance": 0,
+    "trust": 0,
+    "errors": []
+  }
+}
