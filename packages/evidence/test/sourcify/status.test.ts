@@ -123,4 +123,50 @@ describe('fetchSourcifyStatus', () => {
       `https://custom.example.com/server/v2/contract/${CHAIN_ID}/${ADDRESS}?fields=match`,
     );
   });
+
+  it('Codex #51: when retry is opted in, transient 429 is recovered into success', async () => {
+    let calls = 0;
+    const fetchImpl = makeFetch(async () => {
+      calls += 1;
+      if (calls < 3) return new Response('rate limit', { status: 429 });
+      return jsonResponse({ match: 'exact_match' });
+    });
+    const result = await fetchSourcifyStatus(CHAIN_ID, ADDRESS, {
+      fetchImpl,
+      retry: { backoffMs: [1, 1, 1], sleep: async () => {} },
+    });
+    expect(calls).toBe(3);
+    expect(result.kind).toBe('ok');
+    if (result.kind === 'ok') expect(result.value.match).toBe('exact_match');
+  });
+
+  it('Codex #51: when retry exhausts, surfaces network_error (NetworkUnavailable wrapped)', async () => {
+    let calls = 0;
+    const fetchImpl = makeFetch(async () => {
+      calls += 1;
+      return new Response('still rate-limited', { status: 429 });
+    });
+    const result = await fetchSourcifyStatus(CHAIN_ID, ADDRESS, {
+      fetchImpl,
+      retry: { backoffMs: [1, 1], sleep: async () => {} },
+    });
+    expect(calls).toBe(3); // initial + 2 retries
+    expect(result.kind).toBe('error');
+    if (result.kind === 'error') {
+      expect(result.error.reason).toBe('network_error');
+      expect(result.error.message).toContain('network_unavailable');
+    }
+  });
+
+  it('Codex #51: retry omitted preserves original behaviour (no retries on 429)', async () => {
+    let calls = 0;
+    const fetchImpl = makeFetch(async () => {
+      calls += 1;
+      return new Response('', { status: 429 });
+    });
+    const result = await fetchSourcifyStatus(CHAIN_ID, ADDRESS, { fetchImpl });
+    expect(calls).toBe(1);
+    expect(result.kind).toBe('error');
+    if (result.kind === 'error') expect(result.error.reason).toBe('rate_limited');
+  });
 });

@@ -1,5 +1,6 @@
 import type { Address } from '@upgrade-siren/shared';
 
+import { NetworkUnavailable, retryableFetch, type RetryOptions } from '../network/retry.js';
 import {
   SOURCIFY_BASE_URL,
   type FetchLike,
@@ -9,9 +10,19 @@ import {
   type SourcifyStatus,
 } from './types.js';
 
+// Codex #51: callers can opt into retry on transient 429/5xx by passing
+// `retry: <RetryOptions>` (or `retry: true` for the default backoff). When
+// omitted, behaviour is unchanged from US-024.
 interface FetchSourcifyStatusOptions {
   readonly fetchImpl?: FetchLike;
   readonly baseUrl?: string;
+  readonly retry?: RetryOptions | true;
+}
+
+function resolveRetryOptions(retry: RetryOptions | true | undefined): RetryOptions | undefined {
+  if (retry === undefined) return undefined;
+  if (retry === true) return {};
+  return retry;
 }
 
 function buildUrl(baseUrl: string, chainId: number, address: Address): string {
@@ -29,7 +40,9 @@ export async function fetchSourcifyStatus(
   address: Address,
   options: FetchSourcifyStatusOptions = {},
 ): Promise<Result<SourcifyStatus, SourcifyError>> {
-  const fetchImpl: FetchLike = options.fetchImpl ?? globalThis.fetch.bind(globalThis);
+  const baseFetch: FetchLike = options.fetchImpl ?? globalThis.fetch.bind(globalThis);
+  const retryOpts = resolveRetryOptions(options.retry);
+  const fetchImpl: FetchLike = retryOpts ? retryableFetch(baseFetch, retryOpts) : baseFetch;
   const baseUrl = options.baseUrl ?? SOURCIFY_BASE_URL;
   const url = buildUrl(baseUrl, chainId, address);
 
@@ -39,6 +52,16 @@ export async function fetchSourcifyStatus(
       headers: { accept: 'application/json' },
     });
   } catch (err) {
+    if (err instanceof NetworkUnavailable) {
+      return {
+        kind: 'error',
+        error: {
+          reason: 'network_error',
+          message: `sourcify.status: ${err.message}`,
+          cause: err.lastError,
+        },
+      };
+    }
     return {
       kind: 'error',
       error: {

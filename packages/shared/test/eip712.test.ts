@@ -9,6 +9,7 @@ import {
   ZERO_ADDRESS,
   buildSirenReportDomain,
   buildSirenReportTypedData,
+  computeSirenReportContentHash,
   signReport,
   type SirenReport,
 } from '../src/index.js';
@@ -92,6 +93,9 @@ describe('buildSirenReportTypedData', () => {
       'confidence',
       'generatedAt',
       'summary',
+      'recommendedAction',
+      'mock',
+      'contentHash',
     ]);
   });
 });
@@ -170,5 +174,145 @@ describe('signReport', () => {
     void _ignoredB;
 
     expect(restSigned).toEqual(restOriginal);
+  });
+});
+
+describe('computeSirenReportContentHash binds non-typed-data report fields', () => {
+  it('produces a stable 32-byte hex hash', () => {
+    const h = computeSirenReportContentHash(baseReport);
+    expect(h).toMatch(/^0x[a-fA-F0-9]{64}$/);
+  });
+
+  it('is identical for byte-identical reports', () => {
+    expect(computeSirenReportContentHash(baseReport)).toBe(
+      computeSirenReportContentHash({ ...baseReport }),
+    );
+  });
+
+  it('ignores the auth block (so signing and re-hashing are stable)', () => {
+    const a = computeSirenReportContentHash(baseReport);
+    const b = computeSirenReportContentHash({
+      ...baseReport,
+      auth: {
+        status: 'valid',
+        signatureType: 'EIP-712',
+        signer: '0x9999999999999999999999999999999999999999',
+        signature: ('0x' + 'aa'.repeat(65)) as SirenReport['auth']['signature'],
+        signedAt: '2099-01-01T00:00:00Z',
+      },
+    });
+    expect(a).toBe(b);
+  });
+
+  it('changes when findings are tampered with', () => {
+    const a = computeSirenReportContentHash(baseReport);
+    const b = computeSirenReportContentHash({
+      ...baseReport,
+      findings: [{ id: 'TAMPERED', severity: 'critical', title: 'evil', evidence: {} }],
+    });
+    expect(a).not.toBe(b);
+  });
+
+  it('changes when sourcify or ens block is tampered with', () => {
+    const a = computeSirenReportContentHash(baseReport);
+    const b = computeSirenReportContentHash({
+      ...baseReport,
+      sourcify: { previousVerified: false, currentVerified: false, links: [] },
+    });
+    const c = computeSirenReportContentHash({
+      ...baseReport,
+      ens: { ...baseReport.ens, owner: '0x9999999999999999999999999999999999999999' },
+    });
+    expect(a).not.toBe(b);
+    expect(a).not.toBe(c);
+  });
+
+  it('changes when recommendedAction or mock is tampered with', () => {
+    const a = computeSirenReportContentHash(baseReport);
+    const b = computeSirenReportContentHash({ ...baseReport, recommendedAction: 'reject' });
+    const c = computeSirenReportContentHash({ ...baseReport, mock: !baseReport.mock });
+    expect(a).not.toBe(b);
+    expect(a).not.toBe(c);
+  });
+});
+
+describe('signed-report tampering attack surface', () => {
+  it('changing findings post-signing breaks recovery (the Codex #19 attack)', async () => {
+    const privateKey = generatePrivateKey();
+    const account = privateKeyToAccount(privateKey);
+    const signed = await signReport(baseReport, privateKey);
+
+    // Attacker takes the valid signed report, swaps findings to look favourable
+    // while keeping the original signature. Pre-fix, recovery would still
+    // return the original signer because findings were not bound. Post-fix,
+    // recovery fails (or returns a different address) because contentHash
+    // changes when findings change.
+    const tampered: SirenReport = {
+      ...signed.report,
+      findings: [
+        { id: 'FAKE_GOOD_NEWS', severity: 'info', title: 'all clear', evidence: {} },
+      ],
+    };
+
+    const td = buildSirenReportTypedData(tampered);
+    const recovered = await recoverTypedDataAddress({
+      domain: td.domain,
+      types: td.types,
+      primaryType: td.primaryType,
+      message: td.message,
+      signature: signed.signature,
+    });
+    expect(recovered.toLowerCase()).not.toBe(account.address.toLowerCase());
+  });
+
+  it('changing sourcify post-signing breaks recovery', async () => {
+    const privateKey = generatePrivateKey();
+    const account = privateKeyToAccount(privateKey);
+    const signed = await signReport(baseReport, privateKey);
+
+    const tampered: SirenReport = {
+      ...signed.report,
+      sourcify: { previousVerified: false, currentVerified: false, links: [] },
+    };
+
+    const td = buildSirenReportTypedData(tampered);
+    const recovered = await recoverTypedDataAddress({
+      domain: td.domain,
+      types: td.types,
+      primaryType: td.primaryType,
+      message: td.message,
+      signature: signed.signature,
+    });
+    expect(recovered.toLowerCase()).not.toBe(account.address.toLowerCase());
+  });
+
+  it('changing recommendedAction post-signing breaks recovery', async () => {
+    const privateKey = generatePrivateKey();
+    const account = privateKeyToAccount(privateKey);
+    const signed = await signReport(baseReport, privateKey);
+
+    const tampered: SirenReport = { ...signed.report, recommendedAction: 'approve' };
+
+    const td = buildSirenReportTypedData(tampered);
+    const recovered = await recoverTypedDataAddress({
+      domain: td.domain,
+      types: td.types,
+      primaryType: td.primaryType,
+      message: td.message,
+      signature: signed.signature,
+    });
+    // recommendedAction was 'approve' in baseReport already; flip to 'reject'
+    // for a real tamper test:
+    const tampered2: SirenReport = { ...signed.report, recommendedAction: 'reject' };
+    const td2 = buildSirenReportTypedData(tampered2);
+    const recovered2 = await recoverTypedDataAddress({
+      domain: td2.domain,
+      types: td2.types,
+      primaryType: td2.primaryType,
+      message: td2.message,
+      signature: signed.signature,
+    });
+    expect(recovered.toLowerCase()).toBe(account.address.toLowerCase()); // unchanged
+    expect(recovered2.toLowerCase()).not.toBe(account.address.toLowerCase()); // tampered
   });
 });

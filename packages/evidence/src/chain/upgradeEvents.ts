@@ -10,6 +10,8 @@ import { mainnet, sepolia } from 'viem/chains';
 
 import type { Address, Hex32 } from '@upgrade-siren/shared';
 
+import { NetworkUnavailable, withRetry, type RetryOptions } from '../network/retry.js';
+
 export const UPGRADED_EVENT: AbiEvent = parseAbiItem(
   'event Upgraded(address indexed implementation)',
 );
@@ -40,15 +42,23 @@ export interface UpgradeEventsReadError {
 
 export type UpgradeEventsReadResult = UpgradeEventsReadOk | UpgradeEventsReadError;
 
+// Codex #51: opt-in retry on transient RPC errors via `retry` option.
 interface ResolveClientOptions {
   readonly client?: PublicClient;
   readonly rpcUrl?: string;
+  readonly retry?: RetryOptions | true;
 }
 
 interface ReadOptions extends ResolveClientOptions {
   readonly fromBlock?: bigint;
   readonly toBlock?: bigint | 'latest';
   readonly chunkSize?: bigint;
+}
+
+function resolveRetryOptions(retry: RetryOptions | true | undefined): RetryOptions | undefined {
+  if (retry === undefined) return undefined;
+  if (retry === true) return {};
+  return retry;
 }
 
 function resolveClient(
@@ -130,11 +140,23 @@ export async function readUpgradeEvents(
   }
   const client = clientOrError as PublicClient;
 
+  const retryOpts = resolveRetryOptions(options.retry);
   let toBlockNum: bigint;
   if (options.toBlock === undefined || options.toBlock === 'latest') {
     try {
-      toBlockNum = await client.getBlockNumber();
+      const callGetBlockNumber = (): Promise<bigint> => client.getBlockNumber();
+      toBlockNum = retryOpts
+        ? await withRetry(callGetBlockNumber, retryOpts)
+        : await callGetBlockNumber();
     } catch (err) {
+      if (err instanceof NetworkUnavailable) {
+        return {
+          kind: 'error',
+          reason: 'rpc_error',
+          message: `upgradeEvents.getBlockNumber: ${err.message}`,
+          cause: err.lastError,
+        };
+      }
       return {
         kind: 'error',
         reason: 'rpc_error',
@@ -165,13 +187,23 @@ export async function readUpgradeEvents(
 
     let logs;
     try {
-      logs = await client.getLogs({
-        address: proxyAddress,
-        event: UPGRADED_EVENT,
-        fromBlock: cursor,
-        toBlock: chunkEnd,
-      });
+      const callGetLogs = (): ReturnType<typeof client.getLogs> =>
+        client.getLogs({
+          address: proxyAddress,
+          event: UPGRADED_EVENT,
+          fromBlock: cursor,
+          toBlock: chunkEnd,
+        });
+      logs = retryOpts ? await withRetry(callGetLogs, retryOpts) : await callGetLogs();
     } catch (err) {
+      if (err instanceof NetworkUnavailable) {
+        return {
+          kind: 'error',
+          reason: 'rpc_error',
+          message: `upgradeEvents.getLogs[${cursor}..${chunkEnd}]: ${err.message}`,
+          cause: err.lastError,
+        };
+      }
       return {
         kind: 'error',
         reason: 'rpc_error',

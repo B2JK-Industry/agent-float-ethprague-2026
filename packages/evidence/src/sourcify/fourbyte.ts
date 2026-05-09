@@ -5,6 +5,7 @@
 // flagged with a `low_confidence` finding when surfaced in the verdict.
 
 import { isRiskySelectorName } from '../diff/abi.js';
+import { NetworkUnavailable, retryableFetch, type RetryOptions } from '../network/retry.js';
 
 export const FOURBYTE_BASE_URL = 'https://www.4byte.directory/api/v1';
 
@@ -47,9 +48,17 @@ export interface FourByteLookupError {
 
 export type FourByteLookupResult = FourByteLookupOk | FourByteLookupError;
 
+// Codex #51: opt-in retry on 429/5xx via `retry` option.
 interface Lookup4byteOptions {
   readonly fetchImpl?: FetchLike;
   readonly baseUrl?: string;
+  readonly retry?: RetryOptions | true;
+}
+
+function resolveRetryOptions(retry: RetryOptions | true | undefined): RetryOptions | undefined {
+  if (retry === undefined) return undefined;
+  if (retry === true) return {};
+  return retry;
 }
 
 const SELECTOR_RE = /^0x[a-fA-F0-9]{8}$/;
@@ -73,6 +82,13 @@ async function lookupSingle(
   try {
     response = await fetchImpl(url, { headers: { accept: 'application/json' } });
   } catch (err) {
+    if (err instanceof NetworkUnavailable) {
+      return {
+        reason: 'network_error',
+        message: `fourbyte: ${err.message}`,
+        cause: err.lastError,
+      };
+    }
     return {
       reason: 'network_error',
       message: `fourbyte: network error - ${err instanceof Error ? err.message : String(err)}`,
@@ -163,7 +179,9 @@ export async function lookup4byteSelectors(
     }
   }
 
-  const fetchImpl: FetchLike = options.fetchImpl ?? globalThis.fetch.bind(globalThis);
+  const baseFetch: FetchLike = options.fetchImpl ?? globalThis.fetch.bind(globalThis);
+  const retryOpts = resolveRetryOptions(options.retry);
+  const fetchImpl: FetchLike = retryOpts ? retryableFetch(baseFetch, retryOpts) : baseFetch;
   const baseUrl = options.baseUrl ?? FOURBYTE_BASE_URL;
 
   const lookups = await Promise.all(
