@@ -3,8 +3,25 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { EvidenceDrawer } from "./EvidenceDrawer";
+import type { BytecodeMatchResult } from "./BytecodeHypothesis";
 import type { SourceDiff } from "./SourceDiffRenderer";
 import type { SirenReport } from "@upgrade-siren/shared";
+
+const SAMPLE_BYTECODE_MATCH: BytecodeMatchResult = {
+  confidence: 1.0,
+  hypothesis: "V1-derived",
+  matchedSelectors: [
+    { name: "deposit", selector: "0xb6b55f25" as `0x${string}` },
+    { name: "withdraw", selector: "0x2e1a7d4d" as `0x${string}` },
+  ],
+  unmatchedSelectors: [],
+  storageConstants: {
+    eip1967Slot: true,
+    initializableNamespace: true,
+    ozPatterns: false,
+  },
+  metadataTrailPresent: false,
+};
 
 const SAMPLE_SOURCE_DIFF: SourceDiff = {
   files: [
@@ -219,5 +236,49 @@ describe("EvidenceDrawer", () => {
     expect(toggle.getAttribute("aria-expanded")).toBe("true");
     expect(toggle.textContent).toMatch(/hide diff/i);
     expect(screen.getByTestId("source-diff-renderer")).toBeInTheDocument();
+  });
+
+  it("renders the BytecodeHypothesis section between Sourcify and ABI when bytecodeMatch is supplied", () => {
+    render(
+      <EvidenceDrawer
+        initialOpen
+        report={reportFixture()}
+        bytecodeMatch={SAMPLE_BYTECODE_MATCH}
+      />,
+    );
+    const drawer = screen.getByRole("dialog", { name: /evidence drawer/i });
+    const sections = Array.from(
+      drawer.querySelectorAll("section[aria-label]"),
+    ).map((s) => s.getAttribute("aria-label"));
+    const sourcifyIndex = sections.indexOf("Sourcify links");
+    const hypothesisIndex = sections.indexOf("Bytecode hypothesis");
+    const abiIndex = sections.indexOf("ABI summary");
+    expect(sourcifyIndex).toBeGreaterThanOrEqual(0);
+    expect(hypothesisIndex).toBe(sourcifyIndex + 1);
+    expect(abiIndex).toBe(hypothesisIndex + 1);
+  });
+
+  it("hides the BytecodeHypothesis section entirely when bytecodeMatch is omitted (no stub layout)", () => {
+    render(<EvidenceDrawer initialOpen report={reportFixture()} />);
+    expect(
+      screen.queryByRole("region", { name: /bytecode hypothesis/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("forwards the BytecodeMatchResult into the rendered hypothesis (data-hypothesis attr)", () => {
+    render(
+      <EvidenceDrawer
+        initialOpen
+        report={reportFixture()}
+        bytecodeMatch={SAMPLE_BYTECODE_MATCH}
+      />,
+    );
+    const section = screen.getByRole("region", {
+      name: /bytecode hypothesis/i,
+    });
+    expect(section.getAttribute("data-hypothesis")).toBe("V1-derived");
+    expect(
+      section.querySelector('[data-metadata-trail="missing"]'),
+    ).not.toBeNull();
   });
 });

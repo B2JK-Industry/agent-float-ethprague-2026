@@ -3,6 +3,10 @@
 import { useState, useEffect, useRef, type RefObject } from "react";
 import type { SirenReport } from "@upgrade-siren/shared";
 
+import {
+  BytecodeHypothesis,
+  type BytecodeMatchResult,
+} from "./BytecodeHypothesis";
 import { SourceDiffRenderer, type SourceDiff } from "./SourceDiffRenderer";
 
 export type EvidenceDrawerAbiSummary = {
@@ -27,6 +31,13 @@ export type EvidenceDrawerProps = {
    * is stable.
    */
   sourceDiff?: SourceDiff;
+  /**
+   * V1-anchored bytecode-match hypothesis (US-078 + US-079). Optional —
+   * only present when the verdict pipeline produced one. When absent,
+   * the hypothesis section is hidden (no stub layout pretending the
+   * matcher ran).
+   */
+  bytecodeMatch?: BytecodeMatchResult;
   reportUrl?: string;
   initialOpen?: boolean;
 };
@@ -97,6 +108,7 @@ export function EvidenceDrawer({
   abiSummary,
   storageSummary,
   sourceDiff,
+  bytecodeMatch,
   reportUrl,
   initialOpen = false,
 }: EvidenceDrawerProps): React.JSX.Element {
@@ -193,6 +205,12 @@ export function EvidenceDrawer({
               </li>
             </ul>
           </section>
+
+          {bytecodeMatch ? (
+            <div className="mb-4">
+              <BytecodeHypothesis result={bytecodeMatch} />
+            </div>
+          ) : null}
 
           <section aria-label="ABI summary" className="mb-4">
             <h3 className="mb-2 text-sm font-bold">ABI</h3>
