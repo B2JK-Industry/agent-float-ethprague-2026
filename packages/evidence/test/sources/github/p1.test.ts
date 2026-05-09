@@ -79,6 +79,83 @@ describe('fetchGithubP1Enrichment', () => {
       expect(r.p1FetchStatus).toBe('ok');
     });
 
+    // audit-round-7 P1 #13 (workflows) regression: in-progress runs
+    // (`conclusion: null`) and cancelled/skipped runs were inflating
+    // the denominator, under-reporting the pass-rate.
+    it('excludes in-progress / cancelled / skipped runs from ciRuns total (audit-round-7 P1 #13)', async () => {
+      const fetchImpl = makeRouter([
+        { test: /\/actions\/runs/, handler: () => jsonResponse(200, {
+          workflow_runs: [
+            { conclusion: 'success' },
+            { conclusion: 'success' },
+            { conclusion: 'failure' },
+            { conclusion: null }, // in-progress — excluded
+            { conclusion: 'cancelled' }, // cancelled — excluded
+            { conclusion: 'skipped' }, // skipped — excluded
+          ],
+        }) },
+        { test: /\/issues\?labels=bug/, handler: () => jsonResponse(200, []) },
+        { test: /\/releases/, handler: () => jsonResponse(200, []) },
+        { test: /\/contents\//, handler: () => jsonResponse(404, {}) },
+        { test: /\/branches\//, handler: () => jsonResponse(404, {}) },
+      ]);
+      const r = (await fetchGithubP1Enrichment(baseP0, { pat: PAT, fetchImpl, nowSeconds: NOW })).repos[0]!;
+      // Only success + failure count: 2 success out of 3 evaluated = the
+      // honest pass-rate. Without the filter, total would have been 6
+      // and the ratio 2/6 = 0.33.
+      expect(r.ciRuns).toEqual({ successful: 2, total: 3 });
+    });
+
+    // audit-round-7 P1 #13 (PRs) regression: GitHub's `/issues` endpoint
+    // returns BOTH issues and pull requests; rows representing PRs carry
+    // a `pull_request` object. Counting PRs as bug issues inflated the
+    // total and made the closed-ratio look worse than reality.
+    it('filters pull requests out of bugIssues counts (audit-round-7 P1 #13)', async () => {
+      const fetchImpl = makeRouter([
+        { test: /\/actions\/runs/, handler: () => jsonResponse(200, { workflow_runs: [] }) },
+        { test: /\/issues\?labels=bug/, handler: () => jsonResponse(200, [
+          { state: 'closed' },
+          { state: 'open' },
+          // PR with a bug label — must NOT count toward bugIssues.
+          { state: 'open', pull_request: { url: 'https://api.github.com/repos/o/r/pulls/1' } },
+          { state: 'closed', pull_request: { url: 'https://api.github.com/repos/o/r/pulls/2' } },
+        ]) },
+        { test: /\/releases/, handler: () => jsonResponse(200, []) },
+        { test: /\/contents\//, handler: () => jsonResponse(404, {}) },
+        { test: /\/branches\//, handler: () => jsonResponse(404, {}) },
+      ]);
+      const r = (await fetchGithubP1Enrichment(baseP0, { pat: PAT, fetchImpl, nowSeconds: NOW })).repos[0]!;
+      // 2 issues (1 closed + 1 open), 2 PRs filtered out.
+      expect(r.bugIssues).toEqual({ closed: 1, total: 2 });
+    });
+
+    // audit-round-7 P1 #13 (branch protection) regression: branch names
+    // containing slashes (e.g. `release/v1`) used to break the URL by
+    // being parsed as path segments, so the endpoint returned 404 →
+    // false negative for the protection flag. encodeURIComponent fixes.
+    it('encodes default-branch name in the protection URL (audit-round-7 P1 #13)', async () => {
+      const slashRepo: GithubRepoP0 = { ...repo('a'), defaultBranch: 'release/v1' };
+      const slashP0: GithubP0Signals = { ...baseP0, repos: [slashRepo] };
+      let capturedProtUrl = '';
+      const fetchImpl = makeRouter([
+        { test: /\/actions\/runs/, handler: () => jsonResponse(200, { workflow_runs: [] }) },
+        { test: /\/issues\?labels=bug/, handler: () => jsonResponse(200, []) },
+        { test: /\/releases/, handler: () => jsonResponse(200, []) },
+        { test: /\/contents\//, handler: () => jsonResponse(404, {}) },
+        { test: /\/branches\/[^/]+\/protection/, handler: (url) => {
+          capturedProtUrl = url;
+          return jsonResponse(200, { required_pull_request_reviews: {} });
+        } },
+      ]);
+      const result = await fetchGithubP1Enrichment(slashP0, { pat: PAT, fetchImpl, nowSeconds: NOW });
+      // URL encodes `release/v1` as `release%2Fv1`, keeping the path
+      // grammar `/branches/{enc}/protection` valid. Without this, the
+      // URL parses as `/branches/release/v1/protection` and the router
+      // wouldn't have matched.
+      expect(capturedProtUrl).toContain('/branches/release%2Fv1/protection');
+      expect(result.repos[0]?.hasBranchProtection).toBe(true);
+    });
+
     it('honours custom releaseWindowSeconds for the publishing-cutoff', async () => {
       const fetchImpl = makeRouter([
         { test: /\/actions\/runs/, handler: () => jsonResponse(200, { workflow_runs: [] }) },

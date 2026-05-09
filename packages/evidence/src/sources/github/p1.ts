@@ -85,32 +85,58 @@ async function probeJson<T>(
 }
 
 interface WorkflowRunsBody {
-  readonly workflow_runs?: ReadonlyArray<{ readonly conclusion?: unknown }>;
+  readonly workflow_runs?: ReadonlyArray<{ readonly conclusion?: unknown; readonly status?: unknown }>;
 }
 
+// audit-round-7 P1 #13 (workflows): in-progress runs have `conclusion:
+// null` because they haven't terminated yet. Counting them in the
+// denominator under-reports the pass-rate — a repo with 10 successes +
+// 5 in-progress would render as 10/15 = 0.67 instead of the true 10/10
+// = 1.00. Filter to runs with a terminal conclusion before computing
+// the ratio. Also exclude `cancelled` and `skipped` (the runner didn't
+// actually evaluate the build) so they don't dilute the pass-rate.
 function parseWorkflowRuns(raw: unknown): { successful: number; total: number } | null {
   if (typeof raw !== 'object' || raw === null) return null;
   const o = raw as WorkflowRunsBody;
   const runs = Array.isArray(o.workflow_runs) ? o.workflow_runs : null;
   if (runs === null) return null;
   let successful = 0;
+  let evaluated = 0;
   for (const run of runs) {
-    if (run && typeof run === 'object' && 'conclusion' in run && run.conclusion === 'success') {
-      successful += 1;
-    }
+    if (!run || typeof run !== 'object') continue;
+    const conclusion = (run as { conclusion?: unknown }).conclusion;
+    // Only count runs that finished AND were actually evaluated by the
+    // runner. cancelled / skipped / null (in-progress) leave the
+    // pass-rate alone.
+    if (conclusion === null || conclusion === undefined) continue;
+    if (conclusion === 'cancelled' || conclusion === 'skipped') continue;
+    evaluated += 1;
+    if (conclusion === 'success') successful += 1;
   }
-  return { successful, total: runs.length };
+  return { successful, total: evaluated };
 }
 
+// audit-round-7 P1 #13 (PRs): GitHub's `/issues` endpoint returns BOTH
+// issues AND pull requests — every PR is an issue under the hood. Items
+// representing PRs carry a `pull_request` object; pure issues don't.
+// Counting PRs in the bugHygiene denominator inflated `total` and made
+// the closed-ratio look worse than reality (a tagged-and-merged PR
+// counted as a "still open" bug). Filter out PRs.
 function parseBugIssues(raw: unknown): { closed: number; total: number } | null {
   if (!Array.isArray(raw)) return null;
   let closed = 0;
+  let total = 0;
   for (const item of raw) {
-    if (item && typeof item === 'object' && 'state' in item && (item as { state: unknown }).state === 'closed') {
+    if (!item || typeof item !== 'object') continue;
+    // `pull_request` is the documented discriminator GitHub uses to
+    // mark issue rows that are actually PRs.
+    if ('pull_request' in item && (item as { pull_request: unknown }).pull_request) continue;
+    total += 1;
+    if ('state' in item && (item as { state: unknown }).state === 'closed') {
       closed += 1;
     }
   }
-  return { closed, total: raw.length };
+  return { closed, total };
 }
 
 function parseReleasesLast12m(raw: unknown, cutoffSec: number): number | null {
@@ -172,9 +198,14 @@ async function fetchOneRepoEnrichment(
       pat,
       (b) => (parseFilePresence(b) ? { exists: true } : null),
     ),
+    // audit-round-7 P1 #13 (branch protection): branch names can
+    // contain `/` (e.g. `release/v1`). Without encoding, a slash in
+    // the branch name silently breaks the URL by getting parsed as a
+    // path segment, returning a 404 that the parser maps to "no
+    // protection" — false negative for repos using slashed branches.
     probeJson(
       fetchImpl,
-      `${baseUrl}/repos/${fn}/branches/${branch}/protection`,
+      `${baseUrl}/repos/${fn}/branches/${encodeURIComponent(branch)}/protection`,
       pat,
       (b) => (parseBranchProtectionPresence(b) ? { exists: true } : null),
     ),

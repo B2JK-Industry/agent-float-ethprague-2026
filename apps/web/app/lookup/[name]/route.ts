@@ -50,6 +50,20 @@ async function hasUpgradeSirenRecords(name: string): Promise<boolean> {
   return false;
 }
 
+// audit-round-7 P1 #15 (/lookup raw addr): the SourcifyDrawer's
+// "find similar contracts" + "open per-contract verdict" links pass
+// raw addresses to /lookup. The previous handler treated every input
+// as an ENS name — `resolveEnsRecords('0xabc...')` failed, so the
+// fallback redirected to `/b/0xabc...` which then errored in
+// loadBench because `0xabc...` doesn't pass the ENS-name regex.
+// Detect raw 40-hex addresses and route them straight to /r/<addr>
+// with `?mode=public-read` (same convention PublicReadInput uses for
+// landing-page submits).
+const HEX_ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
+function looksLikeRawAddress(value: string): boolean {
+  return HEX_ADDRESS_RE.test(value);
+}
+
 type RouteParams = { params: Promise<{ name: string }> };
 
 export async function GET(
@@ -59,15 +73,21 @@ export async function GET(
   const { name: rawName } = await params;
   const name = decodeURIComponent(rawName);
   let target: string;
-  try {
-    target = (await hasUpgradeSirenRecords(name))
-      ? `/r/${encodeURIComponent(name)}`
-      : `/b/${encodeURIComponent(name)}`;
-  } catch {
-    // ENS resolution threw despite resolveEnsRecords' typed return —
-    // fall through to /b which has its own empty/error state. Never
-    // 500 the user from the routing layer.
-    target = `/b/${encodeURIComponent(name)}`;
+  if (looksLikeRawAddress(name)) {
+    // Raw address → per-contract verdict in public-read mode. ENS
+    // resolution is irrelevant; the address IS the resolved primary.
+    target = `/r/${encodeURIComponent(name)}?mode=public-read`;
+  } else {
+    try {
+      target = (await hasUpgradeSirenRecords(name))
+        ? `/r/${encodeURIComponent(name)}`
+        : `/b/${encodeURIComponent(name)}`;
+    } catch {
+      // ENS resolution threw despite resolveEnsRecords' typed return —
+      // fall through to /b which has its own empty/error state. Never
+      // 500 the user from the routing layer.
+      target = `/b/${encodeURIComponent(name)}`;
+    }
   }
   const url = new URL(target, request.url);
   return NextResponse.redirect(url, { status: 307 });

@@ -177,11 +177,51 @@ async function pollOnce(
     return { kind: 'error', error: { reason: 'malformed_response', message: 'sourcify.similarity: response is not an object' } };
   }
   const raw = body as Record<string, unknown>;
-  const status = normalizeStatus(raw['status']);
+  // audit-round-7 P1 #12: Sourcify v2's `/verify/{verificationId}` poll
+  // endpoint uses an `isJobCompleted` envelope rather than the legacy
+  // top-level `status` string the older v1-style fixtures (and our
+  // tests) emitted. Real wire shape:
+  //   pending:   { isJobCompleted: false, verificationId, ... }
+  //   complete:  { isJobCompleted: true, contract: { match: "exact_match" | "match" | null }, error?: string }
+  // The previous parser only looked for `raw['status']`, so a real
+  // production poll would always trip "malformed_response" and the
+  // submit→poll loop would never converge. Translate the envelope to
+  // our internal SimilarityStatus and fall back to the legacy
+  // top-level `status` field for backward compat with mocks/tests.
+  const status = deriveStatus(raw);
   if (status === null) {
-    return { kind: 'error', error: { reason: 'malformed_response', message: `sourcify.similarity: unknown status ${JSON.stringify(raw['status'])}` } };
+    return { kind: 'error', error: { reason: 'malformed_response', message: `sourcify.similarity: unknown status ${JSON.stringify(raw['status'] ?? raw['isJobCompleted'])}` } };
   }
   return { kind: 'ok', value: { status, raw } };
+}
+
+// Translate Sourcify v2's `/verify/{id}` envelope (or the legacy
+// top-level `status` string used by older fixtures) to our internal
+// SimilarityStatus union. Returns null when neither shape is present.
+function deriveStatus(raw: Record<string, unknown>): SimilarityStatus | null {
+  // v2 wire shape — `isJobCompleted` discriminator.
+  if ('isJobCompleted' in raw) {
+    const completed = raw['isJobCompleted'];
+    if (completed === false) return 'verifying';
+    if (completed === true) {
+      // An explicit error field is the failure signal.
+      if (typeof raw['error'] === 'string' && (raw['error'] as string).length > 0) {
+        return 'failed';
+      }
+      const contract = raw['contract'];
+      if (contract !== null && typeof contract === 'object') {
+        const matchLevel = (contract as Record<string, unknown>)['match'];
+        if (matchLevel === 'exact_match' || matchLevel === 'match') return 'verified';
+        // null or 'not_found' → no_match.
+        return 'no_match';
+      }
+      // isJobCompleted: true but no contract block — treat as failed
+      // rather than silently re-polling forever.
+      return 'failed';
+    }
+  }
+  // Legacy / fixture wire shape: top-level `status` string.
+  return normalizeStatus(raw['status']);
 }
 
 // Submits a bytecode similarity verification request and polls until the

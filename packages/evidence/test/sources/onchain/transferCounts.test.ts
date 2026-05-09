@@ -38,17 +38,26 @@ describe('fetchOnchainTransferCounts', () => {
   });
 
   describe('alchemy backend', () => {
-    it('issues two POSTs (recent + total) and surfaces both counts', async () => {
-      let recentCalled = false;
-      let totalCalled = false;
+    // audit-round-7 P1 #14 (outbound-only) reshaped this test:
+    // alchemy_getAssetTransfers can only filter by fromAddress OR
+    // toAddress per call, so fetching bidirectional transfer counts
+    // requires TWO RPCs per category. The fetcher now issues 4 RPCs
+    // total (recent-out + recent-in + total-out + total-in) and sums
+    // each pair. Without the inbound leg, every receiver-style contract
+    // looked silent on-chain even when active.
+    it('issues 4 POSTs (recent ± direction, total ± direction) and surfaces summed counts', async () => {
+      let recentOut = 0, recentIn = 0, totalOut = 0, totalIn = 0;
       const fetchImpl = vi.fn(async (_url: string, init?: RequestInit) => {
         const body = JSON.parse(String(init?.body ?? '{}')) as { params?: ReadonlyArray<unknown> };
-        const params = body.params?.[0] as { fromBlock?: string } | undefined;
-        if (params?.fromBlock === '0x0') {
-          totalCalled = true;
-          return jsonResponse(200, alchemyBody(50));
-        }
-        recentCalled = true;
+        const params = body.params?.[0] as
+          | { fromBlock?: string; fromAddress?: string; toAddress?: string }
+          | undefined;
+        const isTotal = params?.fromBlock === '0x0';
+        const isInbound = !!params?.toAddress;
+        if (isTotal && isInbound) { totalIn += 1; return jsonResponse(200, alchemyBody(20)); }
+        if (isTotal) { totalOut += 1; return jsonResponse(200, alchemyBody(50)); }
+        if (isInbound) { recentIn += 1; return jsonResponse(200, alchemyBody(8)); }
+        recentOut += 1;
         return jsonResponse(200, alchemyBody(12));
       });
       const result = await fetchOnchainTransferCounts(1, ADDR, {
@@ -56,12 +65,16 @@ describe('fetchOnchainTransferCounts', () => {
         alchemyApiKey: 'k',
         fetchImpl,
       });
-      expect(recentCalled).toBe(true);
-      expect(totalCalled).toBe(true);
+      expect(recentOut).toBe(1);
+      expect(recentIn).toBe(1);
+      expect(totalOut).toBe(1);
+      expect(totalIn).toBe(1);
       expect(result.kind).toBe('ok');
       if (result.kind === 'ok') {
-        expect(result.value.transferCountRecent90d).toBe(12);
-        expect(result.value.transferCountTotal).toBe(50);
+        // recent = outbound 12 + inbound 8 = 20.
+        expect(result.value.transferCountRecent90d).toBe(20);
+        // total = outbound 50 + inbound 20 = 70.
+        expect(result.value.transferCountTotal).toBe(70);
         expect(result.value.provider).toBe('alchemy');
       }
     });
@@ -114,6 +127,38 @@ describe('fetchOnchainTransferCounts', () => {
       if (result.kind === 'error') expect(result.reason).toBe('rate_limited');
     });
 
+    // audit-round-7 P1 #14 (nowBlock) regression: previously
+    // `fromBlock = cutoffSec / 12` ≈ 148M dwarfed real mainnet head
+    // ~22M, so Alchemy returned 0 transfers for every address. With a
+    // real `nowBlock` injected, fromBlock = nowBlock - blocks-per-90d
+    // and Alchemy actually sees the address's recent activity.
+    it('uses nowBlock to derive fromBlock for recent window (audit-round-7 P1 #14)', async () => {
+      let recentFromBlock: string | undefined;
+      const fetchImpl = vi.fn(async (_url: string, init?: RequestInit) => {
+        const body = JSON.parse(String(init?.body ?? '{}')) as { params?: ReadonlyArray<unknown> };
+        const params = body.params?.[0] as { fromBlock?: string; toAddress?: string } | undefined;
+        // First outbound recent call captures the fromBlock value.
+        if (params?.fromBlock !== '0x0' && !params?.toAddress && recentFromBlock === undefined) {
+          recentFromBlock = params?.fromBlock;
+        }
+        return jsonResponse(200, alchemyBody(0));
+      });
+      const NOW_BLOCK = 22_000_000n;
+      // 90d / 12s ≈ 648_000 blocks.
+      const expectedFromBlock = NOW_BLOCK - 648_000n;
+      await fetchOnchainTransferCounts(1, ADDR, {
+        nowSeconds: NOW,
+        nowBlock: NOW_BLOCK,
+        alchemyApiKey: 'k',
+        fetchImpl,
+      });
+      expect(recentFromBlock).toBeDefined();
+      // Must be derived from nowBlock, not from cutoffSec/12 (~148M).
+      expect(BigInt(recentFromBlock as string)).toBe(expectedFromBlock);
+      // Sanity: not the broken fabricated value.
+      expect(BigInt(recentFromBlock as string)).toBeLessThan(NOW_BLOCK);
+    });
+
     it('returns malformed_response when result.transfers is missing', async () => {
       const fetchImpl = vi.fn(async () => jsonResponse(200, { result: {} }));
       const result = await fetchOnchainTransferCounts(1, ADDR, {
@@ -144,6 +189,27 @@ describe('fetchOnchainTransferCounts', () => {
         expect(result.value.transferCountRecent90d).toBe(2);
         expect(result.value.transferCountTotal).toBe(3);
       }
+    });
+
+    // audit-round-7 P1 #14 (V1 vs V2) regression: Etherscan moved its
+    // multichain endpoint to `/v2/api?chainid=...`. The previous base
+    // URL was `/api` (v1, chain-specific subdomains, no chainid query).
+    // Hybridising — v1 path with v2 chainid query — broke for sepolia
+    // and produced inconsistent rate-limit and key handling. Verify
+    // the default URL is the v2 path.
+    it('uses Etherscan v2 multichain endpoint by default (audit-round-7 P1 #14)', async () => {
+      let captured = '';
+      const fetchImpl = vi.fn(async (url: string) => {
+        captured = url;
+        return jsonResponse(200, etherscanBody([]));
+      });
+      await fetchOnchainTransferCounts(1, ADDR, {
+        nowSeconds: NOW,
+        etherscanApiKey: 'e',
+        fetchImpl,
+      });
+      expect(captured).toContain('/v2/api');
+      expect(captured).toContain('chainid=1');
     });
 
     it('treats etherscan status:0 with "no transactions" message as zero count', async () => {

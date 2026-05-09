@@ -101,4 +101,32 @@ describe("/lookup/[name] route handler (US-131 mode-detection)", () => {
       /\/b\/subject%20space\.eth$/,
     );
   });
+
+  // audit-round-7 P1 #15 (/lookup raw addr) regression: SourcifyDrawer
+  // links pass raw 0x-addresses to /lookup. The previous handler tried
+  // ENS resolution on every input — which threw on raw addresses, fell
+  // through to /b/0x..., and the bench page errored because the address
+  // doesn't match the ENS-name regex. The handler now detects the raw
+  // address shape and routes directly to /r/<addr>?mode=public-read.
+  it("routes a raw 0x-address straight to /r/<addr>?mode=public-read (audit-round-7 P1 #15)", async () => {
+    const addr = "0x1234567890abcdef1234567890abcdef12345678";
+    const res = await callGet(addr);
+
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toMatch(
+      new RegExp(`/r/${addr}\\?mode=public-read$`),
+    );
+    // Discriminating: ENS resolution must NOT have been attempted —
+    // raw addresses have no ENS records to read.
+    expect(resolveMock).not.toHaveBeenCalled();
+  });
+
+  it("does NOT treat 0x-prefixed strings of the wrong length as raw addresses", async () => {
+    // 39 hex chars — too short to be a valid address. Should fall
+    // through to ENS resolution (which will fail and route to /b).
+    resolveMock.mockResolvedValue(ensOk(false));
+    const tooShort = "0x123456789012345678901234567890123456789"; // 39 hex chars
+    const res = await callGet(tooShort);
+    expect(res.headers.get("location")).toMatch(/\/b\//);
+  });
 });

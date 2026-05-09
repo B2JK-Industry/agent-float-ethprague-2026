@@ -123,6 +123,55 @@ describe("SourcifyDrawer (US-135)", () => {
     expect(pill.getAttribute("data-label")).toBe("× 0.85");
   });
 
+  // audit-round-7 P1 #15 (verified flag) regression: the score engine's
+  // compileSuccess only counts an entry as verified when BOTH
+  // creationMatch AND runtimeMatch are exact_match. Sourcify v2's
+  // top-level `match` summary can read 'exact_match' even when one of
+  // the per-side fields is just 'match'. Rendering "verified × 1.00"
+  // off the top-level alone over-credits an entry the engine itself
+  // treats as ≤ partial. Joint check fixes this.
+  it("partial-when-creationMatch-not-exact even if top-level match=exact_match (audit-round-7 P1 #15)", () => {
+    // Build directly so we can mismatch the top-level summary from the
+    // per-side fields the way Sourcify v2 occasionally does.
+    const mixed: SourcifyEntryEvidence = {
+      kind: "ok",
+      chainId: 1,
+      address: "0xMIX" as `0x${string}`,
+      label: "Mixed",
+      deep: {
+        chainId: 1,
+        address: "0xMIX" as `0x${string}`,
+        // Top-level claims exact, but creationMatch is the weaker tier.
+        match: "exact_match",
+        creationMatch: "match",
+        runtimeMatch: "exact_match",
+        compilation: null,
+        functionSignatures: null,
+        eventSignatures: null,
+        licenses: null,
+        userdoc: null,
+        devdoc: null,
+        proxyResolution: null,
+      },
+      patterns: [],
+      licenseCompiler: {} as never,
+    } as unknown as SourcifyEntryEvidence;
+    const { container } = render(<SourcifyDrawer entries={[mixed]} initialOpen />);
+    const pill = container.querySelector("[data-trust-pill]") as HTMLElement;
+    // Pill must reflect the engine's verdict, not the permissive summary.
+    expect(pill.getAttribute("data-trust-pill")).toBe("partial");
+    expect(pill.getAttribute("data-label")).toBe("× 0.85");
+  });
+
+  it("verified when creationMatch + runtimeMatch are BOTH exact_match (audit-round-7 P1 #15 — happy path)", () => {
+    const { container } = render(
+      <SourcifyDrawer entries={[okEntry({ match: "exact_match" })]} initialOpen />,
+    );
+    const pill = container.querySelector("[data-trust-pill]") as HTMLElement;
+    expect(pill.getAttribute("data-trust-pill")).toBe("verified");
+    expect(pill.getAttribute("data-label")).toBe("× 1.00");
+  });
+
   it("error entry renders INVALID pill (v3 §C-04: multiplier OR INVALID, never both)", () => {
     const { container } = render(
       <SourcifyDrawer
