@@ -99,3 +99,13 @@ export type {
   PublicReadInputKind,
   RunPublicReadFallbackOptions,
 } from './fallback/publicRead.js';
+
+export { diffStorageLayout, entriesEqual } from './diff/storage.js';
+
+export type {
+  StorageDiffChange,
+  StorageDiffKind,
+  StorageDiffResult,
+  StorageLayout,
+  StorageLayoutEntry,
+} from './diff/storage.js';
