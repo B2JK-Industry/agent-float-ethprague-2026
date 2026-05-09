@@ -197,7 +197,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-136 | GitHub source drawer (top-20 repos card grid: name, last push, CI badge, test presence, repo-hygiene score, releases count, link out) | C | P0 | M | open | US-114 |
 | US-137 | On-chain source drawer (first tx, totals, recent activity, primary address chip) | C | P1 | S | open | US-115 |
 | US-138 | ENS source drawer (registration date, subname / record counts, raw `agent-bench:bench_manifest` JSON viewer) | C | P1 | S | open | US-116 |
-| US-139 | Honest-claims disclaimer copy reviewed by Daniel/Orch; integrated into score banner | C | P0 | XS | open | US-132 |
+| US-139 | Honest-claims disclaimer copy reviewed by Daniel/Orch; integrated into score banner | C | P0 | XS | merged | US-132 |
 | US-140 | Bytecode similarity-submit button + optimistic re-render after Sourcify confirms | C | P1 | S | open | US-121 |
 
 ### Bench Mode — Tracker
@@ -4251,7 +4251,7 @@ EPIC reference: US-103. Renumbered to US-138.
 | Sponsor | - |
 | Dependencies | US-132 |
 | Acceptance gates | - |
-| Status | open (Epic 2) |
+| Status | merged |
 
 #### Scope
 
