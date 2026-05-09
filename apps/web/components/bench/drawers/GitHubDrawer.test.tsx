@@ -135,6 +135,47 @@ describe("GitHubDrawer (US-136)", () => {
     expect(ci.getAttribute("data-label")).toBe("× 0.92");
   });
 
+  // audit-round-7 P0 #4 regression: ciRuns present with total === 0
+  // (computed-zero, e.g. workflows defined but no runs in the window)
+  // previously rendered as `missing` pill — visually identical to a
+  // repo whose ciRuns we couldn't fetch at all. Computed zero is signal,
+  // not absence. Now renders as `discounted` (different color, solid
+  // border) so judges and users can tell the two apart at a glance.
+  it("CI trust pill differentiates ciRuns absent vs ciRuns.total === 0 (audit-round-7 P0 #4)", () => {
+    // Case 1: ciRuns absent → variant=missing
+    const { container: absentContainer } = render(
+      <GitHubDrawer
+        github={evidence({ repos: [repo({ ciRuns: undefined })] })}
+        initialOpen
+      />,
+    );
+    const absentCi = absentContainer.querySelector(
+      '[data-repo="owner/demo"]',
+    )?.querySelectorAll("[data-trust-pill]")[0] as HTMLElement;
+    expect(absentCi.getAttribute("data-trust-pill")).toBe("missing");
+
+    // Case 2: ciRuns present with total === 0 → variant=discounted (NOT missing).
+    // Same × 0.00 label so the spec's "× X.XX OR INVALID" rule holds, but
+    // the variant attribute differs so the color treatment differs and a
+    // future visual regression that reverts it surfaces here.
+    const { container: zeroContainer } = render(
+      <GitHubDrawer
+        github={evidence({
+          repos: [
+            repo({ fullName: "owner/zero", ciRuns: { successful: 0, total: 0 } }),
+          ],
+        })}
+        initialOpen
+      />,
+    );
+    const zeroCi = zeroContainer.querySelector(
+      '[data-repo="owner/zero"]',
+    )?.querySelectorAll("[data-trust-pill]")[0] as HTMLElement;
+    expect(zeroCi.getAttribute("data-trust-pill")).toBe("discounted");
+    expect(zeroCi.getAttribute("data-trust-pill")).not.toBe("missing");
+    expect(zeroCi.getAttribute("data-label")).toBe("× 0.00");
+  });
+
   it("missing US-114b enrichment renders × 0.00 missing pill, no crash", () => {
     const { container } = render(
       <GitHubDrawer

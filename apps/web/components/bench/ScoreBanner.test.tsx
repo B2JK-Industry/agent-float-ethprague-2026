@@ -167,6 +167,25 @@ describe("ScoreBanner (US-132)", () => {
     expect(sRow?.textContent).toMatch(/v2: requires verified GitHub cross-sign/i);
   });
 
+  // audit-round-7 P0 #3 regression: the tier ladder <details> previously
+  // defaulted to collapsed, hiding the S-row v2 footnote behind a click.
+  // The footnote is the engine's only honesty signal that S is unreachable
+  // in v1 — burying it inside a closed disclosure undermined the
+  // disclosure. Default-expanded keeps it visible without removing the
+  // user's ability to collapse for screen real estate.
+  it("tier ladder <details> defaults to open so the v1-ceiling footnote is visible without a click (audit-round-7 P0 #3)", () => {
+    const { container } = render(<ScoreBanner score={makeScore()} />);
+    const ladder = container.querySelector(
+      '[data-block="tier-ladder"]',
+    ) as HTMLDetailsElement | null;
+    expect(ladder).not.toBeNull();
+    expect(ladder?.tagName.toLowerCase()).toBe("details");
+    // The discriminating assertion: open === true on first render. If a
+    // future refactor removes `open`, this fails red and forces an
+    // explicit decision instead of silently re-burying the footnote.
+    expect(ladder?.open).toBe(true);
+  });
+
   it("marks the current tier row in the ladder with data-current=true", () => {
     const { container } = render(<ScoreBanner score={makeScore({ tier: "C", score_100: 50 })} />);
     const cRow = container.querySelector('[data-ladder-tier="C"]');

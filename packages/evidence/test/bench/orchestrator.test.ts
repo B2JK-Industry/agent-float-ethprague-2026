@@ -94,6 +94,14 @@ describe('orchestrateSubject', () => {
         [AGENT_BENCH_RECORD_KEYS.owner, PRIMARY],
       ]);
       const client = makeClient({ recordValues: records, nonceAtLatest: 0 });
+      // Per-chain client routing: map both default-fanout chains to the
+      // same mock. Without this, the sepolia leg falls through to viem's
+      // real-RPC default (audit-round-7 P0 #1 fix; legacy single-client
+      // path is now chain-id checked).
+      const clients = new Map<number, PublicClient>([
+        [1, client],
+        [11155111, client],
+      ]);
 
       const fetchImpl = vi.fn(async (url: string) => {
         if (url.includes('/v2/contract/all-chains/')) return jsonResponse(200, []);
@@ -129,6 +137,7 @@ describe('orchestrateSubject', () => {
 
       const result = await orchestrateSubject(NAME, {
         client,
+        clients,
         sourcifyDeepOptions: { fetchImpl },
         metadataOptions: { fetchImpl },
         crossChainOptions: { fetchImpl },
@@ -165,9 +174,11 @@ describe('orchestrateSubject', () => {
         [AGENT_BENCH_RECORD_KEYS.benchManifest, JSON.stringify(fullManifest)],
       ]);
       const client = makeClient({ recordValues: records });
+      const clients = new Map<number, PublicClient>([[1, client], [11155111, client]]);
       const fetchImpl = vi.fn(async () => jsonResponse(200, {}));
       const result = await orchestrateSubject(NAME, {
         client,
+        clients,
         sourcifyDeepOptions: { fetchImpl },
         metadataOptions: { fetchImpl },
         crossChainOptions: { fetchImpl },
@@ -183,9 +194,11 @@ describe('orchestrateSubject', () => {
         [AGENT_BENCH_RECORD_KEYS.benchManifest, JSON.stringify(fullManifest)],
       ]);
       const client = makeClient({ recordValues: records });
+      const clients = new Map<number, PublicClient>([[1, client], [11155111, client]]);
       const fetchImpl = vi.fn(async () => jsonResponse(200, {}));
       const result = await orchestrateSubject(NAME, {
         client,
+        clients,
         sourcifyDeepOptions: { fetchImpl },
         metadataOptions: { fetchImpl },
         crossChainOptions: { fetchImpl },
@@ -199,6 +212,7 @@ describe('orchestrateSubject', () => {
         [AGENT_BENCH_RECORD_KEYS.benchManifest, JSON.stringify(fullManifest)],
       ]);
       const client = makeClient({ recordValues: records });
+      const clients = new Map<number, PublicClient>([[1, client], [11155111, client]]);
       const fetchImpl = vi.fn(async (url: string) => {
         if (url.includes('/v2/contract/all-chains/')) return jsonResponse(200, []);
         if (url.includes('/v2/contract/')) return jsonResponse(503, {});
@@ -208,6 +222,7 @@ describe('orchestrateSubject', () => {
       });
       const result = await orchestrateSubject(NAME, {
         client,
+        clients,
         sourcifyDeepOptions: { fetchImpl },
         metadataOptions: { fetchImpl },
         crossChainOptions: { fetchImpl },
@@ -276,6 +291,7 @@ describe('orchestrateSubject', () => {
 
       const result = await orchestrateSubject(NAME, {
         client,
+        clients: new Map<number, PublicClient>([[1, client], [11155111, client]]),
         publicReadOptions: { client, sourcifyOptions: { fetchImpl } },
         sourcifyDeepOptions: { fetchImpl },
         metadataOptions: { fetchImpl },
@@ -318,9 +334,11 @@ describe('orchestrateSubject', () => {
         [AGENT_BENCH_RECORD_KEYS.benchManifest, JSON.stringify(m)],
       ]);
       const client = makeClient({ recordValues: records });
+      const clients = new Map<number, PublicClient>([[1, client], [11155111, client]]);
       const fetchImpl = vi.fn(async () => jsonResponse(200, {}));
       const result = await orchestrateSubject(NAME, {
         client,
+        clients,
         sourcifyDeepOptions: { fetchImpl },
         metadataOptions: { fetchImpl },
         crossChainOptions: { fetchImpl },
@@ -405,6 +423,12 @@ describe('orchestrateSubject', () => {
         [AGENT_BENCH_RECORD_KEYS.benchManifest, JSON.stringify(fullManifest)],
       ]);
       const client = makeClient({ recordValues: records });
+      // audit-round-7 P0 #1 wired a chain-id check on the legacy single
+      // `client`. The mainnet mock is no longer auto-injected into the
+      // sepolia leg, so without a `clients` map sepolia would fall
+      // through to viem's real RPC and trip the tight 200ms budget.
+      // Provide both chains' clients explicitly.
+      const clients = new Map<number, PublicClient>([[1, client], [11155111, client]]);
       const fetchImpl = vi.fn(async (url: string) => {
         if (url.includes('/v2/contract/all-chains/')) return jsonResponse(200, []);
         if (url.includes('/v2/contract/')) return jsonResponse(200, { match: 'exact_match' });
@@ -415,6 +439,7 @@ describe('orchestrateSubject', () => {
 
       const result = await orchestrateSubject(NAME, {
         client,
+        clients,
         sourcifyDeepOptions: { fetchImpl },
         metadataOptions: { fetchImpl },
         crossChainOptions: { fetchImpl },
@@ -474,6 +499,114 @@ describe('orchestrateSubject', () => {
       expect(result.ensInternal.kind).toBe('ok');
       // Score-engine-readable failure entries logged.
       expect(result.failures.filter((f) => f.reason === 'source_timeout').length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe('per-chain client routing (audit-round-7 P0 #1)', () => {
+    // Regression: previously `fetchOneOnchain` injected the orchestrator's
+    // top-level `client` into every chain's fetcher regardless of the
+    // client's actual chain. A mainnet client passed to a fan-out that
+    // included sepolia would silently read mainnet nonces against the
+    // sepolia address. Fix: per-chain `clients` map; legacy single
+    // `client` only honored when its `chain.id` matches the queried chain.
+    it('routes each chain to its own client (clients map)', async () => {
+      const m: SubjectManifest = {
+        ...fullManifest,
+        sources: {
+          ...fullManifest.sources,
+          sourcify: [{ chainId: 1, address: SOURCIFY_ADDR, label: 'mainnet' }],
+        },
+      };
+      const records = new Map<string, string | null>([
+        [AGENT_BENCH_RECORD_KEYS.benchManifest, JSON.stringify(m)],
+      ]);
+      const ensClient = makeClient({ recordValues: records });
+
+      // Per-chain clients distinguished by latestBlock — so we can prove
+      // post-hoc which client serviced which chain.
+      const mainnetClient = makeClient({
+        recordValues: records,
+        latestBlock: 1_000n,
+        nonceAtLatest: 7,
+      });
+      const sepoliaClient = makeClient({
+        recordValues: records,
+        latestBlock: 9_000n,
+        nonceAtLatest: 13,
+      });
+      const clients = new Map<number, PublicClient>([
+        [1, mainnetClient],
+        [11155111, sepoliaClient],
+      ]);
+
+      const fetchImpl = vi.fn(async () => jsonResponse(200, {}));
+      const result = await orchestrateSubject(NAME, {
+        client: ensClient,
+        clients,
+        sourcifyDeepOptions: { fetchImpl },
+        metadataOptions: { fetchImpl },
+        crossChainOptions: { fetchImpl },
+      });
+
+      const mainnetEntry = result.onchain.find((e) => e.chainId === 1);
+      const sepoliaEntry = result.onchain.find((e) => e.chainId === 11155111);
+      expect(mainnetEntry?.kind).toBe('ok');
+      expect(sepoliaEntry?.kind).toBe('ok');
+      if (mainnetEntry?.kind === 'ok') {
+        expect(mainnetEntry.value.latestBlock).toBe(1_000n);
+        expect(mainnetEntry.value.nonce).toBe(7);
+      }
+      if (sepoliaEntry?.kind === 'ok') {
+        expect(sepoliaEntry.value.latestBlock).toBe(9_000n);
+        expect(sepoliaEntry.value.nonce).toBe(13);
+      }
+    });
+
+    it('legacy single `client` is NOT injected into a non-matching chain', async () => {
+      const m: SubjectManifest = {
+        ...fullManifest,
+        sources: {
+          ...fullManifest.sources,
+          sourcify: [{ chainId: 1, address: SOURCIFY_ADDR, label: 'mainnet' }],
+        },
+      };
+      const records = new Map<string, string | null>([
+        [AGENT_BENCH_RECORD_KEYS.benchManifest, JSON.stringify(m)],
+      ]);
+      const mainnetOnly = makeClient({
+        recordValues: records,
+        latestBlock: 42_424_242n,
+        nonceAtLatest: 99,
+      });
+      const sepoliaStub = makeClient({
+        recordValues: records,
+        latestBlock: 7n,
+        nonceAtLatest: 0,
+      });
+      const fetchImpl = vi.fn(async () => jsonResponse(200, {}));
+      const result = await orchestrateSubject(NAME, {
+        client: mainnetOnly,
+        clients: new Map<number, PublicClient>([[11155111, sepoliaStub]]),
+        sourcifyDeepOptions: { fetchImpl },
+        metadataOptions: { fetchImpl },
+        crossChainOptions: { fetchImpl },
+      });
+      const sepolia = result.onchain.find((e) => e.chainId === 11155111);
+      expect(sepolia?.kind).toBe('ok');
+      if (sepolia?.kind === 'ok') {
+        // Sepolia leg's signature numbers come from sepoliaStub, not
+        // mainnetOnly. If the legacy client were injected without a
+        // chain check, latestBlock would be 42_424_242n.
+        expect(sepolia.value.latestBlock).toBe(7n);
+        expect(sepolia.value.nonce).toBe(0);
+      }
+      const mainnet1 = result.onchain.find((e) => e.chainId === 1);
+      expect(mainnet1?.kind).toBe('ok');
+      if (mainnet1?.kind === 'ok') {
+        // Mainnet leg correctly used the legacy single client (chain.id matches).
+        expect(mainnet1.value.latestBlock).toBe(42_424_242n);
+        expect(mainnet1.value.nonce).toBe(99);
+      }
     });
   });
 });

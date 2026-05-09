@@ -280,8 +280,54 @@ describe('sourcifyRecency', () => {
 });
 
 describe('ensRecency', () => {
+  // Realistic mainnet head (~22M blocks at 2026-05-09; precision doesn't
+  // matter — we anchor lastRecordUpdateBlock relative to this so the
+  // ageBlocks math is symmetric). Audit-round-7 P0 #2 fix replaced the
+  // `nowSeconds / 12` fabrication with a real on-chain anchor, so every
+  // test that exercises ensRecency must now provide a mainnet on-chain
+  // entry from which `latestBlock` is read.
+  const NOW_BLOCK = 22_000_000n;
+  function withMainnetHead(latestBlock: bigint): MultiSourceEvidence['onchain'] {
+    return [
+      {
+        kind: 'ok' as const,
+        chainId: 1,
+        value: {
+          chainId: 1,
+          address: PRIMARY,
+          nonce: 0,
+          firstTxBlock: null,
+          firstTxTimestamp: null,
+          latestBlock,
+        },
+      },
+    ];
+  }
+
   it('returns null when ens-internal absent', () => {
     expect(ensRecency(evidence({}), NOW).status).toBe('null_no_data');
+  });
+
+  it('returns null when no mainnet on-chain anchor is present (no nowBlock)', () => {
+    // Audit-round-7 P0 #2: the engine refuses to fabricate a nowBlock
+    // from nowSeconds. Without a mainnet on-chain entry, recency must
+    // be null_no_data.
+    const r = ensRecency(
+      evidence({
+        ensInternal: {
+          kind: 'ok',
+          value: {
+            name: 'x.eth',
+            registrationDate: NOW - 86400 * 30,
+            subnameCount: 0,
+            textRecordCount: 0,
+            lastRecordUpdateBlock: NOW_BLOCK - 1n,
+          },
+        },
+      }),
+      NOW,
+    );
+    expect(r.status).toBe('null_no_data');
   });
 
   it('returns null when registrationDate is null', () => {
@@ -297,13 +343,14 @@ describe('ensRecency', () => {
             lastRecordUpdateBlock: 1n,
           },
         },
+        onchain: withMainnetHead(NOW_BLOCK),
       }),
       NOW,
     );
     expect(r.status).toBe('null_no_data');
   });
 
-  it('returns 1.0 when last update equals chain head approx', () => {
+  it('returns 1.0 when last update equals chain head', () => {
     const r = ensRecency(
       evidence({
         ensInternal: {
@@ -313,9 +360,10 @@ describe('ensRecency', () => {
             registrationDate: NOW - 86400 * 30,
             subnameCount: 0,
             textRecordCount: 0,
-            lastRecordUpdateBlock: BigInt(Math.floor(NOW / 12)),
+            lastRecordUpdateBlock: NOW_BLOCK,
           },
         },
+        onchain: withMainnetHead(NOW_BLOCK),
       }),
       NOW,
     );
@@ -323,8 +371,9 @@ describe('ensRecency', () => {
   });
 
   it('decays linearly between 0 and 24 months', () => {
-    // 12 months stale → freshness = 1 - 12/24 = 0.5
-    const twelveMonths = 12 * 30 * 86400;
+    // 12 months staleness in mainnet 12s blocks: 12 * blocksPerMonth
+    // where blocksPerMonth = (30 * 86400) / 12 = 216_000.
+    const twelveMonthsBlocks = BigInt(12 * 216_000);
     const r = ensRecency(
       evidence({
         ensInternal: {
@@ -334,9 +383,10 @@ describe('ensRecency', () => {
             registrationDate: NOW - 86400 * 30,
             subnameCount: 0,
             textRecordCount: 0,
-            lastRecordUpdateBlock: BigInt(Math.floor((NOW - twelveMonths) / 12)),
+            lastRecordUpdateBlock: NOW_BLOCK - twelveMonthsBlocks,
           },
         },
+        onchain: withMainnetHead(NOW_BLOCK),
       }),
       NOW,
     );
@@ -344,19 +394,20 @@ describe('ensRecency', () => {
   });
 
   it('floors at 0 when older than 24 months', () => {
-    const twoYears = 25 * 30 * 86400;
+    const twentyFiveMonthsBlocks = BigInt(25 * 216_000);
     const r = ensRecency(
       evidence({
         ensInternal: {
           kind: 'ok',
           value: {
             name: 'x.eth',
-            registrationDate: NOW - twoYears - 1,
+            registrationDate: NOW - 86400 * 30 * 26,
             subnameCount: 0,
             textRecordCount: 0,
-            lastRecordUpdateBlock: BigInt(Math.floor((NOW - twoYears) / 12)),
+            lastRecordUpdateBlock: NOW_BLOCK - twentyFiveMonthsBlocks,
           },
         },
+        onchain: withMainnetHead(NOW_BLOCK),
       }),
       NOW,
     );

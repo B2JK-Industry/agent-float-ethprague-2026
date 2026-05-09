@@ -145,8 +145,10 @@ describe('Score engine — golden fixtures (H-5 deterministic re-derivation)', (
           registrationDate: NOW_SECONDS - 86400 * 30,
           subnameCount: 5,
           textRecordCount: 4,
-          // Block ≈ now (12s block time). Use BigInt(now/12) so freshness math is 1.0.
-          lastRecordUpdateBlock: BigInt(Math.floor(NOW_SECONDS / 12)),
+          // Anchor matches the mainnet on-chain entry's latestBlock so
+          // ensRecency lands at 1.0 under the audit-round-7 P0 #2 fix
+          // (real on-chain anchor instead of nowSeconds/12 fabrication).
+          lastRecordUpdateBlock: 19_000_000n,
         },
       },
       crossChain: null,

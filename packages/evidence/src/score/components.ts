@@ -210,54 +210,49 @@ export function onchainRecency(evidence: MultiSourceEvidence): ComponentValue {
 // ENS recency: months since lastRecordUpdateBlock; min(months, 24)/24,
 // then 1 - x. EPIC §10.3.
 //
-// `lastRecordUpdateBlock` is a block number, not a timestamp. We need
-// to convert. v1 simplification: assume mainnet 12s block time. The
-// score engine doesn't fetch on-chain itself (pure function). When the
-// orchestrator wires a per-chain timestamp lookup later, this
-// extractor reads from the EnsInternalSignals record without changing
-// signature.
-//
-// For now, with only blockNumber available, we compare against the
-// chain-head block at `nowSeconds` using 12s block time:
-//   approxBlocksPerYear = (365 * 86400) / 12 = 2_628_000
-// A more accurate path would carry `nowBlock` through the orchestrator
-// — left as a follow-up; the v1 approximation is monotonic and well-
-// documented in the breakdown note.
+// `lastRecordUpdateBlock` is a block number, not a timestamp. To convert
+// we need a real "now block". Audit-round-7 P0 #2 caught the prior
+// fabrication: `nowBlock = Math.floor(nowSeconds / 12)` produced
+// ~148_000_000 against a real mainnet head of ~30_000_000, treating
+// every record as ~50 years stale and forcing recency to 0 for every
+// subject. The score engine is pure (no RPC), but the orchestrator
+// already fetches `latestBlock` per-chain into the on-chain evidence
+// slot. This extractor now reads the mainnet entry's real
+// `latestBlock` as the anchor. Without a real anchor we return
+// `null_no_data` rather than synthesize a wrong one.
+function resolveNowBlock(evidence: MultiSourceEvidence): bigint | null {
+  // Prefer mainnet (chainId 1). ENS root events are mainnet-anchored,
+  // so blocks-since-last-update lives in mainnet's block sequence.
+  for (const entry of evidence.onchain) {
+    if (entry.kind === 'ok' && entry.chainId === 1) {
+      return entry.value.latestBlock;
+    }
+  }
+  return null;
+}
+
 export function ensRecency(
   evidence: MultiSourceEvidence,
-  nowSeconds: number,
+  _nowSeconds: number,
 ): ComponentValue {
   const ens = evidence.ensInternal;
   if (ens.kind === 'absent') return NULL_NO_DATA;
   if (ens.kind !== 'ok') return NULL_NO_DATA;
   const last = ens.value.lastRecordUpdateBlock;
   if (last === null) return NULL_NO_DATA;
-  // Approximate "now" block via the registration date as a more
-  // reliable anchor when present; fall back to the unix epoch
-  // approximation otherwise.
   const registrationSec = ens.value.registrationDate;
   if (registrationSec === null || registrationSec <= 0) return NULL_NO_DATA;
-  // We can't derive the block of `nowSeconds` without an extra fetch.
-  // Approximate: months between registration block and last-update
-  // block, divided by mainnet-12s blocks-per-month. Use this as a
-  // proxy for "how stale the record is now".
-  // A subject with very recent registration AND recent record update
-  // → 1.0. A subject registered long ago whose records were last
-  // touched at registration → 0.0.
-  const blocksPerMonth = SECONDS_PER_MONTH / 12;
-  const blocksSinceRegistration =
-    Math.floor((nowSeconds - registrationSec) / 12);
-  if (blocksSinceRegistration <= 0) return { value: 1.0, status: 'computed' };
-  // The number of blocks since the most recent TextChanged event.
-  // Higher value = staler records.
-  // We approximate "now block" = registrationBlock + blocksSinceRegistration,
-  // and assume registrationBlock ≈ Number(last) - blocksSinceLastUpdate.
-  // Without an explicit registrationBlock, we use:
-  //   freshness = 1 - clamp01( (blocksSinceRegistration - lastBlockOffset) / blocksPer24Months )
-  // Given we don't know lastBlockOffset directly, we approximate with
-  // last block age relative to `nowBlock`:
-  const nowBlock = BigInt(Math.floor(nowSeconds / 12));
+
+  const nowBlock = resolveNowBlock(evidence);
+  if (nowBlock === null) {
+    // No mainnet on-chain entry → no real nowBlock anchor. Refuse to
+    // fabricate (the prior bug). Better to surface "no data" than
+    // mislead the score engine into capping recency at 0.
+    return NULL_NO_DATA;
+  }
   if (last >= nowBlock) return { value: 1.0, status: 'computed' };
+
+  const blocksPerMonth = SECONDS_PER_MONTH / 12;
   const ageBlocks = nowBlock - last;
   const ageMonths = Number(ageBlocks) / blocksPerMonth;
   const months = Math.min(ageMonths, 24);
@@ -265,7 +260,7 @@ export function ensRecency(
   return {
     value: clamp01(freshness),
     status: 'computed',
-    note: 'approx mainnet 12s block time',
+    note: 'mainnet 12s block time; nowBlock from onchain.latestBlock',
   };
 }
 
