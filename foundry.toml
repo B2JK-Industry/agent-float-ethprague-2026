@@ -11,6 +11,9 @@ optimizer_runs = 200
 remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
 ]
+fs_permissions = [
+    { access = "read-write", path = "./deployments" },
+]
 
 [fmt]
 line_length = 120
