@@ -111,7 +111,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-057 | Operator report-signing workflow UX for Siren Agent automation | C | P2 | M | open | US-015, US-056 |
 | US-058 | Umia-style due-diligence panel | C | P2 | M | open | US-029 |
 | US-067 | Brand visual identity assets and Tailwind preset integration | C | P0 | L | merged | US-037 |
-| US-068 | Live verdict pipeline integration in /r/[name] route (real ENS + chain + Sourcify fetch via @upgrade-siren/evidence; replace fixture reads) | C | P0 | L | open | US-017, US-022, US-024, US-025, US-028, US-029 |
+| US-068 | Live verdict pipeline integration in /r/[name] route (real ENS + chain + Sourcify fetch via @upgrade-siren/evidence; replace fixture reads) | C | P0 | L | merged | US-017, US-022, US-024, US-025, US-028, US-029 |
 | US-069 | Server-side report-hash + signature trust path runtime (fetch reportUri, verify bytes hash, recover EIP-712 signer, gate verdict) | B | P0 | M | merged | US-014, US-015, US-028, US-068 |
 | US-070 | Replace homepage scaffold copy with live product framing (lookup CTA wired to /r/[name], remove "ships later" wording) | C | P0 | S | merged | US-068 |
 | US-073 | Refresh README current-status section to reflect live-deployment state (this PR) | Orch | P1 | S | merged | none |
