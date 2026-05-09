@@ -31,8 +31,8 @@ const STATUS_SR_LABEL: Record<StepStatus, string> = {
 };
 
 const GLYPH_COLOR_VAR: Record<StepStatus, string> = {
-  pending: "var(--color-t2)",
-  running: "var(--color-t1)",
+  pending: "var(--color-t3)",
+  running: "var(--color-accent)",
   success: "var(--color-verdict-safe)",
   failure: "var(--color-verdict-siren)",
 };
@@ -44,19 +44,33 @@ export function LoadingChecklist({
     <ol
       role="list"
       aria-label="Loading evidence checklist"
-      className="flex flex-col gap-1"
+      className="m-0 list-none p-0"
+      style={{ borderTop: "1px dotted var(--color-border)" }}
     >
       {steps.map((step) => (
         <li
           key={step.key}
           data-key={step.key}
           data-status={step.status}
-          className="flex items-center gap-2 text-sm"
+          className="flex items-baseline gap-3"
+          style={{
+            padding: "10px 0",
+            fontFamily: "var(--font-mono)",
+            fontSize: "11px",
+            letterSpacing: "0.04em",
+            lineHeight: 1.5,
+            borderBottom: "1px dotted var(--color-border)",
+          }}
         >
           <span
             aria-hidden
-            className="font-mono"
-            style={{ color: GLYPH_COLOR_VAR[step.status] }}
+            style={{
+              color: GLYPH_COLOR_VAR[step.status],
+              fontSize: "13px",
+              fontWeight: 600,
+              minWidth: "16px",
+              textAlign: "center",
+            }}
           >
             {GLYPHS[step.status]}
           </span>
@@ -64,24 +78,38 @@ export function LoadingChecklist({
             {STATUS_SR_LABEL[step.status]}
             {": "}
           </span>
-          <span className="flex-1">{step.label}</span>
+          <span
+            className="flex-1 text-t1"
+            style={{
+              textTransform: "uppercase",
+              letterSpacing: "0.16em",
+              fontSize: "10px",
+            }}
+          >
+            {step.label}
+          </span>
           {step.status === "running" ? (
             <span
               aria-live="polite"
-              className="text-xs text-[color:var(--color-t2)]"
+              className="text-t3"
+              style={{ fontSize: "10px", letterSpacing: "0.18em", textTransform: "uppercase" }}
             >
-              loading…
+              loading
             </span>
           ) : null}
           {step.status === "success" && step.durationMs !== undefined ? (
-            <span className="font-mono text-xs text-[color:var(--color-t2)]">
-              {step.durationMs}ms
+            <span
+              className="text-t3"
+              style={{ fontVariantNumeric: "tabular-nums", fontSize: "10px" }}
+            >
+              {step.durationMs} ms
             </span>
           ) : null}
           {step.status === "failure" && step.error ? (
             <span
               role="alert"
-              className="text-xs text-[color:var(--color-verdict-siren)]"
+              className="text-verdict-siren"
+              style={{ fontSize: "10px", letterSpacing: "0.04em" }}
             >
               {step.error}
             </span>

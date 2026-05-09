@@ -3,11 +3,6 @@
 import { useState } from "react";
 import type { Address } from "@upgrade-siren/shared";
 
-/**
- * Previous implementation side. May be null when no upgrade has happened yet
- * (the manifest's `previousImpl` matches `currentImpl`) — matches the
- * `SirenReport.previousImplementation` shape (`Address | null`).
- */
 export type ImplementationPreviousSide = {
   readonly address: Address | null;
   readonly verified?: boolean | null;
@@ -16,14 +11,6 @@ export type ImplementationPreviousSide = {
   readonly changedAt?: string;
 };
 
-/**
- * Current implementation side. The address is required and the verification
- * status is required as a non-null boolean — matches the canonical
- * `SirenReport.currentImplementation: Address` and
- * `SirenReport.sourcify.currentVerified: boolean`. This makes invalid
- * `current={{ address: null }}` callers a compile error rather than a
- * silent rendering of `none`/`verification unknown`.
- */
 export type ImplementationCurrentSide = {
   readonly address: Address;
   readonly verified: boolean;
@@ -32,10 +19,6 @@ export type ImplementationCurrentSide = {
   readonly changedAt?: string;
 };
 
-/**
- * @deprecated Kept as an alias for callers that previously accepted either
- * side; new callers should pick the precise `Previous` / `Current` form.
- */
 export type ImplementationSide = ImplementationPreviousSide;
 
 export type ImplementationComparisonProps = {
@@ -45,12 +28,6 @@ export type ImplementationComparisonProps = {
 
 const SOURCIFY_LOOKUP_PREFIX = "https://sourcify.dev/#/lookup/";
 
-/**
- * Build a Sourcify lookup URL for a verified contract that did not ship a
- * pre-baked link. The Sourcify UI accepts the address directly, so we can
- * always derive a working link rather than rendering a non-clickable
- * `verified` label and silently dropping the GATE-9 evidence requirement.
- */
 function deriveSourcifyUrl(
   address: string,
   explicit: string | undefined,
@@ -85,7 +62,8 @@ function CopyButton({ value }: { value: string }): React.JSX.Element {
       type="button"
       onClick={onClick}
       aria-label={`Copy address ${value}`}
-      className="text-xs underline opacity-60 hover:opacity-100"
+      className="font-mono uppercase tracking-[0.16em] text-t3 hover:text-accent"
+      style={{ fontSize: "9px", letterSpacing: "0.18em" }}
     >
       {copied ? "copied" : "copy"}
     </button>
@@ -108,21 +86,42 @@ function VerificationLabel({
         target="_blank"
         rel="noopener noreferrer"
         data-verification="verified"
-        className="text-xs underline text-[color:var(--color-verdict-safe)]"
+        className="inline-flex items-baseline gap-1 font-mono text-verdict-safe hover:underline"
+        style={{
+          fontSize: "10px",
+          textTransform: "uppercase",
+          letterSpacing: "0.16em",
+        }}
       >
-        verified on Sourcify
+        <span aria-hidden>✓</span> verified on Sourcify
       </a>
     );
   }
   if (verified === false) {
     return (
-      <span data-verification="unverified" className="text-xs text-[color:var(--color-verdict-siren)]">
-        unverified
+      <span
+        data-verification="unverified"
+        className="inline-flex items-baseline gap-1 font-mono text-verdict-siren"
+        style={{
+          fontSize: "10px",
+          textTransform: "uppercase",
+          letterSpacing: "0.16em",
+        }}
+      >
+        <span aria-hidden>×</span> unverified
       </span>
     );
   }
   return (
-    <span data-verification="unknown" className="text-xs text-[color:var(--color-t2)]">
+    <span
+      data-verification="unknown"
+      className="font-mono text-t3"
+      style={{
+        fontSize: "10px",
+        textTransform: "uppercase",
+        letterSpacing: "0.16em",
+      }}
+    >
       verification unknown
     </span>
   );
@@ -141,10 +140,32 @@ function SideColumn({
     return (
       <article
         data-testid={testId}
-        className="flex flex-col gap-2 border border-[color:var(--color-border)] bg-[color:var(--color-raised)] p-3"
+        className="flex flex-col gap-3 border border-border bg-surface p-5"
       >
-        <h3 className="text-sm font-bold">{heading}</h3>
-        <p className="text-sm text-[color:var(--color-t2)]">none</p>
+        <h3
+          className="font-mono text-t3"
+          style={{
+            fontSize: "10px",
+            textTransform: "uppercase",
+            letterSpacing: "0.18em",
+          }}
+        >
+          {heading}
+        </h3>
+        <div
+          aria-hidden="true"
+          style={{ borderTop: "1px dotted var(--color-border)", height: 0 }}
+        />
+        <p
+          className="font-mono text-t3"
+          style={{
+            fontSize: "11px",
+            textTransform: "uppercase",
+            letterSpacing: "0.16em",
+          }}
+        >
+          none
+        </p>
       </article>
     );
   }
@@ -153,11 +174,29 @@ function SideColumn({
     <article
       data-testid={testId}
       data-address={side.address}
-      className="flex flex-col gap-2 border border-[color:var(--color-border)] bg-[color:var(--color-raised)] p-3"
+      className="flex flex-col gap-3 border border-border bg-surface p-5"
     >
-      <h3 className="text-sm font-bold">{heading}</h3>
-      <div className="flex items-center gap-2">
-        <code className="font-mono text-sm">{truncateAddress(side.address)}</code>
+      <h3
+        className="font-mono text-t3"
+        style={{
+          fontSize: "10px",
+          textTransform: "uppercase",
+          letterSpacing: "0.18em",
+        }}
+      >
+        {heading}
+      </h3>
+      <div
+        aria-hidden="true"
+        style={{ borderTop: "1px dotted var(--color-border)", height: 0 }}
+      />
+      <div className="flex items-center justify-between gap-3">
+        <code
+          className="font-mono text-t1"
+          style={{ fontSize: "13px", letterSpacing: "0.04em" }}
+        >
+          {truncateAddress(side.address)}
+        </code>
         <CopyButton value={side.address} />
       </div>
       <VerificationLabel
@@ -166,14 +205,18 @@ function SideColumn({
         sourcifyUrl={side.sourcifyUrl}
       />
       {side.deployedAtBlock !== undefined ? (
-        <p className="text-xs text-[color:var(--color-t2)]">
-          deployed at block {side.deployedAtBlock.toLocaleString()}
+        <p
+          className="font-mono text-t3"
+          style={{ fontSize: "10px", letterSpacing: "0.04em" }}
+        >
+          block <span className="text-t1">{side.deployedAtBlock.toLocaleString()}</span>
         </p>
       ) : null}
       {side.changedAt ? (
         <time
           dateTime={side.changedAt}
-          className="text-xs text-[color:var(--color-t2)]"
+          className="font-mono text-t3"
+          style={{ fontSize: "10px", letterSpacing: "0.04em" }}
         >
           changed {new Date(side.changedAt).toISOString().slice(0, 10)}
         </time>
@@ -189,10 +232,18 @@ export function ImplementationComparison({
   return (
     <section
       aria-label="Implementation comparison"
-      className="grid grid-cols-1 gap-3 md:grid-cols-2"
+      className="grid grid-cols-1 gap-4 md:grid-cols-2"
     >
-      <SideColumn heading="Previous implementation" side={previous} testId="impl-previous" />
-      <SideColumn heading="Current implementation" side={current} testId="impl-current" />
+      <SideColumn
+        heading="Previous implementation"
+        side={previous}
+        testId="impl-previous"
+      />
+      <SideColumn
+        heading="Current implementation"
+        side={current}
+        testId="impl-current"
+      />
     </section>
   );
 }
