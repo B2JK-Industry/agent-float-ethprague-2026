@@ -23,16 +23,18 @@ import { honestClaimsDisclaimer } from "../../lib/branding";
 export type ScoreBannerProps = {
   readonly score: ScoreResult;
   /**
-   * v1 P0 ceiling. Per Dev B's PR #120 honest accounting, the actual
-   * shipped ceiling without US-114b is 66; the EPIC §10.1 79 number is
-   * the post-US-114b theoretical max. Both are surfaced.
+   * v1 max-final-score ceiling — label-only, NEVER a divisor. US-114b
+   * merged 2026-05-09 18:12Z, raising the actual ceiling from the
+   * pre-114b P0 = 66 to the full v1 = 79. The P0/full split is
+   * historical; default is now a single 79. Prop allows override for
+   * historical PR rebuilds (e.g. score engine pinned to a pre-114b
+   * commit) and for the v2 cross-sign-verified path that lifts the
+   * ceiling to 100.
    */
-  readonly v1P0Max?: number;
-  readonly v1FullMax?: number;
+  readonly v1Max?: number;
 };
 
-const DEFAULT_V1_P0_MAX = 66;
-const DEFAULT_V1_FULL_MAX = 79;
+const DEFAULT_V1_MAX = 79;
 
 // Tier → CSS variable mapping. v1 currently can never reach S (capped by
 // 0.6 GitHub trust factor); the S row in the ladder uses tier-a as the
@@ -102,8 +104,7 @@ function axis100(value: number): number {
 
 export function ScoreBanner({
   score,
-  v1P0Max = DEFAULT_V1_P0_MAX,
-  v1FullMax = DEFAULT_V1_FULL_MAX,
+  v1Max = DEFAULT_V1_MAX,
 }: ScoreBannerProps): React.JSX.Element {
   const tier = score.tier;
   const tierColor = TIER_COLOR_VAR[tier];
@@ -192,9 +193,7 @@ export function ScoreBanner({
                 Tier <b className="font-medium text-t1">{tier}</b>
               </span>
               <span>
-                v1 P0 max <b className="font-medium text-t1">{v1P0Max}</b>
-                {" · full max "}
-                <b className="font-medium text-t1">{v1FullMax}</b>
+                v1 max <b className="font-medium text-t1">{v1Max}</b>
               </span>
             </div>
           </div>
@@ -272,15 +271,22 @@ export function ScoreBanner({
         </div>
       </div>
 
-      {/* Honest-claims disclaimer — in-band per GATE-14 + EPIC §10.5.
-          US-139 will tighten copy / styling; this placeholder satisfies
-          GATE-14 carry-forward in the foundation. */}
+      {/* US-139 — Honest-claims disclaimer rendered in-band on the
+          score banner. Per EPIC §10.5 + GATE-14: never tooltip, never
+          footnote. Copy is locked verbatim in lib/branding.ts via
+          `honestClaimsDisclaimer` so a Daniel/Orch copy edit is one
+          line. Serif italic styling reads as the "human voice" row
+          per Bench v2 §3 type system (claims + asides → Source Serif). */}
       <p
         data-field="disclaimer"
-        className="mt-5 max-w-3xl text-sm text-t2"
+        data-section="honest-claims"
+        className="mt-5 max-w-3xl"
         style={{
-          fontFamily: "var(--font-body)",
+          fontFamily: "var(--font-serif)",
+          fontStyle: "italic",
+          fontSize: "13px",
           lineHeight: 1.5,
+          color: "var(--color-t2)",
         }}
       >
         {honestClaimsDisclaimer}

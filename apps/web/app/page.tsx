@@ -29,7 +29,8 @@ export default function HomePage(): React.JSX.Element {
         <p className="max-w-2xl text-lg text-t2">
           Enter the ENS name of any Ethereum protocol. Upgrade Siren resolves
           the proxy, fetches Sourcify evidence, verifies the operator
-          signature, and renders a single SAFE / REVIEW / SIREN verdict.
+          signature, and renders a single SAFE / REVIEW / SIREN verdict —
+          or any ENS name (agent, project, team) for a 0–100 benchmark.
           <span className="block pt-2 font-mono text-xs uppercase tracking-[0.18em] text-verdict-siren">
             No source, no upgrade.
           </span>
