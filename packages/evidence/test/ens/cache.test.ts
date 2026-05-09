@@ -51,8 +51,14 @@ describe('EnsResolutionCache', () => {
         ownerPresent: false,
         schemaPresent: false,
         upgradeManifestPresent: false,
+        agentContextPresent: false,
+        agentEndpointWebPresent: false,
+        agentEndpointMcpPresent: false,
       },
       anyUpgradeSirenRecordPresent: true,
+      agentContext: null,
+      agentEndpointWeb: null,
+      agentEndpointMcp: null,
     };
     cache.set('vault.eth', sepolia.id, value);
     now = 500;
@@ -73,8 +79,14 @@ describe('EnsResolutionCache', () => {
         ownerPresent: false,
         schemaPresent: false,
         upgradeManifestPresent: false,
+        agentContextPresent: false,
+        agentEndpointWebPresent: false,
+        agentEndpointMcpPresent: false,
       },
       anyUpgradeSirenRecordPresent: false,
+      agentContext: null,
+      agentEndpointWeb: null,
+      agentEndpointMcp: null,
     };
     cache.set('vault.eth', sepolia.id, value);
     now = 1000; // exactly at expiry
@@ -138,7 +150,7 @@ describe('resolveEnsRecordsCached', () => {
     });
     expect(a.kind).toBe('ok');
     expect(b).toBe(a); // same reference returned from cache
-    expect(calls).toBe(5); // first call read 5 records; second call short-circuited
+    expect(calls).toBe(8); // first call read 8 records (5 upgrade-siren + 3 ENSIP-26 from US-031); second call short-circuited
   });
 
   it('does not cache error results', async () => {
@@ -172,6 +184,6 @@ describe('resolveEnsRecordsCached', () => {
     const cache = new EnsResolutionCache();
     await resolveEnsRecordsCached('vault.eth', { chainId: sepolia.id, client, cache });
     await resolveEnsRecordsCached('vault.eth', { chainId: mainnet.id, client, cache });
-    expect(calls).toBe(10); // two cold lookups, no cache hit between chains
+    expect(calls).toBe(16); // two cold lookups × 8 records (5 upgrade-siren + 3 ENSIP-26 from US-031), no cache hit between chains
   });
 });
