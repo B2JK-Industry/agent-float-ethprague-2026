@@ -140,7 +140,14 @@ ETHPrague2026/
 
 ## Current Status
 
-Documentation pivot is merged on `main`. Code remains blocked until Daniel confirms Upgrade Siren as the locked build scope and `docs/13-backlog.md` is generated.
+**Live demo:** https://upgrade-siren.vercel.app
+
+Scope locked 2026-05-09. Backlog `docs/13-backlog.md` generated, dev pipeline executed across three streams plus a Release Manager. As of this commit:
+
+- **Stream A (Contract Fixtures):** 13/13 merged. Fixtures deployed and Sourcify-verified on Sepolia (chain 11155111). ENS parent `upgrade-siren-demo.eth` registered, four demo subnames provisioned (`vault` / `safe` / `dangerous` / `unverified`), three signed Siren Reports hosted with EIP-712 signatures recovering to `upgrade-siren:owner`.
+- **Stream B (Evidence Engine):** 23/23 merged. Verdict engine (SAFE / REVIEW / SIREN) with deterministic findings, ENS resolver, EIP-1967 slot reader, Sourcify v2 fetch, ABI / storage diff, manifest parser with hash-chain validation, EIP-712 verification.
+- **Stream C (Web UX):** scaffold + verdict card + evidence drawer + ABI/storage diff renderers + governance comment generator + demo runner all merged. Live `/r/[name]` orchestration page is the next P0 (US-068) — current implementation reads fixture data; full live data pipeline is in progress.
+- **Tracker:** US-060 custody decision merged. US-061 mainnet ENS parent descoped to P1 / post-hack (Sepolia parent suffices for demo).
 
 Read order:
 
