@@ -481,3 +481,6 @@ export type {
   SourcePatternMatch,
   SourcifySourceFileLike,
 } from './sourcify/patterns.js';
+
+export { runBench } from './eval/runner.js';
+export { register } from './eval/registry.js';
