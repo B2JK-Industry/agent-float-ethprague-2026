@@ -113,7 +113,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-067 | Brand visual identity assets and Tailwind preset integration | C | P0 | L | merged | US-037 |
 | US-068 | Live verdict pipeline integration in /r/[name] route (real ENS + chain + Sourcify fetch via @upgrade-siren/evidence; replace fixture reads) | C | P0 | L | open | US-017, US-022, US-024, US-025, US-028, US-029 |
 | US-069 | Server-side report-hash + signature trust path runtime (fetch reportUri, verify bytes hash, recover EIP-712 signer, gate verdict) | B | P0 | M | merged | US-014, US-015, US-028, US-068 |
-| US-070 | Replace homepage scaffold copy with live product framing (lookup CTA wired to /r/[name], remove "ships later" wording) | C | P0 | S | open | US-068 |
+| US-070 | Replace homepage scaffold copy with live product framing (lookup CTA wired to /r/[name], remove "ships later" wording) | C | P0 | S | merged | US-068 |
 | US-073 | Refresh README current-status section to reflect live-deployment state (this PR) | Orch | P1 | S | merged | none |
 | US-074 | Extend EIP-712 typed-data domain to sign full report payload (findings + sourcify links + recommendedAction + auth.signedAt) | B | P1 | M | open | US-014, US-015, US-068 |
 | US-075 | Source-file diff primitive in packages/evidence (compute unified diff between previous and current implementation source files from Sourcify metadata) | B | P1 | M | open | US-025 |
