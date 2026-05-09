@@ -189,7 +189,7 @@ Tracker-only owners (not picked up by dev agents):
 
 | ID | Title | Owner | Priority | Effort | Status | Depends on |
 |---|---|---|---|---|---|---|
-| US-131 | `/b/[name]` route + landing mode-detection (route to `/r/[name]` if `upgrade-siren:proxy` present, else `/b/[name]`; public-read inferred when no `agent-bench:bench_manifest`) | C | P0 | M | open | US-117 |
+| US-131 | `/b/[name]` route + landing mode-detection (route to `/r/[name]` if `upgrade-siren:proxy` present, else `/b/[name]`; public-read inferred when no `agent-bench:bench_manifest`) | C | P0 | M | merged | US-117 |
 | US-132 | Score banner component: 0–100, both axis values, tier badge (S/A/B/C/D/U), honest-claims disclaimer copy | C | P0 | M | open | US-118 |
 | US-133 | Source grid component: 4 tiles (Sourcify / GitHub / On-chain / ENS) with verified/unverified badges and contribution numbers | C | P0 | M | open | US-117, US-118 |
 | US-134 | Score breakdown panel: full component-by-component table with `weight × value × trust` math visible per component | C | P0 | M | open | US-118 |
@@ -3986,7 +3986,7 @@ EPIC reference: US-095. Renumbered to US-130.
 | Sponsor | - |
 | Dependencies | US-117 |
 | Acceptance gates | GATE-1, GATE-27 |
-| Status | open (Epic 2) |
+| Status | merged |
 
 #### Scope
 
