@@ -3024,3 +3024,123 @@ Single-PR delivery covering brand seed + Tailwind integration + token swap in th
 After merge, all open Stream C component PRs that consumed the placeholder color tokens must rebase per Hard Rule 14 and swap utility classes. Specifically: US-038, US-039, US-040, US-041 if still open at merge time.
 
 `prompts/design-brief.md` describes this brand identity from the design side. The brand manual realizes it. After this US-067 merges, `prompts/design-brief.md` may be marked as fulfilled by Orch.
+
+### US-075 - Source-file diff primitive in packages/evidence
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | B |
+| Effort | M |
+| Sponsor | Sourcify |
+| Dependencies | US-025 |
+| Acceptance gates | GATE-9, GATE-16 |
+| Status | merged |
+
+#### Scope
+
+Compute a unified diff between previous and current implementation source files using the source bodies returned by Sourcify metadata (US-025). Engine consumer for the verdict renderer (US-076) and the source-diff CLI tooling.
+
+#### Acceptance Criteria
+
+- [ ] `packages/evidence/src/diff/source.ts` exports a function returning a per-file unified-diff payload
+- [ ] Handles missing-side gracefully: when previous is unverified or its metadata is absent, returns a `null` previous side rather than throwing
+- [ ] Test coverage for: unchanged file (empty diff), edited file (line-level diff hunks), added file, removed file
+- [ ] PR body references US-075
+
+#### Files
+
+- `packages/evidence/src/diff/source.ts`
+- `packages/evidence/test/diff/source.test.ts`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/evidence test test/diff/source.test.ts
+pnpm --filter @upgrade-siren/evidence typecheck
+```
+
+#### Notes
+
+Detail block added retroactively (US-075 was merged via PR before the detail-block convention was applied at full table coverage). The Codex review of PR #85 flagged the missing detail block as breaking the documented release-manager status-flip workflow (`prompts/launch/release-manager.md:119-123`). This block restores the workflow's anchor.
+
+### US-076 - Source diff renderer component with Solidity syntax highlight + EvidenceDrawer integration
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P1 |
+| Owner | C |
+| Effort | M |
+| Sponsor | Sourcify |
+| Dependencies | US-045, US-067, US-075 |
+| Acceptance gates | GATE-9, GATE-21 |
+| Status | merged |
+
+#### Scope
+
+UI component rendering the per-file unified diff produced by US-075. Per-file rows are collapsible (closed by default to keep the drawer scannable), each row shows added/removed line counts, expanding reveals the diff hunks with Solidity syntax highlighting. Integrates into the existing Evidence Drawer (US-045).
+
+#### Acceptance Criteria
+
+- [ ] `apps/web/components/SourceDiffRenderer.tsx` consumes the US-075 payload and renders collapsible rows
+- [ ] Solidity highlighting via `prism-react-renderer` or equivalent
+- [ ] Empty state when both sides are absent or identical
+- [ ] Visible in `EvidenceDrawer` between the storage diff and the ENS records panel
+- [ ] PR body references US-076
+
+#### Files
+
+- `apps/web/components/SourceDiffRenderer.tsx`
+- `apps/web/components/EvidenceDrawer.tsx` (extension)
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web test SourceDiffRenderer
+pnpm --filter @upgrade-siren/web build
+```
+
+#### Notes
+
+Detail block added retroactively per the Codex review of PR #85 flagging missing anchors for the release-manager workflow.
+
+### US-077 - Five-second moment overlay: animate the most-dangerous diff line as floating overlay during SAFE→SIREN flip (booth polish)
+
+| Field | Value |
+|---|---|
+| Type | task |
+| Priority | P2 |
+| Owner | C |
+| Effort | S |
+| Sponsor | - |
+| Dependencies | US-076 |
+| Acceptance gates | GATE-20 |
+| Status | open |
+
+#### Scope
+
+When the demo flips from the SAFE scenario to the SIREN scenario, briefly animate the single most-dangerous diff line (e.g. the `sweep(address,address)` introduction in V2Dangerous) as a floating overlay above the verdict card. Booth polish — emphasises the 5-second-moment by visually anchoring the evidence to the verdict change.
+
+#### Acceptance Criteria
+
+- [ ] Overlay component renders the highest-severity finding's source line as floating annotation
+- [ ] Animation plays on verdict transition only (SAFE → SIREN); does not replay on idle
+- [ ] Reduced-motion media query disables the animation per a11y
+- [ ] PR body references US-077
+
+#### Files
+
+- `apps/web/components/FiveSecondMomentOverlay.tsx`
+
+#### Verification commands
+
+```bash
+pnpm --filter @upgrade-siren/web e2e demo-mode
+# manual: trigger demo runner SAFE → SIREN flip, observe overlay
+```
+
+#### Notes
+
+P2 stretch. The 5-second-rule itself (US-052) is the gating perf metric; this is purely visual emphasis on top.

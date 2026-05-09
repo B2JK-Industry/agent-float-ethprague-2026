@@ -124,7 +124,27 @@ export async function verifyReportFromManifest(
   // Step 3: authority. EIP-712 signature recovery against the
   // upgrade-siren:owner address. Per docs/04, anything other than a clean
   // valid recovery is grounds to refuse to trust the report.
-  const sig = await verifyReportSignature(report, owner);
+  //
+  // verifyReportSignature internally calls buildSirenReportTypedData(report),
+  // which throws on shape problems beyond the auth-presence check we did
+  // above (e.g. non-numeric chainId, missing proxy, malformed addresses).
+  // Catch those here so the typed failure path stays the contract — without
+  // this, a hash-matching report with a malformed body surfaces as a 500 in
+  // the /r/[name] server route instead of a clean malformed_report_shape.
+  let sig: Awaited<ReturnType<typeof verifyReportSignature>>;
+  try {
+    sig = await verifyReportSignature(report, owner);
+  } catch (err) {
+    return {
+      kind: 'error',
+      reason: 'malformed_report_shape',
+      message: `report could not be hashed as EIP-712 typed data: ${
+        err instanceof Error ? err.message : String(err)
+      }`,
+      expectedReportHash: manifest.reportHash,
+      computedReportHash: computedHash,
+    };
+  }
   if (sig.valid) {
     return {
       kind: 'ok',
