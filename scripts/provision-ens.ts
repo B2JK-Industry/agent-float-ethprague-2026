@@ -126,28 +126,40 @@ function isPlaceholder(d: Deployments): boolean {
 
 /**
  * keccak256 of the bytes of `reports/<scenario>.json`, BUT only if the report's
- * internal proxy/previousImplementation/currentImplementation fields match the
- * deployment we are about to provision.
+ * full identity matches the manifest record we are about to write.
  *
  * Returns ZERO_HASH when:
  *   - scenario is null (vault baseline; no scenario report)
  *   - the report file is absent
  *   - the report file is malformed JSON
  *   - the report's internal addresses do not match the deployment
+ *   - the report's `name` does not match the subname being provisioned
+ *   - the report's `chainId` does not match the deployment chainId
  *
- * The mismatch case is the load-bearing one. Without this check, `provision-ens`
+ * The mismatch cases are load-bearing. Without this check, `provision-ens`
  * would happily publish a non-zero `reportHash` for a stale `reports/*.json`
- * left over from a previous deployment — the on-chain manifest would point at a
- * `reportUri` whose payload addresses do not match the live `proxy`/`v1`/etc.,
- * silently breaking the §4.3 verifier even though every individual record looks
- * well-formed. Returning ZERO_HASH here keeps the manifest honest about
- * "no report for this deployment yet" until `scripts/sign-reports.ts` is rerun.
+ * left over from a previous deployment OR signed for a different `ENS_PARENT`.
+ * Either way the on-chain manifest would point at a `reportUri` whose payload
+ * does not match the manifest `proxy`/subname being written, silently breaking
+ * the §4.3 verifier even though every individual record looks well-formed.
+ *
+ * Why `name` is included: `scripts/sign-reports.ts` writes `report.name =
+ * "${scenario}.${ENS_PARENT}"` and signs that EIP-712 typed-data. If
+ * `ENS_PARENT` later changes, the same proxy/v1/v2safe addresses produce a
+ * report whose signed identity belongs to the previous parent. Validating
+ * `name` here prevents publishing that report's bytes under a manifest for
+ * the new parent.
+ *
+ * Returning ZERO_HASH keeps the manifest honest about "no report for this
+ * deployment+parent yet" until `scripts/sign-reports.ts` is rerun.
  */
 function readReportHash(
     scenario: ReportScenario | null,
     expectedProxy: Address,
     expectedPreviousImpl: Address,
     expectedCurrentImpl: Address,
+    expectedName: string,
+    expectedChainId: number,
 ): Hex {
     if (!scenario) return ZERO_HASH;
     let bytes: string;
@@ -158,6 +170,8 @@ function readReportHash(
     }
 
     let parsed: {
+        name?: string;
+        chainId?: number;
         proxy?: string;
         previousImplementation?: string;
         currentImplementation?: string;
@@ -168,12 +182,14 @@ function readReportHash(
         return ZERO_HASH;
     }
 
-    const eq = (a: string | undefined, b: string): boolean =>
+    const eqAddr = (a: string | undefined, b: string): boolean =>
         typeof a === "string" && a.toLowerCase() === b.toLowerCase();
     if (
-        !eq(parsed.proxy, expectedProxy)
-        || !eq(parsed.previousImplementation, expectedPreviousImpl)
-        || !eq(parsed.currentImplementation, expectedCurrentImpl)
+        !eqAddr(parsed.proxy, expectedProxy)
+        || !eqAddr(parsed.previousImplementation, expectedPreviousImpl)
+        || !eqAddr(parsed.currentImplementation, expectedCurrentImpl)
+        || parsed.name !== expectedName
+        || parsed.chainId !== expectedChainId
     ) {
         return ZERO_HASH;
     }
@@ -391,6 +407,8 @@ async function main(): Promise<void> {
             d.proxy,
             d.v1,
             d[sub.currentImplKey],
+            sub.name,
+            d.chainId,
         );
         const existing = await readExistingManifest(publicClient, node);
         const manifest = buildManifest(sub, d, reportHash, existing, nowIso);
