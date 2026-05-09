@@ -24,6 +24,8 @@
 // --font-serif (italic ceiling labels).
 
 import type {
+  EvalBonus,
+  EvaluatorResult,
   ScoreAxisBreakdown,
   ScoreComponentBreakdown,
   ScoreResult,
@@ -42,6 +44,18 @@ export type ScoreBreakdownPanelProps = {
   /** Per-axis full-v1 ceilings (label-only). EPIC §10.1 reachable-ceilings. */
   readonly v1FullSeniorityMax?: number;
   readonly v1FullRelevanceMax?: number;
+  /**
+   * Per-record evaluator engine results from `runEvaluatorBridge`.
+   * Empty array (or omitted) hides the evaluator overlay section so the
+   * panel stays backward compatible with single-source-only callers.
+   */
+  readonly evalEngines?: ReadonlyArray<EvaluatorResult>;
+  /**
+   * Capped overlay bonus from the evaluator bridge. When
+   * `appliedToScore100 > 0`, the section renders with the bonus plus
+   * a stacked-on "with overlay" final number alongside the pure score.
+   */
+  readonly evalBonus?: EvalBonus;
 };
 
 const DEFAULT_V1_MAX = 79;
@@ -304,11 +318,180 @@ function AxisBar({
   );
 }
 
+function EvalEnginesSection({
+  engines,
+  bonus,
+}: {
+  readonly engines: ReadonlyArray<EvaluatorResult>;
+  readonly bonus: EvalBonus;
+}): React.JSX.Element | null {
+  const live = engines.filter((e) => e.exists);
+  if (live.length === 0 && bonus.appliedToScore100 === 0) return null;
+
+  return (
+    <section
+      data-section="eval-engines"
+      data-bonus-applied={bonus.appliedToScore100}
+      aria-label="Evaluator engines overlay"
+      style={{
+        padding: "16px 20px",
+        borderTop: "1px solid var(--color-border)",
+        background: "var(--color-surface)",
+      }}
+    >
+      <header
+        className="font-mono uppercase text-t3"
+        style={{
+          fontSize: "10px",
+          letterSpacing: "0.18em",
+          marginBottom: "10px",
+        }}
+      >
+        Evaluator engines · per-record overlay (capped +20 score points)
+      </header>
+
+      <ul
+        className="m-0 list-none p-0"
+        style={{ borderTop: "1px dotted var(--color-border)" }}
+      >
+        {live.map((eng) => {
+          const trustColor =
+            eng.trust >= 0.99
+              ? "var(--color-src-verified)"
+              : eng.trust >= 0.7
+                ? "var(--color-src-partial)"
+                : "var(--color-src-discounted)";
+          return (
+            <li
+              key={eng.recordKey}
+              data-engine={eng.recordKey}
+              data-confidence={eng.confidence}
+              className="grid items-center gap-x-4 gap-y-1"
+              style={{
+                gridTemplateColumns:
+                  "minmax(170px, 1.6fr) 60px 60px 60px 64px 80px",
+                padding: "6px 0",
+                fontFamily: "var(--font-mono)",
+                fontSize: "10px",
+                letterSpacing: "0.04em",
+                lineHeight: 1.4,
+                borderBottom: "1px dotted var(--color-border)",
+              }}
+            >
+              <span data-field="record-key" className="text-t1">
+                {eng.recordKey}
+                {eng.confidence !== "complete" ? (
+                  <span
+                    className="ml-2 text-t3"
+                    style={{
+                      fontFamily: "var(--font-serif)",
+                      fontStyle: "italic",
+                      fontSize: "10px",
+                    }}
+                  >
+                    ({eng.confidence})
+                  </span>
+                ) : null}
+              </span>
+              <span
+                data-field="seniority"
+                className="text-right text-t1"
+                style={{ fontVariantNumeric: "tabular-nums" }}
+                title="Engine seniority"
+              >
+                {fmt(eng.seniority, 2)}
+              </span>
+              <span
+                data-field="relevance"
+                className="text-right text-t1"
+                style={{ fontVariantNumeric: "tabular-nums" }}
+                title="Engine relevance"
+              >
+                {fmt(eng.relevance, 2)}
+              </span>
+              <span
+                data-field="trust"
+                className="text-right"
+                style={{
+                  color: trustColor,
+                  fontVariantNumeric: "tabular-nums",
+                }}
+                title="Engine trust factor"
+              >
+                × {fmt(eng.trust, 2)}
+              </span>
+              <span
+                data-field="weight"
+                className="text-right text-t3"
+                style={{ fontVariantNumeric: "tabular-nums" }}
+                title="Engine weight"
+              >
+                w {fmt(eng.weight, 2)}
+              </span>
+              <span
+                data-field="anti-signals"
+                className="text-right text-t3"
+                style={{ fontVariantNumeric: "tabular-nums" }}
+                title="Anti-signal penalties applied"
+              >
+                {eng.signals.antiSignals.length > 0
+                  ? `−${fmt(
+                      eng.signals.antiSignals.reduce((s, a) => s + a.penalty, 0),
+                      2,
+                    )}`
+                  : "—"}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+
+      <p
+        data-field="eval-bonus-line"
+        className="mt-3 font-mono text-t1"
+        style={{
+          fontSize: "12px",
+          letterSpacing: "0.04em",
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        Overlay bonus ={" "}
+        <b data-field="bonus-seniority" className="font-medium">
+          +{fmt(bonus.seniority, 3)}
+        </b>{" "}
+        seniority,{" "}
+        <b data-field="bonus-relevance" className="font-medium">
+          +{fmt(bonus.relevance, 3)}
+        </b>{" "}
+        relevance →{" "}
+        <b data-field="bonus-applied" className="font-medium">
+          +{bonus.appliedToScore100}
+        </b>{" "}
+        score points
+      </p>
+      <p
+        className="mt-1 text-t3"
+        style={{
+          fontSize: "10px",
+          letterSpacing: "0.04em",
+          fontStyle: "italic",
+          fontFamily: "var(--font-serif)",
+        }}
+      >
+        Per-record engines run in parallel with the 4-source pipeline.
+        Bonus is layered on top — never replaces orchestrator math.
+      </p>
+    </section>
+  );
+}
+
 export function ScoreBreakdownPanel({
   score,
   v1Max = DEFAULT_V1_MAX,
   v1FullSeniorityMax = DEFAULT_V1_FULL_SENIORITY_MAX,
   v1FullRelevanceMax = DEFAULT_V1_FULL_RELEVANCE_MAX,
+  evalEngines = [],
+  evalBonus,
 }: ScoreBreakdownPanelProps): React.JSX.Element {
   const tierColor = TIER_COLOR_VAR[score.tier];
   const seniority100 = axis100(score.seniority);
@@ -464,6 +647,10 @@ export function ScoreBreakdownPanel({
       >
         (max reachable v1 = {v1Max} → A; S reserved for verified-GitHub v2)
       </p>
+
+      {evalBonus !== undefined && (evalEngines.length > 0 || evalBonus.appliedToScore100 > 0) ? (
+        <EvalEnginesSection engines={evalEngines} bonus={evalBonus} />
+      ) : null}
     </section>
   );
 }

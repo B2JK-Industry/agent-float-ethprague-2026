@@ -1,1 +1,35 @@
-{"record":{"key":"addr.eth","ensName":"agent-kikiriki.eth","raw":"0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F","resolvedAtBlock":10822565,"resolvedAtMs":1778356762263},"rpc":{"nonce":7,"balanceWei":"308873655707142005"},"etherscan":{"status":200,"body":{"status":"0","message":"NOTOK","result":"Missing/Invalid API Key"}},"capturedResult":{"seniority":0.13228756555322954,"relevance":0.21875,"trust":0.7,"confidence":"partial","errors":["etherscan: Missing/Invalid API Key"]},"expected":{"seniority":[0.05,0.2],"relevance":[0.1,0.3],"trust":0.7}}
+{
+  "record": {
+    "key": "addr.eth",
+    "ensName": "agent-kikiriki.eth",
+    "raw": "0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F",
+    "resolvedAtBlock": 10822565,
+    "resolvedAtMs": 1778356762000
+  },
+  "rpc": {
+    "nonce": 7,
+    "balanceWei": "308873655707142005",
+    "reverseEnsName": null
+  },
+  "etherscan": {
+    "status": 200,
+    "body": {
+      "status": "1",
+      "message": "OK",
+      "result": [
+        { "blockNumber": "5500000", "timeStamp": "1776196762", "to": "0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB", "from": "0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F", "value": "1000000000000000", "isError": "0" },
+        { "blockNumber": "5500200", "timeStamp": "1776456362", "to": "0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB", "from": "0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F", "value": "1000000000000000", "isError": "0" },
+        { "blockNumber": "5500500", "timeStamp": "1776796762", "to": "0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB", "from": "0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F", "value": "1000000000000000", "isError": "0" },
+        { "blockNumber": "5501000", "timeStamp": "1777315962", "to": "0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB", "from": "0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F", "value": "1000000000000000", "isError": "0" },
+        { "blockNumber": "5501500", "timeStamp": "1777748762", "to": "0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB", "from": "0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F", "value": "1000000000000000", "isError": "0" },
+        { "blockNumber": "5502000", "timeStamp": "1778097562", "to": "0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB", "from": "0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F", "value": "1000000000000000", "isError": "0" },
+        { "blockNumber": "5502300", "timeStamp": "1778270362", "to": "0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB", "from": "0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F", "value": "1000000000000000", "isError": "0" }
+      ]
+    }
+  },
+  "expected": {
+    "seniority": [0.05, 0.18],
+    "relevance": [0.50, 0.85],
+    "trust": 0.7
+  }
+}

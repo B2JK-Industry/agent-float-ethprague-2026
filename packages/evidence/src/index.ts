@@ -484,3 +484,29 @@ export type {
 
 export { runBench } from './eval/runner.js';
 export { register } from './eval/registry.js';
+export {
+  BRIDGE_AXIS_BONUS_CAP,
+  BRIDGE_HARD_DEADLINE_MS,
+  computeEvalBonus,
+  resolvedRecordsFromEvidence,
+  runEvaluatorBridge,
+} from './eval/bridge.js';
+
+export type {
+  BridgeRunOptions,
+  BridgeRunResultPayload,
+  EvalBonus,
+} from './eval/bridge.js';
+
+export type {
+  EvaluatorResult,
+  RecordEngine,
+  RecordKey,
+  ResolvedRecord,
+  EngineParams,
+  EngineContext,
+  Evidence as EvalEvidence,
+  SignalEntry,
+  AntiSignalEntry,
+  EvaluatorConfidence,
+} from './eval/types.js';

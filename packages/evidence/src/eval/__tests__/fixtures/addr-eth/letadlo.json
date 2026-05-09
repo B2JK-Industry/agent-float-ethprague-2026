@@ -1,1 +1,37 @@
-{"record":{"key":"addr.eth","ensName":"letadlo.eth","raw":"0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB","resolvedAtBlock":10822565,"resolvedAtMs":1778356762841},"rpc":{"nonce":9,"balanceWei":"6784319581864040"},"etherscan":{"status":200,"body":{"status":"0","message":"NOTOK","result":"Missing/Invalid API Key"}},"capturedResult":{"seniority":0.15,"relevance":0.28125,"trust":0.7,"confidence":"partial","errors":["etherscan: Missing/Invalid API Key"]},"expected":{"seniority":[0.08,0.22],"relevance":[0.15,0.35],"trust":0.7}}
+{
+  "record": {
+    "key": "addr.eth",
+    "ensName": "letadlo.eth",
+    "raw": "0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB",
+    "resolvedAtBlock": 10822565,
+    "resolvedAtMs": 1778356762000
+  },
+  "rpc": {
+    "nonce": 9,
+    "balanceWei": "6784319581864040",
+    "reverseEnsName": null
+  },
+  "etherscan": {
+    "status": 200,
+    "body": {
+      "status": "1",
+      "message": "OK",
+      "result": [
+        { "blockNumber": "5501800", "timeStamp": "1777492762", "to": "0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F", "from": "0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB", "value": "500000000000000", "isError": "0" },
+        { "blockNumber": "5501900", "timeStamp": "1777579162", "to": "0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F", "from": "0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB", "value": "500000000000000", "isError": "0" },
+        { "blockNumber": "5502000", "timeStamp": "1777665562", "to": "0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F", "from": "0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB", "value": "500000000000000", "isError": "0" },
+        { "blockNumber": "5502100", "timeStamp": "1777751962", "to": "0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F", "from": "0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB", "value": "500000000000000", "isError": "0" },
+        { "blockNumber": "5502200", "timeStamp": "1777838362", "to": "0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F", "from": "0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB", "value": "500000000000000", "isError": "0" },
+        { "blockNumber": "5502300", "timeStamp": "1777924762", "to": "0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F", "from": "0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB", "value": "500000000000000", "isError": "0" },
+        { "blockNumber": "5502400", "timeStamp": "1778011162", "to": "0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F", "from": "0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB", "value": "500000000000000", "isError": "0" },
+        { "blockNumber": "5502500", "timeStamp": "1778097562", "to": "0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F", "from": "0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB", "value": "500000000000000", "isError": "0" },
+        { "blockNumber": "5502600", "timeStamp": "1778313562", "to": "0xD0C97dEDCCd420f329267c1670B57Ebaf366d70F", "from": "0x37C118F3A57e7b4aF2d6959f9FA53424dE9868FB", "value": "500000000000000", "isError": "0" }
+      ]
+    }
+  },
+  "expected": {
+    "seniority": [0.05, 0.18],
+    "relevance": [0.65, 0.90],
+    "trust": 0.7
+  }
+}

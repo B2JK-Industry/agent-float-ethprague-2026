@@ -116,9 +116,11 @@ function BenchFoundation({
   result: { kind: "loaded" } & {
     evidence: import("@upgrade-siren/evidence").MultiSourceEvidence;
     score: import("@upgrade-siren/evidence").ScoreResult;
+    evalEngines: ReadonlyArray<import("@upgrade-siren/evidence").EvaluatorResult>;
+    evalBonus: import("@upgrade-siren/evidence").EvalBonus;
   };
 }): React.JSX.Element {
-  const { evidence, score } = result;
+  const { evidence, score, evalEngines, evalBonus } = result;
   const subject = evidence.subject;
 
   return (
@@ -146,7 +148,11 @@ function BenchFoundation({
 
       <SourceGrid evidence={evidence} />
 
-      <ScoreBreakdownPanel score={score} />
+      <ScoreBreakdownPanel
+        score={score}
+        evalEngines={evalEngines}
+        evalBonus={evalBonus}
+      />
 
       {evidence.failures.length > 0 ? (
         <p

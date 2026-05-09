@@ -9,10 +9,20 @@ import type {
 
 const orchestrateMock = vi.fn();
 const computeScoreMock = vi.fn();
+const runEvaluatorBridgeMock = vi.fn();
+
+const EMPTY_BRIDGE_RESULT = {
+  engines: [],
+  bonus: { seniority: 0, relevance: 0, appliedToScore100: 0 },
+  status: "complete" as const,
+  startedAtMs: 0,
+  finishedAtMs: 0,
+};
 
 vi.mock("@upgrade-siren/evidence", () => ({
   orchestrateSubject: (...args: unknown[]) => orchestrateMock(...args),
   computeScore: (...args: unknown[]) => computeScoreMock(...args),
+  runEvaluatorBridge: (...args: unknown[]) => runEvaluatorBridgeMock(...args),
 }));
 
 const SAMPLE_EVIDENCE = {
@@ -56,6 +66,8 @@ describe("loadBench", () => {
   beforeEach(() => {
     orchestrateMock.mockReset();
     computeScoreMock.mockReset();
+    runEvaluatorBridgeMock.mockReset();
+    runEvaluatorBridgeMock.mockResolvedValue(EMPTY_BRIDGE_RESULT);
   });
 
   it("calls orchestrateSubject then computeScore and returns the typed shape", async () => {
@@ -80,6 +92,67 @@ describe("loadBench", () => {
     if (result.kind !== "loaded") throw new Error("unreachable");
     expect(result.evidence).toBe(SAMPLE_EVIDENCE);
     expect(result.score).toBe(SAMPLE_SCORE);
+    expect(result.evalEngines).toEqual([]);
+    expect(result.evalBonus).toEqual({
+      seniority: 0,
+      relevance: 0,
+      appliedToScore100: 0,
+    });
+  });
+
+  it("invokes the eval bridge after computeScore and exposes engines + bonus on the result", async () => {
+    orchestrateMock.mockResolvedValue(SAMPLE_EVIDENCE);
+    computeScoreMock.mockReturnValue(SAMPLE_SCORE);
+    const stubEngine = {
+      recordKey: "addr.eth",
+      exists: true,
+      validity: 1,
+      liveness: 1,
+      seniority: 0.4,
+      relevance: 0.6,
+      trust: 0.7,
+      weight: 1,
+      signals: { seniorityBreakdown: [], relevanceBreakdown: [], antiSignals: [] },
+      evidence: [],
+      confidence: "complete",
+      durationMs: 5,
+      cacheHit: false,
+      errors: [],
+    };
+    runEvaluatorBridgeMock.mockResolvedValue({
+      engines: [stubEngine],
+      bonus: { seniority: 0.04, relevance: 0.06, appliedToScore100: 5 },
+      status: "complete",
+      startedAtMs: 0,
+      finishedAtMs: 1,
+    });
+
+    const result = await loadBench("subject.eth", { nowSeconds: 1_715_000_000 });
+
+    expect(runEvaluatorBridgeMock).toHaveBeenCalledTimes(1);
+    expect(runEvaluatorBridgeMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        evidence: SAMPLE_EVIDENCE,
+        resolvedAtMs: 1_715_000_000_000,
+      }),
+    );
+    if (result.kind !== "loaded") throw new Error("unreachable");
+    expect(result.evalEngines).toHaveLength(1);
+    expect(result.evalEngines[0]?.recordKey).toBe("addr.eth");
+    expect(result.evalBonus.appliedToScore100).toBe(5);
+  });
+
+  it("treats a thrown bridge as non-fatal — returns loaded with empty overlay", async () => {
+    orchestrateMock.mockResolvedValue(SAMPLE_EVIDENCE);
+    computeScoreMock.mockReturnValue(SAMPLE_SCORE);
+    runEvaluatorBridgeMock.mockRejectedValue(new Error("bridge boom"));
+
+    const result = await loadBench("subject.eth", { nowSeconds: 1 });
+
+    expect(result.kind).toBe("loaded");
+    if (result.kind !== "loaded") throw new Error("unreachable");
+    expect(result.evalEngines).toEqual([]);
+    expect(result.evalBonus.appliedToScore100).toBe(0);
   });
 
   it("threads through env-derived rpc / pat / graph-key into orchestrator options", async () => {
