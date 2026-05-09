@@ -57,6 +57,21 @@ export type {
 } from './diff/abi.js';
 
 export {
+  DEFAULT_BACKOFF_MS,
+  NetworkUnavailable,
+  readRpcConfigForChain,
+  retryableFetch,
+  withPrimaryFallback,
+  withRetry,
+} from './network/retry.js';
+
+export type {
+  NetworkUnavailableError,
+  PrimaryFallbackUrls,
+  RetryOptions,
+} from './network/retry.js';
+
+export {
   FOURBYTE_BASE_URL,
   lookup4byteSelectors,
 } from './sourcify/fourbyte.js';
