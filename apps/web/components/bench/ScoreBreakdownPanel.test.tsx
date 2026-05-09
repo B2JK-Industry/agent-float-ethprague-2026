@@ -126,11 +126,14 @@ describe("ScoreBreakdownPanel (US-134, GATE-30 surface)", () => {
         ?.querySelector('[data-field="trust-factor"]')
         ?.getAttribute("data-multiplier"),
     ).toBe("× 1.0");
+    // Layout v2 (2026-05-09): the "= " separator is now a sibling
+    // span (visual separator) outside the data-field="contribution"
+    // cell, so the cell text is the bare number.
     expect(
       compileSuccess
         ?.querySelector('[data-field="contribution"]')
         ?.textContent,
-    ).toBe("= 0.250");
+    ).toBe("0.250");
   });
 
   it("× 0.6 column is rendered (NEVER hidden) for every unverified component — GATE-30", () => {

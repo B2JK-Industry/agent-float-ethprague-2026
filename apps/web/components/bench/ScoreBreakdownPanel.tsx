@@ -213,19 +213,17 @@ function AxisBar({
               data-component={comp.id}
               data-status={comp.status}
               data-trust={comp.trust}
-              className="grid items-center gap-x-4 gap-y-1"
+              className="flex flex-wrap items-baseline gap-x-3 gap-y-1"
               style={{
-                gridTemplateColumns:
-                  "minmax(170px, 1.4fr) 56px 56px 64px 72px",
-                padding: "6px 0",
+                padding: "8px 0",
                 fontFamily: "var(--font-mono)",
-                fontSize: "10px",
+                fontSize: "11px",
                 letterSpacing: "0.04em",
-                lineHeight: 1.4,
+                lineHeight: 1.5,
                 borderBottom: "1px dotted var(--color-border)",
               }}
             >
-              <span data-field="label" className="text-t1">
+              <span data-field="label" className="text-t1 whitespace-nowrap">
                 {comp.id}
                 {badge ? (
                   <span
@@ -243,38 +241,37 @@ function AxisBar({
                 ) : null}
               </span>
               <span
-                data-field="weight"
-                className="text-right text-t1"
-                style={{ fontVariantNumeric: "tabular-nums" }}
-              >
-                {fmt(comp.weight, 2)}
-              </span>
-              <span
-                data-field="value"
-                className="text-right text-t1"
-                style={{ fontVariantNumeric: "tabular-nums" }}
-              >
-                {valueLabel(comp)}
-              </span>
-              <span
-                data-field="trust-factor"
-                data-multiplier={
-                  comp.trust === "verified" ? "× 1.0" : "× 0.6"
-                }
-                className="text-right"
+                aria-hidden="true"
+                data-field="leader"
+                className="flex-1"
                 style={{
-                  fontVariantNumeric: "tabular-nums",
-                  color: trustColor,
+                  borderBottom: "1px dotted var(--color-border)",
+                  height: 0,
+                  marginBottom: "4px",
+                  minWidth: "16px",
                 }}
-              >
-                × {fmt(comp.trustFactor, 1)}
-              </span>
+              />
               <span
-                data-field="contribution"
-                className="text-right text-t1"
+                className="inline-flex items-baseline gap-1.5 whitespace-nowrap text-right text-t1"
                 style={{ fontVariantNumeric: "tabular-nums" }}
               >
-                = {fmt(comp.contribution, 3)}
+                <span data-field="weight">{fmt(comp.weight, 2)}</span>
+                <span className="text-t3">×</span>
+                <span data-field="value">{valueLabel(comp)}</span>
+                <span className="text-t3">×</span>
+                <span
+                  data-field="trust-factor"
+                  data-multiplier={
+                    comp.trust === "verified" ? "× 1.0" : "× 0.6"
+                  }
+                  style={{ color: trustColor }}
+                >
+                  × {fmt(comp.trustFactor, 1)}
+                </span>
+                <span className="text-t3">=</span>
+                <span data-field="contribution">
+                  {fmt(comp.contribution, 3)}
+                </span>
               </span>
             </li>
           );

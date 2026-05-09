@@ -70,7 +70,10 @@ export const DEFAULT_PER_SOURCE_BUDGETS_MS = {
   sourcifyAllChains: 6_000,
   github: 6_000,
   onchain: 4_000,
-  ensInternal: 4_000,
+  // Sepolia subgraph response variance 1.5-6.7s (gateway.thegraph.com),
+  // mainnet ~1-2s. 8s budget covers worst-case Sepolia query without
+  // breaching the 12s page cap when other sources also fire in parallel.
+  ensInternal: 8_000,
   crossChain: 4_000,
 } as const;
 
