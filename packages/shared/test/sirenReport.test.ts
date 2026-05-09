@@ -1,8 +1,7 @@
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import Ajv2020, { type ValidateFunction } from 'ajv/dist/2020.js';
-import addFormats from 'ajv-formats';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -16,11 +15,35 @@ import {
   type SirenReport,
 } from '../src/index.js';
 
+interface AjvErrorObject {
+  readonly instancePath?: string;
+  readonly schemaPath?: string;
+  readonly keyword?: string;
+  readonly message?: string;
+}
+
+interface ValidateFn {
+  (data: unknown): boolean;
+  errors: ReadonlyArray<AjvErrorObject> | null | undefined;
+}
+
+interface AjvInstance {
+  compile: (schema: unknown) => ValidateFn;
+}
+
+type AjvOptions = { allErrors?: boolean; strict?: boolean | 'log' };
+type AjvCtor = new (opts?: AjvOptions) => AjvInstance;
+type AddFormats = (ajv: AjvInstance) => AjvInstance;
+
+const cjsRequire = createRequire(import.meta.url);
+const Ajv2020 = cjsRequire('ajv/dist/2020.js') as unknown as AjvCtor;
+const addFormats = cjsRequire('ajv-formats') as unknown as AddFormats;
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const schemaPath = resolve(__dirname, '../schemas/siren-report-v1.json');
 const schema = JSON.parse(readFileSync(schemaPath, 'utf-8')) as Record<string, unknown>;
 
-function buildValidator(): ValidateFunction {
+function buildValidator(): ValidateFn {
   const ajv = new Ajv2020({ allErrors: true, strict: true });
   addFormats(ajv);
   return ajv.compile(schema);
@@ -104,13 +127,13 @@ describe('SirenReport JSON schema', () => {
 
   it('accepts a fully-populated signed-manifest report', () => {
     const ok = validate(validReport);
-    expect(validate.errors).toBeNull();
+    expect(validate.errors ?? null).toBeNull();
     expect(ok).toBe(true);
   });
 
   it('accepts a public-read report with null ens.manifestHash and null auth fields', () => {
     const ok = validate(publicReadReport);
-    expect(validate.errors).toBeNull();
+    expect(validate.errors ?? null).toBeNull();
     expect(ok).toBe(true);
   });
 
