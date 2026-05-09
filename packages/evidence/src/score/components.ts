@@ -73,9 +73,12 @@ export function testPresence(evidence: MultiSourceEvidence): ComponentValue {
   return { value: numer / repos.length, status: 'computed' };
 }
 
-// Mean of binary signals across top-20 repos. v1 P0 exposes README>200
-// chars + LICENSE; the P1 enrichers (SECURITY/dependabot/branch-prot)
-// will fold into this same component once US-114b ships.
+// Mean of binary signals across top-20 repos. P0 fixed signals: README>200
+// chars + LICENSE. P1 enrichers (SECURITY / dependabot / branch-protection)
+// from US-114b join the same hygiene mean per-repo when present; the
+// denominator grows with each P1 field that landed for that repo so a
+// repo with only README+LICENSE info still scores correctly against a
+// fully-enriched neighbour.
 export function repoHygiene(evidence: MultiSourceEvidence): ComponentValue {
   const gh = evidence.github;
   if (gh.kind !== 'ok') return NULL_NO_DATA;
@@ -87,6 +90,21 @@ export function repoHygiene(evidence: MultiSourceEvidence): ComponentValue {
     let count = 2;
     if (r.hasSubstantialReadme) signals += 1;
     if (r.hasLicense) signals += 1;
+    // US-114b enrichments: only counted when the corresponding flag is
+    // a defined boolean (P1 enrichment ran for this repo). undefined →
+    // P1 didn't run; skip gracefully so the P0-only score stays valid.
+    if (typeof r.hasSecurity === 'boolean') {
+      count += 1;
+      if (r.hasSecurity) signals += 1;
+    }
+    if (typeof r.hasDependabot === 'boolean') {
+      count += 1;
+      if (r.hasDependabot) signals += 1;
+    }
+    if (typeof r.hasBranchProtection === 'boolean') {
+      count += 1;
+      if (r.hasBranchProtection) signals += 1;
+    }
     sum += signals / count;
   }
   return { value: sum / repos.length, status: 'computed' };
@@ -262,10 +280,71 @@ export function nonZeroSourceCount(evidence: MultiSourceEvidence): number {
   return count;
 }
 
-// P1 components — return null until US-114b wires them.
-export const ciPassRate = (_e: MultiSourceEvidence): ComponentValue => NULL_P1;
-export const bugHygiene = (_e: MultiSourceEvidence): ComponentValue => NULL_P1;
-export const releaseCadence = (_e: MultiSourceEvidence): ComponentValue => NULL_P1;
+// US-114b P1 component extractors. Each returns NULL_P1 when no repo
+// carries the enrichment field (orchestrator hasn't fetched P1 yet);
+// flips to computed the moment any repo carries data.
+
+// (count of last 50 workflow runs across top-20 repos with conclusion ===
+// 'success') / (total runs). 0 if no runs — but if no repo has run data
+// at all, we surface null so the breakdown distinguishes "no CI" from
+// "CI exists and 0% pass".
+export function ciPassRate(evidence: MultiSourceEvidence): ComponentValue {
+  const gh = evidence.github;
+  if (gh.kind !== 'ok') return NULL_P1;
+  const repos = gh.value.repos;
+  let any = false;
+  let successful = 0;
+  let total = 0;
+  for (const r of repos) {
+    if (r.ciRuns === undefined) continue;
+    any = true;
+    if (r.ciRuns === null) continue;
+    successful += r.ciRuns.successful;
+    total += r.ciRuns.total;
+  }
+  if (!any) return NULL_P1;
+  if (total === 0) return { value: 0, status: 'computed', note: 'no workflow runs across repos' };
+  return { value: successful / total, status: 'computed' };
+}
+
+// (closed bug-labeled issues across top-20 repos) / (total bug-labeled
+// issues). EPIC §10.2: 1.0 if denominator is 0.
+export function bugHygiene(evidence: MultiSourceEvidence): ComponentValue {
+  const gh = evidence.github;
+  if (gh.kind !== 'ok') return NULL_P1;
+  const repos = gh.value.repos;
+  let any = false;
+  let closed = 0;
+  let total = 0;
+  for (const r of repos) {
+    if (r.bugIssues === undefined) continue;
+    any = true;
+    if (r.bugIssues === null) continue;
+    closed += r.bugIssues.closed;
+    total += r.bugIssues.total;
+  }
+  if (!any) return NULL_P1;
+  if (total === 0) return { value: 1.0, status: 'computed', note: 'no bug-labeled issues' };
+  return { value: closed / total, status: 'computed' };
+}
+
+// min(releases in last 12 months, 12) / 12. Per-repo `releasesLast12m`
+// is the count for that repo; we sum across repos and apply the cap.
+export function releaseCadence(evidence: MultiSourceEvidence): ComponentValue {
+  const gh = evidence.github;
+  if (gh.kind !== 'ok') return NULL_P1;
+  const repos = gh.value.repos;
+  let any = false;
+  let total = 0;
+  for (const r of repos) {
+    if (r.releasesLast12m === undefined) continue;
+    any = true;
+    if (r.releasesLast12m === null) continue;
+    total += r.releasesLast12m;
+  }
+  if (!any) return NULL_P1;
+  return { value: Math.min(total, 12) / 12, status: 'computed' };
+}
 
 // Re-export so engine.ts can read evidence sub-types without
 // re-importing from bench/types.

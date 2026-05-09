@@ -46,6 +46,33 @@ export interface GithubRepoP0 {
   readonly fetchStatus: 'ok' | 'partial' | 'error';
   // Optional reason when fetchStatus !== 'ok'. Useful for the drawer.
   readonly errorReason?: string;
+
+  // ----- US-114b P1 enrichment (optional) -----
+  // Populated only when fetchGithubP1Enrichment runs. When absent (the
+  // default — orchestrator hasn't invoked the P1 fetcher yet), score
+  // components return null_p1 per launch-prompt non-negotiable. Once any
+  // of these is present per-repo, the corresponding component flips to
+  // computed.
+
+  // ciPassRate signal: success/total over the last 50 workflow runs.
+  // null when API errored OR no workflow runs returned (fresh repo).
+  readonly ciRuns?: { readonly successful: number; readonly total: number } | null;
+  // bugHygiene signal: closed/total over `labels=bug&state=all` issues.
+  // 1.0 denominator-zero behaviour is enforced in the score component, not
+  // here.
+  readonly bugIssues?: { readonly closed: number; readonly total: number } | null;
+  // releaseCadence signal: count of releases in last 12 months.
+  readonly releasesLast12m?: number | null;
+  // repoHygiene P1 enrichments. Each is a binary signal that joins the
+  // existing README + LICENSE pair in the score engine's hygiene mean.
+  readonly hasSecurity?: boolean;
+  readonly hasDependabot?: boolean;
+  // 404 from /branches/{default}/protection (non-admin tokens) → false,
+  // not error — per EPIC §10.2 repoHygiene table.
+  readonly hasBranchProtection?: boolean;
+  // Per-enrichment fetch status; failures degrade gracefully.
+  readonly p1FetchStatus?: 'ok' | 'partial' | 'error';
+  readonly p1ErrorReason?: string;
 }
 
 export interface GithubP0Signals {
