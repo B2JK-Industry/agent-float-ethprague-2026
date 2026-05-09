@@ -11,7 +11,8 @@
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     },
-    "./schemas/siren-report-v1.json": "./schemas/siren-report-v1.json"
+    "./schemas/siren-report-v1.json": "./schemas/siren-report-v1.json",
+    "./schemas/agent-bench-manifest-v1.json": "./schemas/agent-bench-manifest-v1.json"
   },
   "publishConfig": {
     "main": "./dist/index.js",
@@ -21,7 +22,8 @@
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
       },
-      "./schemas/siren-report-v1.json": "./schemas/siren-report-v1.json"
+      "./schemas/siren-report-v1.json": "./schemas/siren-report-v1.json",
+      "./schemas/agent-bench-manifest-v1.json": "./schemas/agent-bench-manifest-v1.json"
     }
   },
   "files": [

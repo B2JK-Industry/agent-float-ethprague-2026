@@ -19,6 +19,8 @@
   "dependencies": {
     "@types/diff": "^8.0.0",
     "@upgrade-siren/shared": "workspace:*",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "diff": "^9.0.0",
     "viem": "^2.21.55"
   },
