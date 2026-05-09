@@ -63,8 +63,7 @@ describe("BenchPage (US-131 foundation)", () => {
       kind: "loaded",
       evidence: SAMPLE_EVIDENCE,
       score: SAMPLE_SCORE,
-      evalEngines: [],
-      evalBonus: { seniority: 0, relevance: 0, appliedToScore100: 0 },
+      engines: [],
     });
 
     const ui = await BenchPage(
@@ -86,8 +85,7 @@ describe("BenchPage (US-131 foundation)", () => {
       kind: "loaded",
       evidence: SAMPLE_EVIDENCE,
       score: SAMPLE_SCORE,
-      evalEngines: [],
-      evalBonus: { seniority: 0, relevance: 0, appliedToScore100: 0 },
+      engines: [],
     });
 
     const ui = await BenchPage(pageProps("subject.eth"));
@@ -117,8 +115,7 @@ describe("BenchPage (US-131 foundation)", () => {
         subject: { ...SAMPLE_EVIDENCE.subject, mode: "public-read" },
       },
       score: SAMPLE_SCORE,
-      evalEngines: [],
-      evalBonus: { seniority: 0, relevance: 0, appliedToScore100: 0 },
+      engines: [],
     });
 
     const ui = await BenchPage(pageProps("subject.eth"));
@@ -140,8 +137,7 @@ describe("BenchPage (US-131 foundation)", () => {
         },
       },
       score: SAMPLE_SCORE,
-      evalEngines: [],
-      evalBonus: { seniority: 0, relevance: 0, appliedToScore100: 0 },
+      engines: [],
     });
 
     const ui = await BenchPage(pageProps("subject.eth"));
@@ -157,8 +153,7 @@ describe("BenchPage (US-131 foundation)", () => {
       kind: "loaded",
       evidence: SAMPLE_EVIDENCE,
       score: SAMPLE_SCORE,
-      evalEngines: [],
-      evalBonus: { seniority: 0, relevance: 0, appliedToScore100: 0 },
+      engines: [],
     });
 
     const ui = await BenchPage(pageProps("subject.eth"));
@@ -191,8 +186,7 @@ describe("BenchPage (US-131 foundation)", () => {
       kind: "loaded",
       evidence: SAMPLE_EVIDENCE,
       score: SAMPLE_SCORE,
-      evalEngines: [],
-      evalBonus: { seniority: 0, relevance: 0, appliedToScore100: 0 },
+      engines: [],
     });
 
     const ui = await BenchPage(pageProps("subject%20space.eth"));

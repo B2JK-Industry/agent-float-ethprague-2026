@@ -510,3 +510,32 @@ export type {
   AntiSignalEntry,
   EvaluatorConfidence,
 } from './eval/types.js';
+
+// Unified Engine architecture (refactor 2026-05-09).
+export {
+  ensureEnginesRegistered,
+  resetEnginesForTesting,
+  registerEngine,
+  listRegisteredEngines,
+  isRecordEngine,
+  isSourceEngine,
+  runEngines,
+  recordResultToContribution,
+  emptyContribution,
+  sourcifyEngine,
+  githubEngine,
+  onchainEngine,
+  ensEngine,
+} from './engines/index.js';
+
+export type {
+  AnyEngine,
+  EngineCategory,
+  EngineContribution,
+  EngineId,
+  SourceEngine,
+  SourceEngineId,
+} from './engines/index.js';
+
+export { aggregate as aggregateEngines } from './engines/aggregate.js';
+export type { AggregateOptions } from './engines/aggregate.js';
