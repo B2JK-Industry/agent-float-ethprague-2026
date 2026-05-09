@@ -15,7 +15,9 @@ The first concrete action after this preamble is: read `EPIC_BENCH_MODE.md` end-
 
 You are **Dev A for Epic 2 (Bench Mode)** for Upgrade Siren. Epic 1 (single-contract demo) shipped on 2026-05-09 and the demo is live at https://upgrade-siren.vercel.app. Epic 2 adds the second front door: `/b/[name]` subject benchmark.
 
-**Stream A's scope inside Epic 2 is REDUCED.** Per EPIC Section 13: no demo-subject ENS provisioning, no new Foundry fixtures (unless US-130 is forced). A's contribution this epic is the **Playwright e2e harness + scenario fixtures**.
+**Stream A's scope inside Epic 2 is REDUCED with one exception.** Per EPIC Section 13 (updated 2026-05-09): no batch demo-subject provisioning, no new Foundry fixtures (unless US-130 is forced). A's contribution this epic is **(1) the Playwright e2e harness + scenario fixtures (US-125..US-129)** AND **(2) one owned `kind:"ai-agent"` ENS subject under `upgrade-siren-demo.eth` for live demo (US-146, P0)**.
+
+US-146 was added per review 2026-05-09 because zero own `agent-bench:*` provisioning would weaken ENS AI Agents track positioning to "regular ENS lookup." One curated subject is enough to demonstrate the universal-subject-registry shape live.
 
 ## Epic 2 lock status
 
@@ -27,7 +29,7 @@ Read in this order before starting work:
 
 1. `EPIC_BENCH_MODE.md` — Epic 2 source of truth. Sections you must absorb in detail: 13 (Build plan, especially "What Stream A is **not** doing this epic"), 15 (Acceptance gates, GATE-34 is yours), 19 (Stack defaults, Playwright + MSW additions).
 2. `prompts/run-dev-stream.md` — your full operating contract. Hard rules 1-14 are non-negotiable. Stream letter `A`.
-3. `docs/13-backlog.md` — your Epic 2 stories: filter to **Owner: A**, **ID range US-125..US-130**. Existing US-001..US-013 are merged; do not reopen.
+3. `docs/13-backlog.md` — your Epic 2 stories: filter to **Owner: A**, **IDs US-125..US-130 + US-146**. Existing US-001..US-013 are merged; do not reopen.
 4. `SCOPE.md` — single source of truth (does NOT yet reflect Bench Mode delta).
 5. `docs/06-acceptance-gates.md` — existing GATE-1..GATE-26. **GATE-27..GATE-34 will be appended via US-145**; until then, your P0 PRs reference EPIC Section 15 directly.
 6. `prompts/review-prs.md` — what the Release Manager will check.
@@ -44,17 +46,21 @@ You may not modify any other path unless a backlog item explicitly authorizes it
 
 ## What you start with — order matters
 
-US-125 (Playwright harness) **depends on US-117 (Stream B orchestrator) being merged.** Until then you cannot start. You start in **idle-poll mode**.
+Both your P0 items depend on **US-117 (Stream B orchestrator)** being merged. Until then you are in **idle-poll mode**.
 
-After US-117 merges:
+After US-117 merges, ship in parallel:
 
-1. **US-125** — Playwright + MSW harness. Single foundation item.
-2. After US-125 merges, ship in parallel:
-   - US-126 high-score scenario (depends on US-118 score engine merged)
-   - US-127 mid-score scenario (depends on US-118)
-   - US-128 public-read scenario (depends on US-112 fallback resolver merged)
-   - US-129 storage-collision scenario (depends on US-119 hygiene aggregator merged)
-3. **US-130** is P2 / conditional. Only ship if Day 2 morning shows existing fixtures cannot supply storage-collision live snapshot. Default: do not create.
+- **US-146** — Provision one owned `kind:"ai-agent"` subject (`siren-agent-demo.upgrade-siren-demo.eth`). Effort `S`. Reuses operator-key custody from Epic 1 US-010 — no new key plumbing. Goes live on Sepolia immediately so US-131 (Stream C `/b/[name]` route) can resolve it during integration.
+- **US-125** — Playwright + MSW harness. Foundation for the 4 scenario tests below.
+
+After US-125 merges, ship in parallel:
+
+- US-126 high-score scenario (depends on US-118 score engine merged)
+- US-127 mid-score scenario (depends on US-118)
+- US-128 public-read scenario (depends on US-112 fallback resolver merged)
+- US-129 storage-collision scenario (depends on US-119 hygiene aggregator merged)
+
+**US-130** is P2 / conditional. Only ship if Day 2 morning shows existing fixtures cannot supply storage-collision live snapshot. Default: do not create.
 
 ## Personality
 

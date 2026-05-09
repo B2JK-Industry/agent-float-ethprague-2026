@@ -62,16 +62,24 @@ After lock, the following six US can run in **parallel** (no Bench-internal deps
 
 1. **US-111** Subject ENS resolver (deps: merged US-017) — **start here**, blocks US-112 + US-117.
 2. **US-113** Sourcify deep field selectors (deps: merged US-024 + US-025) — start in parallel with US-111.
-3. **US-115** On-chain source fetcher (deps: merged US-022).
+3. **US-115** On-chain source fetcher (deps: merged US-022). **NARROWED scope per review 2026-05-09**: P0 = `nonce` + `firstTxBlock` (binary-search on historical nonce) + `contractsDeployedCount` (Sourcify deployer crosswalk). **No `eth_getLogs from==` filter — RPC does not support it.** Transfer-count signals (Alchemy Transfers / Etherscan) are US-115b (P1, indexer-backed).
 4. **US-116** ENS-internal source fetcher (deps: merged US-017). **Pre-req: register own Graph Network API key Day 1 09:00.** Without it, you halt this item with `@daniel` blocker comment.
 5. **US-122** Cache extension (deps: merged US-032).
-6. **US-114** GitHub source fetcher (deps: US-111 merged) — start once US-111 is in.
+6. **US-114** GitHub source fetcher (deps: US-111 merged) — start once US-111 is in. **NARROWED scope per review 2026-05-09**: P0 = `/users/{owner}` + top-20 repos + per-repo metadata (esp. `pushed_at`) + test-dir probes + README/LICENSE contents only. CI runs / bug issues / releases / SECURITY / dependabot / branch-protection are US-114b (P1).
 
 After US-111 + US-113 + US-114 + US-115 + US-116 are all merged, ship **US-117** (orchestrator). Only then **US-118** (score engine) — it is the convergence point.
 
 **US-119 Storage-Layout Hygiene aggregator is the highest-risk item in the epic** (4h budget per EPIC Section 13). Time-box it strictly. Per Section 17 risk register, fallback to single-pair diff (current vs previous only) if 4h exhausted.
 
-**P1 items (US-120, US-121, US-123, US-124)** ship only when P0 in your stream is exhausted or blocked. **US-121 (similarity submit) is first cut** if Day 2 morning slips per EPIC Section 13.
+**P1 items (US-114b, US-115b, US-120, US-121, US-123, US-124)** ship only when P0 in your stream is exhausted or blocked. **US-121 (similarity submit) is first cut** if Day 2 morning slips per EPIC Section 13.
+
+### Score engine (US-118) — non-negotiable rules
+
+- **Raw-discounted axis. No normalization to ceiling.** `seniority = sum(weight × value × trust)` is the axis value (0..0.70 for unverified-GitHub subjects). UI renders `Seniority 60 (max 70 — verify GitHub to lift)`, never `0.601 / 0.700 → 86`. Normalizing cancels the discount and defeats GATE-30. EPIC Section 10.1+10.2 spell this out.
+- **v1 max final score is 79.** Tier S (≥90) is unreachable in v1 because GitHub trust factor is locked at 0.6 (Section 21 D-G). UI tier label must show "S reserved for verified-GitHub v2" — never imply S is reachable now.
+- **`TRUST_DISCOUNT_UNVERIFIED = 0.6`** exported as named constant from `packages/evidence/src/score/weights.ts`. `SENIORITY_WEIGHTS` and `RELEVANCE_WEIGHTS` lifted to the same file. Daniel's relevance override (D-A) targets that one file.
+- **Pure function.** No I/O, no `Date.now()`, no module state. Judges may re-derive scores by hand from breakdown.
+- **Tier ceiling enforcement** lives in score engine, not UI: public-read manifest → cap at A; no-verified-GitHub → cap seniority at 0.70 (already structural via trust-discount).
 
 ## Personality
 

@@ -96,7 +96,7 @@ The extension does not weaken any sponsor-native test. It strengthens ENS materi
 
 ### Five-second meta moment (Gate 1 candidate, deal-breaker)
 
-User types `someagent.eth` → page renders an immediate **score banner** ("Bench: 67 / 100 — Tier B — seniority 71, relevance 63") followed by a **source grid** (Sourcify / GitHub / On-chain / ENS) where each source tile shows its contributing signals colored by sub-score. Click any tile → drawer expands with the underlying evidence. No slides, no voiceover required.
+User types `someagent.eth` → page renders an immediate **score banner** ("Bench: 63 / 100 — Tier B — seniority 60, relevance 66") followed by a **source grid** (Sourcify / GitHub / On-chain / ENS) where each source tile shows its contributing signals colored by sub-score. Click any tile → drawer expands with the underlying evidence. No slides, no voiceover required.
 
 ### Master tagline + sub-tagline
 
@@ -355,23 +355,38 @@ For each Sourcify project address, also call `GET /v2/contract/all-chains/{addre
 
 **Public REST API. Optional unauthenticated PAT for rate limit (5000/hr authed, 60/hr unauthed). Server-side fetch with cache.**
 
-Data fetched per `sources.github.owner`:
+Endpoint scope is split into **P0** (US-114) and **P1** (US-114b) to keep the rate-limit budget tight and the dependency surface narrow on Day 1. The score engine treats P1 signals as `value: null` until US-114b lands; breakdown renders them as `— (P1)`.
+
+#### P0 endpoints (US-114)
+
+Components fed at P0: `testPresence`, `repoHygiene` (README + LICENSE only), `githubRecency` (via `pushed_at`).
 
 | Endpoint | Used for |
 |---|---|
 | `GET /users/{owner}` | Account creation date, public repo count, followers |
-| `GET /users/{owner}/repos?per_page=100&sort=updated` | Repo list (cap 100 most recent) |
-| `GET /repos/{o}/{r}` | Per-repo metadata: created, pushed, archived, default_branch, license, topics |
-| `GET /repos/{o}/{r}/actions/runs?per_page=50` | Last 50 workflow runs per repo (sample) → `ciPassRate` |
-| `GET /repos/{o}/{r}/actions/workflows` | Workflow file list → `testPresence` |
-| `GET /repos/{o}/{r}/contents/test`, `/tests`, `/__tests__`, `/spec` (parallel) | Test directory presence → `testPresence` |
-| `GET /repos/{o}/{r}/issues?labels=bug&state=all&per_page=100` | Bug-label issues open + closed → `bugHygiene` |
-| `GET /repos/{o}/{r}/contents/README.md` | README presence + length → `repoHygiene` |
-| `GET /repos/{o}/{r}/contents/LICENSE` | License presence → `repoHygiene` |
-| `GET /repos/{o}/{r}/contents/SECURITY.md` | Security policy → `repoHygiene` |
-| `GET /repos/{o}/{r}/contents/.github/dependabot.yml` | Dependabot config → `repoHygiene` |
-| `GET /repos/{o}/{r}/branches/{default}/protection` | Branch protection (may 404 for non-admin tokens) → `repoHygiene` |
+| `GET /users/{owner}/repos?per_page=100&sort=updated` | Repo list (cap top-20 most recent) |
+| `GET /repos/{o}/{r}` | Per-repo metadata: created, **pushed_at** (drives `githubRecency`), archived, default_branch, license, topics |
+| `GET /repos/{o}/{r}/contents/{test,tests,__tests__,spec}` (parallel) | Test directory presence → `testPresence` |
+| `GET /repos/{o}/{r}/contents/README.md` | README presence + length → P0 `repoHygiene` |
+| `GET /repos/{o}/{r}/contents/LICENSE` | License presence → P0 `repoHygiene` |
+
+Per-subject P0 budget: ~6 calls per repo × 20 repos + 2 user calls = **~122 calls**. Authed 5000/hr → ~40 fresh lookups/hr.
+
+Components NOT computed at P0 (all P1, see below): `ciPassRate`, `bugHygiene`, `releaseCadence`. **The score is well-defined without them** — just lower seniority for any subject until US-114b lands.
+
+#### P1 endpoints (US-114b, ships after US-114 + US-118 land)
+
+| Endpoint | Used for |
+|---|---|
+| `GET /repos/{o}/{r}/actions/runs?per_page=50` | Last 50 workflow runs → `ciPassRate` |
+| `GET /repos/{o}/{r}/actions/workflows` | Workflow file list → enriches `testPresence` (workflow-name pattern) |
+| `GET /repos/{o}/{r}/issues?labels=bug&state=all&per_page=100` | Bug-label issues → `bugHygiene` |
+| `GET /repos/{o}/{r}/contents/SECURITY.md` | Security policy → enriches `repoHygiene` |
+| `GET /repos/{o}/{r}/contents/.github/dependabot.yml` | Dependabot config → enriches `repoHygiene` |
+| `GET /repos/{o}/{r}/branches/{default}/protection` | Branch protection (404 for non-admin tokens, treat as 0) → enriches `repoHygiene` |
 | `GET /repos/{o}/{r}/releases?per_page=100` | Release count + dates → `releaseCadence` |
+
+P1 adds ~7 calls per repo × 20 repos = ~140 calls. Combined P0+P1 ~262 calls per fresh fetch. Cache hit rate dominates in practice.
 
 Repo cap: top 20 by recent activity. More than 20 repos → sample by recency.
 
@@ -391,16 +406,26 @@ Cache backing: extend US-032 Upstash Redis layer to a `github:{owner}:{key}` nam
 
 ### 8.3 On-chain activity (verified)
 
-Reuses existing RPC infrastructure (US-022, US-023). No new dependencies.
+Reuses existing RPC infrastructure (US-022, US-023) for on-chain reads that RPC actually supports. **`eth_getLogs` cannot filter by `from`** (logs filter on contract address + topics, not tx sender). **`eth_getTransactionCount` returns nonce, not total inbound activity.** Therefore tx-history signals require an indexer API (Alchemy Transfers, Etherscan v2, or Covalent), not raw RPC.
 
-| Signal | Source |
-|---|---|
-| `firstTxBlock` + `firstTxTimestamp` | RPC `eth_getTransactionCount` historical scan via Etherscan-equivalent fallback (or RPC `eth_getLogs` from genesis sample) |
-| `txCountTotal` | `eth_getTransactionCount(address, latest)` |
-| `txCountRecent90d` | `eth_getLogs` over last 90 days, filtered by `from == primaryAddress`, count |
-| `contractsDeployedCount` | Sub-component of Sourcify source on-chain truth: count of contracts in `sources.sourcify` deployed by `primaryAddress` per `deployment.deployer` |
+P0 signals (raw RPC + Sourcify crosswalk only — no new external dependency):
 
-For multi-chain support, fetch from each chain in `sources.sourcify[].chainId`, plus mainnet + Sepolia by default.
+| Signal | Source | Definition |
+|---|---|---|
+| `nonce` | RPC `eth_getTransactionCount(address, latest)` | Outbound tx count from this EOA. Not total activity, not inbound, not contract calls — name it accurately in UI ("outbound tx count"). |
+| `firstTxBlock` + `firstTxTimestamp` | Binary search on `eth_getTransactionCount(address, blockTag)` from genesis to latest, find first block where nonce > 0. Per-chain. | Address age is the only "first activity" signal RPC can give without an indexer. |
+| `contractsDeployedCount` | Sourcify deployer crosswalk: count of contracts in `sources.sourcify` whose `deployment.deployer` matches `primaryAddress`. | Reuses existing Sourcify fetch; no new RPC. |
+
+P1 signals (require indexer API — only fire if env keys present, otherwise skip with `kind: 'unavailable'`):
+
+| Signal | Source | Definition |
+|---|---|---|
+| `transferCountRecent90d` | Alchemy Transfers (`alchemy_getAssetTransfers` with `fromAddress` + block range) OR Etherscan `txlist` filtered to last 90d | Total outbound + inbound transfers in 90 days. Used by relevance `onchainRecency`. |
+| `transferCountTotal` | Same APIs | Lifetime total transfer count. |
+
+Fallback when neither indexer key is present: `relevance.onchainRecency` is computed from `nonce / cap 1000` instead of `transferCountRecent90d / cap 1000` (see Section 10.3). This degrades gracefully — recency signal becomes "lifetime outbound activity" rather than "recent activity", but the score still has a value.
+
+Multi-chain: fetch from each chain in `sources.sourcify[].chainId`, plus mainnet + Sepolia by default. Per-chain failure isolation — one chain rate-limited does not abort the whole fetch.
 
 ### On-chain trust label
 
@@ -461,10 +486,12 @@ In v2 the manifest can include `github.verificationGist` pointing to a public Gi
 ### 10.1 Two-axis score, single number
 
 ```text
+seniority  = sum_i (weight_i * value_i * trust_i)        # raw, discounted
+relevance  = sum_j (weight_j * value_j * trust_j)        # raw, discounted
 score_raw  = 0.5 * seniority + 0.5 * relevance
 score_100  = round(score_raw * 100)
 tier(score_100):
-  S if >= 90
+  S if >= 90      # v1 unreachable without verified GitHub cross-sign — see ceiling table below
   A if >= 75
   B if >= 60
   C if >= 45
@@ -472,7 +499,18 @@ tier(score_100):
   U if subject has < 2 data sources with non-zero evidence (unrated)
 ```
 
-Both axes range 0..1 internally. The 0.5/0.5 axis split is locked.
+Both axes range 0..1 internally. **No secondary normalization** — the discounted sum is the axis value, full stop. The 0.5/0.5 axis split is locked.
+
+#### v1 reachable ceilings (this is structural — name it, don't hide it)
+
+| Subject shape | Max seniority | Max relevance | Max score_100 | Best reachable tier |
+|---|---|---|---|---|
+| All-verified ideal (impossible in v1: GitHub trust = 0.6 always) | 1.00 | 1.00 | 100 | S |
+| **v1 typical: claimed GitHub + everything else maxed** | **0.70** | **0.88** | **79** | **A** |
+| Public-read inferred manifest (no opt-in) | 0.70 | 0.88 | 79, capped to A's max 89 | A |
+| No GitHub data at all | 0.55 (no GitHub components) | 0.58 | 57 | C |
+
+**v1 explicitly cannot reach S.** That is the feature — S is reserved for v2 cross-sign-verified subjects (`github.verified == true`, schema field already in place per Section 7). The UI must label this clearly: "S-tier requires verified GitHub cross-sign — coming v2." Hiding it implies S is reachable; that would mislead judges and users about what the discount actually does.
 
 ### 10.2 Seniority axis (LOCKED — Section F1 outcome)
 
@@ -500,7 +538,9 @@ seniority = 0.25 * compileSuccess
 Effective max seniority (all unverified at 1.0, verified at 1.0) = 0.25 + 0.75 * 0.6 = 0.70.
 ```
 
-Subjects without a verified GitHub cross-sign cannot exceed 70% of the seniority axis. **This is the feature.** Verifiability is structurally rewarded without being required.
+Subjects without a verified GitHub cross-sign cannot exceed 0.70 on the seniority axis. **This is the feature.** Verifiability is structurally rewarded without being required.
+
+**No secondary normalization. The discounted sum (e.g. 0.601) IS the seniority axis value (60 / 100), not a numerator over 0.70 ceiling.** UI renders `Seniority 60 (max 70 — verify GitHub to lift)`, never `0.601 / 0.700 → 0.86 → 86`. Normalizing to ceiling cancels the discount mathematically and defeats GATE-30. The ceiling label is decoration; the axis value is raw.
 
 ### 10.3 Relevance axis (PROVISIONAL — Daniel will finalize per Q3)
 
@@ -512,7 +552,7 @@ Provisional four components, sum of weights = 1.0:
 |---|---|---|---|---|
 | `sourcifyRecency` | Most recent `verifiedAt` across Sourcify projects. ≤ 12 months → 1.0; ≥ 24 months → 0.0; linear between. | Sourcify | 0.30 | verified |
 | `githubRecency` | (commits in default branches of top-20 repos in last 90 days) / cap 200, clipped 0..1. | GitHub | 0.30 | unverified |
-| `onchainRecency` | `txCountRecent90d` / cap 1000, clipped 0..1. | RPC | 0.25 | verified |
+| `onchainRecency` | `transferCountRecent90d` / cap 1000, clipped 0..1. **Fallback when no indexer key:** `nonce` / cap 1000 (degrades to lifetime outbound — surface in drawer). | Alchemy Transfers / Etherscan / RPC nonce fallback | 0.25 | verified |
 | `ensRecency` | min(months since `lastRecordUpdateBlock`, 24) / 24, then `1 - x`. | ENS subgraph | 0.15 | verified |
 
 #### Relevance aggregation with trust discount
@@ -582,8 +622,8 @@ Single front door for users; mode is inferred from records, not selected.
 ├────────────────────────────────────────────────────────────────────┤
 │  Score Banner                                                       │
 │  ┌─────────────┬───────────────────────────────────────────────┐   │
-│  │ 67 / 100    │ Tier B                                        │   │
-│  │             │ Seniority 71  ·  Relevance 63                 │   │
+│  │ 63 / 100    │ Tier B                                        │   │
+│  │             │ Seniority 60  ·  Relevance 66                 │   │
 │  └─────────────┴───────────────────────────────────────────────┘   │
 │  Disclaimer: "Score measures verifiability and code-quality        │
 │  signals. It does not predict intent."                             │
@@ -605,10 +645,20 @@ Single front door for users; mode is inferred from records, not selected.
 │    bugHygiene:        0.10 × 0.78 × 0.6 = 0.047                    │
 │    repoHygiene:       0.15 × 0.80 × 0.6 = 0.072                    │
 │    releaseCadence:    0.15 × 0.50 × 0.6 = 0.045                    │
-│    Sum = 0.601 / 0.700 max → 0.86 → seniority 86 pts of 100        │
+│    Σ = 0.601 → seniority 60 of 100                                  │
+│    (max reachable v1 = 70; verify GitHub cross-sign to lift)        │
 │                                                                     │
-│  Relevance components: ...                                          │
-│  Final score: 67                                                    │
+│  Relevance components (weight × value × trust):                    │
+│    sourcifyRecency:   0.30 × 1.00 × 1.0 = 0.300                    │
+│    githubRecency:     0.30 × 0.78 × 0.6 = 0.140                    │
+│    onchainRecency:    0.25 × 0.62 × 1.0 = 0.155                    │
+│    ensRecency:        0.15 × 0.45 × 1.0 = 0.068                    │
+│    Σ = 0.663 → relevance 66 of 100                                  │
+│    (max reachable v1 = 88; verify GitHub cross-sign to lift)        │
+│                                                                     │
+│  score_raw = 0.5 × 0.601 + 0.5 × 0.663 = 0.632                     │
+│  Final score: 63 → Tier B                                           │
+│  (max reachable v1 = 79 → A; S reserved for verified-GitHub v2)     │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -713,13 +763,21 @@ Backing: Upstash Redis via Vercel Marketplace (existing).
 5. Never cut: storage-layout hygiene aggregator — that is the differentiator
 6. Never cut: trust-discount mechanic — that is the structural defense against gaming claims
 
-### What Stream A is **not** doing this epic (per Q7 + F3)
+### Stream A's reduced scope this epic — with one exception
 
-- No demo-subject ENS provisioning scripts.
-- No demo-subject ENS records seeding.
+What Stream A is **not** doing:
+
+- No batch demo-subject provisioning (no Daniel-on-site fishing through 3 unrelated public ENS names hoping their content fits).
 - No new Foundry fixture contracts unless required for storage-collision Playwright scenario.
 
-Stream A's contribution this epic is **Playwright e2e fixtures + recorded HAR or MSW handlers** that lock down scenarios deterministically. Real ENS names are used at demo time; Playwright validates that the pipeline behaves correctly across the snapshot of evidence.
+What Stream A **IS** doing this epic:
+
+1. **Playwright e2e fixtures + MSW handlers** that lock down scenarios deterministically (US-125..US-129).
+2. **One owned `kind: "ai-agent"` demo subject under `upgrade-siren-demo.eth`** (US-146, P0). Per finding from review on 2026-05-09: zero own `agent-bench:*` provisioning would weaken ENS AI Agents track positioning to "regular ENS lookup," because no judge-visible signal proves the universal-subject-registry shape exists in production. One curated subject — `siren-agent-demo.upgrade-siren-demo.eth` — is enough to demonstrate the manifest pattern live, and the fetched evidence (Sourcify projects = our existing demo proxies; GitHub owner = a real org we control or know; on-chain primary = our operator wallet `0x747E…0cfC`) is deterministic enough for the demo without further provisioning churn.
+
+The mid-demo public-read fallback (Section 14) still uses Daniel-picked existing ENS names — that part stays unchanged. The own subject is for the sponsor-native part of the segment.
+
+Real ENS names are used at demo time alongside the owned subject; Playwright validates that the pipeline behaves correctly across both snapshot evidence and live evidence.
 
 ---
 
@@ -734,7 +792,7 @@ The current single-contract demo (`vault.demo.upgradesiren.eth` → SAFE / dange
 | Time | Action | Voiceover |
 |---|---|---|
 | 0:00 | Type a real existing ENS name (TBD on-site by Daniel from a hackathon team's agent or any well-known agent ENS) | "Same product, second front door. Any ENS name." |
-| 0:10 | Score banner renders: e.g. "67 / 100 — Tier B — Seniority 71, Relevance 63" | "One number. Seniority and relevance. Disclaimer is right there: it measures verifiability, not intent." |
+| 0:10 | Score banner renders: e.g. "63 / 100 — Tier B — Seniority 60, Relevance 66" | "One number. Seniority and relevance. Disclaimer is right there: it measures verifiability, not intent." |
 | 0:20 | Source grid renders four tiles, GitHub tile shows `⚠ unverified` badge | "Four sources. GitHub is unverified — values count for 60 percent until cross-signed. Sourcify, on-chain, ENS — all verified." |
 | 0:35 | Click Sourcify tile → drawer opens → upgrade-history timeline → row highlights `slot 5: uint256 → address` red | "Sourcify drawer: every contract, every upgrade. Slot 5 changed type — storage collision. The score reflects it." |
 | 0:55 | Back to grid, click GitHub tile → repo grid → highlight one repo with green CI badge | "GitHub drawer: top 20 repos, CI pass rate, test presence, bug hygiene, releases. All from public API." |
@@ -782,7 +840,38 @@ Existing kill conditions remain. Add:
 
 ---
 
-## 16. Backlog Seed (proposed US-076..US-110)
+## 16. Backlog Seed (HISTORICAL IDs only — see live backlog for current numbers)
+
+> **HISTORICAL DRAFT IDs — DO NOT USE FOR PR TITLES, BRANCHES, OR STATUS.**
+>
+> The IDs `US-076..US-110` in this section reflect the original draft numbering as of 2026-05-08, before the Epic 1 build pipeline consumed `US-076..US-084` for unrelated stories. The live backlog at `docs/13-backlog.md` is the **authoritative source** and numbers Bench Mode stories as **US-111..US-145** (plus US-114b and US-146 added 2026-05-09 per review findings).
+>
+> ID mapping (EPIC ↔ live backlog):
+>
+> | EPIC US | Backlog US | Title (abbreviated) |
+> |---|---|---|
+> | US-076 | **US-111** | Subject ENS resolver |
+> | US-077 | **US-112** | Public-read fallback resolver |
+> | US-078 | **US-113** | Sourcify deep field selectors |
+> | US-079 | **US-114** | GitHub source fetcher (P0 — narrowed: account + repos + README/LICENSE/test + pushed_at) |
+> | — | **US-114b** | GitHub source fetcher P1 enrichment (NEW per review 2026-05-09: ciPassRate / bugHygiene / releaseCadence / SECURITY.md / dependabot / branch-protection) |
+> | US-080 | **US-115** | On-chain source fetcher (RESCOPED per review 2026-05-09: P0 = nonce + first-tx-block via binary-search + Sourcify deployer crosswalk only; transfers via Alchemy/Etherscan are P1) |
+> | US-081 | **US-116** | ENS-internal source fetcher |
+> | US-082 | **US-117** | Multi-source orchestrator |
+> | US-083 | **US-118** | Score engine (RAW-DISCOUNTED axis — no normalization, per Section 10 update 2026-05-09) |
+> | US-084 | **US-119** | Storage-Layout Hygiene aggregator |
+> | US-085 | US-120 | Cross-chain auto-discovery |
+> | US-086 | US-121 | Bytecode similarity submit |
+> | US-087 | US-122 | Cache extension |
+> | US-088 | US-123 | Source-pattern detection |
+> | US-089 | US-124 | License + compiler-recency extraction |
+> | US-090..US-094 | US-125..US-129 | Playwright harness + 4 scenarios |
+> | US-095 | US-130 | Optional Foundry storage-collision fixture |
+> | — | **US-146** | Provision one owned `kind:"ai-agent"` subject under `upgrade-siren-demo.eth` (NEW per review 2026-05-09; Stream A) |
+> | US-096..US-105 | US-131..US-140 | Stream C UI items |
+> | US-106..US-110 | US-141..US-145 | Tracker items |
+>
+> **The tables below stay as a historical record of the original draft sizing/dependency analysis. For execution, read `docs/13-backlog.md` only.**
 
 Numbering follows existing convention. All Owner column assumes existing Stream A/B/C ownership. PR Reviewer + Daniel + Orch unchanged.
 

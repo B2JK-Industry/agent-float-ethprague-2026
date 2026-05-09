@@ -159,11 +159,13 @@ Tracker-only owners (not picked up by dev agents):
 | US-111 | Subject ENS resolver: parse `agent-bench:bench_manifest` text record + JSON schema validator | B | P0 | M | open | US-017 |
 | US-112 | Public-read fallback resolver: infer partial manifest from ENS `addr()` + Sourcify `all-chains` lookup | B | P0 | M | open | US-111 |
 | US-113 | Sourcify source fetcher with deep field selectors (`compileSuccess`, `signatures.function/event`, `proxyResolution`, `creationMatch`, `runtimeMatch`, `metadata.sources[].license`, `userdoc/devdoc`) | B | P0 | M | open | US-024, US-025 |
-| US-114 | GitHub source fetcher: account meta, top-20 repos, workflow runs, contents probes (test dirs / README / LICENSE / SECURITY / dependabot), bug-labeled issues, releases. PAT-backed cache, server-side only | B | P0 | L | open | US-111 |
-| US-115 | On-chain source fetcher: first tx block + timestamp, `txCountTotal`, `txCountRecent90d`, `contractsDeployedCount` via Sourcify deployer crosswalk; multi-chain | B | P0 | M | open | US-022 |
+| US-114 | GitHub source fetcher P0 (narrowed per review 2026-05-09): `/users/{owner}`, top-20 `/users/{owner}/repos`, per-repo `/repos/{o}/{r}` (esp. pushed_at), test-dir probes, README + LICENSE contents. PAT-backed cache, server-side only. CI/bug/releases/branch-protection/SECURITY/dependabot move to US-114b. | B | P0 | M | open | US-111 |
+| US-114b | GitHub source fetcher P1 enrichment: workflow runs (`ciPassRate`), bug-labeled issues (`bugHygiene`), releases (`releaseCadence`), SECURITY.md + dependabot.yml + branch-protection (extends `repoHygiene`). Score engine treats these as null until merged. | B | P1 | M | open | US-114, US-118 |
+| US-115 | On-chain source fetcher P0 (rescoped per review 2026-05-09): `nonce` via `eth_getTransactionCount(latest)`, `firstTxBlock`/`firstTxTimestamp` via binary-search on historical nonce, `contractsDeployedCount` via Sourcify deployer crosswalk. Multi-chain. **NO `eth_getLogs from==` filter (RPC does not support it).** Transfer-count signals (Alchemy Transfers / Etherscan) move to US-115b; `relevance.onchainRecency` falls back to `nonce / cap 1000` when indexer keys absent. | B | P0 | M | open | US-022 |
+| US-115b | On-chain transfer-count enrichment (P1): integrate Alchemy `alchemy_getAssetTransfers` OR Etherscan `txlist` for `transferCountRecent90d` + `transferCountTotal`. Required env keys: `ALCHEMY_API_KEY` or `ETHERSCAN_API_KEY`. Per-chain failure isolation; one chain rate-limited does not abort fetch. | B | P1 | M | open | US-115 |
 | US-116 | ENS-internal source fetcher: registration date, subname count, text record count, last `TextChanged` block via subgraph (own Graph Network API key required) | B | P0 | M | open | US-017 |
 | US-117 | Multi-source orchestrator: parallel runner with per-source failure isolation; emits typed `MultiSourceEvidence` shape | B | P0 | M | open | US-111, US-113, US-114, US-115, US-116 |
-| US-118 | Score engine: pure function over `MultiSourceEvidence`. Locked seniority weights (6 components); provisional relevance weights (4 components, swappable in one file before merge); trust-discount 0.6 on unverified components; emits `ScoreBreakdown` + tier label | B | P0 | M | open | US-117 |
+| US-118 | Score engine: pure function over `MultiSourceEvidence`. Locked seniority weights (6 components); provisional relevance weights (4 components, swappable in one file before merge); trust-discount 0.6 on unverified components; **RAW-DISCOUNTED axis (no normalization to ceiling — per EPIC Section 10 update 2026-05-09)**; tier ceiling enforcement (no-verified-GitHub → seniority cap 0.70; public-read manifest → tier cap A; v1 max final score 79); emits `ScoreBreakdown` + tier label. | B | P0 | M | open | US-117 |
 | US-119 | Storage-Layout Hygiene aggregator across implementation history per proxy (chronological pairwise diff over Sourcify `proxyResolution.implementations`; subject-level avg) | B | P0 | L | open | US-027, US-113 |
 | US-120 | Cross-chain auto-discovery via `/v2/contract/all-chains/{address}` for Sourcify entries | B | P1 | S | open | US-113 |
 | US-121 | Bytecode similarity submit flow: POST `/v2/verify/similarity/{chainId}/{address}` → poll → re-fetch → re-evaluate score | B | P1 | M | open | US-113 |
@@ -181,6 +183,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-128 | Playwright scenario: public-read fallback subject (no `agent-bench:bench_manifest` in fixtures; tier ceiling A) | A | P0 | S | open | US-125, US-112 |
 | US-129 | Playwright scenario: storage-collision-detected subject (fixture data shaped to trigger COLLISION in US-119) | A | P0 | M | open | US-125, US-119 |
 | US-130 | Optional Foundry fixture: deliberate storage-collision proxy upgrade (only if existing demo fixtures do not cover this for live snapshotting; decided Day 2 morning) | A | P2 | M | open | US-001..US-005 |
+| US-146 | Provision one owned `kind:"ai-agent"` ENS subject under `upgrade-siren-demo.eth` with `agent-bench:bench_manifest` text record (operator wallet 0x747E…0cfC, Sourcify projects = our demo proxies, GitHub owner = repo org). Demonstrates universal-subject-registry shape live for ENS AI Agents track judging. Per Section 13 update 2026-05-09. | A | P0 | S | open | US-117 |
 
 ### Bench Mode — Stream C (Web UX, /b/[name] route)
 
@@ -4463,3 +4466,122 @@ Two doc updates:
 #### Notes
 
 EPIC reference: US-110. Renumbered to US-145. Final Tracker item — represents Bench Mode as locked scope.
+
+### US-114b - GitHub source fetcher P1 enrichment
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P1 |
+| Owner | B |
+| Effort | M |
+| Sponsor | - |
+| Dependencies | US-114, US-118 |
+| Acceptance gates | - |
+| Status | open (Epic 2) |
+
+#### Scope
+
+Added per review 2026-05-09 to keep US-114 P0 budget tight. Adds the four enrichment signals to GitHub source: `ciPassRate`, `bugHygiene`, `releaseCadence`, and the three remaining `repoHygiene` sub-signals (SECURITY.md, dependabot.yml, branch protection). Score engine (US-118) already accepts these as nullable in its `MultiSourceEvidence` shape — until US-114b lands, those values are `null` and the breakdown panel renders them as `— (P1)`.
+
+#### Acceptance Criteria
+
+- [ ] All 7 P1 endpoints from EPIC Section 8.2 P1 table fetched
+- [ ] Per-repo failure does not abort whole fetch (failure isolation per repo + per endpoint)
+- [ ] 404 on branch protection (non-admin token) treated as `0` not error
+- [ ] Cache TTLs: 15min for runs/issues, 1h for content/release lists
+- [ ] Score engine receives populated `ciPassRate`, `bugHygiene`, `releaseCadence`, full `repoHygiene` after merge
+- [ ] PR body references US-114b
+
+#### Files
+
+- `packages/evidence/src/sources/github/{workflows,issues,releases,extras}.ts`
+
+#### Notes
+
+Per EPIC Section 8.2 P0/P1 split (2026-05-09 update). P1 items are explicitly null in P0 score breakdown; no schema migration needed.
+
+### US-115b - On-chain transfer-count enrichment
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P1 |
+| Owner | B |
+| Effort | M |
+| Sponsor | - |
+| Dependencies | US-115 |
+| Acceptance gates | - |
+| Status | open (Epic 2) |
+
+#### Scope
+
+Added per review 2026-05-09 because RPC alone cannot compute `txCountRecent90d` (no `eth_getLogs from==` filter). Integrates an indexer API to populate `transferCountRecent90d` + `transferCountTotal` per chain.
+
+Two backends, prefer-order:
+
+1. **Alchemy** `alchemy_getAssetTransfers` with `fromAddress` + block range. Existing `ALCHEMY_RPC_*` keys may already cover this depending on tier; check.
+2. **Etherscan** `txlist` action filtered to last 90d. Requires separate `ETHERSCAN_API_KEY`.
+
+If neither key is present, the relevance `onchainRecency` formula falls back to `nonce / cap 1000` per EPIC Section 10.3 update — no hard error, just a degraded recency signal surfaced in the drawer.
+
+#### Acceptance Criteria
+
+- [ ] Backend selection: Alchemy first if `ALCHEMY_API_KEY` (separate from existing `ALCHEMY_RPC_*` if needed); Etherscan fallback if `ETHERSCAN_API_KEY`
+- [ ] Per-chain failure isolation
+- [ ] Returns `OnChainTransferResult` with `transferCountRecent90d`, `transferCountTotal`, `source: 'alchemy' | 'etherscan' | 'unavailable'`
+- [ ] Score engine swaps `onchainRecency` formula based on `source`
+- [ ] PR body references US-115b
+
+#### Files
+
+- `packages/evidence/src/sources/onchain/transfers.ts`
+
+#### Notes
+
+`source: 'unavailable'` is a valid terminal state — score engine handles it via the documented fallback path.
+
+### US-146 - Provision one owned ai-agent ENS subject for live demo
+
+| Field | Value |
+|---|---|
+| Type | story |
+| Priority | P0 |
+| Owner | A |
+| Effort | S |
+| Sponsor | ENS |
+| Dependencies | US-117 |
+| Acceptance gates | GATE-29 (drawer rendering live), demo Section 14 |
+| Status | open (Epic 2) |
+
+#### Scope
+
+Added per review 2026-05-09. Without one owned `agent-bench:*` subject, the ENS AI Agents track judges see only public-read fallbacks for arbitrary ENS names — no proof that the universal-subject-registry shape exists in production. This story provisions exactly one curated subject:
+
+- ENS name: `siren-agent-demo.upgrade-siren-demo.eth` (Sepolia, owned by operator wallet `0x747E453F13B5B14313E25393Eb443fbAaA250cfC`)
+- Records: `agent-bench:owner`, `agent-bench:schema = agent-bench-manifest@1`, `agent-bench:bench_manifest = <atomic JSON>`
+- Manifest contents:
+  - `kind: "ai-agent"`
+  - `sources.sourcify`: the four existing demo proxies (`vault`, `safe`, `dangerous`, `unverified` impls; chainId 11155111)
+  - `sources.github`: claim a real org we control or know (e.g. `B2JK-Industry`); `verified: false` per v1 trust model
+  - `sources.onchain.primaryAddress`: `0x747E…0cfC`
+  - `sources.ensInternal.rootName`: `siren-agent-demo.upgrade-siren-demo.eth`
+
+Deterministic enough for the demo without further provisioning churn. The mid-demo public-read fallback (Section 14) still uses Daniel-picked existing ENS names; this owned subject is the sponsor-native opener.
+
+#### Acceptance Criteria
+
+- [ ] `scripts/provision-ens-bench.ts` (or extends existing `scripts/provision-ens.ts`) writes all 3 records via operator wallet
+- [ ] `agent-bench:bench_manifest` JSON validates against schema in US-111
+- [ ] Live ENS resolution returns the manifest (verified via `cast` or viem ensjs)
+- [ ] Live `/b/siren-agent-demo.upgrade-siren-demo.eth` renders source grid with all 4 tiles populated
+- [ ] PR body references US-146 + EPIC Section 13
+
+#### Files
+
+- `scripts/provision-ens-bench.ts` (or extends `scripts/provision-ens.ts`)
+- `apps/web/public/manifests/siren-agent-demo.upgrade-siren-demo.eth.json` (manifest source-of-truth committed to repo for reproducibility)
+
+#### Notes
+
+Stream A only needs operator key (`OPERATOR_PRIVATE_KEY`) — same key custody as Epic 1 ENS provisioning. No new contracts deployed. Effort `S` because the script primitive already exists from Epic 1 US-010.
