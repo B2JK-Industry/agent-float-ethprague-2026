@@ -23,17 +23,18 @@ describe("LoadingChecklist", () => {
 
   it("shows duration in ms for successful steps and omits it for non-success", () => {
     render(<LoadingChecklist steps={ALL_STEPS} />);
-    expect(screen.getByText("412ms")).toBeInTheDocument();
-    expect(screen.getByText("320ms")).toBeInTheDocument();
-    // Pending and running rows must not render any "Nms" badge.
+    // Layout v2 (Bench v3 polish): "Nms" → "N ms" with thin space for readability.
+    expect(screen.getByText("412 ms")).toBeInTheDocument();
+    expect(screen.getByText("320 ms")).toBeInTheDocument();
+    // Pending and running rows must not render any duration badge.
     const pendingRow = screen
       .getAllByRole("listitem")
       .find((row) => row.getAttribute("data-key") === "diff");
-    expect(pendingRow?.textContent).not.toMatch(/\d+ms/);
+    expect(pendingRow?.textContent).not.toMatch(/\d+\s?ms/);
     const runningRow = screen
       .getAllByRole("listitem")
       .find((row) => row.getAttribute("data-key") === "sourcify");
-    expect(runningRow?.textContent).not.toMatch(/\d+ms/);
+    expect(runningRow?.textContent).not.toMatch(/\d+\s?ms/);
   });
 
   it("renders the failure error message inside an alert role", () => {
@@ -66,7 +67,7 @@ describe("LoadingChecklist", () => {
     expect(
       screen.getByRole("listitem").getAttribute("data-status"),
     ).toBe("success");
-    expect(screen.getByText("92ms")).toBeInTheDocument();
+    expect(screen.getByText("92 ms")).toBeInTheDocument();
   });
 
   it("uses an accessible label on the list", () => {

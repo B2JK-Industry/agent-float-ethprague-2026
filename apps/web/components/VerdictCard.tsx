@@ -149,13 +149,13 @@ export function VerdictCard({
       </div>
 
       <div
-        className="flex flex-wrap items-center gap-2 border-t border-border-strong/60 px-7 py-4"
+        className="flex flex-wrap items-center gap-3 border-t border-border-strong px-7 py-4"
         aria-label="Verdict badges"
       >
         <SignatureStatusBadge auth={auth} />
         <span
           data-mode-pill={mode}
-          className={`inline-flex items-center rounded-full border px-2.5 py-0.5 font-mono text-xs ${MODE_PILL_CLASS[mode]}`}
+          className={`inline-flex items-center border px-3 py-1 font-mono text-xs uppercase tracking-[0.18em] ${MODE_PILL_CLASS[mode]}`}
         >
           {MODE_LABEL[mode]}
         </span>

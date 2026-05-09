@@ -50,7 +50,8 @@ describe("ImplementationComparison", () => {
     const unverified = screen
       .getByTestId("impl-current")
       .querySelector('[data-verification="unverified"]');
-    expect(unverified?.textContent).toBe("unverified");
+    // Layout v2 (Bench v3 polish): glyph + label inline ("× unverified").
+    expect(unverified?.textContent).toMatch(/unverified/);
   });
 
   it("renders 'none' when previous address is null", () => {

@@ -143,9 +143,10 @@ export function EvidenceDrawer({
         aria-controls="evidence-drawer"
         // min-h/-w 44px enforces the iOS HIG / WCAG 2.5.5 minimum tap-target
         // size on touch viewports — asserted by the US-054 mobile e2e spec.
-        className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center border border-[color:var(--color-t1)] px-4 py-2 text-sm"
+        className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-2 border border-accent bg-bg px-5 py-3 font-mono text-sm uppercase tracking-[0.18em] text-accent hover:bg-accent hover:text-bg"
       >
-        Evidence
+        Open evidence
+        <span aria-hidden>→</span>
       </button>
       {open ? (
         <aside
@@ -154,22 +155,48 @@ export function EvidenceDrawer({
           role="dialog"
           aria-modal="true"
           aria-label="Evidence drawer"
-          className="fixed right-0 top-0 z-50 h-full w-full max-w-md overflow-y-auto bg-[color:var(--color-raised)] p-6 shadow-xl"
+          className="fixed right-0 top-0 z-50 h-full w-full max-w-md overflow-y-auto border-l border-border-strong bg-raised p-6"
         >
           <button
             ref={closeButtonRef}
             type="button"
             onClick={() => setOpen(false)}
             aria-label="Close evidence drawer"
-            className="absolute right-4 top-4 text-2xl leading-none"
+            className="absolute right-4 top-4 font-mono text-xl leading-none text-t2 hover:text-accent"
           >
             ×
           </button>
 
-          <h2 className="mb-4 text-lg font-bold">Evidence</h2>
+          <span
+            className="font-mono text-t3"
+            style={{
+              fontSize: "10px",
+              textTransform: "uppercase",
+              letterSpacing: "0.18em",
+            }}
+          >
+            Verdict pipeline · open ledger
+          </span>
+          <h2 className="mb-4 mt-1 font-display text-2xl font-semibold text-t1">
+            Evidence
+          </h2>
+          <div
+            aria-hidden="true"
+            className="mb-4"
+            style={{ borderTop: "1px dotted var(--color-border)", height: 0 }}
+          />
 
-          <section aria-label="Sourcify links" className="mb-4">
-            <h3 className="mb-2 text-sm font-bold">Sourcify</h3>
+          <section aria-label="Sourcify links" className="mb-5">
+            <h3
+              className="mb-2 font-mono text-t3"
+              style={{
+                fontSize: "10px",
+                textTransform: "uppercase",
+                letterSpacing: "0.18em",
+              }}
+            >
+              Sourcify
+            </h3>
             <ul className="flex flex-col gap-1 text-sm">
               {report.sourcify.links.length === 0 &&
               report.sourcify.currentVerified === false &&
@@ -212,8 +239,17 @@ export function EvidenceDrawer({
             </div>
           ) : null}
 
-          <section aria-label="ABI summary" className="mb-4">
-            <h3 className="mb-2 text-sm font-bold">ABI</h3>
+          <section aria-label="ABI summary" className="mb-5">
+            <h3
+              className="mb-2 font-mono text-t3"
+              style={{
+                fontSize: "10px",
+                textTransform: "uppercase",
+                letterSpacing: "0.18em",
+              }}
+            >
+              ABI
+            </h3>
             {abiSummary ? (
               <p className="text-sm">
                 {abiSummary.selectorCount} selectors,{" "}
@@ -240,7 +276,16 @@ export function EvidenceDrawer({
             className="mb-4"
           >
             <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-sm font-bold">Source diff</h3>
+              <h3
+                className="font-mono text-t3"
+                style={{
+                  fontSize: "10px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.18em",
+                }}
+              >
+                Source diff
+              </h3>
               {sourceDiff && sourceDiff.files.length > 0 ? (
                 <button
                   type="button"
@@ -277,8 +322,17 @@ export function EvidenceDrawer({
             )}
           </section>
 
-          <section aria-label="Storage layout" className="mb-4">
-            <h3 className="mb-2 text-sm font-bold">Storage layout</h3>
+          <section aria-label="Storage layout" className="mb-5">
+            <h3
+              className="mb-2 font-mono text-t3"
+              style={{
+                fontSize: "10px",
+                textTransform: "uppercase",
+                letterSpacing: "0.18em",
+              }}
+            >
+              Storage layout
+            </h3>
             {storageSummary ? (
               <span
                 data-storage-tag={storageSummary.tag}
@@ -298,9 +352,10 @@ export function EvidenceDrawer({
             <a
               href={reportUrl}
               download
-              className="inline-block border border-[color:var(--color-t1)] px-3 py-1 text-sm"
+              className="inline-flex items-center gap-2 border border-accent bg-bg px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-accent hover:bg-accent hover:text-bg"
             >
               Download report JSON
+              <span aria-hidden>↓</span>
             </a>
           ) : null}
         </aside>
