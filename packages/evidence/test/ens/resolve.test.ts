@@ -46,7 +46,7 @@ describe('resolveEnsRecords', () => {
       [UPGRADE_SIREN_RECORD_KEYS.owner]: '0x2222222222222222222222222222222222222222',
       [UPGRADE_SIREN_RECORD_KEYS.schema]: 'ipfs://QmRecordSchema',
       [UPGRADE_SIREN_RECORD_KEYS.upgradeManifest]:
-        '{"schema":"siren-upgrade-manifest@1","chainId":11155111}',
+        '{"schema":"upgrade-siren-manifest@1","chainId":11155111}',
     };
     const client = makeClient(async (key) => recordValues[key] ?? null);
 
@@ -61,7 +61,7 @@ describe('resolveEnsRecords', () => {
       expect(result.records.proxy).toBe('0x1111111111111111111111111111111111111111');
       expect(result.records.owner).toBe('0x2222222222222222222222222222222222222222');
       expect(result.records.schema).toBe('ipfs://QmRecordSchema');
-      expect(result.records.upgradeManifestRaw).toContain('siren-upgrade-manifest@1');
+      expect(result.records.upgradeManifestRaw).toContain('upgrade-siren-manifest@1');
       expect(result.flags).toEqual({
         chainIdPresent: true,
         proxyPresent: true,
