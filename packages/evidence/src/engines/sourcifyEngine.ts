@@ -1,9 +1,14 @@
 // Source engine wrapper for the Sourcify per-source pipeline.
-// Reads MultiSourceEvidence.sourcify (already populated by the
-// orchestrator), extracts the score-engine components for this source
-// (compileSuccess + sourcifyRecency) and produces a single
-// EngineContribution that the aggregator sums uniformly with every
-// other engine.
+//
+// Refactor 2026-05-10: axes redefined per Daniel constraint
+//   SENIORITY = quality / engineering depth / verified track record
+//   RELEVANCE = legitimacy / anti-scam / contracts-actually-exist
+//
+// Semantic move: `compileSuccess` (does verified source EXIST?) is the
+// fundamental anti-scam signal — "no source = scam risk" is exactly
+// what relevance asks. `sourcifyRecency` + `crossChainBreadth` measure
+// engineering depth (how recently they verify, how many chains they
+// deploy on) — that is seniority.
 //
 // No fetching happens here — the orchestrator owns the network. This
 // wrapper is a pure projection from the existing component extractors.
@@ -18,12 +23,16 @@ import {
   type EngineContribution,
 } from './types.js';
 
-const SOURCIFY_SENIORITY_WEIGHT_COMPILE = 0.25;  // EPIC §10.2 compileSuccess weight
-const SOURCIFY_SENIORITY_WEIGHT_BREADTH = 0.05;  // bonus weight for cross-chain breadth
-const SOURCIFY_SENIORITY_WEIGHT = SOURCIFY_SENIORITY_WEIGHT_COMPILE + SOURCIFY_SENIORITY_WEIGHT_BREADTH;
-const SOURCIFY_RELEVANCE_WEIGHT = 0.30;          // EPIC §10.3 sourcifyRecency weight
-const CROSS_CHAIN_BREADTH_CAP = 5;               // capped — past 5 chains diminishing returns
-const COMPILER_OUTDATED_PENALTY = 0.10;          // anti-signal when compiler is not recent
+// Per-component weights (sum to per-axis total)
+const SOURCIFY_SEN_RECENCY_W = 0.10;       // recent verification = active engineering
+const SOURCIFY_SEN_BREADTH_W = 0.10;       // multi-chain deployment = depth
+const SOURCIFY_SENIORITY_WEIGHT = SOURCIFY_SEN_RECENCY_W + SOURCIFY_SEN_BREADTH_W; // 0.20
+
+const SOURCIFY_REL_COMPILE_W = 0.20;       // verified source exists (anti-scam)
+const SOURCIFY_RELEVANCE_WEIGHT = SOURCIFY_REL_COMPILE_W;
+
+const CROSS_CHAIN_BREADTH_CAP = 5;
+const COMPILER_OUTDATED_PENALTY = 0.10;    // anti-signal: outdated solc = security risk
 
 export const sourcifyEngine: SourceEngine = {
   id: 'sourcify',
@@ -32,7 +41,7 @@ export const sourcifyEngine: SourceEngine = {
     weight: 1,
     trustFloor: 1.0,
     trustCeiling: 1.0,
-    timeoutMs: 100, // pure projection, no network
+    timeoutMs: 100,
     thresholds: {},
   },
   async evaluate(evidence, _ctx, params): Promise<EngineContribution> {
@@ -58,20 +67,23 @@ export const sourcifyEngine: SourceEngine = {
     }
 
     const compileValue = compile.value ?? 0;
-    const relevanceValue = recency.value ?? 0;
+    const recencyValue = recency.value ?? 0;
 
-    // Cross-chain breadth: number of unique chainIds across all OK entries.
+    // Cross-chain breadth — unique chainIds across OK entries / cap.
     const uniqueChains = new Set(
       okEntries.map((e) => (e.kind === 'ok' ? e.chainId : 0)).filter((c) => c > 0),
     ).size;
     const breadthValue = Math.min(1, uniqueChains / CROSS_CHAIN_BREADTH_CAP);
 
-    // Compose weighted seniority — compileSuccess (0.25) + crossChainBreadth (0.05).
+    // Seniority axis — sourcifyRecency + crossChainBreadth (depth signals).
     const seniorityValue =
-      compileValue * (SOURCIFY_SENIORITY_WEIGHT_COMPILE / SOURCIFY_SENIORITY_WEIGHT) +
-      breadthValue * (SOURCIFY_SENIORITY_WEIGHT_BREADTH / SOURCIFY_SENIORITY_WEIGHT);
+      recencyValue * (SOURCIFY_SEN_RECENCY_W / SOURCIFY_SENIORITY_WEIGHT) +
+      breadthValue * (SOURCIFY_SEN_BREADTH_W / SOURCIFY_SENIORITY_WEIGHT);
 
-    // Anti-signals — compiler outdated + per-entry sourcify errors.
+    // Relevance axis — compileSuccess (anti-scam: contracts exist + verified).
+    const relevanceValue = compileValue;
+
+    // Anti-signals — relevance only (outdated compiler = scam vulnerability).
     const antiSignals: AntiSignalEntry[] = [];
     let outdatedCompilerCount = 0;
     for (const entry of okEntries) {
@@ -82,7 +94,6 @@ export const sourcifyEngine: SourceEngine = {
       }
     }
     if (outdatedCompilerCount > 0 && okEntries.length > 0) {
-      // Penalty proportional to fraction of outdated compilers, capped.
       const penalty = Math.min(
         COMPILER_OUTDATED_PENALTY,
         (outdatedCompilerCount / okEntries.length) * COMPILER_OUTDATED_PENALTY,
@@ -90,7 +101,7 @@ export const sourcifyEngine: SourceEngine = {
       antiSignals.push({
         name: 'compiler_outdated',
         penalty,
-        reason: `${outdatedCompilerCount}/${okEntries.length} contracts compiled with stale solc (< 0.8.20 baseline or prerelease)`,
+        reason: `${outdatedCompilerCount}/${okEntries.length} contracts compiled with stale solc — security risk`,
       });
     }
     for (const e of errorEntries) {
@@ -134,55 +145,43 @@ export const sourcifyEngine: SourceEngine = {
       liveness: exists ? 1 : 0,
       seniority: seniorityValue,
       relevance: relevanceValue,
-      trust: params.trustFloor, // verified — 1.0
+      trust: params.trustFloor,
       weight: SOURCIFY_SENIORITY_WEIGHT + SOURCIFY_RELEVANCE_WEIGHT,
       seniorityWeight: SOURCIFY_SENIORITY_WEIGHT,
       relevanceWeight: SOURCIFY_RELEVANCE_WEIGHT,
       signals: {
         seniorityBreakdown: [
           {
-            name: 'compileSuccess',
-            value: compileValue,
-            weight: SOURCIFY_SENIORITY_WEIGHT_COMPILE,
-            raw: { status: compile.status, count: okEntries.length },
+            name: 'sourcifyRecency',
+            value: recencyValue,
+            weight: SOURCIFY_SEN_RECENCY_W,
+            raw: { status: recency.status },
           },
           {
             name: 'crossChainBreadth',
             value: breadthValue,
-            weight: SOURCIFY_SENIORITY_WEIGHT_BREADTH,
+            weight: SOURCIFY_SEN_BREADTH_W,
             raw: { uniqueChains, cap: CROSS_CHAIN_BREADTH_CAP },
           },
         ],
         relevanceBreakdown: [
           {
-            name: 'sourcifyRecency',
-            value: relevanceValue,
-            weight: SOURCIFY_RELEVANCE_WEIGHT,
-            raw: { status: recency.status },
+            name: 'compileSuccess',
+            value: compileValue,
+            weight: SOURCIFY_REL_COMPILE_W,
+            raw: { status: compile.status, count: okEntries.length },
           },
         ],
         antiSignals,
       },
       evidence: [
-        {
-          label: 'Sourcify entries',
-          value: `${okEntries.length} ok · ${errorEntries.length} error`,
-        },
+        { label: 'Sourcify entries', value: `${okEntries.length} ok · ${errorEntries.length} error` },
         { label: 'Cross-chain breadth', value: `${uniqueChains} chain(s)` },
-        {
-          label: 'compileSuccess',
-          value: compile.value === null ? '— (no data)' : compile.value.toFixed(2),
-        },
-        {
-          label: 'sourcifyRecency',
-          value: recency.value === null ? '— (no data)' : recency.value.toFixed(2),
-        },
+        { label: 'compileSuccess', value: compileValue.toFixed(2) },
+        { label: 'sourcifyRecency', value: recencyValue.toFixed(2) },
         { label: 'Dominant license', value: dominantLicense ?? '—' },
         { label: 'Compiler version', value: mostRecentCompilerVersion ?? '—' },
-        {
-          label: 'Outdated compilers',
-          value: `${outdatedCompilerCount} / ${okEntries.length}`,
-        },
+        { label: 'Outdated compilers', value: `${outdatedCompilerCount} / ${okEntries.length}` },
       ],
       confidence,
       durationMs: performance.now() - start,

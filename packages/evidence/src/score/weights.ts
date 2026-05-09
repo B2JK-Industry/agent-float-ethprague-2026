@@ -62,13 +62,25 @@ export const AXIS_WEIGHTS = {
   relevance: 0.5,
 } as const;
 
-// Tier thresholds (EPIC §10.1). S unreachable in v1 because GitHub
-// trust factor is locked at 0.6 — math caps v1 maximum at 79.
+// Tier thresholds (EPIC §10.1).
+//
+// Refactor 2026-05-10: thresholds re-calibrated for the rebalanced
+// axis architecture (seniority=quality, relevance=anti-scam) where
+// per-axis sum=1.0 invariant is enforced and trust-discount math
+// makes realistic max axis ~0.55-0.65 rather than the old 0.79
+// pre-refactor ceiling.
+//
+// New tier mapping (score_100 = round(0.5*sen + 0.5*rel * 100)):
+//   S 65+   exceptional (must clear all engines + cross-sign GitHub)
+//   A 50-64 strong (mature subject, multi-source verified)
+//   B 35-49 mid (some signals, partial coverage)
+//   C 20-34 emerging (recent activity, sparse depth)
+//   D 0-19  unrated / scam-shaped (very few signals, anti-scam triggers)
 export const TIER_THRESHOLDS = {
-  S: 90,
-  A: 75,
-  B: 60,
-  C: 45,
+  S: 65,
+  A: 50,
+  B: 35,
+  C: 20,
   D: 0,
 } as const;
 

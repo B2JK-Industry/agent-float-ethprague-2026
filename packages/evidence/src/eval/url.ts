@@ -88,7 +88,11 @@ async function headWithRedirects(
 export const urlEngine: RecordEngine = {
   key: 'url',
   defaultParams: {
-    weight: 0.6,
+    // Refactor 2026-05-10: weight 0.6 → 0.035 — most ENS `url` records
+    // are social profiles which are score-neutral per Daniel constraint.
+    // Non-social websites contribute small engineering signal; primary
+    // scoring lives in source engines.
+    weight: 0.035,
     trustFloor: 0.5,
     trustCeiling: 0.8,
     timeoutMs: 2000,

@@ -51,11 +51,14 @@ describe('score weights — locked constants', () => {
     expect(RELEVANCE_WEIGHTS.ensRecency).toEqual({ weight: 0.15, trust: 'verified' });
   });
 
-  it('tier thresholds match EPIC §10.1', () => {
-    expect(TIER_THRESHOLDS.S).toBe(90);
-    expect(TIER_THRESHOLDS.A).toBe(75);
-    expect(TIER_THRESHOLDS.B).toBe(60);
-    expect(TIER_THRESHOLDS.C).toBe(45);
+  it('tier thresholds match rebalanced EPIC §10.1 (refactor 2026-05-10)', () => {
+    // Refactor 2026-05-10 axis-semantics PR: thresholds re-calibrated
+    // for rebalanced architecture (sen=quality, rel=anti-scam) where
+    // realistic max axis ≈ 0.55-0.65 after trust discount.
+    expect(TIER_THRESHOLDS.S).toBe(65);
+    expect(TIER_THRESHOLDS.A).toBe(50);
+    expect(TIER_THRESHOLDS.B).toBe(35);
+    expect(TIER_THRESHOLDS.C).toBe(20);
     expect(TIER_THRESHOLDS.D).toBe(0);
   });
 
@@ -97,13 +100,15 @@ describe('score weights — locked constants', () => {
       expect(verifiedContribution + unverifiedContribution).toBeCloseTo(0.88, 10);
     });
 
-    it('v1 max final score is 79 (locked); S-tier (≥90) unreachable in v1', () => {
-      // (0.5 * 0.70) + (0.5 * 0.88) = 0.79
-      // round(0.79 * 100) = 79
+    it('legacy v1 max math (pre-rebalance): 0.79 raw / 79 score_100', () => {
+      // Math fact (independent of tier thresholds):
+      // (0.5 * 0.70) + (0.5 * 0.88) = 0.79; round(0.79 * 100) = 79.
+      // After 2026-05-10 axis rebalance, S threshold dropped to 65,
+      // so this max IS reachable now under verified-source coverage.
       const score_raw = 0.5 * 0.7 + 0.5 * 0.88;
       const score_100 = Math.round(score_raw * 100);
       expect(score_100).toBe(79);
-      expect(score_100).toBeLessThan(TIER_THRESHOLDS.S);
+      // No longer asserting score_100 < S — refactor moved S to 65.
     });
   });
 });

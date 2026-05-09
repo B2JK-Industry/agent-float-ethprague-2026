@@ -56,7 +56,9 @@ export const descriptionEngine: RecordEngine = {
   key: 'description',
 
   defaultParams: {
-    weight: 0.10,
+    // Refactor 2026-05-10: weight tuned to 0.04 to fit per-axis sum=1.0
+    // invariant. Text analysis = supplementary signal, not primary input.
+    weight: 0.04,
     trustFloor: 0,
     trustCeiling: 1,
     timeoutMs: 500,
