@@ -10,11 +10,11 @@ describe("MockBadge", () => {
     expect(screen.queryByLabelText("Mock data path")).not.toBeInTheDocument();
   });
 
-  it("renders the default MOCK label when visible", () => {
+  it("renders the canonical 'mock: true' label by default per GATE-14", () => {
     render(<MockBadge visible={true} />);
     const badge = screen.getByLabelText("Mock data path");
     expect(badge).toBeInTheDocument();
-    expect(badge.textContent).toBe("MOCK");
+    expect(badge.textContent).toBe("mock: true");
     expect(badge.getAttribute("data-mock")).toBe("true");
   });
 

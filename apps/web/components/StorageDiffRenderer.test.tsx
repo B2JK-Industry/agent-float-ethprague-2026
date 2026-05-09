@@ -82,6 +82,28 @@ describe("StorageDiffRenderer", () => {
     expect(table.textContent).toMatch(/changed type/);
   });
 
+  it("renders the diff position (not the row index) in the # column (Codex P2 fix)", () => {
+    const laterPosition: StorageDiffResult = {
+      kind: "incompatible_reordered",
+      changes: [
+        {
+          position: 7,
+          previous: { slot: "0x7", offset: 0, type: "address", label: "owner" },
+          current: { slot: "0x8", offset: 0, type: "address", label: "owner" },
+          note: 'variable "owner" moved (0x7:0 -> 0x8:0)',
+        },
+      ],
+      appended: [],
+    };
+    render(<StorageDiffRenderer diff={laterPosition} />);
+    const row = screen
+      .getByRole("table", { name: /storage layout changes/i })
+      .querySelector('tr[data-position="7"]');
+    expect(row).not.toBeNull();
+    // First column shows position (7), not row index (0).
+    expect(row?.querySelector("td")?.textContent).toBe("7");
+  });
+
   it("renders incompatible_reordered with the siren tone", () => {
     render(<StorageDiffRenderer diff={REORDERED} />);
     expect(

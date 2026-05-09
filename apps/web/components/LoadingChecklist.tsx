@@ -19,6 +19,17 @@ const GLYPHS: Record<StepStatus, string> = {
   failure: "×",
 };
 
+// Screen-reader status announcements. The visible glyph carries the same
+// information visually but is `aria-hidden` so it never reads as a literal
+// "circle" / "half-circle" character; this label is what assistive tech
+// announces for the row.
+const STATUS_SR_LABEL: Record<StepStatus, string> = {
+  pending: "pending",
+  running: "in progress",
+  success: "succeeded",
+  failure: "failed",
+};
+
 const GLYPH_COLOR_VAR: Record<StepStatus, string> = {
   pending: "var(--color-t2)",
   running: "var(--color-t1)",
@@ -48,6 +59,10 @@ export function LoadingChecklist({
             style={{ color: GLYPH_COLOR_VAR[step.status] }}
           >
             {GLYPHS[step.status]}
+          </span>
+          <span className="sr-only">
+            {STATUS_SR_LABEL[step.status]}
+            {": "}
           </span>
           <span className="flex-1">{step.label}</span>
           {step.status === "running" ? (

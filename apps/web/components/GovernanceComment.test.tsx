@@ -87,6 +87,22 @@ describe("governanceTemplates", () => {
     expect(text).toMatch(/SIREN/);
   });
 
+  it("preserves the full report URL even when the ENS name is long enough to force clamping (Codex P2 fix)", () => {
+    const longName = `${"a".repeat(180)}.upgrade-siren-demo.eth`;
+    const text = shortTemplate(reportFixture(), longName, REPORT_URL);
+    expect(text.length).toBeLessThanOrEqual(SHORT_MAX_CHARS);
+    expect(text).toContain(REPORT_URL);
+    expect(text).toMatch(/SIREN/);
+    // The clamp lands on the *head*, not the URL.
+    expect(text.endsWith(REPORT_URL)).toBe(true);
+  });
+
+  it("falls back to a whole-string clamp only when the URL alone exceeds the cap", () => {
+    const giantUrl = `https://reports.upgradesiren.app/${"x".repeat(SHORT_MAX_CHARS)}.json`;
+    const text = shortTemplate(reportFixture(), NAME, giantUrl);
+    expect(text.length).toBeLessThanOrEqual(SHORT_MAX_CHARS);
+  });
+
   it("vote-reason template fits within VOTE_REASON_MAX_CHARS", () => {
     const text = voteReasonTemplate(reportFixture(), NAME);
     expect(text.length).toBeLessThanOrEqual(VOTE_REASON_MAX_CHARS);
