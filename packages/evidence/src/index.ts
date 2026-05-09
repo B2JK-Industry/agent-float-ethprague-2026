@@ -135,3 +135,12 @@ export type {
 } from './manifest/types.js';
 
 export { MANIFEST_SCHEMA_V1 } from './manifest/types.js';
+
+export { classifyAbsentRecord } from './verdict/absentRecords.js';
+
+export type {
+  AbsentRecordInput,
+  AbsentRecordMode,
+  AbsentRecordVerdict,
+  AbsentRecordVerdictReason,
+} from './verdict/absentRecords.js';
