@@ -140,6 +140,15 @@ export interface OrchestrateSubjectOptions {
   readonly chainId?: number;
   readonly rpcUrl?: string;
   readonly client?: PublicClient;
+  // Per-chain client map. When the on-chain fan-out hits a chain present
+  // in this map, that chain's client is used. Without this map, the
+  // legacy `client` field is only honored when its `chain.id` matches the
+  // queried chain — otherwise resolveClient() in the activity fetcher
+  // builds a fresh per-chain client. This prevents the prior wrong-chain
+  // routing where a single mainnet `client` was used for the sepolia
+  // fan-out leg, silently reading mainnet nonces against a sepolia
+  // address (audit-round-7 P0 #1).
+  readonly clients?: ReadonlyMap<number, PublicClient>;
   readonly subjectOptions?: ResolveSubjectOptions;
   readonly publicReadOptions?: InferSubjectFromPublicReadOptions;
   readonly sourcifyDeepOptions?: FetchSourcifyDeepOptions;
@@ -333,6 +342,7 @@ async function fetchOneOnchain(
   address: Address,
   options: FetchOnchainActivityOptions | undefined,
   fallbackClient: PublicClient | undefined,
+  clients: ReadonlyMap<number, PublicClient> | undefined,
   budgetMs: number,
 ): Promise<OnchainEntryEvidence> {
   const label = `onchain:${chainId}:${address}`;
@@ -343,11 +353,32 @@ async function fetchOneOnchain(
       // background and is GC'd. Best-effort cancellation; the demo
       // outcome (orchestrator returns within budget) is preserved.
       async (_signal) => {
+        // Per-chain client resolution (audit-round-7 P0 #1):
+        //   1. baseOpts.client — explicit per-fetch override (rare).
+        //   2. clients[chainId] — caller pre-built per-chain map.
+        //   3. fallbackClient IFF its chain.id matches chainId. The
+        //      legacy single-client option is only honored when the
+        //      chain matches; otherwise the prior bug fired (mainnet
+        //      client injected into the sepolia fan-out leg, returning
+        //      mainnet nonces against a sepolia address).
+        //   4. undefined → fetchOnchainActivity's resolveClient() builds
+        //      a fresh per-chain viem client via http(rpcUrl).
         const baseOpts = options ?? {};
+        let resolved: PublicClient | undefined;
+        if (baseOpts.client !== undefined) {
+          resolved = baseOpts.client;
+        } else if (clients !== undefined && clients.has(chainId)) {
+          resolved = clients.get(chainId);
+        } else if (
+          fallbackClient !== undefined &&
+          fallbackClient.chain?.id === chainId
+        ) {
+          resolved = fallbackClient;
+        } else {
+          resolved = undefined;
+        }
         const opts: FetchOnchainActivityOptions =
-          baseOpts.client === undefined && fallbackClient !== undefined
-            ? { ...baseOpts, client: fallbackClient }
-            : { ...baseOpts };
+          resolved !== undefined ? { ...baseOpts, client: resolved } : { ...baseOpts };
         const res = await fetchOnchainActivity(chainId, address, opts);
         if (res.kind === 'error') {
           return { kind: 'error' as const, chainId, reason: res.reason, message: res.message };
@@ -494,6 +525,7 @@ export async function orchestrateSubject(
             identity.primaryAddress as Address,
             options.onchainOptions,
             options.client,
+            options.clients,
             budgets.onchain,
           ),
         ),

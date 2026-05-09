@@ -43,11 +43,24 @@ function ciPassRatePill(repo: GithubRepoP0): {
   variant: TrustPillVariant;
   label: string;
 } {
+  // Three CI states (audit-round-7 P0 #4 differentiated):
+  //   1. ciRuns absent (null/undefined) — fetcher couldn't enumerate
+  //      workflow runs (no workflows, missing PAT scope, transient
+  //      probe failure). Variant `missing` — dashed-border "no data"
+  //      treatment.
+  //   2. ciRuns present, total === 0 — fetcher saw workflows but no
+  //      runs have occurred yet (newly created repo, all runs older
+  //      than the 90-day window). Variant `discounted` — solid border
+  //      with the discounted hue, signaling "computed, signal is
+  //      structurally zero". Crucially distinct from `missing` so a
+  //      repo with no signal is not visually conflated with a repo
+  //      whose data we couldn't fetch.
+  //   3. ciRuns.total > 0 — real pass-rate ratio.
   if (!repo.ciRuns) {
     return { variant: "missing", label: "× 0.00" };
   }
   if (repo.ciRuns.total === 0) {
-    return { variant: "missing", label: "× 0.00" };
+    return { variant: "discounted", label: "× 0.00" };
   }
   const ratio = repo.ciRuns.successful / repo.ciRuns.total;
   return {

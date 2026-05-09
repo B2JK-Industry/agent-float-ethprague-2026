@@ -293,10 +293,19 @@ export function ScoreBanner({
       </p>
 
       {/* Tier ladder — renders the S row with v2 footnote. Per launch
-          prompt 2026-05-09: don't hide S; don't imply it's reachable. */}
+          prompt 2026-05-09: don't hide S; don't imply it's reachable.
+          Default-expanded (audit-round-7 P0 #3): the v1 ceiling
+          footnote on the S row ("v2: requires verified GitHub
+          cross-sign") is the explicit honesty signal that S is
+          unreachable in v1. Hiding it behind a collapsed disclosure
+          undermined the disclosure itself — judges and users had to
+          click to see why their score couldn't reach the top. The
+          ladder remains collapsible so users can dismiss it after
+          reading. */}
       <details
         data-block="tier-ladder"
         className="mt-6 border-t border-border pt-4"
+        open
       >
         <summary
           className="cursor-pointer font-mono uppercase text-t3"
