@@ -1,12 +1,16 @@
-import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 import {
   AGENT_BENCH_MANIFEST_SCHEMA_V1,
   type SubjectManifest,
 } from '@upgrade-siren/shared';
+
+// Inline schema import. Vercel build bundles only TS sources + dist; the
+// JSON schema lives at packages/shared/schemas/ and was being read at
+// runtime via readFileSync which broke under Next.js server-component
+// bundling (ENOENT '/vercel/path0/packages/shared/schemas/...'). Sibling
+// .json import lets the bundler include the file in the lambda artifact.
+import schemaJson from './agent-bench-manifest-v1.json' with { type: 'json' };
 
 import type { SubjectSchemaError } from './types.js';
 
@@ -37,26 +41,13 @@ const cjsRequire = createRequire(import.meta.url);
 const Ajv2020 = cjsRequire('ajv/dist/2020.js') as unknown as AjvCtor;
 const addFormats = cjsRequire('ajv-formats') as unknown as AddFormats;
 
-const here = dirname(fileURLToPath(import.meta.url));
-// packages/evidence/src/subject/validate.ts -> packages/shared/schemas/...
-const schemaPath = resolve(
-  here,
-  '..',
-  '..',
-  '..',
-  'shared',
-  'schemas',
-  'agent-bench-manifest-v1.json',
-);
-
 let cachedValidator: ValidateFn | null = null;
 
 function loadValidator(): ValidateFn {
   if (cachedValidator !== null) return cachedValidator;
-  const schema = JSON.parse(readFileSync(schemaPath, 'utf-8')) as Record<string, unknown>;
   const ajv = new Ajv2020({ allErrors: true, strict: true });
   addFormats(ajv);
-  cachedValidator = ajv.compile(schema);
+  cachedValidator = ajv.compile(schemaJson as Record<string, unknown>);
   return cachedValidator;
 }
 
