@@ -106,7 +106,7 @@ Tracker-only owners (not picked up by dev agents):
 | US-052 | Five-second-rule performance check | C | P0 | S | merged | US-042, US-043, US-068 |
 | US-053 | Share-verdict link with precomputed result | C | P1 | M | merged | US-042 |
 | US-054 | Mobile responsive layout check (viewport <= 768px) | C | P1 | S | merged | US-042, US-045 |
-| US-055 | Accessibility pass for WCAG AA and screen-reader status labels | C | P1 | M | open | US-042, US-045 |
+| US-055 | Accessibility pass for WCAG AA and screen-reader status labels | C | P1 | M | merged | US-042, US-045 |
 | US-056 | Siren Agent watchlist config | C | P2 | M | open | US-029 |
 | US-057 | Operator report-signing workflow UX for Siren Agent automation | C | P2 | M | open | US-015, US-056 |
 | US-058 | Umia-style due-diligence panel | C | P2 | M | open | US-029 |
@@ -2505,7 +2505,7 @@ P1 because public-good positioning demands a11y, but the gate-listed tests do no
 | Sponsor | Umia |
 | Dependencies | US-029 |
 | Acceptance gates | - |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
