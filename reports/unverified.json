@@ -1,10 +1,10 @@
 {
   "schema": "siren-report@1",
-  "name": "unverified.demo.upgradesiren.eth",
+  "name": "unverified.upgrade-siren-demo.eth",
   "chainId": 11155111,
-  "proxy": "0x0000000000000000000000000000000000000000",
-  "previousImplementation": "0x0000000000000000000000000000000000000000",
-  "currentImplementation": "0x0000000000000000000000000000000000000000",
+  "proxy": "0x8391fa804d3755493e3C9D362D49c339C4469388",
+  "previousImplementation": "0xC53d3879aCF9Dd9d6fCF8Ed9B335A410Cc66Eb30",
+  "currentImplementation": "0x819326b9d318e1bb8c3EA73e744dEEC0c9aAbe77",
   "verdict": "SIREN",
   "summary": "Implementation is not verified on Sourcify. No source -> no upgrade. Verdict: SIREN.",
   "findings": [
@@ -13,8 +13,8 @@
       "severity": "critical",
       "title": "Implementation not verified on Sourcify",
       "evidence": {
-        "address": "0x0000000000000000000000000000000000000000",
-        "sourcify": "https://sourcify.dev/server/check-by-addresses?addresses=0x0000000000000000000000000000000000000000&chainIds=11155111",
+        "address": "0x819326b9d318e1bb8c3EA73e744dEEC0c9aAbe77",
+        "sourcify": "https://sourcify.dev/server/check-by-addresses?addresses=0x819326b9d318e1bb8c3EA73e744dEEC0c9aAbe77&chainIds=11155111",
         "note": "Sourcify returned not_found; no source means no upgrade."
       }
     }
@@ -29,16 +29,16 @@
   "ens": {
     "recordsResolvedLive": true,
     "manifestHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-    "owner": null
+    "owner": "0x747E453F13B5B14313E25393Eb443fbAaA250cfC"
   },
   "auth": {
-    "status": "unsigned",
-    "signatureType": null,
-    "signer": null,
-    "signature": null,
-    "signedAt": null
+    "status": "valid",
+    "signatureType": "EIP-712",
+    "signer": "0x747E453F13B5B14313E25393Eb443fbAaA250cfC",
+    "signature": "0xd4a35d82082683f7f4f1e93ddb82c89f8e21da5dc3b7ca02b1ef51dd04c557d66c73a44ba2b217aca2fc725843a6f57bac6241bc3370b63d6d3f36d31deb51611b",
+    "signedAt": "2026-05-09T07:44:31.803Z"
   },
   "recommendedAction": "reject",
   "mock": false,
-  "generatedAt": "2026-05-09T01:26:14Z"
+  "generatedAt": "2026-05-09T07:44:31Z"
 }

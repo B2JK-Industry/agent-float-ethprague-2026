@@ -2,45 +2,50 @@
 
 This document is the single reproduction source for the demo. It describes how the on-chain artifacts (contracts), the ENS records (manifest + ENSIP-26), and the off-chain artifacts (signed Siren Reports) tie together end-to-end.
 
-> **Status:** scripts and templates are merged; the on-chain broadcast is pending Tracker **US-060** (operator-wallet / signer custody) and Tracker **US-061** (ENS parent registration). Address fields below are populated automatically by `scripts/deploy/Deploy.s.sol` once the Sepolia broadcast runs. The structure of this document is itself part of the AC for US-013 — values are filled in post-broadcast.
+> **Status:** **LIVE on Sepolia** (broadcast 2026-05-09 after Tracker US-060 closed). All five contracts deployed, V1/V2Safe/V2Dangerous Sourcify-verified, four ENS subnames provisioned under `upgrade-siren-demo.eth`, three Siren Reports signed by the operator. Live public-read scenario is still TODO (US-062 chooses target).
+>
+> Operator wallet: `0x747E453F13B5B14313E25393Eb443fbAaA250cfC` (advertised in `upgrade-siren:owner` on every demo subname; recovers EIP-712 signatures of the three signed reports).
+> Deployer wallet: `0xD282908b524D29db87495fD6E2Bd0114eB97c3Aa`.
 
 ## 1. Contract addresses
 
 Source of truth: `deployments/sepolia.json`. Block numbers and per-deployment tx hashes live in `broadcast/Deploy.s.sol/11155111/run-latest.json` after `forge script ... --broadcast`.
 
+Deployment block: `10819434`. Chain: Sepolia (`11155111`).
+
 | Contract | Address | Sepolia explorer | Sourcify |
 |---|---|---|---|
-| `Proxy` (TransparentUpgradeableProxy, US-002) | `<populated post-broadcast: deployments/sepolia.json .proxy>` | `https://sepolia.etherscan.io/address/<addr>` | n/a (proxy itself is not the verification target) |
-| `VaultV1` (US-003) | `<.v1>` | `https://sepolia.etherscan.io/address/<addr>` | `https://sourcify.dev/#/lookup/<addr>` |
-| `VaultV2Safe` (US-004) | `<.v2safe>` | `https://sepolia.etherscan.io/address/<addr>` | `https://sourcify.dev/#/lookup/<addr>` |
-| `VaultV2Dangerous` (US-005) | `<.v2dangerous>` | `https://sepolia.etherscan.io/address/<addr>` | `https://sourcify.dev/#/lookup/<addr>` |
-| `UnverifiedImpl` (US-006) | `<.unverified>` | `https://sepolia.etherscan.io/address/<addr>` | **intentionally not verified** — `https://sourcify.dev/server/check-by-addresses?addresses=<addr>&chainIds=11155111` returns `not_found` |
+| `Proxy` (TransparentUpgradeableProxy, US-002) | `0x8391fa804d3755493e3C9D362D49c339C4469388` | https://sepolia.etherscan.io/address/0x8391fa804d3755493e3C9D362D49c339C4469388 | n/a (proxy itself is not the verification target) |
+| `VaultV1` (US-003) | `0xC53d3879aCF9Dd9d6fCF8Ed9B335A410Cc66Eb30` | https://sepolia.etherscan.io/address/0xC53d3879aCF9Dd9d6fCF8Ed9B335A410Cc66Eb30 | https://sourcify.dev/#/lookup/0xC53d3879aCF9Dd9d6fCF8Ed9B335A410Cc66Eb30 (`perfect`) |
+| `VaultV2Safe` (US-004) | `0x9A9DCb4CE0F03aCB6aa8e26905D6aBb93c95B774` | https://sepolia.etherscan.io/address/0x9A9DCb4CE0F03aCB6aa8e26905D6aBb93c95B774 | https://sourcify.dev/#/lookup/0x9A9DCb4CE0F03aCB6aa8e26905D6aBb93c95B774 (`perfect`) |
+| `VaultV2Dangerous` (US-005) | `0xfD7F5B48C260a32102AA05117C13a599B0d4d568` | https://sepolia.etherscan.io/address/0xfD7F5B48C260a32102AA05117C13a599B0d4d568 | https://sourcify.dev/#/lookup/0xfD7F5B48C260a32102AA05117C13a599B0d4d568 (`perfect`) |
+| `UnverifiedImpl` (US-006) | `0x819326b9d318e1bb8c3EA73e744dEEC0c9aAbe77` | https://sepolia.etherscan.io/address/0x819326b9d318e1bb8c3EA73e744dEEC0c9aAbe77 | **intentionally not verified** — `curl "https://sourcify.dev/server/check-by-addresses?addresses=0x819326b9d318e1bb8c3EA73e744dEEC0c9aAbe77&chainIds=11155111"` returns `status="false"` (not_found) |
 
 Sourcify verification is performed by `scripts/verify-sourcify.sh` (US-007). The four `Vault*` contracts above are submitted; `UnverifiedImpl` is deliberately excluded so the unverified-upgrade demo scenario reproduces correctly.
 
 ## 2. ENS demo subnames
 
-`ENS_PARENT` defaults to `demo.upgradesiren.eth` (Tracker US-061 finalizes the choice).
+ENS parent: **`upgrade-siren-demo.eth`** on Sepolia, owned by the operator wallet `0x747E453F13B5B14313E25393Eb443fbAaA250cfC` (registered via `scripts/register-sepolia-parent.ts` then unwrapped from NameWrapper to ENS Registry on 2026-05-09). Tracker US-061 still owns the mainnet equivalent.
 
 Each subname carries the four stable `upgrade-siren:*` records and one atomic `upgrade-siren:upgrade_manifest` JSON record. The atomic-manifest pattern is the desync mitigation: a single `setText` updates `previousImpl`, `currentImpl`, `reportUri`, `reportHash`, `version`, `effectiveFrom`, and `previousManifestHash` together.
 
-Stable records (identical across subnames except for `upgrade-siren:owner` which is fixed by US-060):
+Stable records (identical across subnames):
 
 | Record | Value |
 |---|---|
 | `upgrade-siren:chain_id` | `11155111` |
-| `upgrade-siren:proxy` | `<deployments/sepolia.json .proxy>` |
-| `upgrade-siren:owner` | `<operator wallet address; chosen in US-060>` |
+| `upgrade-siren:proxy` | `0x8391fa804d3755493e3C9D362D49c339C4469388` |
+| `upgrade-siren:owner` | `0x747E453F13B5B14313E25393Eb443fbAaA250cfC` |
 | `upgrade-siren:schema` | `upgrade-siren-manifest@1` |
 
 Per-subname `upgrade-siren:upgrade_manifest`:
 
 | Subname | `previousImpl` | `currentImpl` | Verdict |
 |---|---|---|---|
-| `vault.${ENS_PARENT}` | `<.v1>` | `<.v1>` (canonical baseline) | `SAFE` (no upgrade yet) |
-| `safe.${ENS_PARENT}` | `<.v1>` | `<.v2safe>` | `SAFE` |
-| `dangerous.${ENS_PARENT}` | `<.v1>` | `<.v2dangerous>` | `SIREN` |
-| `unverified.${ENS_PARENT}` | `<.v1>` | `<.unverified>` | `SIREN` |
+| `vault.upgrade-siren-demo.eth` | `0xC53d3879aCF9Dd9d6fCF8Ed9B335A410Cc66Eb30` | `0xC53d3879aCF9Dd9d6fCF8Ed9B335A410Cc66Eb30` (canonical baseline) | `SAFE` (no upgrade yet) |
+| `safe.upgrade-siren-demo.eth` | `0xC53d3879aCF9Dd9d6fCF8Ed9B335A410Cc66Eb30` | `0x9A9DCb4CE0F03aCB6aa8e26905D6aBb93c95B774` | `SAFE` |
+| `dangerous.upgrade-siren-demo.eth` | `0xC53d3879aCF9Dd9d6fCF8Ed9B335A410Cc66Eb30` | `0xfD7F5B48C260a32102AA05117C13a599B0d4d568` | `SIREN` |
+| `unverified.upgrade-siren-demo.eth` | `0xC53d3879aCF9Dd9d6fCF8Ed9B335A410Cc66Eb30` | `0x819326b9d318e1bb8c3EA73e744dEEC0c9aAbe77` | `SIREN` |
 
 Manifest JSON shape (per `docs/04-technical-design.md`):
 
@@ -74,14 +79,14 @@ Reports are committed at `reports/<scenario>.json` and (post Stream C deploy) ho
 
 The hashes below are the keccak256 of the **unsigned templates** committed in US-011. Once the operator signs the reports, the hashes change; re-running `scripts/sign-reports.ts` and `scripts/provision-ens.ts` updates both the report files and the ENS manifest record (idempotent).
 
-| Scenario | Verdict | Report URI | reportHash (current = unsigned template) |
+| Scenario | Verdict | Report URI | reportHash (signed) |
 |---|---|---|---|
-| `safe` | `SAFE` | `https://upgradesiren.app/r/safe.demo.upgradesiren.eth.json` | `0x90727f0f636fe6af6cf0f35994a7854aec26c1fc8267bed6db4eaf4327dc2929` |
-| `dangerous` | `SIREN` | `https://upgradesiren.app/r/dangerous.demo.upgradesiren.eth.json` | `0xbc82725cbfef26c6db6874f09de8708c4e62e884cebc2ca29bd84aad46eb3b35` |
-| `unverified` | `SIREN` | `https://upgradesiren.app/r/unverified.demo.upgradesiren.eth.json` | `0x541b736c9dd4104165115d141380df85a1bada17aaa05cddf97645a68ea1dd69` |
+| `safe` | `SAFE` | `https://upgradesiren.app/r/safe.upgrade-siren-demo.eth.json` | `0xb90816fdd11f446b26266b1f019da648747ffde3cec020cd892991e56ae7008f` |
+| `dangerous` | `SIREN` | `https://upgradesiren.app/r/dangerous.upgrade-siren-demo.eth.json` | `0x5edabf661ccd20f868afc3e0c4f580467f47da0bf8a0322ee62db4b5687a26c2` |
+| `unverified` | `SIREN` | `https://upgradesiren.app/r/unverified.upgrade-siren-demo.eth.json` | `0x022867f57b600c5c1dc259773edd324ad3c3c7284ec2e285ef44dffce62d0ea9` |
 | `vault` (live public-read) | `REVIEW` or `SIREN` | `<TBD: target chosen in US-062>` | `<populated when US-062 picks target>` |
 
-After operator signing (US-060), the unsigned templates' bytes change (`auth.status` flips from `unsigned` to `valid` and signature fields populate); the hashes above will move accordingly. Update this table from the output of `pnpm tsx scripts/sign-reports.ts` and `cast call ... "upgrade-siren:upgrade_manifest"` after re-provisioning.
+All three signable scenarios are signed by `0x747E453F13B5B14313E25393Eb443fbAaA250cfC` (matches `upgrade-siren:owner`). `auth.status="valid"`, `signatureType="EIP-712"`. Source-of-truth files are committed at `reports/<scenario>.json`; the live HTTPS URIs above are populated by Stream C's web deploy (when `apps/web/public/r/` ships). The committed report bytes hash to the values above; see `pnpm tsx scripts/verify-reports.ts reports/safe.json --owner 0x747E453F13B5B14313E25393Eb443fbAaA250cfC`.
 
 ## 4. End-to-end reproduction
 
@@ -89,7 +94,7 @@ After operator signing (US-060), the unsigned templates' bytes change (`auth.sta
 
 ```bash
 # Pick a subname:
-SUBNAME=vault.demo.upgradesiren.eth
+SUBNAME=vault.upgrade-siren-demo.eth
 
 # Compute namehash (32 bytes):
 NODE=$(cast namehash "$SUBNAME")
@@ -149,7 +154,7 @@ pnpm tsx scripts/verify-reports.ts /tmp/report.json --owner "$OWNER"
 #   OK: signature recovers to auth.signer and matches --owner
 ```
 
-If `auth.status` is `unsigned` the verifier prints "Report is correctly marked UNSIGNED. Production verifier will return SIREN." — this is the current state until US-060 closes.
+All three live signable scenarios (`safe`, `dangerous`, `unverified`) ship with `auth.status="valid"` and recover to the operator address. The `vault` row in §3 is intentionally still TODO and would be marked unsigned (or absent) until US-062 picks a live public-read target.
 
 ### 4.4 Confirm Sourcify status for the current implementation
 

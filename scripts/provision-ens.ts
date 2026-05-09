@@ -173,7 +173,7 @@ async function ensureSubnode(
     }
 
     if (!walletClient.account) throw new Error("walletClient.account missing");
-    return await walletClient.writeContract({
+    const txHash = await walletClient.writeContract({
         account: walletClient.account,
         address: ENS_REGISTRY,
         abi: REGISTRY_ABI,
@@ -181,6 +181,8 @@ async function ensureSubnode(
         args: [parentNode, labelHash(label), operator, SEPOLIA_PUBLIC_RESOLVER, 0n],
         chain: sepolia,
     });
+    await publicClient.waitForTransactionReceipt({ hash: txHash });
+    return txHash;
 }
 
 async function readExistingManifest(
@@ -259,7 +261,7 @@ async function setTextIfChanged(
     if (current === value) return "unchanged";
 
     if (!walletClient.account) throw new Error("walletClient.account missing");
-    return await walletClient.writeContract({
+    const txHash = await walletClient.writeContract({
         account: walletClient.account,
         address: SEPOLIA_PUBLIC_RESOLVER,
         abi: RESOLVER_ABI,
@@ -267,6 +269,8 @@ async function setTextIfChanged(
         args: [node, key, value],
         chain: sepolia,
     });
+    await publicClient.waitForTransactionReceipt({ hash: txHash });
+    return txHash;
 }
 
 async function main(): Promise<void> {
