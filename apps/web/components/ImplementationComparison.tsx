@@ -64,27 +64,27 @@ function VerificationLabel({
           target="_blank"
           rel="noopener noreferrer"
           data-verification="verified"
-          className="text-xs underline text-[color:var(--color-safe)]"
+          className="text-xs underline text-[color:var(--color-verdict-safe)]"
         >
           verified on Sourcify
         </a>
       );
     }
     return (
-      <span data-verification="verified" className="text-xs text-[color:var(--color-safe)]">
+      <span data-verification="verified" className="text-xs text-[color:var(--color-verdict-safe)]">
         verified
       </span>
     );
   }
   if (verified === false) {
     return (
-      <span data-verification="unverified" className="text-xs text-[color:var(--color-siren)]">
+      <span data-verification="unverified" className="text-xs text-[color:var(--color-verdict-siren)]">
         unverified
       </span>
     );
   }
   return (
-    <span data-verification="unknown" className="text-xs text-[color:var(--color-text-muted)]">
+    <span data-verification="unknown" className="text-xs text-[color:var(--color-t2)]">
       verification unknown
     </span>
   );
@@ -103,10 +103,10 @@ function SideColumn({
     return (
       <article
         data-testid={testId}
-        className="flex flex-col gap-2 rounded border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] p-3"
+        className="flex flex-col gap-2 rounded border border-[color:var(--color-border)] bg-[color:var(--color-raised)] p-3"
       >
         <h3 className="text-sm font-bold">{heading}</h3>
-        <p className="text-sm text-[color:var(--color-text-muted)]">none</p>
+        <p className="text-sm text-[color:var(--color-t2)]">none</p>
       </article>
     );
   }
@@ -115,7 +115,7 @@ function SideColumn({
     <article
       data-testid={testId}
       data-address={side.address}
-      className="flex flex-col gap-2 rounded border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] p-3"
+      className="flex flex-col gap-2 rounded border border-[color:var(--color-border)] bg-[color:var(--color-raised)] p-3"
     >
       <h3 className="text-sm font-bold">{heading}</h3>
       <div className="flex items-center gap-2">
@@ -127,14 +127,14 @@ function SideColumn({
         sourcifyUrl={side.sourcifyUrl}
       />
       {side.deployedAtBlock !== undefined ? (
-        <p className="text-xs text-[color:var(--color-text-muted)]">
+        <p className="text-xs text-[color:var(--color-t2)]">
           deployed at block {side.deployedAtBlock.toLocaleString()}
         </p>
       ) : null}
       {side.changedAt ? (
         <time
           dateTime={side.changedAt}
-          className="text-xs text-[color:var(--color-text-muted)]"
+          className="text-xs text-[color:var(--color-t2)]"
         >
           changed {new Date(side.changedAt).toISOString().slice(0, 10)}
         </time>

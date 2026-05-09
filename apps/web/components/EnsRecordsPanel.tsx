@@ -54,7 +54,7 @@ function RecordItem({ row }: { row: RecordRow }): React.JSX.Element {
           : "flex flex-col gap-0.5 opacity-60"
       }
     >
-      <span className="text-xs uppercase tracking-wider text-[color:var(--color-text-muted)]">
+      <span className="text-xs uppercase tracking-wider text-[color:var(--color-t2)]">
         {row.label}
       </span>
       {present ? (
@@ -62,7 +62,7 @@ function RecordItem({ row }: { row: RecordRow }): React.JSX.Element {
       ) : (
         <span
           data-state="absent"
-          className="inline-block w-fit rounded border border-dashed border-[color:var(--color-border)] px-1.5 py-0.5 text-xs uppercase text-[color:var(--color-text-muted)]"
+          className="inline-block w-fit rounded border border-dashed border-[color:var(--color-border)] px-1.5 py-0.5 text-xs uppercase text-[color:var(--color-t2)]"
         >
           absent
         </span>
@@ -77,12 +77,12 @@ function ManifestBlock({ raw }: { raw: string | null }): React.JSX.Element {
   if (raw === null) {
     return (
       <li data-record-key="upgrade-siren:upgrade_manifest" data-present="false" className="opacity-60">
-        <span className="text-xs uppercase tracking-wider text-[color:var(--color-text-muted)]">
+        <span className="text-xs uppercase tracking-wider text-[color:var(--color-t2)]">
           upgrade_manifest
         </span>
         <span
           data-state="absent"
-          className="ml-2 inline-block rounded border border-dashed border-[color:var(--color-border)] px-1.5 py-0.5 text-xs uppercase text-[color:var(--color-text-muted)]"
+          className="ml-2 inline-block rounded border border-dashed border-[color:var(--color-border)] px-1.5 py-0.5 text-xs uppercase text-[color:var(--color-t2)]"
         >
           absent
         </span>
@@ -104,7 +104,7 @@ function ManifestBlock({ raw }: { raw: string | null }): React.JSX.Element {
         aria-expanded={expanded}
         aria-controls="manifest-json"
         onClick={() => setExpanded((v) => !v)}
-        className="flex items-center gap-2 text-xs uppercase tracking-wider text-[color:var(--color-text-muted)]"
+        className="flex items-center gap-2 text-xs uppercase tracking-wider text-[color:var(--color-t2)]"
       >
         <span aria-hidden>{expanded ? "▼" : "▶"}</span>
         upgrade_manifest
@@ -112,7 +112,7 @@ function ManifestBlock({ raw }: { raw: string | null }): React.JSX.Element {
       {expanded ? (
         <pre
           id="manifest-json"
-          className="mt-1 overflow-x-auto rounded border border-[color:var(--color-border)] bg-[color:var(--color-surface-2)] p-2 font-mono text-xs"
+          className="mt-1 overflow-x-auto rounded border border-[color:var(--color-border)] bg-[color:var(--color-raised)] p-2 font-mono text-xs"
         >
           {pretty}
         </pre>
@@ -129,10 +129,10 @@ export function EnsRecordsPanel({
       <section
         aria-label="ENS records"
         data-state="error"
-        className="rounded border border-[color:var(--color-siren)] p-3"
+        className="rounded border border-[color:var(--color-verdict-siren)] p-3"
       >
         <h3 className="text-sm font-bold">ENS resolution error</h3>
-        <p className="text-xs text-[color:var(--color-siren)]">
+        <p className="text-xs text-[color:var(--color-verdict-siren)]">
           {ens.reason}: {ens.message}
         </p>
       </section>
@@ -158,7 +158,7 @@ export function EnsRecordsPanel({
     >
       <header className="flex items-baseline gap-2">
         <h3 className="text-sm font-bold">ENS records</h3>
-        <code className="font-mono text-xs text-[color:var(--color-text-muted)]">
+        <code className="font-mono text-xs text-[color:var(--color-t2)]">
           {ens.name}
         </code>
       </header>

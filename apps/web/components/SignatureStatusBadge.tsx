@@ -50,7 +50,7 @@ export function SignatureStatusBadge({
         role="status"
         data-status="signed"
         aria-label={`Signed by ${signer}`}
-        className="inline-flex items-center gap-1 rounded-md border border-[color:var(--color-safe)] px-2 py-0.5 text-xs text-[color:var(--color-safe)]"
+        className="inline-flex items-center gap-1 rounded-md border border-[color:var(--color-verdict-safe)] px-2 py-0.5 text-xs text-[color:var(--color-verdict-safe)]"
       >
         <span aria-hidden>✓</span>
         <span>
@@ -68,7 +68,7 @@ export function SignatureStatusBadge({
         role="status"
         data-status="unsigned"
         aria-label="No operator signature"
-        className="inline-flex items-center gap-1 rounded-md border border-[color:var(--color-review)] px-2 py-0.5 text-xs text-[color:var(--color-review)]"
+        className="inline-flex items-center gap-1 rounded-md border border-[color:var(--color-verdict-review)] px-2 py-0.5 text-xs text-[color:var(--color-verdict-review)]"
       >
         <span aria-hidden>!</span>
         <span>No operator signature</span>
@@ -81,7 +81,7 @@ export function SignatureStatusBadge({
       role="status"
       data-status="signature-invalid"
       aria-label="Signature mismatch"
-      className="inline-flex items-center gap-1 rounded-md border border-[color:var(--color-siren)] px-2 py-0.5 text-xs text-[color:var(--color-siren)]"
+      className="inline-flex items-center gap-1 rounded-md border border-[color:var(--color-verdict-siren)] px-2 py-0.5 text-xs text-[color:var(--color-verdict-siren)]"
     >
       <span aria-hidden>×</span>
       <span>Signature mismatch</span>

@@ -13,27 +13,27 @@ const KIND_TONE: Record<
   { color: string; label: string; tone: "safe" | "siren" | "review" }
 > = {
   compatible_appended_only: {
-    color: "var(--color-safe)",
+    color: "var(--color-verdict-safe)",
     label: "compatible (appended only)",
     tone: "safe",
   },
   incompatible_changed_type: {
-    color: "var(--color-siren)",
+    color: "var(--color-verdict-siren)",
     label: "incompatible — type changed",
     tone: "siren",
   },
   incompatible_reordered: {
-    color: "var(--color-siren)",
+    color: "var(--color-verdict-siren)",
     label: "incompatible — reordered",
     tone: "siren",
   },
   incompatible_inserted_before_existing: {
-    color: "var(--color-siren)",
+    color: "var(--color-verdict-siren)",
     label: "incompatible — inserted before existing",
     tone: "siren",
   },
   unknown_missing_layout: {
-    color: "var(--color-review)",
+    color: "var(--color-verdict-review)",
     label: "storage layout not published",
     tone: "review",
   },
@@ -80,7 +80,7 @@ export function StorageDiffRenderer({
         >
           {tone.label}
         </p>
-        <p className="text-xs text-[color:var(--color-text-muted)]">
+        <p className="text-xs text-[color:var(--color-t2)]">
           The contract did not publish a storage layout, so compatibility
           cannot be asserted. This is rendered as a low-confidence signal,
           not as compatible.
@@ -105,7 +105,7 @@ export function StorageDiffRenderer({
           className="w-full border-collapse border border-[color:var(--color-border)] text-left"
         >
           <thead>
-            <tr className="bg-[color:var(--color-surface-2)]">
+            <tr className="bg-[color:var(--color-raised)]">
               <th className="border-b border-[color:var(--color-border)] px-2 py-1 text-xs">
                 #
               </th>
@@ -128,7 +128,7 @@ export function StorageDiffRenderer({
         </table>
       ) : null}
       {diff.kind === "compatible_appended_only" && diff.appended.length > 0 ? (
-        <p className="text-xs text-[color:var(--color-text-muted)]">
+        <p className="text-xs text-[color:var(--color-t2)]">
           {diff.appended.length} new slot
           {diff.appended.length === 1 ? "" : "s"} appended after the original
           layout (compatible).
