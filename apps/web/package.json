@@ -8,6 +8,8 @@
     "build": "next build",
     "start": "next start --port 3000",
     "test": "vitest run",
+    "e2e": "playwright test",
+    "lighthouse:demo": "lhci autorun --config=.lighthouserc.json",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -18,6 +20,8 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.14.0",
+    "@playwright/test": "^1.49.0",
     "@tailwindcss/postcss": "^4.0.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
