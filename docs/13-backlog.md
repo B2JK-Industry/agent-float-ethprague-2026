@@ -191,7 +191,7 @@ Tracker-only owners (not picked up by dev agents):
 |---|---|---|---|---|---|---|
 | US-131 | `/b/[name]` route + landing mode-detection (route to `/r/[name]` if `upgrade-siren:proxy` present, else `/b/[name]`; public-read inferred when no `agent-bench:bench_manifest`) | C | P0 | M | merged | US-117 |
 | US-132 | Score banner component: 0–100, both axis values, tier badge (S/A/B/C/D/U), honest-claims disclaimer copy | C | P0 | M | merged | US-118 |
-| US-133 | Source grid component: 4 tiles (Sourcify / GitHub / On-chain / ENS) with verified/unverified badges and contribution numbers | C | P0 | M | open | US-117, US-118 |
+| US-133 | Source grid component: 4 tiles (Sourcify / GitHub / On-chain / ENS) with verified/unverified badges and contribution numbers | C | P0 | M | merged | US-117, US-118 |
 | US-134 | Score breakdown panel: full component-by-component table with `weight × value × trust` math visible per component | C | P0 | M | open | US-118 |
 | US-135 | Sourcify source drawer (reuses `/r/[name]` UI as embedded component, plus storage-history timeline per proxy) | C | P0 | L | open | US-068, US-119 |
 | US-136 | GitHub source drawer (top-20 repos card grid: name, last push, CI badge, test presence, repo-hygiene score, releases count, link out) | C | P0 | M | merged | US-114 |
@@ -4058,7 +4058,7 @@ EPIC reference: US-097. Renumbered to US-132.
 | Sponsor | - |
 | Dependencies | US-117, US-118 |
 | Acceptance gates | GATE-29, GATE-30 |
-| Status | open (Epic 2) |
+| Status | merged |
 
 #### Scope
 
