@@ -2,6 +2,14 @@
 //
 // Auto-starts MSW for each test and resets handlers between tests. Per-scenario
 // tests use `test.extend({ ... })` further or call `msw.use(...)` inline.
+//
+// `use` is typed explicitly as `(value: typeof mswServer) => Promise<void>`
+// because TypeScript's strict-mode contextual inference for `base.extend`
+// callback signatures depends on the local @playwright/test version. Vercel's
+// production build hit `Parameter 'use' implicitly has an 'any' type` even
+// though local `pnpm typecheck` passed — explicit typing removes that
+// inference dependency entirely and matches the project's "all exported
+// functions typed; no `any`" rule.
 
 import { test as base, expect } from "@playwright/test";
 
@@ -12,7 +20,11 @@ export type BenchTestFixtures = {
 };
 
 export const test = base.extend<BenchTestFixtures>({
-    msw: async ({}, use, testInfo) => {
+    msw: async (
+        {},
+        use: (value: typeof mswServer) => Promise<void>,
+        testInfo,
+    ) => {
         mswServer.listen({ onUnhandledRequest: "warn" });
         await use(mswServer);
         mswServer.resetHandlers();
