@@ -2,11 +2,13 @@ import { createPublicClient, http, type PublicClient } from 'viem';
 import { mainnet, sepolia } from 'viem/chains';
 
 import {
+  ENSIP_26_RECORD_KEYS,
   UPGRADE_SIREN_RECORD_KEYS,
   type EnsRecordSet,
   type EnsResolutionError,
   type EnsResolutionFlags,
   type EnsResolutionResult,
+  type Ensip26RecordKey,
   type UpgradeSirenRecordKey,
 } from './types.js';
 
@@ -43,7 +45,7 @@ function resolveClient(chainId: number, options: ResolveEnsRecordsOptions): Publ
 async function getText(
   client: PublicClient,
   name: string,
-  key: UpgradeSirenRecordKey,
+  key: UpgradeSirenRecordKey | Ensip26RecordKey,
 ): Promise<{ kind: 'ok'; value: string | null } | { kind: 'error'; cause: unknown }> {
   try {
     const value = await client.getEnsText({ name, key });
@@ -72,15 +74,36 @@ export async function resolveEnsRecords(
   }
   const client = clientOrError as PublicClient;
 
-  const [chainIdRead, proxyRead, ownerRead, schemaRead, manifestRead] = await Promise.all([
+  const [
+    chainIdRead,
+    proxyRead,
+    ownerRead,
+    schemaRead,
+    manifestRead,
+    agentContextRead,
+    agentEndpointWebRead,
+    agentEndpointMcpRead,
+  ] = await Promise.all([
     getText(client, name, UPGRADE_SIREN_RECORD_KEYS.chainId),
     getText(client, name, UPGRADE_SIREN_RECORD_KEYS.proxy),
     getText(client, name, UPGRADE_SIREN_RECORD_KEYS.owner),
     getText(client, name, UPGRADE_SIREN_RECORD_KEYS.schema),
     getText(client, name, UPGRADE_SIREN_RECORD_KEYS.upgradeManifest),
+    getText(client, name, ENSIP_26_RECORD_KEYS.agentContext),
+    getText(client, name, ENSIP_26_RECORD_KEYS.agentEndpointWeb),
+    getText(client, name, ENSIP_26_RECORD_KEYS.agentEndpointMcp),
   ]);
 
-  const reads = [chainIdRead, proxyRead, ownerRead, schemaRead, manifestRead] as const;
+  const reads = [
+    chainIdRead,
+    proxyRead,
+    ownerRead,
+    schemaRead,
+    manifestRead,
+    agentContextRead,
+    agentEndpointWebRead,
+    agentEndpointMcpRead,
+  ] as const;
   const failed = reads.find((r) => r.kind === 'error');
   if (failed && failed.kind === 'error') {
     const cause = failed.cause;
@@ -100,6 +123,9 @@ export async function resolveEnsRecords(
   const ownerValue = valueOrNull(ownerRead);
   const schemaValue = valueOrNull(schemaRead);
   const manifestValue = valueOrNull(manifestRead);
+  const agentContextValue = valueOrNull(agentContextRead);
+  const agentEndpointWebValue = valueOrNull(agentEndpointWebRead);
+  const agentEndpointMcpValue = valueOrNull(agentEndpointMcpRead);
 
   const records: EnsRecordSet = {
     chainId: chainIdValue,
@@ -115,6 +141,9 @@ export async function resolveEnsRecords(
     ownerPresent: ownerValue !== null,
     schemaPresent: schemaValue !== null,
     upgradeManifestPresent: manifestValue !== null,
+    agentContextPresent: agentContextValue !== null,
+    agentEndpointWebPresent: agentEndpointWebValue !== null,
+    agentEndpointMcpPresent: agentEndpointMcpValue !== null,
   };
 
   const anyPresent =
@@ -131,5 +160,8 @@ export async function resolveEnsRecords(
     records,
     flags,
     anyUpgradeSirenRecordPresent: anyPresent,
+    agentContext: agentContextValue,
+    agentEndpointWeb: agentEndpointWebValue,
+    agentEndpointMcp: agentEndpointMcpValue,
   };
 }
