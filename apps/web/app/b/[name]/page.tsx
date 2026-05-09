@@ -25,6 +25,7 @@
 import type { Metadata } from "next";
 
 import { ScoreBanner } from "../../../components/bench/ScoreBanner";
+import { GitHubDrawer } from "../../../components/bench/drawers/GitHubDrawer";
 import { BENCH_SUB_BRAND, BENCH_SUB_TAGLINE } from "../../../lib/branding";
 import { loadBench, type LoadBenchResult } from "./loadBench";
 
@@ -167,11 +168,14 @@ function BenchFoundation({
             className="mt-3 text-xs text-verdict-review"
           >
             {evidence.failures.length} per-source failure
-            {evidence.failures.length === 1 ? "" : "s"} — drawers in
-            US-135..US-138 will surface details.
+            {evidence.failures.length === 1 ? "" : "s"} — Sourcify drawer
+            (US-135), on-chain drawer (US-137), ENS drawer (US-138)
+            surface details when those PRs land.
           </p>
         ) : null}
       </section>
+
+      <GitHubDrawer github={evidence.github} />
     </>
   );
 }
