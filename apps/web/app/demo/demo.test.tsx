@@ -48,12 +48,14 @@ describe("demo.config", () => {
     );
   });
 
-  it("live-public-read scenario has null target (pending US-062) and expects REVIEW", () => {
+  it("live-public-read scenario points at Aave V3 Pool (US-062 chosen) and expects REVIEW", () => {
     const live = findScenario("live-public-read");
-    expect(live.target).toBeNull();
+    expect(live.target).toBe("0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2");
     expect(live.mode).toBe("public-read");
     expect(live.expectedVerdict).toBe("REVIEW");
-    expect(buildScenarioHref(live)).toBeNull();
+    expect(buildScenarioHref(live)).toBe(
+      "/r/0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2?mode=public-read",
+    );
   });
 
   it("buildScenarioHref appends ?mode=public-read for public-read scenarios with a target", () => {
@@ -117,16 +119,17 @@ describe("DemoPage", () => {
     ).toHaveAttribute("href", "/r/unverified.upgrade-siren-demo.eth");
   });
 
-  it("renders the live-public-read row as a disabled group, not a link, when target is null", () => {
+  it("renders the live-public-read row as an active link to the Aave V3 Pool target", () => {
     render(<DemoPage />);
     const liveRow = screen
       .getByRole("list", { name: /demo scenarios/i })
       .querySelector('li[data-scenario="live-public-read"]');
-    expect(liveRow?.getAttribute("data-disabled")).toBe("true");
-    expect(liveRow?.querySelector("a")).toBeNull();
-    const group = within(liveRow as HTMLElement).getByRole("group");
-    expect(group.getAttribute("aria-disabled")).toBe("true");
-    expect(group.textContent).toMatch(/target pending US-062/i);
+    expect(liveRow?.getAttribute("data-disabled")).not.toBe("true");
+    const link = liveRow?.querySelector("a");
+    expect(link).not.toBeNull();
+    expect(link?.getAttribute("href")).toBe(
+      "/r/0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2?mode=public-read",
+    );
   });
 
   it("each scenario shows its expected-verdict chip", () => {
