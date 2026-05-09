@@ -1,7 +1,7 @@
 # upgrade-siren manifest versioning
 
 The manifest schema string is the canonical version handle. Today the only
-known version is `siren-upgrade-manifest@1`. Unknown values are surfaced by
+known version is `upgrade-siren-manifest@1`. Unknown values are surfaced by
 the parser as the `unknown_schema_version` error, and the verdict engine
 (US-029) maps that error to a `REVIEW` verdict unless another `SIREN` rule
 fires.
@@ -23,7 +23,7 @@ fires.
 
 ## Dual-read window
 
-When `siren-upgrade-manifest@2` ships, the parser must accept both v1 and v2
+When `upgrade-siren-manifest@2` ships, the parser must accept both v1 and v2
 for at least one full release cycle. This window gives every protocol
 publishing v1 manifests time to migrate without their consumers tripping
 into `unknown_schema_version` mid-deploy.

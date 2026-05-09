@@ -19,8 +19,8 @@ describe('isKnownManifestVersion', () => {
   });
 
   it('returns false for unknown version strings', () => {
-    expect(isKnownManifestVersion('siren-upgrade-manifest@2')).toBe(false);
-    expect(isKnownManifestVersion('upgrade-siren-manifest@1')).toBe(false);
+    expect(isKnownManifestVersion('upgrade-siren-manifest@2')).toBe(false);
+    expect(isKnownManifestVersion('siren-upgrade-manifest@1')).toBe(false); // pre-flip transposed spelling
     expect(isKnownManifestVersion('')).toBe(false);
   });
 
@@ -35,7 +35,7 @@ describe('isKnownManifestVersion', () => {
 describe('parseUpgradeManifest enforces the policy', () => {
   it('rejects an unknown schema string with unknown_schema_version', () => {
     const raw = JSON.stringify({
-      schema: 'siren-upgrade-manifest@2',
+      schema: 'upgrade-siren-manifest@2',
       chainId: 1,
       proxy: '0x1111111111111111111111111111111111111111',
       previousImpl: '0x2222222222222222222222222222222222222222',
@@ -50,7 +50,7 @@ describe('parseUpgradeManifest enforces the policy', () => {
     expect(r.kind).toBe('error');
     if (r.kind === 'error') {
       expect(r.error.reason).toBe('unknown_schema_version');
-      expect(r.error.message).toContain('siren-upgrade-manifest@1');
+      expect(r.error.message).toContain('upgrade-siren-manifest@1');
     }
   });
 });
