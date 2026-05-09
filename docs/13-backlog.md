@@ -179,7 +179,7 @@ Tracker-only owners (not picked up by dev agents):
 |---|---|---|---|---|---|---|
 | US-125 | Playwright e2e harness in `apps/web` with MSW (Mock Service Worker) for fixturing GitHub / Sourcify / RPC / ENS-subgraph responses | A | P0 | M | merged | US-117 |
 | US-126 | Playwright scenario: high-score subject (verified Sourcify + verified GitHub-shaped fixtures) | A | P0 | S | merged | US-125, US-118 |
-| US-127 | Playwright scenario: mid-score subject (mixed verification states; demonstrates trust-discount visibly) | A | P0 | S | open | US-125, US-118 |
+| US-127 | Playwright scenario: mid-score subject (mixed verification states; demonstrates trust-discount visibly) | A | P0 | S | merged | US-125, US-118 |
 | US-128 | Playwright scenario: public-read fallback subject (no `agent-bench:bench_manifest` in fixtures; tier ceiling A) | A | P0 | S | open | US-125, US-112 |
 | US-129 | Playwright scenario: storage-collision-detected subject (fixture data shaped to trigger COLLISION in US-119) | A | P0 | M | open | US-125, US-119 |
 | US-130 | Optional Foundry fixture: deliberate storage-collision proxy upgrade (only if existing demo fixtures do not cover this for live snapshotting; decided Day 2 morning) | A | P2 | M | open | US-001..US-005 |
@@ -3858,7 +3858,7 @@ EPIC reference: US-091. Renumbered to US-126. Note: trust-discount caps unverifi
 | Sponsor | - |
 | Dependencies | US-125, US-118 |
 | Acceptance gates | GATE-34 |
-| Status | open (Epic 2) |
+| Status | merged |
 
 #### Scope
 
