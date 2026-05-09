@@ -376,3 +376,22 @@ export type {
   SimilarityTerminalStatus,
   SubmitSimilarityVerificationOptions,
 } from './sourcify/similarity.js';
+
+export { orchestrateSubject } from './bench/orchestrator.js';
+
+export type { OrchestrateSubjectOptions } from './bench/orchestrator.js';
+
+export type {
+  EnsInternalEvidence,
+  GithubEvidence,
+  MultiSourceEvidence,
+  OnchainEntryError,
+  OnchainEntryEvidence,
+  OnchainEntryOk,
+  SourceFailure,
+  SourcifyEntryError,
+  SourcifyEntryEvidence,
+  SourcifyEntryOk,
+  SubjectIdentity,
+  SubjectMode,
+} from './bench/types.js';
