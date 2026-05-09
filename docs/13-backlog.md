@@ -59,7 +59,7 @@ Tracker-only owners (not picked up by dev agents):
 | ID | Title | Owner | Priority | Effort | Status | Depends on |
 |---|---|---|---|---|---|---|
 | US-014 | Siren Report JSON schema in packages/shared | B | P0 | S | merged | none |
-| US-015 | EIP-712 typed-data builder and signReport helper in packages/shared | B | P0 | S | open | US-014 |
+| US-015 | EIP-712 typed-data builder and signReport helper in packages/shared | B | P0 | S | merged | US-014 |
 | US-016 | Shared types package for cross-stream consumption | B | P0 | S | open | none |
 | US-017 | ENS live record resolution (stable upgrade-siren records and manifest) | B | P0 | M | open | none |
 | US-018 | Atomic upgrade-siren:upgrade_manifest parser and validator | B | P0 | M | open | US-014, US-017 |
@@ -757,7 +757,7 @@ This is the cross-stream contract. Stream A signs reports against this schema (U
 | Sponsor | Sourcify |
 | Dependencies | US-014 |
 | Acceptance gates | GATE-24 |
-| Status | open |
+| Status | merged |
 
 #### Scope
 
