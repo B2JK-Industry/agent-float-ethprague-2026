@@ -195,3 +195,67 @@ describe('qualifiesForV1DerivedReview', () => {
     expect(qualifiesForV1DerivedReview(result, false)).toBe(false);
   });
 });
+
+// US-080 fixture: real Foundry-compiled deployedBytecode, regenerated via
+// `forge build && pnpm tsx packages/evidence/test/fixtures/extract-bytecode.mjs`.
+// The four entries are produced from the same toolchain as the on-chain
+// Sepolia deployments documented in contracts/DEPLOYMENTS.md (solc 0.8.24,
+// optimizer_runs=200) so the `eth_getCode` of a deployed instance matches
+// these fixtures byte-for-byte.
+import vaultBytecode from '../fixtures/vault-deployed-bytecode.json' with { type: 'json' };
+
+const V1_REAL = vaultBytecode.contracts.VaultV1;
+const V1_DERIVATIVE_REAL = vaultBytecode.contracts.VaultV1Derivative;
+const V2_SAFE_REAL = vaultBytecode.contracts.VaultV2Safe;
+const V2_DANGEROUS_REAL = vaultBytecode.contracts.VaultV2Dangerous;
+
+describe('matchAgainstV1 — real US-080 VaultV1Derivative compiled fixture', () => {
+  it('confidence >= 0.99 against the actual VaultV1Derivative compiled bytecode (V1-equivalent except cbor footer)', () => {
+    const result = matchAgainstV1(V1_REAL, V1_DERIVATIVE_REAL);
+    // VaultV1Derivative inherits VaultV1 with no overrides; runtime body
+    // is byte-identical to V1 except for the trailing CBOR metadata blob
+    // (different ipfs hash). After stripMetadataFooter both sides match
+    // exactly. n-gram confidence should be 1.0.
+    expect(result.confidence).toBeGreaterThanOrEqual(0.99);
+    expect(result.hypothesis).toBe('v1_derived');
+  });
+
+  it('hits the engine REVIEW gate (confidence >= 0.9 + no risky)', () => {
+    const result = matchAgainstV1(V1_REAL, V1_DERIVATIVE_REAL);
+    expect(qualifiesForV1DerivedReview(result, false)).toBe(true);
+  });
+
+  it('detects EIP-1967 + Initializable markers in the real V1Derivative bytecode', () => {
+    const result = matchAgainstV1(V1_REAL, V1_DERIVATIVE_REAL);
+    // Note: VaultV1 itself doesn't use EIP-1967 (it's the implementation
+    // BEHIND a proxy, not a proxy). It does use OZ Initializable, so the
+    // ERC-7201 Initializable namespace SHOULD appear in the body.
+    expect(result.storageLayoutMarkers.initializableNamespace).toBe(true);
+  });
+
+  it('rationale string echoes the high confidence and storage marker for hypothesis copy', () => {
+    const result = matchAgainstV1(V1_REAL, V1_DERIVATIVE_REAL);
+    expect(result.rationale).toMatch(/100\.0%|99\.\d%/);
+    expect(result.rationale).toContain('OZ-Initializable');
+  });
+});
+
+describe('matchAgainstV1 — V1 vs V2 real fixtures', () => {
+  it('VaultV2Safe is partially V1-derived (storage compatible, body extends V1)', () => {
+    const result = matchAgainstV1(V1_REAL, V2_SAFE_REAL);
+    // V2Safe re-uses V1's storage layout but adds new selectors. Some
+    // chunks match, but it should NOT clear the 0.9 V1-derived bar
+    // because the new code paths break run-of-match chunks.
+    expect(result.confidence).toBeLessThan(0.9);
+  });
+
+  it('VaultV2Dangerous is far from V1-derived; sweep() is structurally different', () => {
+    const result = matchAgainstV1(V1_REAL, V2_DANGEROUS_REAL);
+    expect(result.confidence).toBeLessThan(0.9);
+    expect(qualifiesForV1DerivedReview(result, false)).toBe(false);
+  });
+
+  it('VaultV1 vs itself is exactly 1.0 confidence (sanity check on the chunker)', () => {
+    expect(matchAgainstV1(V1_REAL, V1_REAL).confidence).toBe(1);
+  });
+});
