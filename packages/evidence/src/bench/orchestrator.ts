@@ -898,21 +898,48 @@ export async function orchestrateSubject(
   // Both fire only when primaryAddress is set. Fail soft: passport returns
   // typed error (often address_not_passport_user 404), wallet analytics
   // returns one result per chain queried. Display-only in v1.
+  //
+  // Per-call 3s budget — these run AFTER the per-source fan-out, so any
+  // slow Passport / Alchemy call (token-metadata fan-out for big wallets,
+  // CoinGecko cold start) directly burns into the 12s page deadline.
+  // 3s is enough for the typical 200-500ms responses with ample headroom
+  // and keeps total under 6s when both miss.
   let passport: PassportResult | null = null;
   let walletAnalytics: WalletAnalyticsResultEnvelope[] = [];
   if (identity.primaryAddress) {
-    const [passportRes, mainnetWallet] = await Promise.all([
-      fetchPassportScore(identity.primaryAddress).catch((err) => ({
-        kind: 'error' as const,
-        reason: 'network_error' as const,
-        message: `passport: ${err instanceof Error ? err.message : String(err)}`,
-      })),
-      fetchWalletAnalytics(identity.primaryAddress, 1).catch((err) => ({
-        kind: 'error' as const,
+    const passportTimeout = new Promise<PassportResult>((resolve) => {
+      setTimeout(() => resolve({
+        kind: 'error',
+        reason: 'network_error',
+        message: 'passport: timeout 3000ms',
+      }), 3000);
+    });
+    const walletTimeout = new Promise<WalletAnalyticsResultEnvelope>((resolve) => {
+      setTimeout(() => resolve({
+        kind: 'error',
         chainId: 1,
-        reason: 'network_error' as const,
-        message: `wallet-analytics: ${err instanceof Error ? err.message : String(err)}`,
-      })),
+        reason: 'network_error',
+        message: 'wallet-analytics: timeout 3000ms',
+      }), 3000);
+    });
+    const [passportRes, mainnetWallet] = await Promise.all([
+      Promise.race([
+        fetchPassportScore(identity.primaryAddress).catch((err) => ({
+          kind: 'error' as const,
+          reason: 'network_error' as const,
+          message: `passport: ${err instanceof Error ? err.message : String(err)}`,
+        })),
+        passportTimeout,
+      ]),
+      Promise.race([
+        fetchWalletAnalytics(identity.primaryAddress, 1).catch((err) => ({
+          kind: 'error' as const,
+          chainId: 1,
+          reason: 'network_error' as const,
+          message: `wallet-analytics: ${err instanceof Error ? err.message : String(err)}`,
+        })),
+        walletTimeout,
+      ]),
     ]);
     passport = passportRes;
     walletAnalytics = [mainnetWallet];
