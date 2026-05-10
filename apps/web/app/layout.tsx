@@ -27,8 +27,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Upgrade Siren",
-  description: "No source, no upgrade.",
+  title: "Siren · Public verification layer for Ethereum",
+  description:
+    "Siren turns public evidence into trust signals. ENS-anchored verdict + benchmark across Sourcify, GitHub, on-chain, and ENS-internal sources.",
 };
 
 export default function RootLayout({

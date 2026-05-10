@@ -550,7 +550,7 @@ export function UmiaVentureApplySection({
           {/* Submission notes */}
           <FieldGroup
             title="Submission notes"
-            note="Auto-filled with the Upgrade Siren report reference. Editable so you can add context for a future Umia adapter."
+            note="Auto-filled with the Siren report reference. Editable so you can add context for a future Umia adapter."
           >
             <PrefilledTextarea
               label="Notes"
@@ -878,7 +878,7 @@ function ReportRefBlock({
           padding: "0 6px",
         }}
       >
-        Upgrade Siren report (locked)
+        Siren report (locked)
       </legend>
       <ul
         className="m-0 list-none p-0"

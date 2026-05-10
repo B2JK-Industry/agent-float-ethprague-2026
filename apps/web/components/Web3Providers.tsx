@@ -21,7 +21,7 @@ const wagmiConfig = createConfig(
     },
     walletConnectProjectId:
       process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "",
-    appName: "Upgrade Siren Bench",
+    appName: "Siren Bench",
     appDescription:
       "ENS subject benchmark with EAS attestation publication.",
     appUrl: "https://upgrade-siren.vercel.app",

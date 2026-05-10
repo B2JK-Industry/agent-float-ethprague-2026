@@ -79,7 +79,8 @@ describe("BenchPage (US-131 foundation)", () => {
         name: "siren-agent-demo.upgrade-siren-demo.eth",
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/upgrade siren bench/i)).toBeInTheDocument();
+    // Brand rebranded 2026-05-10: "Upgrade Siren Bench" → "Siren Bench".
+    expect(screen.getByText(/^siren bench$/i)).toBeInTheDocument();
     expect(screen.getByText(/no data, no score\./i)).toBeInTheDocument();
   });
 

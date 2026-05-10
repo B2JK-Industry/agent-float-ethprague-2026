@@ -22,7 +22,7 @@ export function HomepageUmiaBanner(): React.JSX.Element {
         </h2>
         <p className="text-sm leading-relaxed text-t2">
           Umia is the Community Track venture launcher. After you generate
-          a Bench verdict for your project, Upgrade Siren turns it into a
+          a Bench verdict for your project, Siren turns it into a
           draft <code className="font-mono text-t1">umia venture apply</code>{" "}
           payload — ENS records prefilled, schema-validated, JSON
           download only (no upload, no real CLI execution yet).
