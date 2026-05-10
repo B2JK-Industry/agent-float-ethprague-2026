@@ -235,10 +235,36 @@ export async function fetchEtherscanSourceCode(
   };
 }
 
+// Etherscan Free tier rate limit: 3 calls/sec. Parallel fan-out across
+// 6 chains immediately exceeds this — last 3 calls return rate_limited.
+// Sequential fetch with 350ms delay (~2.85 calls/sec, headroom for jitter)
+// stays under the limit. Total wall time ≈ 6 * 350ms = 2.1s + per-call
+// HTTP latency ≈ 3-4s total — well under the 12s page deadline.
+//
+// Pro tier (paid) gets 100 req/sec — for that case, parallel fan-out
+// would be optimal, but Free tier is the demo default.
+const ETHERSCAN_FREE_TIER_DELAY_MS = 350;
+
 export async function fetchEtherscanSourceCodeMultiChain(
   address: Address,
-  options: FetchEtherscanSourceCodeOptions & { readonly chainIds?: ReadonlyArray<number> } = {},
+  options: FetchEtherscanSourceCodeOptions & {
+    readonly chainIds?: ReadonlyArray<number>;
+    readonly parallel?: boolean;  // override for Pro-tier callers
+  } = {},
 ): Promise<ReadonlyArray<EtherscanFallbackResult>> {
   const chains = options.chainIds ?? ETHERSCAN_FALLBACK_CHAINS;
-  return Promise.all(chains.map((chainId) => fetchEtherscanSourceCode(address, chainId, options)));
+  if (options.parallel === true) {
+    return Promise.all(chains.map((chainId) => fetchEtherscanSourceCode(address, chainId, options)));
+  }
+  // Sequential with rate-limit-safe delay between calls.
+  const results: EtherscanFallbackResult[] = [];
+  for (let i = 0; i < chains.length; i++) {
+    const chainId = chains[i]!;
+    const result = await fetchEtherscanSourceCode(address, chainId, options);
+    results.push(result);
+    if (i < chains.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, ETHERSCAN_FREE_TIER_DELAY_MS));
+    }
+  }
+  return results;
 }
