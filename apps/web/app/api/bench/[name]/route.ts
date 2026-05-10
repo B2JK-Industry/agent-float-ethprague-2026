@@ -31,12 +31,19 @@ export async function GET(req: Request, props: RouteProps): Promise<Response> {
   const url = new URL(req.url);
   const chainParam = url.searchParams.get("chain");
   const chainId = chainParam ? Number(chainParam) : undefined;
-  const result = await loadBench(
-    name,
-    chainId !== undefined && Number.isFinite(chainId) && chainId > 0
-      ? { chainId }
-      : {},
-  );
+  // ?live=true bypasses demo mocks for booth demo subjects (vitalik.eth,
+  // letadlo.eth, agent-kikiriki.eth, siren-agent-demo.upgrade-siren-demo.eth).
+  // Default false — landing tile cards always use frozen mocks.
+  const liveParam = url.searchParams.get("live");
+  const useLive = liveParam === "true" || liveParam === "1";
+  const opts: { chainId?: number; useDemoMock?: false } = {};
+  if (chainId !== undefined && Number.isFinite(chainId) && chainId > 0) {
+    opts.chainId = chainId;
+  }
+  if (useLive) {
+    opts.useDemoMock = false;
+  }
+  const result = await loadBench(name, opts);
   const body = JSON.stringify(result, jsonReplacer, 2);
   return new Response(body, {
     headers: {
