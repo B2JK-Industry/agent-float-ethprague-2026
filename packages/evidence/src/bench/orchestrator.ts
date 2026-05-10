@@ -210,13 +210,32 @@ async function resolveSubject(
   name: string,
   options: OrchestrateSubjectOptions,
 ): Promise<{ identity: SubjectIdentity; sources: ReadonlyArray<SubjectSourcifyEntry>; failure: SourceFailure | null }> {
+  const initialChainId = options.chainId ?? 1;
   const subjectOpts: ResolveSubjectOptions = {
     ...(options.chainId !== undefined ? { chainId: options.chainId } : {}),
     ...(options.rpcUrl !== undefined ? { rpcUrl: options.rpcUrl } : {}),
     ...(options.client !== undefined ? { client: options.client } : {}),
     ...(options.subjectOptions ?? {}),
   };
-  const ensRes = await resolveSubjectFromEns(name, subjectOpts);
+  let ensRes = await resolveSubjectFromEns(name, subjectOpts);
+
+  // Refactor 2026-05-10: mainnet fallback at the manifest-resolver layer.
+  // When DEFAULT_BENCH_CHAIN_ID=11155111 (Sepolia, prod default for demo
+  // subjects) routes a real mainnet ENS name (sbo3lagent.eth, vitalik.eth,
+  // any non-demo subject), Sepolia has no resolver for the name and viem's
+  // getEnsText throws → resolveSubjectFromEns returns kind:'error'
+  // reason:'rpc_error'. Without this retry the orchestrator returns
+  // primaryAddress=null and the score caps at U.
+  if (ensRes.kind === 'error' && initialChainId !== 1) {
+    const mainnetSubjectOpts: ResolveSubjectOptions = {
+      ...(options.subjectOptions ?? {}),
+      chainId: 1,
+    };
+    const mainnetRetry = await resolveSubjectFromEns(name, mainnetSubjectOpts);
+    if (mainnetRetry.kind !== 'error') {
+      ensRes = mainnetRetry;
+    }
+  }
   if (ensRes.kind === 'ok') {
     const m: SubjectManifest = ensRes.manifest;
     const primary = m.sources.onchain?.primaryAddress ?? null;
@@ -265,15 +284,16 @@ async function resolveSubject(
   // subjects) but the ENS name doesn't exist there, fall back to
   // mainnet. Most real ENS names (vitalik.eth, sbo3lagent.eth, etc.)
   // are mainnet-only — without this fallback they show as tier U
-  // because Sepolia's resolver returns addr=null.
-  const initialChainId = options.chainId ?? 1;
-  const noMainnetAddr = inferred.kind === 'ok' && inferred.value.primaryAddress === null;
-  if (noMainnetAddr && initialChainId !== 1) {
+  // because Sepolia's resolver returns addr=null OR throws a
+  // resolver-not-found rpc_error.
+  const inferredOkButNoAddr =
+    inferred.kind === 'ok' && inferred.value.primaryAddress === null;
+  const inferredFailed = inferred.kind === 'error';
+  if ((inferredOkButNoAddr || inferredFailed) && initialChainId !== 1) {
     const mainnetRetry = await inferSubjectFromPublicRead(name, {
-      ...publicReadOpts,
-      chainId: 1,
-      // Drop Sepolia-specific overrides so resolveClient builds a fresh mainnet client.
       ...(options.publicReadOptions ?? {}),
+      chainId: 1,
+      // Drop Sepolia-specific rpcUrl/client so resolveClient builds a fresh mainnet client.
     });
     if (mainnetRetry.kind === 'ok' && mainnetRetry.value.primaryAddress !== null) {
       inferred = mainnetRetry;
