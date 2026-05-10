@@ -62,6 +62,8 @@ type MockSubjectInput = {
   readonly chainId: number;
   readonly mode: "manifest" | "public-read";
   readonly kind: "ai-agent" | "human-team" | "project" | null;
+  /** ENS-resolved primary address — also the wallet that may publish on-chain. */
+  readonly primaryAddress?: `0x${string}` | null;
   readonly seniorityComponents: ReadonlyArray<ScoreComponentBreakdown>;
   readonly relevanceComponents: ReadonlyArray<ScoreComponentBreakdown>;
   readonly githubVerified: boolean;
@@ -142,7 +144,7 @@ function buildEvidence(input: MockSubjectInput): MultiSourceEvidence {
       name: input.name,
       chainId: input.chainId,
       mode: input.mode,
-      primaryAddress: null,
+      primaryAddress: input.primaryAddress ?? null,
       kind: input.kind,
       manifest: null,
     },
@@ -158,11 +160,18 @@ function buildEvidence(input: MockSubjectInput): MultiSourceEvidence {
 // Four booth subjects — predictions on the landing tile match the
 // score_100 / tier each fixture lands on after buildScore() math.
 
+// Operator wallet — also the address declared as primaryAddress in
+// `apps/web/public/manifests/siren-agent-demo.upgrade-siren-demo.eth.json`.
+// Daniel imports this key (OPERATOR_PRIVATE_KEY) into MetaMask to publish
+// the booth-demo attestation on-chain.
+const OPERATOR_WALLET = "0x747E453F13B5B14313E25393Eb443fbAaA250cfC" as const;
+
 const AGENT_CURATED: MockSubjectInput = {
   name: "siren-agent-demo.upgrade-siren-demo.eth",
   chainId: 11155111,
   mode: "manifest",
   kind: "ai-agent",
+  primaryAddress: OPERATOR_WALLET,
   // Seniority Σ ≈ 0.65: strong Sourcify (compileSuccess 1.0×1.0 = 0.25),
   // partial GitHub signals (ciPassRate 0.85, testPresence 0.95,
   // bugHygiene 0.80, repoHygiene 0.85, releaseCadence 0.55).
