@@ -226,6 +226,12 @@ async function resolveSubject(
   // getEnsText throws → resolveSubjectFromEns returns kind:'error'
   // reason:'rpc_error'. Without this retry the orchestrator returns
   // primaryAddress=null and the score caps at U.
+  //
+  // Once we successfully retry on mainnet, we PIN effectiveChainId=1 so
+  // the downstream public-read pass also targets mainnet directly,
+  // avoiding a duplicate Sepolia→mainnet round-trip in publicRead that
+  // pushes total time over the 12s page budget.
+  let effectiveChainId = initialChainId;
   if (ensRes.kind === 'error' && initialChainId !== 1) {
     const mainnetSubjectOpts: ResolveSubjectOptions = {
       ...(options.subjectOptions ?? {}),
@@ -234,6 +240,7 @@ async function resolveSubject(
     const mainnetRetry = await resolveSubjectFromEns(name, mainnetSubjectOpts);
     if (mainnetRetry.kind !== 'error') {
       ensRes = mainnetRetry;
+      effectiveChainId = 1;
     }
   }
   if (ensRes.kind === 'ok') {
@@ -271,29 +278,36 @@ async function resolveSubject(
   }
 
   // ensRes.kind === 'no_manifest' → public-read fallback (US-112).
-  const publicReadOpts: InferSubjectFromPublicReadOptions = {
-    ...(options.chainId !== undefined ? { chainId: options.chainId } : {}),
-    ...(options.rpcUrl !== undefined ? { rpcUrl: options.rpcUrl } : {}),
-    ...(options.client !== undefined ? { client: options.client } : {}),
-    ...(options.publicReadOptions ?? {}),
-  };
+  // When the manifest resolver promoted us to mainnet, also pin publicRead
+  // to mainnet (skip the fast-failing Sepolia leg). Otherwise honor caller's
+  // chainId/rpcUrl/client.
+  const publicReadOpts: InferSubjectFromPublicReadOptions =
+    effectiveChainId === 1 && initialChainId !== 1
+      ? {
+          ...(options.publicReadOptions ?? {}),
+          chainId: 1,
+        }
+      : {
+          ...(options.chainId !== undefined ? { chainId: options.chainId } : {}),
+          ...(options.rpcUrl !== undefined ? { rpcUrl: options.rpcUrl } : {}),
+          ...(options.client !== undefined ? { client: options.client } : {}),
+          ...(options.publicReadOptions ?? {}),
+        };
   let inferred = await inferSubjectFromPublicRead(name, publicReadOpts);
 
-  // Refactor 2026-05-10: mainnet fallback. When the default chain is
-  // Sepolia (DEFAULT_BENCH_CHAIN_ID=11155111 prod default for demo
-  // subjects) but the ENS name doesn't exist there, fall back to
-  // mainnet. Most real ENS names (vitalik.eth, sbo3lagent.eth, etc.)
-  // are mainnet-only — without this fallback they show as tier U
-  // because Sepolia's resolver returns addr=null OR throws a
-  // resolver-not-found rpc_error.
+  // Refactor 2026-05-10: mainnet fallback at the public-read layer (only
+  // fires if effectiveChainId is still non-mainnet — manifest-layer
+  // promotion already covered the other case). Most real ENS names
+  // (vitalik.eth, sbo3lagent.eth, etc.) are mainnet-only — without this
+  // fallback they show as tier U because Sepolia's resolver returns
+  // addr=null OR throws a resolver-not-found rpc_error.
   const inferredOkButNoAddr =
     inferred.kind === 'ok' && inferred.value.primaryAddress === null;
   const inferredFailed = inferred.kind === 'error';
-  if ((inferredOkButNoAddr || inferredFailed) && initialChainId !== 1) {
+  if ((inferredOkButNoAddr || inferredFailed) && effectiveChainId !== 1) {
     const mainnetRetry = await inferSubjectFromPublicRead(name, {
       ...(options.publicReadOptions ?? {}),
       chainId: 1,
-      // Drop Sepolia-specific rpcUrl/client so resolveClient builds a fresh mainnet client.
     });
     if (mainnetRetry.kind === 'ok' && mainnetRetry.value.primaryAddress !== null) {
       inferred = mainnetRetry;
