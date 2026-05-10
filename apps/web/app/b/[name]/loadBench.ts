@@ -180,6 +180,19 @@ function envDefaultChainId(): number {
   return parsed;
 }
 
+// Smart per-name routing (Refactor 2026-05-10). Demo subjects under
+// `*.upgrade-siren-demo.eth` (and the standalone `siren-agent-demo.eth`)
+// live on Sepolia; everything else is mainnet by default. This avoids
+// the dual-chain retry cascade in the orchestrator (Sepolia ENS resolve
+// → fail → mainnet retry → publicRead → fan-out) that pushed real
+// mainnet names like sbo3lagent.eth past the 12s page deadline.
+function chainIdForName(name: string, fallback: number): number {
+  const lower = name.toLowerCase();
+  if (lower.endsWith('.upgrade-siren-demo.eth')) return SEPOLIA_CHAIN_ID;
+  if (lower === 'siren-agent-demo.eth') return SEPOLIA_CHAIN_ID;
+  return fallback;
+}
+
 export async function loadBench(
   name: string,
   options: LoadBenchOptions = {},
@@ -195,13 +208,9 @@ export async function loadBench(
     if (mock) return mock;
   }
 
-  // Demo subjects (siren-agent-demo, *.upgrade-siren-demo.eth) live on
-  // Sepolia — DEFAULT_BENCH_CHAIN_ID env override flips the default to
-  // 11155111 in production without breaking test fixtures that pin
-  // chainId: 1 explicitly. Tester smoke 2026-05-09 21:42 CET caught that
-  // /b/{Sepolia subject} silently degraded to public-read tier U because
-  // the orchestrator queried mainnet ENS (no manifest there).
-  const chainId = options.chainId ?? envDefaultChainId();
+  // Smart routing: Sepolia for demo subjects, mainnet for everything else.
+  // Caller-supplied chainId still wins (debug ?chain= override).
+  const chainId = options.chainId ?? chainIdForName(name, envDefaultChainId());
   const nowSeconds = options.nowSeconds ?? Math.floor(Date.now() / 1000);
   const orchestratorTimeoutMs =
     options.orchestratorTimeoutMs ?? DEFAULT_ORCHESTRATOR_TIMEOUT_MS;
