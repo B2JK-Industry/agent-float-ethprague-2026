@@ -74,22 +74,14 @@ describe("ScoreBanner (US-132)", () => {
     expect(mono.style.border.toLowerCase()).toBe("2px solid currentcolor");
   });
 
-  it("renders v1 max label = 79 by default (US-114b merged 2026-05-09 18:12Z)", () => {
+  // v1 max=79 label removed 2026-05-10 per Daniel: engine math no
+  // longer caps at 79 (axis rebalance shipped pre-deadline) and the
+  // label confused judges. Score-meta now shows "/ 100 · Tier X"
+  // only.
+  it("score-meta no longer advertises a v1 max ceiling (label retired 2026-05-10)", () => {
     const { container } = render(<ScoreBanner score={makeScore()} />);
     const meta = container.querySelector('[data-field="score-meta"]');
-    expect(meta?.textContent).toMatch(/v1 max\s*79/);
-    // QA H-10 regression guard: never advertise the historical P0=66
-    // ceiling once US-114b is merged. Engine returns 79; banner must
-    // match.
-    expect(meta?.textContent).not.toMatch(/v1 P0 max\s*66/);
-  });
-
-  it("v1 ceiling is overridable via prop (single number — P0/full split retired)", () => {
-    const { container } = render(
-      <ScoreBanner score={makeScore()} v1Max={100} />,
-    );
-    const meta = container.querySelector('[data-field="score-meta"]');
-    expect(meta?.textContent).toMatch(/v1 max\s*100/);
+    expect(meta?.textContent).not.toMatch(/v1 max/);
   });
 
   it("renders the honest-claims disclaimer in-band on the banner (GATE-14 / EPIC §10.5)", () => {
@@ -154,44 +146,13 @@ describe("ScoreBanner (US-132)", () => {
     ).toBe("block");
   });
 
-  it("renders tier ladder with all 6 rows (S row visible with v2 footnote — never hidden)", () => {
+  // Tier ladder lifted out of ScoreBanner 2026-05-10 per Daniel's
+  // layout call (now lives next to the subject chip row). Banner no
+  // longer renders the ladder.
+  it("ScoreBanner no longer renders the tier ladder (extracted to TierLadder)", () => {
     const { container } = render(<ScoreBanner score={makeScore()} />);
-    const rows = container.querySelectorAll("[data-ladder-tier]");
-    expect(rows.length).toBe(6);
-    const tiers: Array<string | null> = Array.from(rows).map((r) =>
-      r.getAttribute("data-ladder-tier"),
-    );
-    expect(tiers).toEqual(["S", "A", "B", "C", "D", "U"]);
-
-    const sRow = container.querySelector('[data-ladder-tier="S"]');
-    expect(sRow?.textContent).toMatch(/v2: requires verified GitHub cross-sign/i);
-  });
-
-  // audit-round-7 P0 #3 regression: the tier ladder <details> previously
-  // defaulted to collapsed, hiding the S-row v2 footnote behind a click.
-  // The footnote is the engine's only honesty signal that S is unreachable
-  // in v1 — burying it inside a closed disclosure undermined the
-  // disclosure. Default-expanded keeps it visible without removing the
-  // user's ability to collapse for screen real estate.
-  it("tier ladder <details> defaults to open so the v1-ceiling footnote is visible without a click (audit-round-7 P0 #3)", () => {
-    const { container } = render(<ScoreBanner score={makeScore()} />);
-    const ladder = container.querySelector(
-      '[data-block="tier-ladder"]',
-    ) as HTMLDetailsElement | null;
-    expect(ladder).not.toBeNull();
-    expect(ladder?.tagName.toLowerCase()).toBe("details");
-    // The discriminating assertion: open === true on first render. If a
-    // future refactor removes `open`, this fails red and forces an
-    // explicit decision instead of silently re-burying the footnote.
-    expect(ladder?.open).toBe(true);
-  });
-
-  it("marks the current tier row in the ladder with data-current=true", () => {
-    const { container } = render(<ScoreBanner score={makeScore({ tier: "C", score_100: 50 })} />);
-    const cRow = container.querySelector('[data-ladder-tier="C"]');
-    expect(cRow?.getAttribute("data-current")).toBe("true");
-    const sRow = container.querySelector('[data-ladder-tier="S"]');
-    expect(sRow?.getAttribute("data-current")).toBe("false");
+    expect(container.querySelector('[data-block="tier-ladder"]')).toBeNull();
+    expect(container.querySelectorAll("[data-ladder-tier]").length).toBe(0);
   });
 
   it("public-read mode shows confidence chip with tier-ceiling-A label (GATE-32)", () => {

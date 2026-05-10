@@ -14,14 +14,14 @@ const TIER_TONE_CLASS: Record<string, string> = {
   U: "border-tier-u text-tier-u",
 };
 
-// Score thresholds match packages/evidence/src/score/weights.ts. v1
-// final-score ceiling is 79; S is reserved for verified-GitHub v2.
+// Score thresholds match packages/evidence/src/score/weights.ts.
+// S is reserved for verified-GitHub v2; everything else is reachable.
 const TIER_RANGE: Record<string, string> = {
-  S: "90+",
-  A: "75–89",
-  B: "60–74",
-  C: "45–59",
-  D: "0–44",
+  S: "65+",
+  A: "50–64",
+  B: "35–49",
+  C: "20–34",
+  D: "0–19",
   U: "no data",
 };
 
