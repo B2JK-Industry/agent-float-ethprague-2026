@@ -36,7 +36,7 @@ import { GitHubDrawer } from "../../../components/bench/drawers/GitHubDrawer";
 import { OnchainDrawer } from "../../../components/bench/drawers/OnchainDrawer";
 import { SourcifyDrawer } from "../../../components/bench/drawers/SourcifyDrawer";
 import { UmiaVentureApplySection } from "../../../components/umia/UmiaVentureApplySection";
-import { CompareWithPreviousColumn } from "../../../components/compare/CompareWithPreviousColumn";
+import { CompareDiffBanner } from "../../../components/compare/CompareDiffBanner";
 import { BENCH_SUB_BRAND, BENCH_SUB_TAGLINE } from "../../../lib/branding";
 import { isDemoMockSubject } from "../../../lib/demoMocks";
 import { loadLatestAttestationForSubject } from "../../../lib/easStore";
@@ -45,6 +45,7 @@ import { loadBench, type LoadBenchResult } from "./loadBench";
 
 type PageProps = {
   params: Promise<{ name: string }>;
+  searchParams: Promise<{ compare?: string | string[] }>;
 };
 
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
@@ -74,6 +75,14 @@ export default async function BenchPage(
   props: PageProps,
 ): Promise<React.JSX.Element> {
   const { name: rawName } = await props.params;
+  const search = await props.searchParams;
+  const compareUidRaw = Array.isArray(search.compare)
+    ? search.compare[0]
+    : search.compare;
+  const compareUid =
+    typeof compareUidRaw === "string" && /^0x[a-fA-F0-9]{64}$/.test(compareUidRaw)
+      ? (compareUidRaw as `0x${string}`)
+      : null;
   const name = decodeURIComponent(rawName);
   const result: LoadBenchResult = await loadBench(name);
   const isMockedDemo = isDemoMockSubject(name);
@@ -96,35 +105,35 @@ export default async function BenchPage(
       data-route="bench"
       data-mock-demo={isMockedDemo ? "true" : "false"}
     >
-      <header className="flex flex-col gap-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex flex-col gap-2">
-            <span className="font-mono text-xs uppercase tracking-[0.18em] text-t2">
-              {BENCH_SUB_BRAND}
-            </span>
-            <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-t1 md:text-4xl">
-              {name}
-            </h1>
-            <p className="font-mono text-xs uppercase tracking-[0.18em] text-verdict-siren">
-              {BENCH_SUB_TAGLINE}
-            </p>
-          </div>
-          <BenchPublishWidget
-            subjectName={name}
-            subjectAddress={subjectAddress}
-            easBundle={easBundle}
-            liveScore={liveScore}
-            liveTier={liveTier}
-            liveComputedAt={null}
-          />
+      <header className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-2">
+          <span className="font-mono text-xs uppercase tracking-[0.18em] text-t2">
+            {BENCH_SUB_BRAND}
+          </span>
+          <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-t1 md:text-4xl">
+            {name}
+          </h1>
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-verdict-siren">
+            {BENCH_SUB_TAGLINE}
+          </p>
         </div>
-        {result.kind === "loaded" ? (
-          <CompareWithPreviousColumn
-            evidence={result.evidence}
-            score={result.score}
-          />
-        ) : null}
+        <BenchPublishWidget
+          subjectName={name}
+          subjectAddress={subjectAddress}
+          easBundle={easBundle}
+          liveScore={liveScore}
+          liveTier={liveTier}
+          liveComputedAt={null}
+        />
       </header>
+
+      {compareUid !== null && result.kind === "loaded" ? (
+        <CompareDiffBanner
+          uid={compareUid}
+          evidence={result.evidence}
+          score={result.score}
+        />
+      ) : null}
 
       {isMockedDemo ? (
         <section

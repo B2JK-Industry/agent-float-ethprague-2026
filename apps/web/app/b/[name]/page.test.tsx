@@ -54,7 +54,10 @@ const SAMPLE_SCORE = {
 const loadBenchMock = vi.mocked(loadBench);
 
 function pageProps(name: string): Parameters<typeof BenchPage>[0] {
-  return { params: Promise.resolve({ name }) };
+  return {
+    params: Promise.resolve({ name }),
+    searchParams: Promise.resolve({}),
+  };
 }
 
 describe("BenchPage (US-131 foundation)", () => {
