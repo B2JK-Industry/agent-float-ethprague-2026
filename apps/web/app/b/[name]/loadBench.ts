@@ -210,7 +210,12 @@ export async function loadBench(
 
   // Smart routing: Sepolia for demo subjects, mainnet for everything else.
   // Caller-supplied chainId still wins (debug ?chain= override).
-  const chainId = options.chainId ?? chainIdForName(name, envDefaultChainId());
+  // We DON'T use envDefaultChainId() as the fallback because prod sets
+  // DEFAULT_BENCH_CHAIN_ID=11155111 (Sepolia) for demo tiles — applying
+  // that to non-demo names sends real mainnet ENS through Sepolia first,
+  // which fails fast but still adds latency that pushes past the 12s
+  // page deadline. Hard-code mainnet for the non-demo branch.
+  const chainId = options.chainId ?? chainIdForName(name, MAINNET_CHAIN_ID);
   const nowSeconds = options.nowSeconds ?? Math.floor(Date.now() / 1000);
   const orchestratorTimeoutMs =
     options.orchestratorTimeoutMs ?? DEFAULT_ORCHESTRATOR_TIMEOUT_MS;
