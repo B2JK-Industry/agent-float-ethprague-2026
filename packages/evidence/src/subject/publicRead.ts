@@ -373,6 +373,68 @@ export async function inferSubjectFromPublicRead(
     sourcifyEntries = promoteEntries(allChainsRes.value);
   }
 
+  // 2026-05-10 (Sourcify Bounty): when the subject's primaryAddress is
+  // an EOA (the common case for personal ENS names like sbo3lagent.eth),
+  // fetchSourcifyAllChains returns nothing — but the subject may have
+  // PINNED a verified contract address in an ENS text record under
+  // org.sourcify / Sourcify / etc. Run all-chains discovery on every
+  // pinned address too, then dedupe (chainId, address) pairs against
+  // the wallet-derived list above. The orchestrator's per-entry deep
+  // fetch then fires on each pin → SourcifyEvidencePanel renders rich
+  // metadata (storage layout, OZ patterns, compiler) for the contract
+  // the subject claims.
+  const SOURCIFY_PIN_KEYS_LC = new Set([
+    'eth.contracts',
+    'org.sourcify',
+    'sourcify',
+    'contract',
+    'verified-contract',
+    'verified-contracts',
+    'agent-bench:contract',
+    'agent-bench:contracts',
+  ]);
+  const ADDR_RE = /^0x[a-fA-F0-9]{40}$/;
+  const pinnedAddresses: Array<Address> = [];
+  const seenPinnedLc = new Set<string>();
+  for (const [k, raw] of Object.entries(inferredTexts)) {
+    if (!SOURCIFY_PIN_KEYS_LC.has(k.toLowerCase())) continue;
+    if (typeof raw !== 'string') continue;
+    for (const token of raw.split(/[\s,;]+/)) {
+      const t = token.trim();
+      if (!ADDR_RE.test(t)) continue;
+      const lc = t.toLowerCase();
+      if (seenPinnedLc.has(lc)) continue;
+      // Skip if already in the wallet-derived sourcify list (would be
+      // a wallet that IS a verified contract — fetchSourcifyAllChains
+      // already promoted it).
+      const alreadyDiscovered = sourcifyEntries.some(
+        (e) => e.address.toLowerCase() === lc,
+      );
+      if (alreadyDiscovered) continue;
+      seenPinnedLc.add(lc);
+      pinnedAddresses.push(t as Address);
+    }
+  }
+  if (pinnedAddresses.length > 0) {
+    const pinnedDiscoveries = await Promise.all(
+      pinnedAddresses.map((addr) =>
+        fetchSourcifyAllChains(addr, options.sourcifyOptions),
+      ),
+    );
+    const newEntries: SubjectSourcifyEntry[] = [];
+    for (let i = 0; i < pinnedDiscoveries.length; i++) {
+      const res = pinnedDiscoveries[i];
+      const addr = pinnedAddresses[i];
+      if (res?.kind !== 'ok' || addr === undefined) continue;
+      for (const e of promoteEntries(res.value)) {
+        // Re-label so the panel shows the pin source rather than the
+        // generic "Discovered (chain N)" used for wallet-derived hits.
+        newEntries.push({ ...e, label: `Pinned (chain ${e.chainId})` });
+      }
+    }
+    sourcifyEntries = [...sourcifyEntries, ...newEntries];
+  }
+
   const onchain: SubjectOnchainSource | null = primaryAddress !== null
     ? { primaryAddress, claimedFirstTxHash: null }
     : null;
