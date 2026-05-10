@@ -136,16 +136,17 @@ export function BenchPublishWidget({
         await switchChainAsync({ chainId: targetChainId });
       }
 
-      // Build the EAS data field. Two paths:
-      //   1. easBundle present → use the canonical ABI-encoded payload
-      //      from the off-chain envelope (matches the bench schema).
+      // Build the EAS data field. Two paths, both feed `data` with the
+      // ABI-encoded BenchAttestationPayload (NOT the JSON envelope —
+      // pre-2026-05-10 this incorrectly sent easBundle.offchain.serialized
+      // which is the eas-sdk JSON envelope, breaking on-chain decode).
+      //   1. easBundle present → re-encode the stored BenchAttestationPayload
+      //      so the on-chain `data` field matches the registered schema.
       //   2. self-attest mode → encode a fresh BenchAttestationPayload
-      //      using `encodeBenchPayload` so the on-chain attestation
-      //      decodes cleanly against the registered schema. score=0 +
-      //      tier="U" is honest for a freshly-typed subject without a
-      //      stored report.
+      //      with the live score/tier (honest score=0 + tier="U" only
+      //      when the page hasn't computed values yet).
       const dataPayload: `0x${string}` = easBundle
-        ? (easBundle.offchain.serialized as `0x${string}`)
+        ? encodeBenchPayload(easBundle.offchain.payload)
         : encodeBenchPayload({
             subject: walletAddress as `0x${string}`,
             ensNamehash: namehash(subjectName) as `0x${string}`,

@@ -171,17 +171,64 @@ export async function POST(
     );
   }
 
-  if (
-    onchainPayload.reportHash.toLowerCase() !==
-    stored.offchain.payload.reportHash.toLowerCase()
-  ) {
-    return NextResponse.json(
-      {
-        error: "report_hash_mismatch",
-        message: `On-chain reportHash ${onchainPayload.reportHash} does not match off-chain ${stored.offchain.payload.reportHash}. The on-chain attestation was for a different report.`,
-      },
-      { status: 422 },
-    );
+  // 2026-05-10 audit: verify ALL material fields, not just reportHash.
+  // A report-hash-only check left subject-spoofing wide open: an attacker
+  // could mint an on-chain attestation about a different ENS subject
+  // and have it accepted as long as the bytes happened to embed our
+  // off-chain reportHash.
+  const stP = stored.offchain.payload;
+  const lc = (s: string): string => s.toLowerCase();
+  const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
+  const ZERO_NAMEHASH =
+    "0x0000000000000000000000000000000000000000000000000000000000000000";
+  const checks: Array<{ field: string; on: string; off: string; skipIfStoredZero?: boolean }> = [
+    {
+      field: "reportHash",
+      on: lc(onchainPayload.reportHash),
+      off: lc(stP.reportHash),
+    },
+    { field: "reportUri", on: onchainPayload.reportUri, off: stP.reportUri },
+    {
+      field: "subject",
+      on: lc(onchainPayload.subject),
+      off: lc(stP.subject),
+      skipIfStoredZero: true,
+    },
+    {
+      field: "ensNamehash",
+      on: lc(onchainPayload.ensNamehash),
+      off: lc(stP.ensNamehash),
+      skipIfStoredZero: true,
+    },
+    { field: "score", on: String(onchainPayload.score), off: String(stP.score) },
+    { field: "tier", on: onchainPayload.tier, off: stP.tier },
+    {
+      field: "computedAt",
+      on: String(onchainPayload.computedAt),
+      off: String(stP.computedAt),
+    },
+    {
+      field: "recipient",
+      on: lc(attestation.recipient),
+      off: lc(stP.subject),
+      skipIfStoredZero: true,
+    },
+  ];
+  for (const c of checks) {
+    if (c.skipIfStoredZero) {
+      // Legacy rows pre-2026-05-10 audit didn't persist subject /
+      // ensNamehash; skip those checks for backwards compatibility.
+      if (c.off === lc(ZERO_ADDR) || c.off === lc(ZERO_NAMEHASH)) continue;
+    }
+    if (c.on !== c.off) {
+      return NextResponse.json(
+        {
+          error: `${c.field}_mismatch`,
+          message: `On-chain ${c.field} (${c.on}) does not match off-chain (${c.off}). The on-chain attestation was for a different report.`,
+        },
+        { status: 422 },
+      );
+    }
   }
 
   const publishedBy = attestation.attester as Address;
