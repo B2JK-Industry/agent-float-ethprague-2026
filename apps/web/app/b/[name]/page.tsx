@@ -37,6 +37,7 @@ import { EnsDrawer } from "../../../components/bench/drawers/EnsDrawer";
 import { GitHubDrawer } from "../../../components/bench/drawers/GitHubDrawer";
 import { OnchainDrawer } from "../../../components/bench/drawers/OnchainDrawer";
 import { SourcifyDrawer } from "../../../components/bench/drawers/SourcifyDrawer";
+import { UmiaPermitSectionLoader } from "../../../components/umia/UmiaPermitSectionLoader";
 import { UmiaVentureApplySection } from "../../../components/umia/UmiaVentureApplySection";
 import { CompareDiffBanner } from "../../../components/compare/CompareDiffBanner";
 import { BENCH_SUB_BRAND, BENCH_SUB_TAGLINE } from "../../../lib/branding";
@@ -263,6 +264,8 @@ function BenchFoundation({
       />
 
       <UmiaVentureApplySection evidence={evidence} score={score} />
+
+      <UmiaPermitSectionLoader subjectName={evidence.subject.name} />
     </>
   );
 }
