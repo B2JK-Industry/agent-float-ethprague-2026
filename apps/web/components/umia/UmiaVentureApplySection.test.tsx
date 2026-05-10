@@ -12,6 +12,9 @@ import type {
 
 import { UmiaVentureApplySection } from "./UmiaVentureApplySection";
 
+const longDescription =
+  "Public ENS-anchored upgrade-risk verdict surface for Ethereum. Sourcify is the proof.";
+
 function makeEvidence(overrides: {
   inferredTexts?: Record<string, string>;
 } = {}): MultiSourceEvidence {
@@ -29,7 +32,7 @@ function makeEvidence(overrides: {
       manifest: null,
       inferredTexts: overrides.inferredTexts ?? {
         "com.github": "B2JK-Industry",
-        description: "Public ENS-anchored upgrade alarm.",
+        description: longDescription,
         url: "https://upgrade-siren.vercel.app",
         "org.telegram": "Daniel_Babjak",
       },
@@ -51,51 +54,53 @@ const fakeScore: ScoreResult = {
   reason: "ok",
 } as unknown as ScoreResult;
 
-describe("UmiaVentureApplySection", () => {
+describe("UmiaVentureApplySection (canonical schema)", () => {
   it("renders the CTA and expands to a form", () => {
     render(
       <UmiaVentureApplySection evidence={makeEvidence()} score={fakeScore} />,
     );
-    const cta = screen.getByRole("button", { name: /Prepare Umia application/i });
+    const cta = screen.getByRole("button", {
+      name: /Prepare Umia application/i,
+    });
     expect(cta).toBeTruthy();
     fireEvent.click(cta);
-    // After expanding, a form appears with the github_repositories field.
     expect(screen.getByText(/GitHub repositories/i)).toBeTruthy();
-    // The CTA flips to "Collapse".
-    expect(
-      screen.getByRole("button", { name: /Collapse/i }),
-    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Collapse/i })).toBeTruthy();
   });
 
   it("ENS-sourced fields render as locked / read-only with source label", () => {
     render(
       <UmiaVentureApplySection evidence={makeEvidence()} score={fakeScore} />,
     );
-    fireEvent.click(screen.getByRole("button", { name: /Prepare Umia application/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Prepare Umia application/i }),
+    );
 
-    const desc = document.querySelector('label[data-field="Description"]');
+    const desc = document.querySelector(
+      'label[data-field="Description (≥ 50 chars)"]',
+    );
     expect(desc).toBeTruthy();
     expect(desc?.getAttribute("data-locked")).toBe("true");
-    const textarea = desc?.querySelector("textarea");
-    expect(textarea?.readOnly).toBe(true);
-    // The source label is rendered alongside the field.
+    const textarea = desc?.querySelector("textarea") as HTMLTextAreaElement;
+    expect(textarea.readOnly).toBe(true);
     expect(within(desc as HTMLElement).getByText(/from ENS · description/i)).toBeTruthy();
   });
 
-  it("blocks Download CTA when required fields are missing (no pitch, no contacts)", () => {
+  it("blocks Download CTA when required fields are missing", () => {
     render(
       <UmiaVentureApplySection
         evidence={makeEvidence({ inferredTexts: {} })}
         score={null}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: /Prepare Umia application/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Prepare Umia application/i }),
+    );
     const dlBtn = screen.getByRole("button", {
       name: /Fix errors to enable download/i,
     });
     expect(dlBtn.hasAttribute("disabled")).toBe(true);
 
-    // Validation summary lists at least one error.
     const errors = document.querySelector('[data-field="validation-errors"]');
     expect(errors).toBeTruthy();
   });
@@ -104,21 +109,45 @@ describe("UmiaVentureApplySection", () => {
     render(
       <UmiaVentureApplySection evidence={makeEvidence()} score={fakeScore} />,
     );
-    fireEvent.click(screen.getByRole("button", { name: /Prepare Umia application/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Prepare Umia application/i }),
+    );
 
-    // Pitch is empty by default — fill it so the schema passes.
-    const pitchLabel = document.querySelector('label[data-field="Pitch"]');
+    // Fill pitch
+    const pitchLabel = document.querySelector(
+      'label[data-field="Pitch (10–500 chars)"]',
+    );
     const pitchTextarea = pitchLabel?.querySelector("textarea") as HTMLTextAreaElement;
     fireEvent.change(pitchTextarea, {
-      target: { value: "Help us launch a public verification surface." },
+      target: { value: "Public ENS-anchored verification surface." },
     });
+
+    // Fill at least one github_repository (canonical schema requires
+    // owner/repo URL, not the auto-detected org URL).
+    const ghLabel = document.querySelector(
+      'label[data-field="GitHub repositories (comma-separated owner/repo URLs)"]',
+    );
+    const ghTextarea = ghLabel?.querySelector("textarea") as HTMLTextAreaElement;
+    fireEvent.change(ghTextarea, {
+      target: {
+        value: "https://github.com/B2JK-Industry/Upgrade-Siren-ETHPrague2026",
+      },
+    });
+
+    // Fill owner contact name (required) — telegram is auto-locked from ENS.
+    const contactNameLabel = document.querySelectorAll('label[data-field="Name"]')[1];
+    const contactNameInput = contactNameLabel?.querySelector("input") as HTMLInputElement;
+    fireEvent.change(contactNameInput, { target: { value: "Daniel Babjak" } });
+
+    // Fill team member name (required).
+    const memberNameLabel = document.querySelectorAll('label[data-field="Name"]')[2];
+    const memberNameInput = memberNameLabel?.querySelector("input") as HTMLInputElement;
+    fireEvent.change(memberNameInput, { target: { value: "Daniel Babjak" } });
 
     const dlBtn = screen.getByRole("button", {
       name: /Download Umia application JSON/i,
     });
     expect(dlBtn.hasAttribute("disabled")).toBe(false);
-
-    // Validation OK chip is rendered.
     expect(document.querySelector('[data-field="validation-ok"]')).toBeTruthy();
   });
 
@@ -126,7 +155,9 @@ describe("UmiaVentureApplySection", () => {
     render(
       <UmiaVentureApplySection evidence={makeEvidence()} score={fakeScore} />,
     );
-    fireEvent.click(screen.getByRole("button", { name: /Prepare Umia application/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Prepare Umia application/i }),
+    );
     const block = document.querySelector('[data-section="umia-report-ref"]');
     expect(block).toBeTruthy();
     const txt = block?.textContent ?? "";

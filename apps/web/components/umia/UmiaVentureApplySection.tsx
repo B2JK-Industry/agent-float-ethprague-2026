@@ -2,10 +2,14 @@
 
 // Umia Venture Apply — export-only section.
 //
-// Renders below the Bench verdict. Lets a promising subject turn the
-// Upgrade Siren report + ENS records into a draft `umia venture apply`
-// payload. MVP behavior: download JSON locally; never shells out to the
-// real CLI; never uploads anywhere.
+// Renders below the Bench verdict on /b/[name]. Lets a promising subject
+// turn the Upgrade Siren report + ENS records into a draft `umia venture
+// apply` payload aligned with the canonical Umia Community Track schema
+// (apps/web/lib/umia/umia-venture-apply.schema.json v0.1.0).
+//
+// MVP behavior: download JSON locally; never shells out to the real CLI;
+// never uploads anywhere. Strictly additive — does NOT modify the report
+// publish flow (BenchPublishWidget, EAS publish, EAS store).
 //
 // Provenance discipline:
 //   - Fields prefilled from ENS / report / manifest render as locked
@@ -20,16 +24,45 @@ import type { MultiSourceEvidence, ScoreResult } from "@upgrade-siren/evidence";
 import {
   buildPayloadFromForm,
   buildPrefilledForm,
+  type OwnerContactEdits,
+  type MemberEdits,
 } from "../../lib/umia/buildUmiaVenturePayload";
 import type {
   PrefilledField,
   PrefilledUmiaForm,
+  UmiaPreferredContact,
   UmiaProject,
-  UmiaTeamMember,
+  UmiaRole,
 } from "../../lib/umia/types";
 import { validateUmiaPayload } from "../../lib/umia/validate";
 
 const UMIA_HOMEPAGE = "https://umia.ai";
+
+const ROLES: ReadonlyArray<UmiaRole> = [
+  "Founder",
+  "Investor",
+  "Advisor",
+  "Researcher",
+  "Ambassador",
+  "Other",
+];
+
+const STAGES: ReadonlyArray<UmiaProject["stage"]> = [
+  "Idea",
+  "Pre-MVP",
+  "MVP",
+  "Customers",
+  "Revenue",
+  "Growth",
+];
+
+const PREFERRED_CONTACTS: ReadonlyArray<UmiaPreferredContact> = [
+  "email",
+  "telegram",
+  "twitter",
+  "discord",
+  "phone",
+];
 
 interface Props {
   readonly evidence: MultiSourceEvidence;
@@ -40,14 +73,19 @@ interface Props {
 
 interface UserEdits {
   submission_notes: string;
-  team_name: string;
-  member_role: string;
-  // Owner contacts — only the editable ones; locked ones come from the
-  // form directly.
-  owner_email: string;
-  owner_telegram: string;
-  owner_twitter: string;
-  owner_discord: string;
+  // Owner contact 0 (only the editable fields — locked ones use form.value)
+  contact_name: string;
+  contact_role: UmiaRole;
+  contact_email: string;
+  contact_telegram: string;
+  contact_twitter: string;
+  contact_discord: string;
+  contact_phone: string;
+  contact_preferred: UmiaPreferredContact;
+  // Member 0 (handle/wallet/github come locked from the form)
+  member_name: string;
+  member_role: UmiaRole;
+  member_bio: string;
   // Project
   project_name: string;
   project_description: string;
@@ -58,28 +96,39 @@ interface UserEdits {
   links_website: string;
   links_github_repositories: string;
   links_github_organization: string;
+  links_docs: string;
+  links_demo: string;
   links_twitter: string;
   links_telegram: string;
   links_discord: string;
 }
 
 function emptyEdits(form: PrefilledUmiaForm): UserEdits {
+  const contact = form.owner_contacts[0];
   const member = form.team.members[0];
   return {
     submission_notes: form.submission_notes.value,
-    team_name: form.team.name.value,
-    member_role: member?.role.value ?? "",
-    owner_email: form.owner_contacts.email.value,
-    owner_telegram: form.owner_contacts.telegram.value,
-    owner_twitter: form.owner_contacts.twitter.value,
-    owner_discord: form.owner_contacts.discord.value,
+    contact_name: contact?.name.value ?? "",
+    contact_role: contact?.role.value ?? "Founder",
+    contact_email: contact?.email.value ?? "",
+    contact_telegram: contact?.telegram.value ?? "",
+    contact_twitter: contact?.twitter.value ?? "",
+    contact_discord: contact?.discord.value ?? "",
+    contact_phone: contact?.phone.value ?? "",
+    contact_preferred: contact?.preferred_contact.value ?? "email",
+    member_name: member?.name.value ?? "",
+    member_role: member?.role.value ?? "Founder",
+    member_bio: member?.bio.value ?? "",
     project_name: form.project.name.value,
     project_description: form.project.description.value,
     project_pitch: form.project.pitch.value,
     project_stage: form.project.stage.value,
     links_website: form.project.links.website.value,
-    links_github_repositories: form.project.links.github_repositories.value.join(", "),
+    links_github_repositories:
+      form.project.links.github_repositories.value.join(", "),
     links_github_organization: form.project.links.github_organization.value,
+    links_docs: form.project.links.docs.value,
+    links_demo: form.project.links.demo.value,
     links_twitter: form.project.links.twitter.value,
     links_telegram: form.project.links.telegram.value,
     links_discord: form.project.links.discord.value,
@@ -115,30 +164,28 @@ export function UmiaVentureApplySection({
       .map((s) => s.trim())
       .filter((s) => s.length > 0);
 
-    const member: UmiaTeamMember = {
-      handle: form.team.members[0]?.handle.value ?? evidence.subject.name,
-      ...(edits.member_role ? { role: edits.member_role } : {}),
-      ...(form.team.members[0]?.ens.value ? { ens: form.team.members[0]!.ens.value } : {}),
-      ...(form.team.members[0]?.github.value
-        ? { github: form.team.members[0]!.github.value }
-        : {}),
-      ...(form.team.members[0]?.wallet_address.value
-        ? { wallet_address: form.team.members[0]!.wallet_address.value }
-        : {}),
+    const ownerContactEdits: OwnerContactEdits = {
+      name: edits.contact_name,
+      role: edits.contact_role,
+      email: edits.contact_email,
+      telegram: edits.contact_telegram,
+      twitter: edits.contact_twitter,
+      discord: edits.contact_discord,
+      phone: edits.contact_phone,
+      preferred_contact: edits.contact_preferred,
+    };
+    const memberEdits: MemberEdits = {
+      name: edits.member_name,
+      role: edits.member_role,
+      bio: edits.member_bio,
     };
 
     const payload = buildPayloadFromForm({
       form,
       userEdits: {
         submission_notes: edits.submission_notes,
-        team_name: edits.team_name,
-        members: [member],
-        owner_contacts: {
-          ...(edits.owner_email ? { email: edits.owner_email } : {}),
-          ...(edits.owner_telegram ? { telegram: edits.owner_telegram } : {}),
-          ...(edits.owner_twitter ? { twitter: edits.owner_twitter } : {}),
-          ...(edits.owner_discord ? { discord: edits.owner_discord } : {}),
-        },
+        owner_contacts: [ownerContactEdits],
+        members: [memberEdits],
         project: {
           name: edits.project_name,
           description: edits.project_description,
@@ -148,6 +195,8 @@ export function UmiaVentureApplySection({
             website: edits.links_website,
             github_repositories: repos,
             github_organization: edits.links_github_organization,
+            docs: edits.links_docs,
+            demo: edits.links_demo,
             twitter: edits.links_twitter,
             telegram: edits.links_telegram,
             discord: edits.links_discord,
@@ -158,7 +207,7 @@ export function UmiaVentureApplySection({
 
     const validation = validateUmiaPayload(payload);
     return { payload, validation };
-  }, [edits, evidence.subject.name, form]);
+  }, [edits, form]);
 
   const blocked = computed.validation.kind === "error";
 
@@ -199,7 +248,7 @@ export function UmiaVentureApplySection({
           className="font-mono uppercase text-t3"
           style={{ fontSize: "10px", letterSpacing: "0.18em" }}
         >
-          Launch with Umia
+          Launch with Umia · ETHPrague 2026 sponsor
         </span>
         <h2
           className="font-display text-t1"
@@ -217,7 +266,8 @@ export function UmiaVentureApplySection({
         >
           Umia is an agentic-venture launcher. This section turns the verdict
           above into a draft <code className="font-mono">umia venture apply</code>{" "}
-          payload — JSON download only, no upload, no real CLI execution.{" "}
+          payload aligned with the Community Track schema — JSON download
+          only, no upload, no real CLI execution.{" "}
           <a
             href={UMIA_HOMEPAGE}
             target="_blank"
@@ -270,14 +320,14 @@ export function UmiaVentureApplySection({
               onChange={(v) => setEdits({ ...edits, project_name: v })}
             />
             <PrefilledTextarea
-              label="Description"
+              label="Description (≥ 50 chars)"
               required
               field={form.project.description}
               value={edits.project_description}
               onChange={(v) => setEdits({ ...edits, project_description: v })}
             />
             <PrefilledTextarea
-              label="Pitch"
+              label="Pitch (10–500 chars)"
               required
               field={{
                 value: edits.project_pitch || form.project.pitch.value,
@@ -288,20 +338,22 @@ export function UmiaVentureApplySection({
               value={edits.project_pitch}
               onChange={(v) => setEdits({ ...edits, project_pitch: v })}
             />
-            <StageSelect
+            <SelectField
+              label="Stage"
+              required
               value={edits.project_stage}
-              onChange={(v) => setEdits({ ...edits, project_stage: v })}
-            />
-            <PrefilledTextInput
-              label="Primary address"
-              field={form.project.primary_address}
-              value={form.project.primary_address.value}
-              onChange={() => undefined /* always locked when present */}
+              options={STAGES}
+              onChange={(v) =>
+                setEdits({ ...edits, project_stage: v as UmiaProject["stage"] })
+              }
             />
           </FieldGroup>
 
           {/* Project links */}
-          <FieldGroup title="Project links">
+          <FieldGroup
+            title="Project links"
+            note="github_repositories must be specific repo URLs (https://github.com/owner/repo). Org URLs go in github_organization."
+          >
             <PrefilledTextInput
               label="Website"
               field={form.project.links.website}
@@ -309,7 +361,7 @@ export function UmiaVentureApplySection({
               onChange={(v) => setEdits({ ...edits, links_website: v })}
             />
             <PrefilledTextarea
-              label="GitHub repositories (comma-separated URLs)"
+              label="GitHub repositories (comma-separated owner/repo URLs)"
               required
               field={{
                 value: edits.links_github_repositories,
@@ -318,13 +370,29 @@ export function UmiaVentureApplySection({
                 locked: false,
               }}
               value={edits.links_github_repositories}
-              onChange={(v) => setEdits({ ...edits, links_github_repositories: v })}
+              onChange={(v) =>
+                setEdits({ ...edits, links_github_repositories: v })
+              }
             />
             <PrefilledTextInput
-              label="GitHub organization"
+              label="GitHub organization (URL)"
               field={form.project.links.github_organization}
               value={edits.links_github_organization}
-              onChange={(v) => setEdits({ ...edits, links_github_organization: v })}
+              onChange={(v) =>
+                setEdits({ ...edits, links_github_organization: v })
+              }
+            />
+            <PrefilledTextInput
+              label="Docs"
+              field={form.project.links.docs}
+              value={edits.links_docs}
+              onChange={(v) => setEdits({ ...edits, links_docs: v })}
+            />
+            <PrefilledTextInput
+              label="Demo"
+              field={form.project.links.demo}
+              value={edits.links_demo}
+              onChange={(v) => setEdits({ ...edits, links_demo: v })}
             />
             <PrefilledTextInput
               label="Twitter"
@@ -346,89 +414,143 @@ export function UmiaVentureApplySection({
             />
           </FieldGroup>
 
-          {/* Owner contacts — at least one required by schema */}
+          {/* Owner contact (canonical schema is array; we seed one) */}
           <FieldGroup
-            title="Owner contacts (at least one required)"
-            note="Schema requires email, telegram, twitter, or discord."
+            title="Owner contact (at least one entry, with at least one channel)"
+            note="Schema requires email, telegram, twitter, discord, or phone."
           >
             <PrefilledTextInput
+              label="Name"
+              required
+              field={{
+                value: edits.contact_name,
+                origin: "user",
+                sourceLabel: null,
+                locked: false,
+              }}
+              value={edits.contact_name}
+              onChange={(v) => setEdits({ ...edits, contact_name: v })}
+            />
+            <SelectField
+              label="Role"
+              value={edits.contact_role}
+              options={ROLES}
+              onChange={(v) =>
+                setEdits({ ...edits, contact_role: v as UmiaRole })
+              }
+            />
+            <PrefilledTextInput
               label="Email"
-              field={form.owner_contacts.email}
-              value={edits.owner_email}
-              onChange={(v) => setEdits({ ...edits, owner_email: v })}
+              field={form.owner_contacts[0]?.email ?? emptyPrefilled()}
+              value={edits.contact_email}
+              onChange={(v) => setEdits({ ...edits, contact_email: v })}
             />
             <PrefilledTextInput
               label="Telegram"
-              field={form.owner_contacts.telegram}
-              value={edits.owner_telegram}
-              onChange={(v) => setEdits({ ...edits, owner_telegram: v })}
+              field={form.owner_contacts[0]?.telegram ?? emptyPrefilled()}
+              value={edits.contact_telegram}
+              onChange={(v) => setEdits({ ...edits, contact_telegram: v })}
             />
             <PrefilledTextInput
               label="Twitter"
-              field={form.owner_contacts.twitter}
-              value={edits.owner_twitter}
-              onChange={(v) => setEdits({ ...edits, owner_twitter: v })}
+              field={form.owner_contacts[0]?.twitter ?? emptyPrefilled()}
+              value={edits.contact_twitter}
+              onChange={(v) => setEdits({ ...edits, contact_twitter: v })}
             />
             <PrefilledTextInput
               label="Discord"
-              field={form.owner_contacts.discord}
-              value={edits.owner_discord}
-              onChange={(v) => setEdits({ ...edits, owner_discord: v })}
+              field={form.owner_contacts[0]?.discord ?? emptyPrefilled()}
+              value={edits.contact_discord}
+              onChange={(v) => setEdits({ ...edits, contact_discord: v })}
+            />
+            <PrefilledTextInput
+              label="Phone"
+              field={form.owner_contacts[0]?.phone ?? emptyPrefilled()}
+              value={edits.contact_phone}
+              onChange={(v) => setEdits({ ...edits, contact_phone: v })}
+            />
+            <SelectField
+              label="Preferred contact"
+              value={edits.contact_preferred}
+              options={PREFERRED_CONTACTS}
+              onChange={(v) =>
+                setEdits({
+                  ...edits,
+                  contact_preferred: v as UmiaPreferredContact,
+                })
+              }
             />
           </FieldGroup>
 
-          {/* Team */}
-          <FieldGroup title="Team">
+          {/* Team — first member */}
+          <FieldGroup title="Team member (at least one)">
             <PrefilledTextInput
-              label="Team name"
-              field={form.team.name}
-              value={edits.team_name}
-              onChange={(v) => setEdits({ ...edits, team_name: v })}
+              label="Name"
+              required
+              field={{
+                value: edits.member_name,
+                origin: "user",
+                sourceLabel: null,
+                locked: false,
+              }}
+              value={edits.member_name}
+              onChange={(v) => setEdits({ ...edits, member_name: v })}
+            />
+            <SelectField
+              label="Role"
+              required
+              value={edits.member_role}
+              options={ROLES}
+              onChange={(v) =>
+                setEdits({ ...edits, member_role: v as UmiaRole })
+              }
             />
             {form.team.members[0] ? (
               <>
                 <PrefilledTextInput
-                  label="Member handle"
-                  required
+                  label="Handle"
                   field={form.team.members[0].handle}
                   value={form.team.members[0].handle.value}
                   onChange={() => undefined}
                 />
                 <PrefilledTextInput
-                  label="Member role"
-                  field={{
-                    value: edits.member_role,
-                    origin: "user",
-                    sourceLabel: null,
-                    locked: false,
-                  }}
-                  value={edits.member_role}
-                  onChange={(v) => setEdits({ ...edits, member_role: v })}
-                />
-                <PrefilledTextInput
-                  label="Member ENS"
-                  field={form.team.members[0].ens}
-                  value={form.team.members[0].ens.value}
+                  label="Wallet address"
+                  field={form.team.members[0].wallet_address}
+                  value={form.team.members[0].wallet_address.value}
                   onChange={() => undefined}
                 />
                 <PrefilledTextInput
-                  label="Member GitHub"
+                  label="GitHub"
                   field={form.team.members[0].github}
                   value={form.team.members[0].github.value}
                   onChange={() => undefined}
                 />
                 <PrefilledTextInput
-                  label="Member wallet address"
-                  field={form.team.members[0].wallet_address}
-                  value={form.team.members[0].wallet_address.value}
+                  label="Twitter"
+                  field={form.team.members[0].twitter}
+                  value={form.team.members[0].twitter.value}
                   onChange={() => undefined}
                 />
               </>
             ) : null}
+            <PrefilledTextarea
+              label="Bio (optional)"
+              field={{
+                value: edits.member_bio,
+                origin: "user",
+                sourceLabel: null,
+                locked: false,
+              }}
+              value={edits.member_bio}
+              onChange={(v) => setEdits({ ...edits, member_bio: v })}
+            />
           </FieldGroup>
 
           {/* Submission notes */}
-          <FieldGroup title="Submission notes">
+          <FieldGroup
+            title="Submission notes"
+            note="Auto-filled with the Upgrade Siren report reference. Editable so you can add context for a future Umia adapter."
+          >
             <PrefilledTextarea
               label="Notes"
               field={form.submission_notes}
@@ -519,6 +641,10 @@ export function UmiaVentureApplySection({
 }
 
 // ─── helpers ───
+
+function emptyPrefilled(): PrefilledField<string> {
+  return { value: "", origin: "user", sourceLabel: null, locked: false };
+}
 
 function FieldGroup({
   title,
@@ -682,24 +808,31 @@ function PrefilledTextarea({
   );
 }
 
-function StageSelect({
+function SelectField<T extends string>({
+  label,
+  required,
   value,
+  options,
   onChange,
 }: {
-  value: UmiaProject["stage"];
-  onChange: (v: UmiaProject["stage"]) => void;
+  label: string;
+  required?: boolean;
+  value: T;
+  options: ReadonlyArray<T>;
+  onChange: (v: T) => void;
 }): React.JSX.Element {
   return (
-    <label data-field="Stage">
+    <label data-field={label}>
       <span
         className="text-t1"
         style={{ fontSize: "11px", letterSpacing: "0.04em" }}
       >
-        Stage <span className="text-verdict-siren">*</span>
+        {label}
+        {required ? <span className="text-verdict-siren"> *</span> : null}
       </span>
       <select
         value={value}
-        onChange={(e) => onChange(e.target.value as UmiaProject["stage"])}
+        onChange={(e) => onChange(e.target.value as T)}
         style={{
           width: "100%",
           marginTop: "4px",
@@ -711,7 +844,7 @@ function StageSelect({
           fontSize: "12px",
         }}
       >
-        {(["idea", "prototype", "alpha", "beta", "live"] as const).map((s) => (
+        {options.map((s) => (
           <option key={s} value={s}>
             {s}
           </option>
@@ -765,6 +898,18 @@ function ReportRefBlock({
         ) : null}
         {report.tier ? <li>tier: <code>{report.tier}</code></li> : null}
       </ul>
+      <p
+        className="text-t3"
+        style={{
+          fontSize: "10px",
+          fontStyle: "italic",
+          fontFamily: "var(--font-serif)",
+          marginTop: "8px",
+        }}
+      >
+        Embedded into <code className="font-mono">submission_notes</code> in
+        the downloaded JSON so a future Umia adapter can extract it.
+      </p>
     </fieldset>
   );
 }
