@@ -15,15 +15,53 @@ import {
 } from "./buildUmiaVenturePayload";
 import { validateUmiaPayload } from "./validate";
 
+interface RepoStub {
+  readonly fullName: string;
+  readonly archived?: boolean;
+  readonly pushedAt?: string | null;
+  readonly fetchStatus?: "ok" | "partial" | "error";
+}
+
 function makeEvidence(overrides: {
   name?: string;
   primaryAddress?: string | null;
   inferredTexts?: Record<string, string>;
+  github?: GithubEvidence | { owner: string; repos: ReadonlyArray<RepoStub> };
 } = {}): MultiSourceEvidence {
   const sourcify: ReadonlyArray<SourcifyEntryEvidence> = [];
   const onchain: ReadonlyArray<OnchainEntryEvidence> = [];
-  const github: GithubEvidence = { kind: "absent" };
   const ensInternal: EnsInternalEvidence = { kind: "absent" };
+
+  let github: GithubEvidence;
+  if (!overrides.github) {
+    github = { kind: "absent" };
+  } else if ("kind" in overrides.github) {
+    github = overrides.github;
+  } else {
+    github = {
+      kind: "ok",
+      value: {
+        owner: overrides.github.owner,
+        user: null,
+        repos: overrides.github.repos.map((r) => ({
+          name: r.fullName.split("/")[1] ?? r.fullName,
+          fullName: r.fullName,
+          createdAt: null,
+          pushedAt: r.pushedAt ?? null,
+          archived: r.archived ?? false,
+          defaultBranch: "main",
+          license: null,
+          topics: [],
+          hasTestDir: false,
+          hasSubstantialReadme: false,
+          readmeBytes: null,
+          hasLicense: false,
+          fetchStatus: r.fetchStatus ?? "ok",
+        })),
+      },
+    };
+  }
+
   return {
     subject: {
       name: overrides.name ?? "alice.eth",
@@ -117,6 +155,70 @@ describe("buildPrefilledForm (canonical Umia Community Track schema)", () => {
     expect(ref?.url).toBe("https://upgrade-siren.vercel.app/b/x.eth");
     expect(ref?.score_100).toBe(62);
     expect(ref?.tier).toBe("A");
+  });
+
+  it("auto-fills github_repositories from fetched GitHub evidence (top non-archived by recent push)", () => {
+    const evidence = makeEvidence({
+      name: "siren.eth",
+      github: {
+        owner: "B2JK-Industry",
+        repos: [
+          // Newest push wins.
+          { fullName: "B2JK-Industry/Upgrade-Siren-ETHPrague2026", pushedAt: "2026-05-10T10:00:00Z" },
+          // Older but still active.
+          { fullName: "B2JK-Industry/older", pushedAt: "2024-01-01T00:00:00Z" },
+          // Archived → excluded.
+          { fullName: "B2JK-Industry/legacy", pushedAt: "2026-05-09T00:00:00Z", archived: true },
+          // Partial fetch → excluded.
+          { fullName: "B2JK-Industry/partial", pushedAt: "2026-05-08T00:00:00Z", fetchStatus: "partial" },
+        ],
+      },
+    });
+    const form = buildPrefilledForm({ evidence, score: fakeScore });
+    const repos = form.project.links.github_repositories;
+    expect(repos.value).toEqual([
+      "https://github.com/B2JK-Industry/Upgrade-Siren-ETHPrague2026",
+      "https://github.com/B2JK-Industry/older",
+    ]);
+    expect(repos.origin).toBe("report");
+    expect(repos.locked).toBe(true);
+    expect(repos.sourceLabel).toMatch(/from GitHub/);
+  });
+
+  it("auto-filled github_repositories satisfy schema validation when seeded", () => {
+    const evidence = makeEvidence({
+      name: "siren.eth",
+      inferredTexts: {
+        description: longDescription,
+      },
+      github: {
+        owner: "B2JK-Industry",
+        repos: [
+          { fullName: "B2JK-Industry/Upgrade-Siren-ETHPrague2026", pushedAt: "2026-05-10T10:00:00Z" },
+        ],
+      },
+    });
+    const form = buildPrefilledForm({ evidence, score: fakeScore });
+    const payload = buildPayloadFromForm({
+      form,
+      userEdits: {
+        owner_contacts: [
+          { name: "Daniel Babjak", role: "Founder", email: "d@example.com", preferred_contact: "email" },
+        ],
+        members: [{ name: "Daniel Babjak", role: "Founder" }],
+        project: {
+          pitch: "Public ENS-anchored upgrade-risk verdict surface.",
+          stage: "MVP",
+        },
+      },
+    });
+    const result = validateUmiaPayload(payload);
+    expect(result.kind).toBe("ok");
+    if (result.kind === "ok") {
+      expect(result.payload.project.links.github_repositories).toEqual([
+        "https://github.com/B2JK-Industry/Upgrade-Siren-ETHPrague2026",
+      ]);
+    }
   });
 
   it("does NOT fabricate missing required fields", () => {

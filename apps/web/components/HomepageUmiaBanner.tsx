@@ -21,9 +21,9 @@ export function HomepageUmiaBanner(): React.JSX.Element {
           Want to launch a real promising project in one click?
         </h2>
         <p className="text-sm leading-relaxed text-t2">
-          Umia is an agentic-venture launcher. After you generate a Bench
-          verdict for your project, Upgrade Siren turns it into a draft{" "}
-          <code className="font-mono text-t1">umia venture apply</code>{" "}
+          Umia is the Community Track venture launcher. After you generate
+          a Bench verdict for your project, Upgrade Siren turns it into a
+          draft <code className="font-mono text-t1">umia venture apply</code>{" "}
           payload — ENS records prefilled, schema-validated, JSON
           download only (no upload, no real CLI execution yet).
         </p>
@@ -34,7 +34,7 @@ export function HomepageUmiaBanner(): React.JSX.Element {
       </div>
       <div className="flex flex-col items-stretch gap-2 lg:items-end">
         <a
-          href="https://umia.ai"
+          href="https://www.umia.finance"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center justify-center gap-2 border border-accent bg-bg px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-accent hover:bg-accent hover:text-bg"
@@ -42,7 +42,7 @@ export function HomepageUmiaBanner(): React.JSX.Element {
           About Umia ↗
         </a>
         <Link
-          href="/b/sbo3lagent.eth"
+          href="/b/vitalik.eth"
           className="inline-flex items-center justify-center gap-2 border border-border bg-bg px-4 py-2 font-mono text-xs uppercase tracking-[0.18em] text-t2 hover:border-t1 hover:text-t1"
         >
           Try the form on a sample report →
