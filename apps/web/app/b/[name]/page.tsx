@@ -35,6 +35,7 @@ import { EnsDrawer } from "../../../components/bench/drawers/EnsDrawer";
 import { GitHubDrawer } from "../../../components/bench/drawers/GitHubDrawer";
 import { OnchainDrawer } from "../../../components/bench/drawers/OnchainDrawer";
 import { SourcifyDrawer } from "../../../components/bench/drawers/SourcifyDrawer";
+import { UmiaVentureApplySection } from "../../../components/umia/UmiaVentureApplySection";
 import { BENCH_SUB_BRAND, BENCH_SUB_TAGLINE } from "../../../lib/branding";
 import { isDemoMockSubject } from "../../../lib/demoMocks";
 import { loadLatestAttestationForSubject } from "../../../lib/easStore";
@@ -232,6 +233,8 @@ function BenchFoundation({
         subjectName={evidence.subject.name}
         ens={evidence.ensInternal}
       />
+
+      <UmiaVentureApplySection evidence={evidence} score={score} />
     </>
   );
 }

@@ -115,9 +115,12 @@ describe("loadBench (unified Engine refactor 2026-05-09)", () => {
     );
 
     expect(orchestrateMock).toHaveBeenCalledTimes(1);
+    // Smart routing (refactor 2026-05-10): *.upgrade-siren-demo.eth subjects
+    // are demo subjects living on Sepolia, so loadBench routes them to
+    // chainId 11155111 by suffix match — independent of any env override.
     expect(orchestrateMock).toHaveBeenCalledWith(
       "siren-agent-demo.upgrade-siren-demo.eth",
-      expect.objectContaining({ chainId: 1 }),
+      expect.objectContaining({ chainId: 11155111 }),
     );
     expect(ensureEnginesRegisteredMock).toHaveBeenCalled();
     expect(runEnginesMock).toHaveBeenCalledTimes(1);

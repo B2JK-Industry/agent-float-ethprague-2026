@@ -1,0 +1,134 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://upgrade-siren.vercel.app/schemas/umia-venture-apply.schema.json",
+  "title": "Umia Venture Apply (export-only payload)",
+  "description": "App-owned export schema. Captures the inputs a future `umia venture apply` CLI adapter can submit on behalf of an Upgrade Siren subject. v0.1.0 — MVP, JSON download only, no real CLI execution.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "target_command",
+    "submission_track",
+    "team",
+    "owner_contacts",
+    "project"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1.0"
+    },
+    "target_command": {
+      "type": "string",
+      "const": "umia venture apply"
+    },
+    "submission_track": {
+      "type": "string",
+      "enum": ["community"],
+      "default": "community"
+    },
+    "submission_notes": {
+      "type": "string"
+    },
+    "upgrade_siren_report": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "uid": { "type": "string" },
+        "hash": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "subject_ens": { "type": "string" },
+        "score_100": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "tier": { "type": "string", "enum": ["S", "A", "B", "C", "D", "U"] },
+        "computed_at_iso": { "type": "string" }
+      }
+    },
+    "team": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["members"],
+      "properties": {
+        "name": { "type": "string" },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["handle"],
+            "properties": {
+              "handle": { "type": "string", "minLength": 1 },
+              "role": { "type": "string" },
+              "ens": { "type": "string" },
+              "github": { "type": "string" },
+              "wallet_address": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$" }
+            }
+          }
+        }
+      }
+    },
+    "owner_contacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "anyOf": [
+        { "required": ["email"] },
+        { "required": ["telegram"] },
+        { "required": ["twitter"] },
+        { "required": ["discord"] }
+      ],
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "telegram": { "type": "string" },
+        "twitter": { "type": "string" },
+        "discord": { "type": "string" }
+      }
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "description", "pitch", "stage", "links"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "pitch": { "type": "string", "minLength": 1 },
+        "stage": {
+          "type": "string",
+          "enum": ["idea", "prototype", "alpha", "beta", "live"]
+        },
+        "primary_address": {
+          "type": "string",
+          "pattern": "^0x[a-fA-F0-9]{40}$"
+        },
+        "links": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["github_repositories"],
+          "properties": {
+            "website": { "type": "string", "format": "uri" },
+            "github_repositories": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string", "format": "uri" }
+            },
+            "github_organization": { "type": "string" },
+            "twitter": { "type": "string" },
+            "telegram": { "type": "string" },
+            "discord": { "type": "string" },
+            "other": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["label", "url"],
+                "properties": {
+                  "label": { "type": "string" },
+                  "url": { "type": "string", "format": "uri" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
