@@ -539,3 +539,6 @@ export type {
 
 export { aggregate as aggregateEngines } from './engines/aggregate.js';
 export type { AggregateOptions } from './engines/aggregate.js';
+
+// EAS attestation layer.
+export * from './eas/index.js';

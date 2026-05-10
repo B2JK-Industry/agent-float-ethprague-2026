@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 
 import "./globals.css";
+import { Web3Providers } from "../components/Web3Providers";
+import { GlobalHeader } from "../components/GlobalHeader";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -39,7 +41,12 @@ export default function RootLayout({
       lang="en"
       className={`dark ${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="min-h-screen antialiased">
+        <Web3Providers>
+          <GlobalHeader />
+          {children}
+        </Web3Providers>
+      </body>
     </html>
   );
 }
