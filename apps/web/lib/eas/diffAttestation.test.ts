@@ -156,6 +156,78 @@ describe("diffAttestationVsCurrent", () => {
     expect(diff.entries.some((e) => e.field === "revoked" && e.severity === "alert")).toBe(true);
   });
 
+  it("cross-chain compare with IDENTICAL addresses is UNCHANGED, not INFO", () => {
+    // Repro: previous attestation on Sepolia, live evidence resolved
+    // against mainnet, but the wallet bound to the ENS happens to be the
+    // same on both chains. The diff banner used to render "primaryAddress
+    // changed (cross-chain)" with INFO severity even though the byte
+    // values match — visually misleading.
+    const sameAddr = "0xdc7E0000000000000000000000000000000000aa";
+    const diff = diffAttestationVsCurrent({
+      previous: makePreviousAttestation({ recipient: sameAddr }),
+      currentEvidence: makeEvidence({
+        primaryAddress: sameAddr,
+        chainId: 1, // mainnet
+      }),
+      currentScore: fakeScore(50, "B"),
+      nowSeconds: 1_715_000_000,
+    });
+    const e = diff.entries.find((x) => x.field === "primaryAddress");
+    expect(e?.severity).toBe("unchanged");
+    expect(e?.note ?? "").toMatch(/cross-chain|same address/i);
+  });
+
+  it("cross-chain compare with DIFFERENT addresses stays INFO with cross-chain note", () => {
+    const diff = diffAttestationVsCurrent({
+      previous: makePreviousAttestation({
+        recipient: "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      }),
+      currentEvidence: makeEvidence({
+        primaryAddress: "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+        chainId: 1,
+      }),
+      currentScore: fakeScore(50, "B"),
+      nowSeconds: 1_715_000_000,
+    });
+    const e = diff.entries.find((x) => x.field === "primaryAddress");
+    expect(e?.severity).toBe("info");
+    expect(e?.note ?? "").toMatch(/cross-chain/i);
+  });
+
+  it("reportUri identical to current URI is UNCHANGED, not INFO", () => {
+    // Repro: previous attestation's reportUri pointer happens to be the
+    // exact URL the live page would emit (typical when nothing about the
+    // subject changed). Was always rendered as INFO with diff arrow even
+    // when the strings were byte-identical.
+    const diff = diffAttestationVsCurrent({
+      previous: makePreviousAttestation(),
+      currentEvidence: makeEvidence(),
+      currentScore: fakeScore(50, "B"),
+      nowSeconds: 1_715_000_000,
+    });
+    // Default fixture has reportUri = `https://upgrade-siren.vercel.app/b/siren.eth`
+    // Default evidence has subject.name = "siren.eth" → current URI matches.
+    const e = diff.entries.find((x) => x.field === "reportUri");
+    expect(e?.severity).toBe("unchanged");
+  });
+
+  it("reportUri changed is still INFO", () => {
+    const diff = diffAttestationVsCurrent({
+      previous: {
+        ...makePreviousAttestation(),
+        decoded: {
+          ...makePreviousAttestation().decoded!,
+          reportUri: "https://upgrade-siren.vercel.app/b/different.eth",
+        },
+      },
+      currentEvidence: makeEvidence(),
+      currentScore: fakeScore(50, "B"),
+      nowSeconds: 1_715_000_000,
+    });
+    const e = diff.entries.find((x) => x.field === "reportUri");
+    expect(e?.severity).toBe("info");
+  });
+
   it("returns UNCHANGED when score, tier, recipient, age all stable", () => {
     const diff = diffAttestationVsCurrent({
       previous: makePreviousAttestation({ score: 50, tier: "B" }),

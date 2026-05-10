@@ -172,12 +172,21 @@ export function diffAttestationVsCurrent(input: DiffInput): AttestationDiff {
       });
     }
   } else if (currentPrimary && oldRecipient && !sameChain) {
+    // Cross-chain compare. When the byte values match the wallet is the
+    // same on both chains and there's no rotation to flag — render as
+    // unchanged with a cross-chain note for context. Different values
+    // genuinely aren't directly comparable; surface as info so the user
+    // knows the chain mismatch caused the diff, not a real rotation.
+    const addressesMatch =
+      oldRecipient.toLowerCase() === currentPrimary.toLowerCase();
     entries.push({
       field: "primaryAddress",
       old: oldRecipient,
       current: currentPrimary,
-      severity: "info",
-      note: `cross-chain compare (previous on ${previous.network}, live on chainId ${currentChainId}) — addresses not directly comparable`,
+      severity: addressesMatch ? "unchanged" : "info",
+      note: addressesMatch
+        ? `same address on both chains (previous on ${previous.network}, live on chainId ${currentChainId})`
+        : `cross-chain compare (previous on ${previous.network}, live on chainId ${currentChainId}) — addresses not directly comparable`,
     });
   }
 
@@ -209,12 +218,16 @@ export function diffAttestationVsCurrent(input: DiffInput): AttestationDiff {
 
   // ─── reportUri (pointer to JSON envelope) ───
   if (decoded?.reportUri) {
+    const currentUri = `https://upgrade-siren.vercel.app/b/${currentEvidence.subject.name}`;
+    const uriUnchanged = decoded.reportUri === currentUri;
     entries.push({
       field: "reportUri",
       old: decoded.reportUri,
-      current: `https://upgrade-siren.vercel.app/b/${currentEvidence.subject.name}`,
-      severity: "info",
-      note: "open old report envelope to compare ENS records / sourcify entries",
+      current: currentUri,
+      severity: uriUnchanged ? "unchanged" : "info",
+      note: uriUnchanged
+        ? "previous attestation points at the live report envelope"
+        : "open old report envelope to compare ENS records / sourcify entries",
     });
   }
 
