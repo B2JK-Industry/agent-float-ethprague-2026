@@ -258,7 +258,28 @@ async function resolveSubject(
     ...(options.client !== undefined ? { client: options.client } : {}),
     ...(options.publicReadOptions ?? {}),
   };
-  const inferred = await inferSubjectFromPublicRead(name, publicReadOpts);
+  let inferred = await inferSubjectFromPublicRead(name, publicReadOpts);
+
+  // Refactor 2026-05-10: mainnet fallback. When the default chain is
+  // Sepolia (DEFAULT_BENCH_CHAIN_ID=11155111 prod default for demo
+  // subjects) but the ENS name doesn't exist there, fall back to
+  // mainnet. Most real ENS names (vitalik.eth, sbo3lagent.eth, etc.)
+  // are mainnet-only — without this fallback they show as tier U
+  // because Sepolia's resolver returns addr=null.
+  const initialChainId = options.chainId ?? 1;
+  const noMainnetAddr = inferred.kind === 'ok' && inferred.value.primaryAddress === null;
+  if (noMainnetAddr && initialChainId !== 1) {
+    const mainnetRetry = await inferSubjectFromPublicRead(name, {
+      ...publicReadOpts,
+      chainId: 1,
+      // Drop Sepolia-specific overrides so resolveClient builds a fresh mainnet client.
+      ...(options.publicReadOptions ?? {}),
+    });
+    if (mainnetRetry.kind === 'ok' && mainnetRetry.value.primaryAddress !== null) {
+      inferred = mainnetRetry;
+    }
+  }
+
   if (inferred.kind === 'error') {
     return {
       identity: {
