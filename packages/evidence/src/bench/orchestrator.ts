@@ -42,6 +42,11 @@ import {
   fetchEtherscanSourceCodeMultiChain,
   type EtherscanFallbackResult,
 } from '../sources/etherscan/sourceCode.js';
+import { fetchPassportScore, type PassportResult } from '../sources/passport/fetch.js';
+import {
+  fetchWalletAnalytics,
+  type WalletAnalyticsResultEnvelope,
+} from '../sources/alchemy/walletAnalytics.js';
 
 // fetchSourcifyMetadata's options interface isn't exported; inline the
 // caller-facing subset so OrchestrateSubjectOptions stays expressive.
@@ -834,6 +839,30 @@ export async function orchestrateSubject(
     }
   }
 
+  // ─── Passport + wallet analytics (Refactor 2026-05-10) ───
+  // Both fire only when primaryAddress is set. Fail soft: passport returns
+  // typed error (often address_not_passport_user 404), wallet analytics
+  // returns one result per chain queried. Display-only in v1.
+  let passport: PassportResult | null = null;
+  let walletAnalytics: WalletAnalyticsResultEnvelope[] = [];
+  if (identity.primaryAddress) {
+    const [passportRes, mainnetWallet] = await Promise.all([
+      fetchPassportScore(identity.primaryAddress).catch((err) => ({
+        kind: 'error' as const,
+        reason: 'network_error' as const,
+        message: `passport: ${err instanceof Error ? err.message : String(err)}`,
+      })),
+      fetchWalletAnalytics(identity.primaryAddress, 1).catch((err) => ({
+        kind: 'error' as const,
+        chainId: 1,
+        reason: 'network_error' as const,
+        message: `wallet-analytics: ${err instanceof Error ? err.message : String(err)}`,
+      })),
+    ]);
+    passport = passportRes;
+    walletAnalytics = [mainnetWallet];
+  }
+
   return {
     subject: identity,
     sourcify: sourcifyEvidence,
@@ -842,6 +871,8 @@ export async function orchestrateSubject(
     ensInternal,
     crossChain,
     etherscanFallback,
+    passport,
+    walletAnalytics,
     failures,
   };
 }

@@ -13,6 +13,8 @@ import type { SourcifyDeep } from '../sourcify/deep.js';
 import type { LicenseCompilerSummary } from '../sourcify/licenseCompiler.js';
 import type { CrossChainDiscoveryResult } from '../sourcify/crossChainDiscovery.js';
 import type { EtherscanFallbackResult } from '../sources/etherscan/sourceCode.js';
+import type { PassportResult } from '../sources/passport/fetch.js';
+import type { WalletAnalyticsResultEnvelope } from '../sources/alchemy/walletAnalytics.js';
 
 // US-123 source-pattern detection ships separately. Until that PR merges,
 // orchestrator emits `patterns: []` for every Sourcify entry. The shape is
@@ -157,6 +159,15 @@ export interface MultiSourceEvidence {
   // not on Sourcify (Gitcoin, OZ, most DAO governors).
   // Empty array (or omitted) when not invoked or no contract code present.
   readonly etherscanFallback?: ReadonlyArray<EtherscanFallbackResult>;
+  // Refactor 2026-05-10: Gitcoin Passport sybil-resistance score for
+  // the subject's primaryAddress. Cross-references off-chain identity
+  // verifications (ENS, GitHub, Twitter, BrightID, etc.). Display-only
+  // in v1; future versions can use it as a trust booster.
+  readonly passport?: PassportResult | null;
+  // Refactor 2026-05-10: per-chain wallet financial analytics — token
+  // holdings, NFT count, ETH balance, USD value. One result per chain
+  // queried (defaults to mainnet only to control rate-limit budget).
+  readonly walletAnalytics?: ReadonlyArray<WalletAnalyticsResultEnvelope>;
   // Aggregate of all top-level failures the orchestrator surfaces. Score
   // engine reads this for "missing source" decisions.
   readonly failures: ReadonlyArray<SourceFailure>;

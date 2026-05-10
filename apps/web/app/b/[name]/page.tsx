@@ -24,11 +24,13 @@
 
 import type { Metadata } from "next";
 
+import { PassportPanel } from "../../../components/bench/PassportPanel";
 import { ScoreBanner } from "../../../components/bench/ScoreBanner";
 import { ScoreBreakdownPanel } from "../../../components/bench/ScoreBreakdownPanel";
 import { SocialsPanel } from "../../../components/bench/SocialsPanel";
 import { SourceGrid } from "../../../components/bench/SourceGrid";
 import { TxAnalyticsPanel } from "../../../components/bench/TxAnalyticsPanel";
+import { WalletAnalyticsPanel } from "../../../components/bench/WalletAnalyticsPanel";
 import { EnsDrawer } from "../../../components/bench/drawers/EnsDrawer";
 import { GitHubDrawer } from "../../../components/bench/drawers/GitHubDrawer";
 import { OnchainDrawer } from "../../../components/bench/drawers/OnchainDrawer";
@@ -188,6 +190,10 @@ function BenchFoundation({
       <SourceGrid evidence={evidence} />
 
       <ScoreBreakdownPanel score={score} engines={engines} />
+
+      <WalletAnalyticsPanel evidence={evidence} />
+
+      <PassportPanel evidence={evidence} />
 
       <TxAnalyticsPanel evidence={evidence} />
 
