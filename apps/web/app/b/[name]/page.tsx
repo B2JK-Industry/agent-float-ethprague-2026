@@ -24,11 +24,13 @@
 
 import type { Metadata } from "next";
 
+import { EnsContractsPanel } from "../../../components/bench/EnsContractsPanel";
 import { PassportPanel } from "../../../components/bench/PassportPanel";
 import { ScoreBanner } from "../../../components/bench/ScoreBanner";
 import { ScoreBreakdownPanel } from "../../../components/bench/ScoreBreakdownPanel";
 import { SocialsPanel } from "../../../components/bench/SocialsPanel";
 import { SourceGrid } from "../../../components/bench/SourceGrid";
+import { TierLadder } from "../../../components/bench/TierLadder";
 import { TxAnalyticsPanel } from "../../../components/bench/TxAnalyticsPanel";
 import { WalletAnalyticsPanel } from "../../../components/bench/WalletAnalyticsPanel";
 import { EnsDrawer } from "../../../components/bench/drawers/EnsDrawer";
@@ -193,28 +195,36 @@ function BenchFoundation({
 
   return (
     <>
-      <section
-        aria-label="Subject identity"
-        data-section="subject"
-        className="flex flex-wrap items-center gap-2 text-sm"
+      <div
+        data-row="subject-and-ladder"
+        className="grid items-start gap-4 lg:grid-cols-[1fr_minmax(240px,320px)]"
       >
-        <span
-          data-chip="kind"
-          className="rounded border border-t1 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.18em]"
+        <section
+          aria-label="Subject identity"
+          data-section="subject"
+          className="flex flex-wrap items-center gap-2 text-sm"
         >
-          {kindChipText(subject.kind)}
-        </span>
-        <span
-          data-chip="mode"
-          className="rounded border border-t1 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.18em]"
-        >
-          {modeChipText(subject.mode)}
-        </span>
-      </section>
+          <span
+            data-chip="kind"
+            className="rounded border border-t1 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.18em]"
+          >
+            {kindChipText(subject.kind)}
+          </span>
+          <span
+            data-chip="mode"
+            className="rounded border border-t1 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.18em]"
+          >
+            {modeChipText(subject.mode)}
+          </span>
+        </section>
+        <TierLadder currentTier={score.tier as "S" | "A" | "B" | "C" | "D" | "U"} />
+      </div>
 
       <ScoreBanner score={score} />
 
       <SourceGrid evidence={evidence} />
+
+      <EnsContractsPanel evidence={evidence} />
 
       <ScoreBreakdownPanel score={score} engines={engines} />
 

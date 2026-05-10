@@ -31,16 +31,18 @@ export async function GET(req: Request, props: RouteProps): Promise<Response> {
   const url = new URL(req.url);
   const chainParam = url.searchParams.get("chain");
   const chainId = chainParam ? Number(chainParam) : undefined;
-  // ?live=true bypasses demo mocks for booth demo subjects (vitalik.eth,
-  // letadlo.eth, agent-kikiriki.eth, siren-agent-demo.upgrade-siren-demo.eth).
-  // Default false — landing tile cards always use frozen mocks.
-  const liveParam = url.searchParams.get("live");
-  const useLive = liveParam === "true" || liveParam === "1";
+  // 2026-05-10: API now defaults to LIVE so judges hitting
+  // /api/bench/[name] get re-derivable evidence (the route comment
+  // promises that). Only the page render path keeps frozen booth
+  // mocks for visual consistency on the landing tiles.
+  // Pass `?mock=true` to opt into the curated booth mock.
+  const mockParam = url.searchParams.get("mock");
+  const useMock = mockParam === "true" || mockParam === "1";
   const opts: { chainId?: number; useDemoMock?: false } = {};
   if (chainId !== undefined && Number.isFinite(chainId) && chainId > 0) {
     opts.chainId = chainId;
   }
-  if (useLive) {
+  if (!useMock) {
     opts.useDemoMock = false;
   }
   const result = await loadBench(name, opts);

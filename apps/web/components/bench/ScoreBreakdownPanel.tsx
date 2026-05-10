@@ -637,7 +637,7 @@ export function ScoreBreakdownPanel({
           background: "var(--color-bg)",
         }}
       >
-        (max reachable v1 = {v1Max} → A; S reserved for verified-GitHub v2)
+        (S tier reserved for verified-GitHub v2; everything else reachable)
       </p>
 
       {engines && engines.length > 0 ? (

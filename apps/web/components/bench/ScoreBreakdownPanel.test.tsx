@@ -308,27 +308,17 @@ describe("ScoreBreakdownPanel (US-134, GATE-30 surface)", () => {
     expect(fill.style.transition).toBe("none");
   });
 
-  it("final ceiling label spells v1 max = 79 + S-reservation note (US-114b merged)", () => {
+  // 2026-05-10: v1 max=79 ceiling label retired per Daniel — engine
+  // axis rebalance landed the score on a real 0-100 scale, so the
+  // "max reachable v1 = 79" framing was misleading. Final ceiling
+  // label now just notes the S-reservation, no number.
+  it("final ceiling label notes S-reservation only (no v1 max number)", () => {
     const { container } = render(<ScoreBreakdownPanel score={score()} />);
     const finalCeiling = container.querySelector(
       '[data-field="final-ceiling-label"]',
     );
-    expect(finalCeiling?.textContent).toMatch(/v1\s*=\s*79.*→\s*A/);
-    expect(finalCeiling?.textContent).toMatch(/S reserved for verified-GitHub v2/i);
-  });
-
-  it("v1 max ceiling is overridable via prop (single number now per US-114b merge)", () => {
-    const { container } = render(
-      <ScoreBreakdownPanel
-        score={score()}
-        v1Max={66}
-        v1FullSeniorityMax={70}
-        v1FullRelevanceMax={88}
-      />,
-    );
-    expect(
-      container.querySelector('[data-field="final-ceiling-label"]')?.textContent,
-    ).toMatch(/v1\s*=\s*66/);
+    expect(finalCeiling?.textContent).toMatch(/S tier reserved for verified-GitHub v2/i);
+    expect(finalCeiling?.textContent).not.toMatch(/v1\s*=\s*\d+/);
   });
 
   it("renders status badge for null_p1 components (P1, awaits US-114b)", () => {

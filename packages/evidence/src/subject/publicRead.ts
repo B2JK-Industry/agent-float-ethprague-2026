@@ -184,6 +184,17 @@ export const PUBLIC_READ_TEXT_KEYS = [
   'org.lens',
   // Avatar — drives drawer + score-neutral profile chip.
   'avatar',
+  // 2026-05-10 audit: contract-identity keys. ENS app surfaces these
+  // under "Other Records" when the user pins a Sourcify/Etherscan
+  // verified contract to their name. We surface any 0x… address found
+  // in these slots as a Sourcify lookup link in the bench page.
+  'eth.contracts',
+  'org.sourcify',
+  'sourcify',
+  'contract',
+  'verified-contract',
+  'agent-bench:contract',
+  'agent-bench:contracts',
   // contentHash is read separately via contenthash() resolver call,
   // not text(). Keep this list text-only.
 ] as const;

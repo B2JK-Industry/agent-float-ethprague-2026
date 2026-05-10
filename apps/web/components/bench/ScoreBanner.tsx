@@ -76,26 +76,6 @@ const OUTCOME_COLOR_VAR: Record<OutcomeKey, string> = {
   unrated: "var(--color-tier-u)",
 };
 
-// Reachable-ceilings ladder rows. Order matches EPIC §10.1 best-tier
-// hierarchy. The S row is rendered intentionally with a v2 footnote so
-// judges see the structural ceiling rather than thinking S is broken.
-const LADDER_ROWS: ReadonlyArray<{
-  readonly tier: Tier;
-  readonly threshold: string;
-  readonly note?: string;
-}> = [
-  {
-    tier: "S",
-    threshold: ">= 90",
-    note: "v2: requires verified GitHub cross-sign",
-  },
-  { tier: "A", threshold: ">= 75" },
-  { tier: "B", threshold: ">= 60" },
-  { tier: "C", threshold: ">= 45" },
-  { tier: "D", threshold: "<  45" },
-  { tier: "U", threshold: "< 2 sources", note: "unrated, in queue" },
-];
-
 function axis100(value: number): number {
   // Score axes are raw discounted Σ in [0,1]. The banner shows them as
   // X / 100 — same scale as score_100. NEVER divides by ceiling (GATE-30).
@@ -191,9 +171,6 @@ export function ScoreBanner({
               </span>
               <span>
                 Tier <b className="font-medium text-t1">{tier}</b>
-              </span>
-              <span>
-                v1 max <b className="font-medium text-t1">{v1Max}</b>
               </span>
             </div>
           </div>
@@ -294,74 +271,9 @@ export function ScoreBanner({
 
       {/* Tier ladder — renders the S row with v2 footnote. Per launch
           prompt 2026-05-09: don't hide S; don't imply it's reachable.
-          Default-expanded (audit-round-7 P0 #3): the v1 ceiling
-          footnote on the S row ("v2: requires verified GitHub
-          cross-sign") is the explicit honesty signal that S is
-          unreachable in v1. Hiding it behind a collapsed disclosure
-          undermined the disclosure itself — judges and users had to
-          click to see why their score couldn't reach the top. The
-          ladder remains collapsible so users can dismiss it after
-          reading. */}
-      <details
-        data-block="tier-ladder"
-        className="mt-6 border-t border-border pt-4"
-        open
-      >
-        <summary
-          className="cursor-pointer font-mono uppercase text-t3"
-          style={{
-            fontSize: "10px",
-            letterSpacing: "0.18em",
-          }}
-        >
-          Tier ladder
-        </summary>
-        <ul
-          className="mt-3 flex flex-col gap-1 font-mono"
-          style={{
-            fontSize: "11px",
-            lineHeight: 1.55,
-            letterSpacing: "0.06em",
-          }}
-        >
-          {LADDER_ROWS.map((row) => (
-            <li
-              key={row.tier}
-              data-ladder-tier={row.tier}
-              data-current={row.tier === tier}
-              className="grid grid-cols-[24px_64px_1fr] items-baseline gap-3"
-            >
-              <span
-                style={{
-                  color: TIER_COLOR_VAR[row.tier],
-                  fontFamily: "var(--font-display)",
-                  fontWeight: 700,
-                  fontSize: "14px",
-                  lineHeight: 1,
-                  letterSpacing: "-0.01em",
-                  border: "1px solid currentColor",
-                  borderStyle: row.tier === "U" ? "dashed" : "solid",
-                  display: "inline-grid",
-                  placeItems: "center",
-                  width: "20px",
-                  height: "20px",
-                }}
-                aria-hidden="true"
-              >
-                {row.tier}
-              </span>
-              <span className="text-t2">{row.threshold}</span>
-              {row.note ? (
-                <span className="text-t3" style={{ fontStyle: "italic" }}>
-                  {row.note}
-                </span>
-              ) : (
-                <span aria-hidden="true" />
-              )}
-            </li>
-          ))}
-        </ul>
-      </details>
+          Daniel 2026-05-10: tier ladder moved out of ScoreBanner into
+          a standalone TierLadder block rendered next to the subject
+          chip row in /b/[name]. */}
     </section>
   );
 }
