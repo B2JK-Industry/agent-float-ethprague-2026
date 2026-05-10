@@ -1,8 +1,18 @@
-// Per launch prompt §"Visual identity": the Bench Mode sub-brand wording is
-// gated behind US-143 (collision check). Keep the literal in one place so a
-// rename after collision-check outcome is a single-line edit across every
-// component that references it.
-export const BENCH_SUB_BRAND = "Upgrade Siren Bench" as const;
+// Master brand mark. Rebranded 2026-05-10 per Daniel: "Upgrade Siren"
+// → "Siren" (or "Siren Protocol" formally). Visual-only swap; ENS demo
+// parents, Vercel domain, and workspace package names are untouched
+// (see Phase A note in the audit handover).
+export const MASTER_BRAND = "Siren" as const;
+export const MASTER_BRAND_FORMAL = "Siren Protocol" as const;
+
+// Umbrella sentence — what Siren is, in one line.
+export const MASTER_UMBRELLA =
+  "Siren is a public verification layer for Ethereum-native actors, contracts, and agents." as const;
+// Shorter alternate hero strap: used in the homepage hero under the H1.
+export const MASTER_STRAP = "Siren turns public evidence into trust signals." as const;
+
+// Bench Mode sub-brand. One literal, swap once.
+export const BENCH_SUB_BRAND = "Siren Bench" as const;
 
 // Bench-mode sub-tagline. Per EPIC §18: appears only on `/b/[name]`
 // surfaces. The master tagline "No source, no upgrade." stays on `/` and

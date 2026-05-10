@@ -39,18 +39,21 @@ export default function HomePage(): React.JSX.Element {
       >
         <div className="flex flex-col gap-4">
           <span className="font-mono text-xs uppercase tracking-[0.18em] text-t2">
-            Bench mode · ETHPrague 2026
+            Siren · ETHPrague 2026
           </span>
           <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-tight text-t1 md:text-5xl lg:text-6xl">
             Type any ENS name.
             <br />
             Get a 0–100 benchmark.
           </h1>
-          <p className="max-w-xl text-base leading-relaxed text-t2">
+          <p className="max-w-xl text-base leading-relaxed text-t1">
+            Siren turns public evidence into trust signals.
+          </p>
+          <p className="max-w-xl text-sm leading-relaxed text-t2">
             Subject benchmark across four data sources with structural
             trust-discount on unverified claims. Sourcify (× 1.0) ·
             GitHub (× 0.6) · on-chain (× 1.0) · ENS-internal (× 1.0).
-            Score 0–79 v1 ceiling, tier ladder S → U.
+            Tier ladder S → U.
           </p>
           <p className="font-mono text-xs uppercase tracking-[0.18em] text-verdict-siren">
             No data, no score.

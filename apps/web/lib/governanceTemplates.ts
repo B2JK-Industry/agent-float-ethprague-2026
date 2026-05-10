@@ -4,9 +4,9 @@ export const SHORT_MAX_CHARS = 240;
 export const VOTE_REASON_MAX_CHARS = 200;
 
 const SHORT_VERDICT_PHRASE: Record<Verdict, string> = {
-  SAFE: "Upgrade Siren reports SAFE",
-  REVIEW: "Upgrade Siren reports REVIEW",
-  SIREN: "Upgrade Siren reports SIREN — do not approve",
+  SAFE: "Siren reports SAFE",
+  REVIEW: "Siren reports REVIEW",
+  SIREN: "Siren reports SIREN — do not approve",
 };
 
 const VOTE_ACTION_PHRASE: Record<SirenReport["recommendedAction"], string> = {

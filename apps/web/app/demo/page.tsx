@@ -4,7 +4,7 @@ import Link from "next/link";
 import { DEMO_SCENARIOS, buildScenarioHref } from "./demo.config";
 
 export const metadata: Metadata = {
-  title: "Upgrade Siren — booth demo",
+  title: "Siren — booth demo",
   description:
     "Four ENS subjects, four breakdowns. Curated agent + two public-read profiles + mainnet name.",
 };

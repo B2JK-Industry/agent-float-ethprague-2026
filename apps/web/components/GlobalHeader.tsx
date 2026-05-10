@@ -20,9 +20,12 @@ export function GlobalHeader(): React.JSX.Element {
         className="flex items-baseline gap-2 font-mono text-xs uppercase tracking-[0.18em] text-t1 hover:text-accent"
       >
         <span aria-hidden className="font-display text-base font-bold leading-none">
-          U·S
+          ◢
         </span>
-        <span className="text-t2">Upgrade Siren</span>
+        <span className="text-t1">Siren</span>
+        <span className="text-t3 text-[10px] tracking-[0.12em]">
+          public verification layer
+        </span>
       </Link>
       <ConnectKitButton.Custom>
         {({ isConnected, show, truncatedAddress, ensName }) => {
