@@ -54,6 +54,24 @@ async function ensureSchema(client: Client): Promise<void> {
       updated_at INTEGER NOT NULL
     );
   `);
+  // 2026-05-10 audit: persist subject identity instead of fabricating
+  // zero values on read. ALTER TABLE ADD COLUMN is idempotent only via
+  // catch-on-existing-column; libsql throws on duplicate ADD, so we
+  // try-best-effort once per process.
+  try {
+    await client.execute(
+      `ALTER TABLE eas_attestations ADD COLUMN subject_address TEXT`,
+    );
+  } catch {
+    /* column already present */
+  }
+  try {
+    await client.execute(
+      `ALTER TABLE eas_attestations ADD COLUMN ens_namehash TEXT`,
+    );
+  } catch {
+    /* column already present */
+  }
   await client.execute(`
     CREATE INDEX IF NOT EXISTS idx_eas_subject ON eas_attestations(subject_name);
   `);
@@ -73,6 +91,10 @@ export interface SaveOffchainParams {
   readonly computedAt: number;
   readonly reportHash: `0x${string}`;
   readonly reportUri: string;
+  // 2026-05-10 audit: persist subject identity so loadLatestAttestationForSubject
+  // can return it instead of fabricating zero values.
+  readonly subjectAddress: `0x${string}`;
+  readonly ensNamehash: `0x${string}`;
 }
 
 export async function saveOffchainAttestation(
@@ -86,8 +108,9 @@ export async function saveOffchainAttestation(
       INSERT INTO eas_attestations (
         subject_name, offchain_uid, offchain_network, offchain_serialized,
         score, tier, computed_at, report_hash, report_uri,
+        subject_address, ens_namehash,
         created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(offchain_uid) DO UPDATE SET
         subject_name = excluded.subject_name,
         offchain_network = excluded.offchain_network,
@@ -97,6 +120,8 @@ export async function saveOffchainAttestation(
         computed_at = excluded.computed_at,
         report_hash = excluded.report_hash,
         report_uri = excluded.report_uri,
+        subject_address = excluded.subject_address,
+        ens_namehash = excluded.ens_namehash,
         updated_at = excluded.updated_at
     `,
     args: [
@@ -109,6 +134,8 @@ export async function saveOffchainAttestation(
       params.computedAt,
       params.reportHash,
       params.reportUri,
+      params.subjectAddress,
+      params.ensNamehash,
       now,
       now,
     ],
@@ -181,6 +208,19 @@ export async function loadLatestAttestationForSubject(
   const computedAt = Number(row.computed_at);
   const reportHash = String(row.report_hash) as `0x${string}`;
   const reportUri = String(row.report_uri);
+  // 2026-05-10 audit: subject identity is now persisted; fall back to
+  // zero values only for legacy rows that pre-date the schema migration.
+  const ZERO_ADDR = "0x0000000000000000000000000000000000000000" as `0x${string}`;
+  const ZERO_NAMEHASH =
+    "0x0000000000000000000000000000000000000000000000000000000000000000" as `0x${string}`;
+  const subjectAddress =
+    typeof row.subject_address === "string" && row.subject_address.length > 0
+      ? (row.subject_address as `0x${string}`)
+      : ZERO_ADDR;
+  const ensNamehash =
+    typeof row.ens_namehash === "string" && row.ens_namehash.length > 0
+      ? (row.ens_namehash as `0x${string}`)
+      : ZERO_NAMEHASH;
 
   const bundle: BenchAttestationBundle = {
     offchain: {
@@ -191,9 +231,8 @@ export async function loadLatestAttestationForSubject(
         // subject + ensNamehash are encoded inside the EAS data field;
         // the API client decodes when needed. Surfaced fields below
         // mirror the on-chain row.
-        subject: "0x0000000000000000000000000000000000000000" as `0x${string}`,
-        ensNamehash:
-          "0x0000000000000000000000000000000000000000000000000000000000000000",
+        subject: subjectAddress,
+        ensNamehash,
         score,
         tier,
         computedAt,

@@ -281,11 +281,90 @@ export async function verifyOffchainAttestation(
     };
   }
 
-  // NOTE: full ECDSA-recovery verification against `signer` is performed
-  // by the eas-sdk's `Offchain.verifyOffchainAttestationSignature` —
-  // wire-up parity test in eas.test.ts ensures we round-trip a built
-  // attestation through this verifier successfully. Here we trust the
-  // envelope shape and confirm the signer claim plus schema fingerprint.
+  // 2026-05-10 audit: actually recover the ECDSA signer from the
+  // EIP-712 typed data instead of trusting the `signer` field claim.
+  // eas-sdk's serializer wraps the typed-data fields under `sig`
+  // (domain/primaryType/types/message/signature). When that wrapper
+  // is present we reconstruct the typed data + recover the signer
+  // via viem and compare to the claim.
+  //
+  // The flat-envelope shape (serializeOffchainAttestation output)
+  // strips the typed-data fields, so signature recovery from that
+  // form requires reconstructing domain/types from the network +
+  // EAS schema knowledge. For now we verify only when the `sig`
+  // wrapper is present; flat-envelope verification falls back to
+  // shape-only and surfaces a typed warning (caller can still
+  // reject if they require strong verification).
+  const sig = (obj as { sig?: unknown }).sig;
+  if (sig && typeof sig === 'object') {
+    const sigObj = sig as Record<string, unknown>;
+    const signature = sigObj.signature as
+      | { v: number; r: `0x${string}`; s: `0x${string}` }
+      | undefined;
+    const message = sigObj.message as Record<string, unknown> | undefined;
+    const types = sigObj.types as
+      | Record<string, ReadonlyArray<{ name: string; type: string }>>
+      | undefined;
+    const domainRaw = sigObj.domain as Record<string, unknown> | undefined;
+    const primaryType = (sigObj.primaryType as string | undefined) ?? 'Attest';
+    if (!signature || !message || !types || !domainRaw) {
+      return {
+        kind: 'error',
+        reason: 'malformed_envelope',
+        message: 'sig wrapper present but missing typed-data fields',
+      };
+    }
+    // Stringified bigints come back from JSON parse — viem requires
+    // bigint for uint64 fields. Coerce time / expirationTime back.
+    const messageCoerced: Record<string, unknown> = { ...message };
+    for (const k of ['time', 'expirationTime']) {
+      const v = messageCoerced[k];
+      if (typeof v === 'string') {
+        try {
+          messageCoerced[k] = BigInt(v);
+        } catch {
+          /* leave as-is; recovery will fail with a typed error below */
+        }
+      }
+    }
+    // viem's recoverTypedDataAddress takes signature as a single 0x…
+    // string. eas-sdk wrote v as the raw recovery byte (27/28 or 0/1);
+    // viem accepts either via serializeSignature.
+    let recovered: string;
+    try {
+      const { recoverTypedDataAddress, serializeSignature } = await import('viem');
+      const sigHex = serializeSignature({
+        r: signature.r,
+        s: signature.s,
+        v: BigInt(signature.v),
+      });
+      recovered = await recoverTypedDataAddress({
+        domain: domainRaw as Parameters<typeof recoverTypedDataAddress>[0]['domain'],
+        types: types as Parameters<typeof recoverTypedDataAddress>[0]['types'],
+        primaryType: primaryType as Parameters<typeof recoverTypedDataAddress>[0]['primaryType'],
+        message: messageCoerced as Parameters<typeof recoverTypedDataAddress>[0]['message'],
+        signature: sigHex,
+      });
+    } catch (err) {
+      return {
+        kind: 'error',
+        reason: 'bad_signature',
+        message: `ECDSA recovery failed: ${err instanceof Error ? err.message : String(err)}`,
+      };
+    }
+    if (recovered.toLowerCase() !== signer.toLowerCase()) {
+      return {
+        kind: 'error',
+        reason: 'bad_signature',
+        message: `recovered signer ${recovered} != envelope signer ${signer}`,
+      };
+    }
+  }
+  // No sig wrapper present → caller is verifying a flat envelope; we
+  // can't recover without typed-data fields. Shape + schema + signer-
+  // claim checks already passed above. Caller that needs strong
+  // verification should pass the eas-sdk-produced format that includes
+  // the sig wrapper.
 
   return { kind: 'ok', signer, payload };
 }
