@@ -33,14 +33,19 @@ export async function GET(
   }
 
   if (!bundle) {
+    // 2026-05-10 audit: 404 here was a footgun — the empty-store case
+    // is normal (no off-chain row has been written yet for this
+    // subject), not an HTTP-error condition. Return 200 with eas: null
+    // so callers don't have to treat "no attestation yet" as a failure.
     return NextResponse.json(
       {
         subject: name,
         eas: null,
+        status: "no_attestation",
         message:
-          "No EAS attestation has been issued for this subject yet. Visit /b/<name> to generate one.",
+          "No EAS attestation has been issued for this subject yet. Visit /b/<name> and use the Publish widget to issue one.",
       },
-      { status: 404 },
+      { status: 200 },
     );
   }
 

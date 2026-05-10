@@ -86,11 +86,15 @@ function buildScore(input: MockSubjectInput): ScoreResult {
   const score_raw = 0.5 * seniority + 0.5 * relevance;
   const score_100 = Math.round(score_raw * 100);
 
+  // 2026-05-10 audit: thresholds were stale (S>=90/A>=75/B>=60/C>=45)
+  // — TIER_THRESHOLDS in weights.ts is S>=65/A>=50/B>=35/C>=20/D>=0
+  // since the axis rebalance landed. Demo mocks now match the engine
+  // so the booth tile labels don't lie about tier when judges click in.
   let tier: ScoreResult["tier"];
-  if (score_100 >= 90) tier = "S";
-  else if (score_100 >= 75) tier = "A";
-  else if (score_100 >= 60) tier = "B";
-  else if (score_100 >= 45) tier = "C";
+  if (score_100 >= 65) tier = "S";
+  else if (score_100 >= 50) tier = "A";
+  else if (score_100 >= 35) tier = "B";
+  else if (score_100 >= 20) tier = "C";
   else tier = "D";
 
   let ceilingApplied: ScoreResult["ceilingApplied"] = "none";
@@ -177,24 +181,23 @@ const AGENT_CURATED: MockSubjectInput = {
   mode: "manifest",
   kind: "ai-agent",
   primaryAddress: OPERATOR_WALLET,
-  // Seniority Σ ≈ 0.65: strong Sourcify (compileSuccess 1.0×1.0 = 0.25),
-  // partial GitHub signals (ciPassRate 0.85, testPresence 0.95,
-  // bugHygiene 0.80, repoHygiene 0.85, releaseCadence 0.55).
+  // Tuned 2026-05-10 for new TIER_THRESHOLDS (S>=65/A>=50/B>=35).
+  // Target: score_100 ~ 60 → tier A, narrative "strong but not ceiling".
+  // Sen Σ ≈ 0.60: full Sourcify (0.25*1.0), GitHub partial-trust signals.
   seniorityComponents: [
     comp("compileSuccess", 0.25, 1.0, "verified", "computed"),
-    comp("ciPassRate", 0.2, 0.85, "unverified", "computed"),
-    comp("testPresence", 0.15, 0.95, "unverified", "computed"),
-    comp("bugHygiene", 0.1, 0.8, "unverified", "computed"),
-    comp("repoHygiene", 0.15, 0.85, "unverified", "computed"),
-    comp("releaseCadence", 0.15, 0.55, "unverified", "computed"),
+    comp("ciPassRate", 0.2, 0.6, "unverified", "computed"),
+    comp("testPresence", 0.15, 0.65, "unverified", "computed"),
+    comp("bugHygiene", 0.1, 0.55, "unverified", "computed"),
+    comp("repoHygiene", 0.15, 0.6, "unverified", "computed"),
+    comp("releaseCadence", 0.15, 0.4, "unverified", "computed"),
   ],
-  // Relevance Σ ≈ 0.65: full Sourcify recency, GitHub 0.85,
-  // on-chain 0.78 (recent activity), ENS 0.92 (newly registered).
+  // Rel Σ ≈ 0.60: Sourcify + on-chain recent, ENS fresh.
   relevanceComponents: [
-    comp("sourcifyRecency", 0.3, 1.0, "verified", "computed"),
-    comp("githubRecency", 0.3, 0.85, "unverified", "computed"),
-    comp("onchainRecency", 0.25, 0.78, "verified", "computed"),
-    comp("ensRecency", 0.15, 0.92, "verified", "computed"),
+    comp("sourcifyRecency", 0.3, 0.85, "verified", "computed"),
+    comp("githubRecency", 0.3, 0.55, "unverified", "computed"),
+    comp("onchainRecency", 0.25, 0.5, "verified", "computed"),
+    comp("ensRecency", 0.15, 0.7, "verified", "computed"),
   ],
   githubVerified: false,
   nonZeroSourceCount: 4,

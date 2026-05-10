@@ -14,6 +14,7 @@ import type { FetchedAttestationOk } from "./fetchAttestation";
 
 function makeEvidence(overrides: {
   primaryAddress?: string | null;
+  chainId?: number;
 } = {}): MultiSourceEvidence {
   const sourcify: ReadonlyArray<SourcifyEntryEvidence> = [];
   const onchain: ReadonlyArray<OnchainEntryEvidence> = [];
@@ -22,7 +23,11 @@ function makeEvidence(overrides: {
   return {
     subject: {
       name: "siren.eth",
-      chainId: 1,
+      // Default to Sepolia (11155111) so the same-chain compare against
+      // the makePreviousAttestation default network "sepolia" exercises
+      // the rotation-detection path. Tests that need a cross-chain case
+      // can override via `chainId`.
+      chainId: overrides.chainId ?? 11155111,
       mode: "public-read",
       primaryAddress:
         (overrides.primaryAddress ??

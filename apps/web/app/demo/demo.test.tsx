@@ -20,29 +20,32 @@ describe("demo.config", () => {
     ]);
   });
 
-  it("agent-curated points at the Sepolia signed manifest subject and predicts tier B", () => {
+  // 2026-05-10 audit fix: tier thresholds rebalanced (S>=65/A>=50/B>=35/
+  // C>=20/D>=0). Curated demo mocks were tuned for old thresholds and
+  // had to drift; tile labels updated to match new ladder.
+  it("agent-curated points at the Sepolia signed manifest subject and predicts tier A", () => {
     const agent = findScenario("agent-curated");
     expect(agent.target).toBe("siren-agent-demo.upgrade-siren-demo.eth");
     expect(agent.mode).toBe("signed-manifest");
-    expect(agent.expectedBucket).toBe("B");
+    expect(agent.expectedBucket).toBe("A");
     expect(buildScenarioHref(agent)).toBe(
       "/b/siren-agent-demo.upgrade-siren-demo.eth",
     );
   });
 
-  it("human-public points at letadlo.eth (Sepolia public-read) and predicts tier D", () => {
+  it("human-public points at letadlo.eth (Sepolia public-read) and predicts tier C", () => {
     const human = findScenario("human-public");
     expect(human.target).toBe("letadlo.eth");
     expect(human.mode).toBe("public-read");
-    expect(human.expectedBucket).toBe("D");
+    expect(human.expectedBucket).toBe("C");
     expect(buildScenarioHref(human)).toBe("/b/letadlo.eth");
   });
 
-  it("rich-records points at agent-kikiriki.eth and predicts tier D", () => {
+  it("rich-records points at agent-kikiriki.eth and predicts tier C", () => {
     const rich = findScenario("rich-records");
     expect(rich.target).toBe("agent-kikiriki.eth");
     expect(rich.mode).toBe("public-read");
-    expect(rich.expectedBucket).toBe("D");
+    expect(rich.expectedBucket).toBe("C");
     expect(buildScenarioHref(rich)).toBe("/b/agent-kikiriki.eth");
   });
 
@@ -132,7 +135,11 @@ describe("DemoPage", () => {
           .querySelector(".font-display.text-3xl.font-bold")
           ?.textContent?.trim(),
       );
-    expect(monograms.sort()).toEqual(["A", "B", "D", "D"]);
+    // 2026-05-10 audit: tier ladder rebalanced. Curated demo +
+    // mainnet-public both land in A; the two Sepolia public-read
+    // subjects (letadlo.eth, agent-kikiriki.eth) land in C under
+    // the new thresholds (>=20 / <35).
+    expect(monograms.sort()).toEqual(["A", "A", "C", "C"]);
   });
 
   it("surfaces signed-manifest vs public-read mode chip", () => {
