@@ -22,7 +22,8 @@
     "prism-react-renderer": "^2.4.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "wagmi": "^3.6.11"
+    "viem": "^2.48.11",
+    "wagmi": "^2.19.5"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.1",

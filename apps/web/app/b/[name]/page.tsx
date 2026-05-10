@@ -34,23 +34,10 @@ import { GitHubDrawer } from "../../../components/bench/drawers/GitHubDrawer";
 import { OnchainDrawer } from "../../../components/bench/drawers/OnchainDrawer";
 import { SourcifyDrawer } from "../../../components/bench/drawers/SourcifyDrawer";
 import { BENCH_SUB_BRAND, BENCH_SUB_TAGLINE } from "../../../lib/branding";
-import dynamic from "next/dynamic";
-
 import { isDemoMockSubject } from "../../../lib/demoMocks";
 import { loadLatestAttestationForSubject } from "../../../lib/easStore";
+import { BenchPublishWidgetLoader as BenchPublishWidget } from "../../../components/bench/BenchPublishWidgetLoader";
 import { loadBench, type LoadBenchResult } from "./loadBench";
-
-// Client-only widget — wagmi hooks need WagmiProvider context.
-// Dynamic import keeps the SSR pass free of `useConfig` calls (Vitest
-// page tests render the page without Web3Providers) and keeps the
-// EAS bundle out of the server lambda.
-const BenchPublishWidget = dynamic(
-  () =>
-    import("../../../components/bench/BenchPublishWidget").then((m) => ({
-      default: m.BenchPublishWidget,
-    })),
-  { ssr: false },
-);
 
 type PageProps = {
   params: Promise<{ name: string }>;

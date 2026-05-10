@@ -34,7 +34,7 @@ import {
   isSchemaDeployed,
   type BenchAttestationBundle,
   type SupportedNetwork,
-} from "@upgrade-siren/evidence";
+} from "@upgrade-siren/evidence/eas";
 
 export type BenchPublishWidgetProps = {
   readonly subjectName: string;
