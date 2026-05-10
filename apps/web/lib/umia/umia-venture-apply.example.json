@@ -1,0 +1,67 @@
+{
+  "schema_version": "0.1.0",
+  "target_command": "umia venture apply",
+  "submission_track": "community",
+  "team": {
+    "members": [
+      {
+        "name": "Karl Novak",
+        "handle": "0xkarl",
+        "role": "Founder",
+        "wallet_address": "0xA1b2C3d4E5f6A1b2C3d4E5f6A1b2C3d4E5f6A1b2",
+        "github": "0xkarl",
+        "twitter": "@0xkarl_dev"
+      },
+      {
+        "name": "Mira Horak",
+        "handle": "mira.eth",
+        "role": "Other",
+        "wallet_address": "0xB2c3D4e5F6a1B2c3D4e5F6a1B2c3D4e5F6a1B2c3",
+        "github": "mira-eth"
+      }
+    ]
+  },
+  "owner_contacts": [
+    {
+      "name": "Karl Novak",
+      "role": "Founder",
+      "email": "karl@acme.dev",
+      "telegram": "@karlacme",
+      "preferred_contact": "telegram",
+      "wallet_address": "0xA1b2C3d4E5f6A1b2C3d4E5f6A1b2C3d4E5f6A1b2"
+    }
+  ],
+  "project": {
+    "name": "Acme Protocol",
+    "description": "Acme Protocol is an AI-native infrastructure layer that lets small agentic teams deploy, monitor, and govern distributed microservices through a single CLI and hosted control plane. The product is designed for teams shipping continuously with AI assistance and needing stronger operational tooling than ad hoc scripts can provide.",
+    "pitch": "DevOps for agentic teams from one terminal.",
+    "stage": "MVP",
+    "links": {
+      "website": "https://acme.dev",
+      "github_repositories": [
+        "https://github.com/acme-org/acme-protocol",
+        "https://github.com/acme-org/acme-sdk"
+      ],
+      "twitter": "https://twitter.com/acme_protocol",
+      "telegram": "https://t.me/acme_protocol",
+      "discord": "https://discord.gg/acme-protocol"
+    },
+    "traction_metrics": {
+      "monthly_revenue_usd": 4200,
+      "monthly_active_users": 380,
+      "github_stars": 1247,
+      "github_forks": 89,
+      "other": [
+        {
+          "label": "Production deployments",
+          "value": 43
+        },
+        {
+          "label": "Discord members",
+          "value": 820
+        }
+      ]
+    }
+  },
+  "submission_notes": "This payload is app-owned and should be translated by a future Umia adapter once the CLI or API is public."
+}

@@ -35,6 +35,8 @@ import { EnsDrawer } from "../../../components/bench/drawers/EnsDrawer";
 import { GitHubDrawer } from "../../../components/bench/drawers/GitHubDrawer";
 import { OnchainDrawer } from "../../../components/bench/drawers/OnchainDrawer";
 import { SourcifyDrawer } from "../../../components/bench/drawers/SourcifyDrawer";
+import { UmiaVentureApplySection } from "../../../components/umia/UmiaVentureApplySection";
+import { CompareWithPreviousColumn } from "../../../components/compare/CompareWithPreviousColumn";
 import { BENCH_SUB_BRAND, BENCH_SUB_TAGLINE } from "../../../lib/branding";
 import { isDemoMockSubject } from "../../../lib/demoMocks";
 import { loadLatestAttestationForSubject } from "../../../lib/easStore";
@@ -94,26 +96,34 @@ export default async function BenchPage(
       data-route="bench"
       data-mock-demo={isMockedDemo ? "true" : "false"}
     >
-      <header className="flex items-start justify-between gap-4">
-        <div className="flex flex-col gap-2">
-          <span className="font-mono text-xs uppercase tracking-[0.18em] text-t2">
-            {BENCH_SUB_BRAND}
-          </span>
-          <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-t1 md:text-4xl">
-            {name}
-          </h1>
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-verdict-siren">
-            {BENCH_SUB_TAGLINE}
-          </p>
+      <header className="flex flex-col gap-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <span className="font-mono text-xs uppercase tracking-[0.18em] text-t2">
+              {BENCH_SUB_BRAND}
+            </span>
+            <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-t1 md:text-4xl">
+              {name}
+            </h1>
+            <p className="font-mono text-xs uppercase tracking-[0.18em] text-verdict-siren">
+              {BENCH_SUB_TAGLINE}
+            </p>
+          </div>
+          <BenchPublishWidget
+            subjectName={name}
+            subjectAddress={subjectAddress}
+            easBundle={easBundle}
+            liveScore={liveScore}
+            liveTier={liveTier}
+            liveComputedAt={null}
+          />
         </div>
-        <BenchPublishWidget
-          subjectName={name}
-          subjectAddress={subjectAddress}
-          easBundle={easBundle}
-          liveScore={liveScore}
-          liveTier={liveTier}
-          liveComputedAt={null}
-        />
+        {result.kind === "loaded" ? (
+          <CompareWithPreviousColumn
+            evidence={result.evidence}
+            score={result.score}
+          />
+        ) : null}
       </header>
 
       {isMockedDemo ? (
@@ -232,6 +242,8 @@ function BenchFoundation({
         subjectName={evidence.subject.name}
         ens={evidence.ensInternal}
       />
+
+      <UmiaVentureApplySection evidence={evidence} score={score} />
     </>
   );
 }
