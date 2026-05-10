@@ -56,7 +56,7 @@ export function forumTemplate(
           .join("\n");
 
   return [
-    `Upgrade Siren verdict for ${name}: ${report.verdict}.`,
+    `Siren verdict for ${name}: ${report.verdict}.`,
     "",
     report.summary,
     "",
@@ -73,6 +73,6 @@ export function voteReasonTemplate(
   name: string,
 ): string {
   const action = VOTE_ACTION_PHRASE[report.recommendedAction];
-  const text = `${action}. Upgrade Siren reports ${report.verdict} for ${name}: ${report.summary}`;
+  const text = `${action}. Siren reports ${report.verdict} for ${name}: ${report.summary}`;
   return clampToCap(text, VOTE_REASON_MAX_CHARS);
 }
