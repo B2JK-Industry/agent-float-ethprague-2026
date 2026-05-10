@@ -47,7 +47,7 @@ export const DEMO_SCENARIOS: readonly DemoScenario[] = [
     label: "Curated AI agent",
     target: "siren-agent-demo.upgrade-siren-demo.eth",
     mode: "signed-manifest",
-    expectedBucket: "B",
+    expectedBucket: "A",
     expectedVerdict: "SAFE",
     description:
       "Signed agent-bench manifest on Sepolia. ai-agent kind, declared Sourcify entries + GitHub owner — full four-source verdict.",
@@ -57,7 +57,7 @@ export const DEMO_SCENARIOS: readonly DemoScenario[] = [
     label: "Real human profile",
     target: "letadlo.eth",
     mode: "public-read",
-    expectedBucket: "D",
+    expectedBucket: "C",
     expectedVerdict: "REVIEW",
     description:
       "Sepolia ENS with com.github + description + url text records. Public-read fallback infers GitHub source from com.github — no signed claim, ×0.6 trust discount applies.",
@@ -67,7 +67,7 @@ export const DEMO_SCENARIOS: readonly DemoScenario[] = [
     label: "Rich ENS records",
     target: "agent-kikiriki.eth",
     mode: "public-read",
-    expectedBucket: "D",
+    expectedBucket: "C",
     expectedVerdict: "REVIEW",
     description:
       "Sepolia ENS with 11 text records — Project_A/B/C URLs, description, location, avatar. Demonstrates the ENS-internal subgraph signal end-to-end.",

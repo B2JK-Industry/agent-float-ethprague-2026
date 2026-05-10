@@ -46,6 +46,17 @@ function rollupSeverity(entries: ReadonlyArray<DiffEntry>): DiffSeverity {
   return max;
 }
 
+function chainIdForNetwork(network: string): number {
+  // Maps EAS network identifier → chainId so the diff layer can decide
+  // whether a primaryAddress comparison is meaningful (same chain) or
+  // spurious (different chain ENS resolvers return different addrs).
+  if (network === "mainnet") return 1;
+  if (network === "sepolia") return 11155111;
+  if (network === "base") return 8453;
+  if (network === "optimism") return 10;
+  return -1;
+}
+
 function tierRank(tier: string | null): number {
   // U treated as worst (-1) so dropping into U from anything is alert.
   switch (tier) {
@@ -134,7 +145,15 @@ export function diffAttestationVsCurrent(input: DiffInput): AttestationDiff {
   }
 
   // ─── identity rotation ───
-  if (currentPrimary && oldRecipient) {
+  // 2026-05-10 audit: only flag primaryAddress mismatch when the
+  // previous attestation was issued on the same chain as the live
+  // resolution. Comparing a Sepolia attestation vs a mainnet ENS
+  // resolution (or vice versa) routinely flags spurious "rotation"
+  // because each chain holds its own resolver/addr() state.
+  const previousChainId = chainIdForNetwork(previous.network);
+  const currentChainId = currentEvidence.subject.chainId;
+  const sameChain = previousChainId === currentChainId;
+  if (currentPrimary && oldRecipient && sameChain) {
     if (oldRecipient.toLowerCase() !== currentPrimary.toLowerCase()) {
       entries.push({
         field: "primaryAddress",
@@ -152,6 +171,14 @@ export function diffAttestationVsCurrent(input: DiffInput): AttestationDiff {
         severity: "unchanged",
       });
     }
+  } else if (currentPrimary && oldRecipient && !sameChain) {
+    entries.push({
+      field: "primaryAddress",
+      old: oldRecipient,
+      current: currentPrimary,
+      severity: "info",
+      note: `cross-chain compare (previous on ${previous.network}, live on chainId ${currentChainId}) — addresses not directly comparable`,
+    });
   }
 
   // ─── computedAt freshness ───

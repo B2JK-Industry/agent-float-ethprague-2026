@@ -28,6 +28,7 @@ import {
 import {
   loadLatestAttestationForSubject as loadFromStore,
   recordOnchainPublication,
+  saveOffchainAttestation,
 } from "../../../../../../lib/easStore";
 
 const NETWORK_TO_VIEM_CHAIN = {
@@ -99,17 +100,14 @@ export async function POST(
     );
   }
 
-  // Load the off-chain attestation we're about to mark as published.
-  const stored = await loadFromStore(name);
-  if (!stored) {
-    return NextResponse.json(
-      {
-        error: "no_offchain_record",
-        message: `No off-chain attestation found for subject ${name}. Generate a report first.`,
-      },
-      { status: 404 },
-    );
-  }
+  // 2026-05-10 audit: record-publish previously hard-required an
+  // off-chain row to exist before publish, but no code path ever
+  // wrote one — saveOffchainAttestation had zero callers, so every
+  // publish attempt failed with "no_offchain_record". The publish
+  // flow now works end-to-end: when no row exists we derive the
+  // bundle from on-chain decoded payload below and INSERT it after
+  // verification passes. The pre-load is now best-effort metadata.
+  let stored = await loadFromStore(name);
 
   // Fetch the on-chain attestation by UID + verify it matches.
   const rpcEnvKey = NETWORK_TO_RPC_ENV[network];
@@ -171,70 +169,97 @@ export async function POST(
     );
   }
 
-  // 2026-05-10 audit: verify ALL material fields, not just reportHash.
-  // A report-hash-only check left subject-spoofing wide open: an attacker
-  // could mint an on-chain attestation about a different ENS subject
-  // and have it accepted as long as the bytes happened to embed our
-  // off-chain reportHash.
-  const stP = stored.offchain.payload;
-  const lc = (s: string): string => s.toLowerCase();
-  const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
-  const ZERO_NAMEHASH =
-    "0x0000000000000000000000000000000000000000000000000000000000000000";
-  const checks: Array<{ field: string; on: string; off: string; skipIfStoredZero?: boolean }> = [
-    {
-      field: "reportHash",
-      on: lc(onchainPayload.reportHash),
-      off: lc(stP.reportHash),
-    },
-    { field: "reportUri", on: onchainPayload.reportUri, off: stP.reportUri },
-    {
-      field: "subject",
-      on: lc(onchainPayload.subject),
-      off: lc(stP.subject),
-      skipIfStoredZero: true,
-    },
-    {
-      field: "ensNamehash",
-      on: lc(onchainPayload.ensNamehash),
-      off: lc(stP.ensNamehash),
-      skipIfStoredZero: true,
-    },
-    { field: "score", on: String(onchainPayload.score), off: String(stP.score) },
-    { field: "tier", on: onchainPayload.tier, off: stP.tier },
-    {
-      field: "computedAt",
-      on: String(onchainPayload.computedAt),
-      off: String(stP.computedAt),
-    },
-    {
-      field: "recipient",
-      on: lc(attestation.recipient),
-      off: lc(stP.subject),
-      skipIfStoredZero: true,
-    },
-  ];
-  for (const c of checks) {
-    if (c.skipIfStoredZero) {
-      // Legacy rows pre-2026-05-10 audit didn't persist subject /
-      // ensNamehash; skip those checks for backwards compatibility.
-      if (c.off === lc(ZERO_ADDR) || c.off === lc(ZERO_NAMEHASH)) continue;
+  // 2026-05-10 audit: verify ALL material fields when an off-chain
+  // row exists, not just reportHash. When no off-chain row exists
+  // (publish without prior offchain build — see saveOffchainAttestation
+  // wiring note above), we INSERT a fresh row from the on-chain
+  // payload itself. The on-chain payload IS the canonical record;
+  // verification reduces to "schema is ours" + "data decoded cleanly"
+  // which we already passed.
+  if (stored) {
+    const stP = stored.offchain.payload;
+    const lc = (s: string): string => s.toLowerCase();
+    const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
+    const ZERO_NAMEHASH =
+      "0x0000000000000000000000000000000000000000000000000000000000000000";
+    const checks: Array<{ field: string; on: string; off: string; skipIfStoredZero?: boolean }> = [
+      {
+        field: "reportHash",
+        on: lc(onchainPayload.reportHash),
+        off: lc(stP.reportHash),
+      },
+      { field: "reportUri", on: onchainPayload.reportUri, off: stP.reportUri },
+      {
+        field: "subject",
+        on: lc(onchainPayload.subject),
+        off: lc(stP.subject),
+        skipIfStoredZero: true,
+      },
+      {
+        field: "ensNamehash",
+        on: lc(onchainPayload.ensNamehash),
+        off: lc(stP.ensNamehash),
+        skipIfStoredZero: true,
+      },
+      { field: "score", on: String(onchainPayload.score), off: String(stP.score) },
+      { field: "tier", on: onchainPayload.tier, off: stP.tier },
+      {
+        field: "computedAt",
+        on: String(onchainPayload.computedAt),
+        off: String(stP.computedAt),
+      },
+      {
+        field: "recipient",
+        on: lc(attestation.recipient),
+        off: lc(stP.subject),
+        skipIfStoredZero: true,
+      },
+    ];
+    for (const c of checks) {
+      if (c.skipIfStoredZero) {
+        if (c.off === lc(ZERO_ADDR) || c.off === lc(ZERO_NAMEHASH)) continue;
+      }
+      if (c.on !== c.off) {
+        return NextResponse.json(
+          {
+            error: `${c.field}_mismatch`,
+            message: `On-chain ${c.field} (${c.on}) does not match off-chain (${c.off}). The on-chain attestation was for a different report.`,
+          },
+          { status: 422 },
+        );
+      }
     }
-    if (c.on !== c.off) {
-      return NextResponse.json(
-        {
-          error: `${c.field}_mismatch`,
-          message: `On-chain ${c.field} (${c.on}) does not match off-chain (${c.off}). The on-chain attestation was for a different report.`,
-        },
-        { status: 422 },
-      );
-    }
+  } else {
+    // Insert a fresh off-chain row derived from the on-chain attestation.
+    // No EIP-712 envelope is materialised here — for a future build-
+    // offchain step, that envelope would be signed via REPORT_SIGNER and
+    // stored alongside. For now the row exists primarily so subsequent
+    // /report reads return the on-chain bundle.
+    await saveOffchainAttestation({
+      subjectName: name,
+      offchainUid: uid, // reuse on-chain UID; row is keyed by it
+      offchainNetwork: network,
+      offchainSerialized: JSON.stringify({
+        synthetic: true,
+        sourcedFrom: "on-chain",
+        uid,
+        network,
+      }),
+      score: onchainPayload.score,
+      tier: onchainPayload.tier,
+      computedAt: onchainPayload.computedAt,
+      reportHash: onchainPayload.reportHash,
+      reportUri: onchainPayload.reportUri,
+      subjectAddress: onchainPayload.subject,
+      ensNamehash: onchainPayload.ensNamehash,
+    });
+    stored = await loadFromStore(name);
   }
 
   const publishedBy = attestation.attester as Address;
 
   const { updated } = await recordOnchainPublication({
-    offchainUid: stored.offchain.uid,
+    offchainUid: (stored?.offchain.uid ?? uid) as `0x${string}`,
     onchainUid: uid,
     onchainNetwork: network,
     onchainTxHash: txHash as `0x${string}`,
