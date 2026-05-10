@@ -196,32 +196,36 @@ function BenchFoundation({
 
   return (
     <>
+      <section
+        aria-label="Subject identity"
+        data-section="subject"
+        className="flex flex-wrap items-center gap-2 text-sm"
+      >
+        <span
+          data-chip="kind"
+          className="rounded border border-t1 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.18em]"
+        >
+          {kindChipText(subject.kind)}
+        </span>
+        <span
+          data-chip="mode"
+          className="rounded border border-t1 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.18em]"
+        >
+          {modeChipText(subject.mode)}
+        </span>
+      </section>
+
+      {/* ScoreBanner + TierLadder share a row so the ladder reads as
+          the legend for the banner — no gap above. Ladder column has
+          a min-width so it doesn't squeeze the banner on narrow lg
+          breakpoints. On <lg viewport the ladder stacks under banner. */}
       <div
-        data-row="subject-and-ladder"
+        data-row="banner-and-ladder"
         className="grid items-start gap-4 lg:grid-cols-[1fr_minmax(240px,320px)]"
       >
-        <section
-          aria-label="Subject identity"
-          data-section="subject"
-          className="flex flex-wrap items-center gap-2 text-sm"
-        >
-          <span
-            data-chip="kind"
-            className="rounded border border-t1 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.18em]"
-          >
-            {kindChipText(subject.kind)}
-          </span>
-          <span
-            data-chip="mode"
-            className="rounded border border-t1 px-2 py-0.5 font-mono text-xs uppercase tracking-[0.18em]"
-          >
-            {modeChipText(subject.mode)}
-          </span>
-        </section>
+        <ScoreBanner score={score} />
         <TierLadder currentTier={score.tier as "S" | "A" | "B" | "C" | "D" | "U"} />
       </div>
-
-      <ScoreBanner score={score} />
 
       <SourceGrid evidence={evidence} />
 
