@@ -38,6 +38,10 @@ import {
 } from '../sources/github/fetch.js';
 import { fetchSourcifyMetadata } from '../sourcify/metadata.js';
 import type { FetchLike } from '../sourcify/types.js';
+import {
+  fetchEtherscanSourceCodeMultiChain,
+  type EtherscanFallbackResult,
+} from '../sources/etherscan/sourceCode.js';
 
 // fetchSourcifyMetadata's options interface isn't exported; inline the
 // caller-facing subset so OrchestrateSubjectOptions stays expressive.
@@ -781,6 +785,55 @@ export async function orchestrateSubject(
     }
   }
 
+  // ─── Etherscan source-code fallback (Refactor 2026-05-10) ───
+  // Sourcify all-chains returned 0 verified entries. Many contracts get
+  // verified on Etherscan but not Sourcify (Gitcoin, OZ, most DAOs).
+  // When the subject's primaryAddress has on-chain bytecode (any chain
+  // showing nonce > 0 OR a confirmed contract creation through onchain
+  // activity), we query Etherscan v2 source-code endpoint across the
+  // Etherscan-supported chain set. Best-effort — failure does not abort
+  // the orchestrator; results surface in MultiSourceEvidence.etherscanFallback.
+  let etherscanFallback: EtherscanFallbackResult[] = [];
+  const okSourcifyEntries = sourcifyEvidence.filter((e) => e.kind === 'ok').length;
+  const looksLikeContract =
+    identity.primaryAddress !== null &&
+    onchainEvidence.some(
+      (o) => o.kind === 'ok' && (o.value.nonce > 0 || o.value.firstTxBlock !== null),
+    );
+  if (okSourcifyEntries === 0 && looksLikeContract && identity.primaryAddress) {
+    try {
+      // Etherscan fallback uses its own default fetch + ETHERSCAN_API_KEY
+      // env. Per-call timeout not threaded — orchestrator-level deadline
+      // (loadBench's 12s race) caps the total. Etherscan v2 typically
+      // responds 200-500ms per chain × 6 chains parallel.
+      const fallback = await fetchEtherscanSourceCodeMultiChain(
+        identity.primaryAddress,
+      );
+      etherscanFallback = [...fallback];
+      // Surface failures (excluding unsupported_chain — that's expected
+      // for chains the address has no presence on).
+      for (const r of fallback) {
+        if (r.kind === 'error' && r.reason !== 'unsupported_chain') {
+          failures.push({
+            kind: 'error',
+            source: 'sourcify',
+            reason: `etherscan_fallback_${r.reason}`,
+            message: r.message,
+            chainId: r.chainId,
+          });
+        }
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      failures.push({
+        kind: 'error',
+        source: 'sourcify',
+        reason: 'etherscan_fallback_throw',
+        message: msg,
+      });
+    }
+  }
+
   return {
     subject: identity,
     sourcify: sourcifyEvidence,
@@ -788,6 +841,7 @@ export async function orchestrateSubject(
     onchain: onchainEvidence,
     ensInternal,
     crossChain,
+    etherscanFallback,
     failures,
   };
 }

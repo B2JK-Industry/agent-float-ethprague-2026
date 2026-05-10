@@ -217,7 +217,11 @@ function BenchFoundation({
         </p>
       ) : null}
 
-      <SourcifyDrawer entries={evidence.sourcify} />
+      <SourcifyDrawer
+        entries={evidence.sourcify}
+        etherscanFallback={evidence.etherscanFallback}
+        primaryAddress={evidence.subject.primaryAddress}
+      />
 
       <GitHubDrawer github={evidence.github} />
 
