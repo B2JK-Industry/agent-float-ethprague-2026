@@ -40,7 +40,7 @@ function isVerdict(value: string | undefined): value is Verdict {
 }
 
 export const metadata: Metadata = {
-  title: "Verdict — Upgrade Siren",
+  title: "Verdict — Siren",
 };
 
 type VerdictPageParams = {
@@ -349,7 +349,7 @@ function HeaderNav(): React.JSX.Element {
         href="/"
         className="font-mono text-xs uppercase tracking-[0.18em] text-t2 hover:text-t1"
       >
-        ← Upgrade Siren
+        ← Siren
       </Link>
       <Link
         href="/demo"
@@ -370,7 +370,7 @@ function PageHero({ name }: { name: string }): React.JSX.Element {
   return (
     <header className="flex flex-col gap-2">
       <span className="font-mono text-xs uppercase tracking-[0.18em] text-t2">
-        Upgrade Siren · Single-Contract Mode
+        Siren · Single-Contract Mode
       </span>
       <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-t1 md:text-4xl">
         {name}
