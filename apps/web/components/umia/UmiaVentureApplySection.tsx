@@ -36,7 +36,7 @@ import type {
 } from "../../lib/umia/types";
 import { validateUmiaPayload } from "../../lib/umia/validate";
 
-const UMIA_HOMEPAGE = "https://umia.ai";
+const UMIA_HOMEPAGE = "https://www.umia.finance";
 
 const ROLES: ReadonlyArray<UmiaRole> = [
   "Founder",
@@ -264,8 +264,9 @@ export function UmiaVentureApplySection({
             fontStyle: "italic",
           }}
         >
-          Umia is an agentic-venture launcher. This section turns the verdict
-          above into a draft <code className="font-mono">umia venture apply</code>{" "}
+          Umia is the Community Track venture launcher. This section turns
+          the verdict above into a draft{" "}
+          <code className="font-mono">umia venture apply</code>{" "}
           payload aligned with the Community Track schema — JSON download
           only, no upload, no real CLI execution.{" "}
           <a

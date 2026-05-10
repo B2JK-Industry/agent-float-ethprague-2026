@@ -5,7 +5,11 @@
 // Hard rule: never fabricate required-but-missing values. Missing fields
 // stay editable so the user must fill them before download.
 
-import type { MultiSourceEvidence, ScoreResult } from "@upgrade-siren/evidence";
+import type {
+  GithubEvidence,
+  MultiSourceEvidence,
+  ScoreResult,
+} from "@upgrade-siren/evidence";
 
 import type {
   FieldOrigin,
@@ -30,6 +34,44 @@ import type {
 } from "./types";
 
 const GITHUB_OWNER_RE = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,62}[A-Za-z0-9])?$/;
+
+// Mirrors umia-venture-apply.schema.json#/properties/project/properties/links/properties/github_repositories
+// items.pattern. Auto-filled URLs must round-trip through Ajv without changes.
+const GITHUB_REPO_URL_RE = /^https:\/\/github\.com\/[^/]+\/[^/]+\/?$/;
+
+const REPO_AUTOFILL_CAP = 5;
+
+// Pull canonical-pattern repo URLs out of fetched GitHub evidence so the
+// Community Track form's `github_repositories` field doesn't block on
+// every subject just because the user hasn't typed at least one URL.
+//
+// Discipline:
+//   - Only mine evidence with kind === 'ok'. Errors and absent stay empty.
+//   - Skip archived repos (they don't represent ongoing work).
+//   - Skip per-repo failures (fetchStatus !== 'ok') — partial fetches lack
+//     the metadata that justifies surfacing the URL.
+//   - Sort by pushedAt desc so the most actively maintained repos win the
+//     cap.
+//   - Cap at REPO_AUTOFILL_CAP — Umia's schema accepts more, but more than
+//     a handful is noise on the application form.
+function repoUrlsFromGithubEvidence(github: GithubEvidence): string[] {
+  if (github.kind !== "ok") return [];
+  const candidates = github.value.repos.filter(
+    (r) => r.fetchStatus === "ok" && !r.archived,
+  );
+  candidates.sort((a, b) => {
+    const aTime = a.pushedAt ? Date.parse(a.pushedAt) : 0;
+    const bTime = b.pushedAt ? Date.parse(b.pushedAt) : 0;
+    return bTime - aTime;
+  });
+  const urls: string[] = [];
+  for (const repo of candidates) {
+    if (urls.length >= REPO_AUTOFILL_CAP) break;
+    const url = `https://github.com/${repo.fullName}`;
+    if (GITHUB_REPO_URL_RE.test(url)) urls.push(url);
+  }
+  return urls;
+}
 
 function field<T>(
   value: T,
@@ -200,10 +242,12 @@ export function buildPrefilledForm(
   // ─── project.links ───
   // Schema requires github_repositories items match
   //   ^https://github\.com/[^/]+/[^/]+/?$
-  // i.e. specific repos (owner/name), NOT org/user URLs. We leave this
-  // editable when only a com.github username is known — the user must
-  // type at least one repo URL before the payload validates.
-  const githubRepoUrls: string[] = [];
+  // i.e. specific repos (owner/name), NOT org/user URLs. When the Bench
+  // pipeline successfully fetched the GitHub source, we mine top
+  // pushedAt-desc non-archived repos (capped) so a typical subject's
+  // form validates without manual URL entry. Subjects with no GitHub
+  // evidence still leave it editable for user entry.
+  const githubRepoUrls = repoUrlsFromGithubEvidence(evidence.github);
   const otherLinks: UmiaProjectLinkOther[] = [];
   if (validGithubOwner) {
     // Park the org URL inside `links.other` so the user can see we
@@ -222,7 +266,16 @@ export function buildPrefilledForm(
     website: websiteUrl
       ? field<string>(websiteUrl, "ens", ensSourceLabel("url"))
       : emptyField<string>(""),
-    github_repositories: emptyField<ReadonlyArray<string>>(githubRepoUrls),
+    github_repositories:
+      githubRepoUrls.length > 0
+        ? field<ReadonlyArray<string>>(
+            githubRepoUrls,
+            "report",
+            `from GitHub · top ${githubRepoUrls.length} repo${
+              githubRepoUrls.length === 1 ? "" : "s"
+            } by recent push`,
+          )
+        : emptyField<ReadonlyArray<string>>(githubRepoUrls),
     github_organization: validGithubOwner
       ? field<string>(
           githubOwnerUrl(validGithubOwner),
