@@ -25,10 +25,18 @@ function jsonReplacer(_key: string, value: unknown): unknown {
   return value;
 }
 
-export async function GET(_req: Request, props: RouteProps): Promise<Response> {
+export async function GET(req: Request, props: RouteProps): Promise<Response> {
   const { name: rawName } = await props.params;
   const name = decodeURIComponent(rawName);
-  const result = await loadBench(name);
+  const url = new URL(req.url);
+  const chainParam = url.searchParams.get("chain");
+  const chainId = chainParam ? Number(chainParam) : undefined;
+  const result = await loadBench(
+    name,
+    chainId !== undefined && Number.isFinite(chainId) && chainId > 0
+      ? { chainId }
+      : {},
+  );
   const body = JSON.stringify(result, jsonReplacer, 2);
   return new Response(body, {
     headers: {
