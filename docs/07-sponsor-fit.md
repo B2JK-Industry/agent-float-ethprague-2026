@@ -111,21 +111,31 @@ Public upgrade alarms help communities govern shared infrastructure. This is a c
 
 ## Optional: Umia
 
-Use only if Daniel decides to pitch Siren Agent as an agentic venture.
+Use only if Daniel decides to pursue the Best Agentic Venture track. Per `SCOPE.md` §5 + `EPIC_BENCH_MODE.md` Section 21 D-J, posture remains "optional, no proactive targeting" — but the integration code is built so a flip is one decision, not a new build.
 
-### Umia Framing
+### Two Integration Angles (`docs/15-umia-integration.md` is the source of truth)
 
-Siren Agent monitors venture contracts before and after funding:
+**Angle A — Submitter (`umia venture apply` payload exporter):** Bench evidence (ENS records + GitHub fetched repos) prefills the canonical Umia Community Track schema; user downloads schema-validated JSON for handoff to a future Umia adapter. No upload. Lives under `apps/web/lib/umia/` + `UmiaVentureApplySection`.
 
-- readiness to fund
-- unverified contract warning
-- proxy/admin risk
-- post-launch implementation-change alert
-- signed due-diligence report
+**Angle B — Validator (EIP-712 ServerPermit issuer for Tailored Auctions):** Upgrade Siren issues per-bidder EIP-712 permits keyed on Bench tier; `UmiaValidationHook` accepts them via mode `0x01` server-permit branch with zero Umia-side changes. Lives under `packages/umia-permit/` + `apps/web/app/api/umia/permit/route.ts` + `UmiaPermitSection`.
+
+### Sponsor-Native Test (Angle B)
+
+Without Upgrade Siren, every Tailored Auction founder who wants tier-gated steps must run their own off-chain signing server. We already operate `REPORT_SIGNER_PRIVATE_KEY` for Siren Reports; reusing it as the Umia signer makes Bench tier a first-class auction-eligibility primitive at zero marginal infra cost. This passes the discriminating "could not exist without this technology" test (`feedback_sponsor_native_test`).
+
+### What To Show
+
+- `/b/[name]` page renders both Umia sections under the Bench verdict.
+- Mint Bid Permit panel: connect wallet → enter hook address + step + minTier → API returns `hookData` blob signed by Upgrade Siren operator. Tier-below-threshold returns 403 with observed/required tiers visible.
+- Foundry mock `UmiaValidationHookMock` proves the byte-on-wire accepted by a real hook: 6 round-trip tests cover valid permit, expired deadline, disabled step, wrong signer, missing type flag, bidder mismatch.
+
+### Judge Sentence
+
+> Upgrade Siren turns Bench tier into a Tailored Auction eligibility primitive — the EIP-712 server-permit Umia's hook already accepts.
 
 ### Risk
 
-Umia may prefer ventures that create economic output, not just analyze risk. Do not force this unless mentor feedback suggests it lands.
+Umia may still prefer ventures that create economic output, not just analyze risk. The Validator angle is the strongest counter (Bench scoring becomes auction infrastructure, not just analysis). Do not force the pitch unless mentor feedback confirms it lands.
 
 ## Not Targeting
 
