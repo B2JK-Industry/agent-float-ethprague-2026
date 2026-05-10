@@ -24,7 +24,20 @@ import { useAccount, useSwitchChain, useWriteContract } from "wagmi";
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { useConfig } from "wagmi";
 
-import { namehash } from "viem";
+import { decodeEventLog, namehash, parseAbiItem } from "viem";
+
+// EAS `Attested` event signature:
+//   event Attested(
+//     address indexed recipient,
+//     address indexed attester,
+//     bytes32 uid,
+//     bytes32 indexed schema
+//   )
+// uid is NON-indexed → it lives in the data field, not the topics array.
+// Decoding via viem's decodeEventLog gives us back the proper bytes32.
+const ATTESTED_EVENT = parseAbiItem(
+  "event Attested(address indexed recipient, address indexed attester, bytes32 uid, bytes32 indexed schema)",
+);
 
 import {
   BENCH_SCHEMA_UIDS,
@@ -163,18 +176,29 @@ export function BenchPublishWidget({
         chainId: targetChainId,
       });
 
-      // EAS emits the UID as a return value; we extract from the
-      // receipt logs (Attested event topic[1] is the UID).
-      const attestedTopic =
-        "0x8bf46bf4cfd674fa735a3d63ec1c9ad4153f033c290341f3a588b75685141b35";
-      const log = receipt.logs.find(
-        (l) => l.topics[0]?.toLowerCase() === attestedTopic,
-      );
-      const uid = (log?.topics[2] ?? log?.topics[1]) as `0x${string}` | undefined;
+      // Extract UID from the Attested event. UID lives in the
+      // non-indexed `data` field — viem's decodeEventLog handles the
+      // packing for us; topics[1..3] are recipient/attester/schema.
+      let uid: `0x${string}` | undefined;
+      for (const log of receipt.logs) {
+        try {
+          const decoded = decodeEventLog({
+            abi: [ATTESTED_EVENT],
+            data: log.data,
+            topics: log.topics,
+          });
+          if (decoded.eventName === "Attested") {
+            uid = decoded.args.uid as `0x${string}`;
+            break;
+          }
+        } catch {
+          // Not an Attested event — skip and continue.
+        }
+      }
 
       if (!uid) {
         throw new Error(
-          `tx confirmed but UID not found in logs: ${txHash}`,
+          `tx confirmed but Attested UID not found in receipt logs: ${txHash}`,
         );
       }
 
