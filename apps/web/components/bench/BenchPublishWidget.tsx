@@ -24,6 +24,8 @@ import { useAccount, useSwitchChain, useWriteContract } from "wagmi";
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { useConfig } from "wagmi";
 
+import { namehash } from "viem";
+
 import {
   BENCH_SCHEMA_UIDS,
   DEFAULT_PUBLISH_NETWORK,
@@ -31,6 +33,7 @@ import {
   EAS_CONTRACTS,
   NETWORK_CHAIN_IDS,
   easExplorerUrl,
+  encodeBenchPayload,
   isSchemaDeployed,
   type BenchAttestationBundle,
   type SupportedNetwork,
@@ -77,24 +80,60 @@ export function BenchPublishWidget({
     }
   }, [easBundle, state.kind]);
 
-  // Don't render at all when there's no off-chain attestation to
-  // publish (mock subjects, public-read with no signed claim, etc.).
-  if (!easBundle) return null;
-
+  // Self-attest demo mode: when no Turso row exists for this subject
+  // (ad-hoc /b/{name} visit, not pre-seeded) and the visitor has a
+  // wallet connected, we still render the publish button. The connected
+  // wallet becomes both attester AND recipient — the resulting on-chain
+  // attestation is "subject self-attests with their bench score".
+  // Off-chain envelope is generated inline at publish time using the
+  // visitor's wallet to sign the EAS payload (no operator key required
+  // in the browser).
+  const schemaReady = isSchemaDeployed(network);
+  const selfAttest = !easBundle && walletAddress !== undefined;
   const subjectMatches =
     subjectAddress !== null &&
     walletAddress?.toLowerCase() === subjectAddress.toLowerCase();
-  const schemaReady = isSchemaDeployed(network);
+  const effectiveSubject =
+    subjectAddress ?? (walletAddress as `0x${string}` | undefined) ?? null;
+  // Skip the "Connect <subject>" gate in self-attest mode — there's no
+  // canonical subject address to match against.
+  const canPublish =
+    isConnected &&
+    schemaReady &&
+    (selfAttest || subjectMatches) &&
+    effectiveSubject !== null;
 
   async function onPublish(): Promise<void> {
-    if (!walletAddress || !subjectAddress) return;
-    if (!easBundle) return;
+    if (!walletAddress) return;
+    const recipient = effectiveSubject;
+    if (!recipient) return;
     setState({ kind: "switching" });
     try {
       const targetChainId = NETWORK_CHAIN_IDS[network];
       if (chain?.id !== targetChainId) {
         await switchChainAsync({ chainId: targetChainId });
       }
+
+      // Build the EAS data field. Two paths:
+      //   1. easBundle present → use the canonical ABI-encoded payload
+      //      from the off-chain envelope (matches the bench schema).
+      //   2. self-attest mode → encode a fresh BenchAttestationPayload
+      //      using `encodeBenchPayload` so the on-chain attestation
+      //      decodes cleanly against the registered schema. score=0 +
+      //      tier="U" is honest for a freshly-typed subject without a
+      //      stored report.
+      const dataPayload: `0x${string}` = easBundle
+        ? (easBundle.offchain.serialized as `0x${string}`)
+        : encodeBenchPayload({
+            subject: walletAddress as `0x${string}`,
+            ensNamehash: namehash(subjectName) as `0x${string}`,
+            score: 0,
+            tier: "U",
+            computedAt: Math.floor(Date.now() / 1000),
+            reportHash:
+              "0x0000000000000000000000000000000000000000000000000000000000000000",
+            reportUri: `${typeof window !== "undefined" ? window.location.origin : "https://upgrade-siren.vercel.app"}/b/${encodeURIComponent(subjectName)}`,
+          });
 
       setState({ kind: "submitting" });
       const txHash = await writeContractAsync({
@@ -105,12 +144,12 @@ export function BenchPublishWidget({
           {
             schema: BENCH_SCHEMA_UIDS[network],
             data: {
-              recipient: subjectAddress,
+              recipient,
               expirationTime: 0n,
               revocable: true,
               refUID:
                 "0x0000000000000000000000000000000000000000000000000000000000000000" as `0x${string}`,
-              data: easBundle.offchain.serialized as `0x${string}`,
+              data: dataPayload,
               value: 0n,
             },
           },
@@ -141,20 +180,24 @@ export function BenchPublishWidget({
 
       setState({ kind: "indexing", txHash, uid });
 
-      // Notify server to verify + persist.
-      const recordRes = await fetch(
-        `/api/bench/${encodeURIComponent(subjectName)}/eas/record-publish`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ uid, network, txHash }),
-        },
-      );
-      if (!recordRes.ok) {
-        const err = await recordRes.json().catch(() => ({}));
-        throw new Error(
-          `server indexing failed: ${err.message ?? recordRes.statusText}`,
+      // Notify server to verify + persist (only when an off-chain row
+      // exists in the store — self-attest mode skips this since there's
+      // nothing to update; the on-chain UID is the artifact).
+      if (easBundle) {
+        const recordRes = await fetch(
+          `/api/bench/${encodeURIComponent(subjectName)}/eas/record-publish`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ uid, network, txHash }),
+          },
         );
+        if (!recordRes.ok) {
+          // Non-fatal — log but still mark published. The on-chain
+          // attestation IS the canonical artifact.
+          // eslint-disable-next-line no-console
+          console.warn("server indexing failed", await recordRes.text());
+        }
       }
 
       setState({ kind: "published", uid, network });
@@ -189,7 +232,7 @@ export function BenchPublishWidget({
             </button>
           )}
         </ConnectKitButton.Custom>
-      ) : !subjectMatches ? (
+      ) : !canPublish ? (
         <button
           type="button"
           disabled
@@ -200,7 +243,7 @@ export function BenchPublishWidget({
             Connect{" "}
             {subjectAddress
               ? `${subjectAddress.slice(0, 6)}…${subjectAddress.slice(-4)}`
-              : "subject wallet"}
+              : "wallet"}
           </span>
         </button>
       ) : state.kind === "published" ? (
