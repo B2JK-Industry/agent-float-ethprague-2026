@@ -15,6 +15,18 @@ const ALCHEMY_BASE_BY_CHAIN: Record<number, string> = {
   137: 'https://polygon-mainnet.g.alchemy.com/v2',
 };
 
+// Refactor 2026-05-10: Vercel env vars are typically stored as
+// "Sensitive" which means `vercel env pull` returns empty strings
+// (runtime injection works, retrieval doesn't). Existing project has
+// full RPC URLs as ALCHEMY_RPC_MAINNET / ALCHEMY_RPC_SEPOLIA. Use
+// those URLs directly when present — saves a duplicate ALCHEMY_API_KEY
+// env var setup.
+function preconfiguredRpcUrl(chainId: number): string | null {
+  if (chainId === 1) return process.env.ALCHEMY_RPC_MAINNET ?? null;
+  if (chainId === 11155111) return process.env.ALCHEMY_RPC_SEPOLIA ?? null;
+  return null;
+}
+
 const COINGECKO_PRICE_API = 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd';
 
 export interface TokenBalance {
@@ -152,15 +164,23 @@ export async function fetchWalletAnalytics(
   chainId: number,
   options: FetchWalletAnalyticsOptions = {},
 ): Promise<WalletAnalyticsResultEnvelope> {
-  const baseUrlPart = ALCHEMY_BASE_BY_CHAIN[chainId];
-  if (!baseUrlPart) {
-    return { kind: 'error', chainId, reason: 'unsupported_chain', message: `wallet: chainId ${chainId} not supported` };
+  // Prefer pre-configured RPC URL (existing ALCHEMY_RPC_MAINNET / ALCHEMY_RPC_SEPOLIA).
+  // Fall back to constructing URL from base + ALCHEMY_API_KEY env.
+  const preconfigured = preconfiguredRpcUrl(chainId);
+  let baseUrl: string;
+  if (preconfigured) {
+    baseUrl = preconfigured;
+  } else {
+    const baseUrlPart = ALCHEMY_BASE_BY_CHAIN[chainId];
+    if (!baseUrlPart) {
+      return { kind: 'error', chainId, reason: 'unsupported_chain', message: `wallet: chainId ${chainId} not supported` };
+    }
+    const apiKey = options.alchemyKey ?? process.env.ALCHEMY_API_KEY ?? '';
+    if (apiKey === '') {
+      return { kind: 'error', chainId, reason: 'missing_alchemy_key', message: `wallet: no Alchemy URL configured for chainId ${chainId} (set ALCHEMY_RPC_* or ALCHEMY_API_KEY)` };
+    }
+    baseUrl = `${baseUrlPart}/${apiKey}`;
   }
-  const apiKey = options.alchemyKey ?? process.env.ALCHEMY_API_KEY ?? '';
-  if (apiKey === '') {
-    return { kind: 'error', chainId, reason: 'missing_alchemy_key', message: 'wallet: ALCHEMY_API_KEY env var not set' };
-  }
-  const baseUrl = `${baseUrlPart}/${apiKey}`;
   const fetcher = options.fetchImpl ?? globalThis.fetch;
   const maxTokens = options.maxTokens ?? 25;
 

@@ -23,8 +23,15 @@ export function PassportPanel({
 }): React.JSX.Element | null {
   const passport = evidence.passport;
   if (!passport || passport.kind === "error") {
-    if (passport && passport.kind === "error" && passport.reason !== "address_not_passport_user") {
-      // Render small error chip for actual failures (rate limit, network)
+    // Hide panel entirely for "expected absent" cases:
+    //   - address_not_passport_user (subject has no Gitcoin Passport)
+    //   - missing_api_key (PASSPORT_API_KEY env not configured — silently
+    //     hide so demo doesn't surface infrastructure config as content)
+    if (passport && passport.kind === "error") {
+      const silentReasons = ["address_not_passport_user", "missing_api_key"];
+      if (silentReasons.includes(passport.reason)) return null;
+      // Render small error chip only for actual operational failures
+      // (rate limit, server error, network)
       return (
         <section
           data-section="passport"

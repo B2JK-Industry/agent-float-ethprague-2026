@@ -31,6 +31,7 @@ export interface PassportScoreResult {
 
 export type PassportFailureReason =
   | 'address_not_passport_user'  // 404 — address has no Passport
+  | 'missing_api_key'            // 401 — PASSPORT_API_KEY not configured
   | 'rate_limited'
   | 'server_error'
   | 'malformed_response'
@@ -77,8 +78,18 @@ export async function fetchPassportScore(
   const scorerId = options.scorerId ?? PASSPORT_SCORER_ID;
   const url = `${base}/${address}/score?scorer_id=${scorerId}`;
 
-  const headers: Record<string, string> = { accept: 'application/json' };
-  if (options.apiKey) headers['X-API-KEY'] = options.apiKey;
+  const apiKey = options.apiKey ?? process.env.PASSPORT_API_KEY ?? '';
+  if (apiKey === '') {
+    return {
+      kind: 'error',
+      reason: 'missing_api_key',
+      message: 'passport: PASSPORT_API_KEY env var not set (get one at developer.passport.xyz)',
+    };
+  }
+  const headers: Record<string, string> = {
+    accept: 'application/json',
+    'X-API-KEY': apiKey,
+  };
 
   let response: Response;
   try {
@@ -94,6 +105,14 @@ export async function fetchPassportScore(
     };
   }
 
+  if (response.status === 401) {
+    return {
+      kind: 'error',
+      reason: 'missing_api_key',
+      message: 'passport: HTTP 401 — API key invalid or missing',
+      httpStatus: 401,
+    };
+  }
   if (response.status === 404) {
     return {
       kind: 'error',
