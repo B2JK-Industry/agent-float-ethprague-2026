@@ -10,15 +10,24 @@
 import type { MultiSourceEvidence } from "@upgrade-siren/evidence";
 
 const ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
-const SOURCIFY_KEYS = new Set([
+// Daniel 2026-05-10: ENS app lets users name custom records with any
+// casing — discovered Sourcify identifier was pinned under "Sourcify"
+// (capital S) on sbo3lagent.eth. Stored lowercase so the key match is
+// case-insensitive — see SOURCIFY_KEY_MATCH_LC below.
+const SOURCIFY_KEYS_LC = new Set([
   "eth.contracts",
   "org.sourcify",
   "sourcify",
   "contract",
   "verified-contract",
+  "verified-contracts",
   "agent-bench:contract",
   "agent-bench:contracts",
 ]);
+
+function isSourcifyKey(key: string): boolean {
+  return SOURCIFY_KEYS_LC.has(key.toLowerCase());
+}
 
 interface ContractFromEns {
   readonly key: string;
@@ -39,7 +48,7 @@ function extractContracts(evidence: MultiSourceEvidence): ReadonlyArray<Contract
       .filter((t) => t.length > 0);
     for (const token of tokens) {
       const isAddr = ADDRESS_RE.test(token);
-      const isPinned = SOURCIFY_KEYS.has(key);
+      const isPinned = isSourcifyKey(key);
       if (!isAddr || !isPinned) continue;
       const lc = token.toLowerCase();
       if (seen.has(lc)) continue;
