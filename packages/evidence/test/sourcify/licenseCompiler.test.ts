@@ -19,6 +19,7 @@ function deep(overrides: Partial<SourcifyDeep>): SourcifyDeep {
     userdoc: null,
     devdoc: null,
     proxyResolution: null,
+      storageLayout: null,
     ...overrides,
   };
 }

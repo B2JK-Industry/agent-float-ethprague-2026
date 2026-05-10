@@ -112,6 +112,8 @@ export type {
   SourcifyDeepLicense,
   SourcifyDeepProxyImplementation,
   SourcifyDeepProxyResolution,
+  SourcifyDeepStorageEntry,
+  SourcifyDeepStorageLayout,
 } from './sourcify/deep.js';
 
 export type {

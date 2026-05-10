@@ -362,6 +362,14 @@ function demoSourcifyEntry(
           },
         ],
       },
+      storageLayout: {
+        entries: [
+          { slot: "0", label: "_owner", type: "t_address", offset: 0 },
+          { slot: "1", label: "_paused", type: "t_bool", offset: 0 },
+          { slot: "2", label: "_balances", type: "t_mapping(t_address,t_uint256)", offset: 0 },
+        ],
+        types: null,
+      },
     },
     patterns: [
       {
