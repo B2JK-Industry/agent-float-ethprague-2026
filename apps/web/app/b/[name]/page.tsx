@@ -30,6 +30,7 @@ import { ScoreBanner } from "../../../components/bench/ScoreBanner";
 import { ScoreBreakdownPanel } from "../../../components/bench/ScoreBreakdownPanel";
 import { SocialsPanel } from "../../../components/bench/SocialsPanel";
 import { SourceGrid } from "../../../components/bench/SourceGrid";
+import { SourcifyEvidencePanel } from "../../../components/bench/SourcifyEvidencePanel";
 import { TierLadder } from "../../../components/bench/TierLadder";
 import { TxAnalyticsPanel } from "../../../components/bench/TxAnalyticsPanel";
 import { WalletAnalyticsPanel } from "../../../components/bench/WalletAnalyticsPanel";
@@ -228,6 +229,8 @@ function BenchFoundation({
       </div>
 
       <SourceGrid evidence={evidence} />
+
+      <SourcifyEvidencePanel evidence={evidence} />
 
       <EnsContractsPanel evidence={evidence} />
 

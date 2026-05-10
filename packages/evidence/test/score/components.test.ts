@@ -73,6 +73,7 @@ function sourcifyEntry(overrides: { match?: 'exact_match' | 'match' | 'not_found
       userdoc: null,
       devdoc: null,
       proxyResolution: null,
+      storageLayout: null,
     },
     patterns: [],
     licenseCompiler: { licenses: [], dominantLicense: null, compiler: null },

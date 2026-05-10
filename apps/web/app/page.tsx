@@ -3,6 +3,7 @@ import Link from "next/link";
 import { EnsLookupForm } from "../components/EnsLookupForm";
 import { HomepageAttestationLookup } from "../components/HomepageAttestationLookup";
 import { HomepageUmiaBanner } from "../components/HomepageUmiaBanner";
+import { SourcifyHealthChip } from "../components/SourcifyHealthChip";
 import { DEMO_SCENARIOS, buildScenarioHref } from "./demo/demo.config";
 
 const TIER_TONE_CLASS: Record<string, string> = {
@@ -38,9 +39,12 @@ export default function HomePage(): React.JSX.Element {
         className="grid gap-8 border border-border bg-surface px-8 py-10 lg:grid-cols-[1.5fr_1fr] lg:gap-12"
       >
         <div className="flex flex-col gap-4">
-          <span className="font-mono text-xs uppercase tracking-[0.18em] text-t2">
-            Siren · ETHPrague 2026
-          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-mono text-xs uppercase tracking-[0.18em] text-t2">
+              Siren · ETHPrague 2026
+            </span>
+            <SourcifyHealthChip />
+          </div>
           <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-tight text-t1 md:text-5xl lg:text-6xl">
             Type any ENS name.
             <br />
