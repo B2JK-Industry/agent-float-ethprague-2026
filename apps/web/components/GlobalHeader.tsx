@@ -3,7 +3,8 @@
 // Global top-bar — sticky to the top of every page. Logo / brand on
 // the left, ConnectKit wallet button on the right. Subject-specific
 // publish flow lives in BenchPublishWidget which the /b/[name] page
-// renders below this header.
+// renders below this header. Mounted in the root layout so wallet
+// state is shared across `/`, `/r/[name]`, and `/b/[name]`.
 
 import Link from "next/link";
 import { ConnectKitButton } from "connectkit";
