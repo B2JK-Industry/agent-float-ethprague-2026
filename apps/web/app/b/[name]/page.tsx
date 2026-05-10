@@ -82,6 +82,11 @@ export default async function BenchPage(
     result.kind === "loaded"
       ? (result.evidence.subject.primaryAddress as `0x${string}` | null)
       : null;
+  // Live score/tier piped to the publish widget so self-attest mode
+  // (no Turso row) carries the same values the page renders, not the
+  // placeholder score=0/tier="U".
+  const liveScore = result.kind === "loaded" ? result.score.score_100 : null;
+  const liveTier = result.kind === "loaded" ? result.score.tier : null;
 
   return (
     <main
@@ -105,6 +110,9 @@ export default async function BenchPage(
           subjectName={name}
           subjectAddress={subjectAddress}
           easBundle={easBundle}
+          liveScore={liveScore}
+          liveTier={liveTier}
+          liveComputedAt={null}
         />
       </header>
 

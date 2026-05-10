@@ -56,6 +56,12 @@ export type BenchPublishWidgetProps = {
   readonly subjectName: string;
   readonly subjectAddress: `0x${string}` | null;
   readonly easBundle: BenchAttestationBundle | null;
+  // Live computed values from loadBench. Used in self-attest mode so the
+  // on-chain attestation carries the same score/tier the page displays
+  // (instead of placeholder score=0/tier="U").
+  readonly liveScore: number | null;
+  readonly liveTier: string | null;
+  readonly liveComputedAt: number | null;
 };
 
 type PublishState =
@@ -71,6 +77,9 @@ export function BenchPublishWidget({
   subjectName,
   subjectAddress,
   easBundle,
+  liveScore,
+  liveTier,
+  liveComputedAt,
 }: BenchPublishWidgetProps): React.JSX.Element | null {
   const { address: walletAddress, isConnected, chain } = useAccount();
   const { switchChainAsync } = useSwitchChain();
@@ -140,9 +149,9 @@ export function BenchPublishWidget({
         : encodeBenchPayload({
             subject: walletAddress as `0x${string}`,
             ensNamehash: namehash(subjectName) as `0x${string}`,
-            score: 0,
-            tier: "U",
-            computedAt: Math.floor(Date.now() / 1000),
+            score: liveScore ?? 0,
+            tier: liveTier ?? "U",
+            computedAt: liveComputedAt ?? Math.floor(Date.now() / 1000),
             reportHash:
               "0x0000000000000000000000000000000000000000000000000000000000000000",
             reportUri: `${typeof window !== "undefined" ? window.location.origin : "https://upgrade-siren.vercel.app"}/b/${encodeURIComponent(subjectName)}`,
