@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { EnsLookupForm } from "../components/EnsLookupForm";
+import { HomepageAttestationLookup } from "../components/HomepageAttestationLookup";
+import { HomepageUmiaBanner } from "../components/HomepageUmiaBanner";
 import { DEMO_SCENARIOS, buildScenarioHref } from "./demo/demo.config";
 
 const TIER_TONE_CLASS: Record<string, string> = {
@@ -53,8 +55,9 @@ export default function HomePage(): React.JSX.Element {
           <p className="font-mono text-xs uppercase tracking-[0.18em] text-verdict-siren">
             No data, no score.
           </p>
-          <div className="pt-2">
+          <div className="flex flex-col gap-4 pt-2">
             <EnsLookupForm />
+            <HomepageAttestationLookup />
           </div>
         </div>
         <div
@@ -89,6 +92,9 @@ export default function HomePage(): React.JSX.Element {
           </div>
         </div>
       </section>
+
+      {/* UMIA SPONSOR BANNER ─────────────────────────────────────── */}
+      <HomepageUmiaBanner />
 
       {/* DEMO SCENARIOS BAND ───────────────────────────────────────── */}
       <section
