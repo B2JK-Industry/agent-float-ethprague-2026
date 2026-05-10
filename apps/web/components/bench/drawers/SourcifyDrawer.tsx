@@ -44,6 +44,26 @@ import { TrustPill, type TrustPillVariant } from "../primitives/TrustPill";
 export type SourcifyDrawerProps = {
   readonly entries: ReadonlyArray<SourcifyEntryEvidence>;
   readonly initialOpen?: boolean;
+  // Refactor 2026-05-10: Etherscan source-code fallback. When Sourcify
+  // entries is 0 but the address has bytecode, orchestrator queries
+  // Etherscan v2 across major chains. Drawer renders verified entries
+  // here when Sourcify came up empty.
+  readonly etherscanFallback?: ReadonlyArray<{
+    readonly kind: 'ok' | 'error';
+    readonly chainId: number;
+    readonly value?: {
+      readonly verified: boolean;
+      readonly contractName: string | null;
+      readonly compilerVersion: string | null;
+      readonly licenseType: string | null;
+      readonly isProxy: boolean;
+    };
+    readonly reason?: string;
+    readonly message?: string;
+  }>;
+  // Subject's primary address — used for similarity-submit button when
+  // Sourcify has no entries but the address is a known contract.
+  readonly primaryAddress?: string | null;
 };
 
 const SOURCE_TAG = "SOURCIFY"; // v3 §C-11 canonical tag
@@ -427,15 +447,29 @@ function EntryRow({
 export function SourcifyDrawer({
   entries,
   initialOpen = false,
+  etherscanFallback = [],
+  primaryAddress = null,
 }: SourcifyDrawerProps): React.JSX.Element {
+  // Refactor 2026-05-10: when Sourcify has 0 entries but Etherscan
+  // fallback found verified contracts, render an "Etherscan-verified
+  // (not on Sourcify)" panel instead of the bare "absent" state.
+  const verifiedOnEtherscan = etherscanFallback.filter(
+    (r) => r.kind === 'ok' && r.value?.verified === true,
+  );
+  const hasEtherscanFallback = verifiedOnEtherscan.length > 0;
+  const isContractWithoutVerification =
+    entries.length === 0 && !hasEtherscanFallback && primaryAddress !== null;
+
   if (entries.length === 0) {
     return (
       <details
         data-section="sourcify-drawer"
-        data-state="absent"
-        open={initialOpen}
+        data-state={hasEtherscanFallback ? "etherscan-fallback" : "absent"}
+        open={initialOpen || hasEtherscanFallback}
         style={{
-          border: "1px dashed var(--color-border-strong)",
+          border: hasEtherscanFallback
+            ? "1px solid var(--color-border)"
+            : "1px dashed var(--color-border-strong)",
           background: "var(--color-raised)",
           padding: "14px 20px",
         }}
@@ -448,20 +482,117 @@ export function SourcifyDrawer({
             cursor: "pointer",
           }}
         >
-          Sourcify · absent
+          Sourcify · {hasEtherscanFallback
+            ? `${verifiedOnEtherscan.length} chain(s) verified on Etherscan (fallback)`
+            : isContractWithoutVerification
+              ? "deployed but unverified"
+              : "absent"}
         </summary>
-        <p
-          className="mt-3 font-mono text-t3"
-          style={{
-            fontSize: "11px",
-            letterSpacing: "0.04em",
-            lineHeight: 1.5,
-          }}
-        >
-          Subject manifest declares no Sourcify projects. Per EPIC §10,
-          Sourcify is the only verified seniority source — without it,
-          the seniority axis ceiling drops materially.
-        </p>
+        {hasEtherscanFallback ? (
+          <div
+            data-block="etherscan-fallback"
+            className="mt-3 grid gap-3 sm:grid-cols-2"
+          >
+            {verifiedOnEtherscan.map((entry) =>
+              entry.kind === 'ok' && entry.value ? (
+                <div
+                  key={entry.chainId}
+                  data-chain={entry.chainId}
+                  className="flex flex-col"
+                  style={{
+                    padding: "12px 14px",
+                    border: "1px solid var(--color-border)",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "11px",
+                    letterSpacing: "0.04em",
+                  }}
+                >
+                  <span
+                    className="text-t3 uppercase"
+                    style={{ fontSize: "10px", letterSpacing: "0.18em" }}
+                  >
+                    chain {entry.chainId}
+                  </span>
+                  <span data-field="contract-name" className="text-t1 mt-1">
+                    {entry.value.contractName ?? '(unnamed)'}
+                  </span>
+                  {entry.value.isProxy && (
+                    <span
+                      className="text-t3 mt-1"
+                      style={{ fontSize: "10px", fontStyle: "italic" }}
+                    >
+                      proxy contract
+                    </span>
+                  )}
+                  {entry.value.compilerVersion && (
+                    <span
+                      className="text-t3 mt-1"
+                      style={{ fontSize: "10px" }}
+                    >
+                      {entry.value.compilerVersion}
+                    </span>
+                  )}
+                  {entry.value.licenseType && (
+                    <span
+                      className="text-t3"
+                      style={{ fontSize: "10px" }}
+                    >
+                      {entry.value.licenseType}
+                    </span>
+                  )}
+                </div>
+              ) : null,
+            )}
+          </div>
+        ) : isContractWithoutVerification ? (
+          <div className="mt-3 flex flex-col gap-3">
+            <p
+              className="font-mono text-t3"
+              style={{
+                fontSize: "11px",
+                letterSpacing: "0.04em",
+                lineHeight: 1.5,
+              }}
+            >
+              Address has on-chain bytecode but no verified source code on
+              Sourcify or Etherscan across the chains we scanned. Source
+              code may exist on a chain we don't query, or has not been
+              published yet.
+            </p>
+            <a
+              data-field="similarity-submit-button"
+              href={`/lookup/${primaryAddress}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Submit ${primaryAddress} to Sourcify similarity search`}
+              className="inline-flex items-center"
+              style={{
+                color: "var(--color-accent)",
+                border: "1px solid var(--color-border)",
+                padding: "10px 14px",
+                fontFamily: "var(--font-mono)",
+                fontSize: "11px",
+                letterSpacing: "0.06em",
+                width: "fit-content",
+              }}
+            >
+              Submit to Sourcify similarity search ↗
+            </a>
+          </div>
+        ) : (
+          <p
+            className="mt-3 font-mono text-t3"
+            style={{
+              fontSize: "11px",
+              letterSpacing: "0.04em",
+              lineHeight: 1.5,
+            }}
+          >
+            Subject manifest declares no Sourcify projects. Per EPIC §10,
+            Sourcify is the only verified seniority source — without it,
+            the seniority axis ceiling drops materially.
+          </p>
+        )}
       </details>
     );
   }

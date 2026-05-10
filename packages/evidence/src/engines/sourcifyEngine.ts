@@ -54,7 +54,16 @@ export const sourcifyEngine: SourceEngine = {
     const exists = okEntries.length > 0;
     const errorEntries = evidence.sourcify.filter((e) => e.kind === 'error');
 
-    if (!exists && errorEntries.length === 0) {
+    // Refactor 2026-05-10: Etherscan fallback. When Sourcify has 0 ok
+    // entries, check etherscanFallback (set by orchestrator). A verified
+    // Etherscan source counts as compileSuccess at 0.5 weight (Sourcify
+    // verification is reproducible bytecode-to-source proof; Etherscan
+    // accepts user-uploaded source without that guarantee).
+    const etherscanFallback = evidence.etherscanFallback ?? [];
+    const verifiedOnEtherscan = etherscanFallback.filter((r) => r.kind === 'ok' && r.value.verified);
+    const hasEtherscanFallback = verifiedOnEtherscan.length > 0;
+
+    if (!exists && errorEntries.length === 0 && !hasEtherscanFallback) {
       return emptyContribution(
         'sourcify',
         'source',
@@ -66,7 +75,11 @@ export const sourcifyEngine: SourceEngine = {
       );
     }
 
-    const compileValue = compile.value ?? 0;
+    // compileSuccess: Sourcify-verified primary, Etherscan-verified fallback at 0.5 weight.
+    const compileSourcifyValue = compile.value ?? 0;
+    const etherscanFallbackChainCount = verifiedOnEtherscan.length;
+    const compileEtherscanValue = etherscanFallbackChainCount > 0 ? 0.5 : 0;
+    const compileValue = Math.max(compileSourcifyValue, compileEtherscanValue);
     const recencyValue = recency.value ?? 0;
 
     // Cross-chain breadth — unique chainIds across OK entries / cap.
@@ -137,6 +150,13 @@ export const sourcifyEngine: SourceEngine = {
       ? Array.from(licenses.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
       : null;
 
+    // Etherscan fallback evidence — surface contract names + chain ids
+    // for the drawer when Sourcify had nothing.
+    const etherscanFallbackChains = verifiedOnEtherscan.map((r) => {
+      if (r.kind !== 'ok') return '';
+      return `${r.value.chainId}:${r.value.contractName ?? '?'}`;
+    }).filter((s) => s.length > 0);
+
     return {
       engineId: 'sourcify',
       category: 'source',
@@ -182,6 +202,12 @@ export const sourcifyEngine: SourceEngine = {
         { label: 'Dominant license', value: dominantLicense ?? '—' },
         { label: 'Compiler version', value: mostRecentCompilerVersion ?? '—' },
         { label: 'Outdated compilers', value: `${outdatedCompilerCount} / ${okEntries.length}` },
+        ...(hasEtherscanFallback
+          ? [{
+              label: 'Etherscan fallback',
+              value: `${etherscanFallbackChainCount} chain(s) verified: ${etherscanFallbackChains.join(', ')}`,
+            }]
+          : []),
       ],
       confidence,
       durationMs: performance.now() - start,

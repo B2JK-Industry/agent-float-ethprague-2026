@@ -12,6 +12,7 @@ import type {
 import type { SourcifyDeep } from '../sourcify/deep.js';
 import type { LicenseCompilerSummary } from '../sourcify/licenseCompiler.js';
 import type { CrossChainDiscoveryResult } from '../sourcify/crossChainDiscovery.js';
+import type { EtherscanFallbackResult } from '../sources/etherscan/sourceCode.js';
 
 // US-123 source-pattern detection ships separately. Until that PR merges,
 // orchestrator emits `patterns: []` for every Sourcify entry. The shape is
@@ -148,6 +149,14 @@ export interface MultiSourceEvidence {
   readonly onchain: ReadonlyArray<OnchainEntryEvidence>;
   readonly ensInternal: EnsInternalEvidence;
   readonly crossChain: CrossChainDiscoveryResult | null;
+  // Refactor 2026-05-10: Etherscan source-code fallback. When Sourcify
+  // all-chains returns 0 verified entries for the subject's address but
+  // the address has on-chain bytecode, the orchestrator queries
+  // Etherscan v2 across major chains (mainnet, Sepolia, Optimism, Base,
+  // Arbitrum, Polygon). Catches contracts verified on Etherscan but
+  // not on Sourcify (Gitcoin, OZ, most DAO governors).
+  // Empty array (or omitted) when not invoked or no contract code present.
+  readonly etherscanFallback?: ReadonlyArray<EtherscanFallbackResult>;
   // Aggregate of all top-level failures the orchestrator surfaces. Score
   // engine reads this for "missing source" decisions.
   readonly failures: ReadonlyArray<SourceFailure>;
