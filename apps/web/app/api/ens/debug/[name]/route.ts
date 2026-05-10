@@ -73,11 +73,16 @@ const TEXT_KEYS = [
   // contract-identity candidates
   "org.sourcify",
   "sourcify",
+  // ENS app preserves user-typed casing — cover the variants
+  // (Daniel sbo3lagent.eth had "Sourcify" with capital S).
+  "Sourcify",
+  "SOURCIFY",
   "eth.contracts",
   "eth.contract",
   "contract",
   "contracts",
   "verified-contract",
+  "verified-contracts",
   "verifier.sourcify",
   "agent-bench:contract",
   "agent-bench:contracts",

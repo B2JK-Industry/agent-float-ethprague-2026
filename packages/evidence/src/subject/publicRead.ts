@@ -191,8 +191,15 @@ export const PUBLIC_READ_TEXT_KEYS = [
   'eth.contracts',
   'org.sourcify',
   'sourcify',
+  // 2026-05-10 (Daniel screenshot): ENS app preserves the casing the
+  // user typed into "Custom record" name field. sbo3lagent.eth had
+  // the contract pinned under "Sourcify" (capital S), so the lowercase
+  // probe missed it. Cover the common variants explicitly.
+  'Sourcify',
+  'SOURCIFY',
   'contract',
   'verified-contract',
+  'verified-contracts',
   'agent-bench:contract',
   'agent-bench:contracts',
   // contentHash is read separately via contenthash() resolver call,
