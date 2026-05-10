@@ -16,15 +16,19 @@ const ensureEnginesRegisteredMock = vi.fn();
 const listRegisteredEnginesMock = vi.fn();
 const isSourceEngineMock = vi.fn((engine: { category?: string }) => engine.category === 'source');
 
-vi.mock("@upgrade-siren/evidence", () => ({
-  orchestrateSubject: (...args: unknown[]) => orchestrateMock(...args),
-  runEngines: (...args: unknown[]) => runEnginesMock(...args),
-  aggregateEngines: (...args: unknown[]) => aggregateEnginesMock(...args),
-  resolvedRecordsFromEvidence: (...args: unknown[]) => resolvedRecordsFromEvidenceMock(...args),
-  ensureEnginesRegistered: (...args: unknown[]) => ensureEnginesRegisteredMock(...args),
-  listRegisteredEngines: (...args: unknown[]) => listRegisteredEnginesMock(...args),
-  isSourceEngine: (engine: { category?: string }) => isSourceEngineMock(engine),
-}));
+vi.mock("@upgrade-siren/evidence", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@upgrade-siren/evidence")>();
+  return {
+    ...actual,
+    orchestrateSubject: (...args: unknown[]) => orchestrateMock(...args),
+    runEngines: (...args: unknown[]) => runEnginesMock(...args),
+    aggregateEngines: (...args: unknown[]) => aggregateEnginesMock(...args),
+    resolvedRecordsFromEvidence: (...args: unknown[]) => resolvedRecordsFromEvidenceMock(...args),
+    ensureEnginesRegistered: (...args: unknown[]) => ensureEnginesRegisteredMock(...args),
+    listRegisteredEngines: (...args: unknown[]) => listRegisteredEnginesMock(...args),
+    isSourceEngine: (engine: { category?: string }) => isSourceEngineMock(engine),
+  };
+});
 
 const SAMPLE_EVIDENCE = {
   subject: {
@@ -257,5 +261,36 @@ describe("loadBench (unified Engine refactor 2026-05-09)", () => {
       expect.any(Array),
       expect.objectContaining({ evidence: partialEvidence }),
     );
+  });
+
+  it("returns a deterministic evidence-rich Tier A fixture for vitalik.eth booth demo", async () => {
+    const result = await loadBench("vitalik.eth");
+
+    expect(result.kind).toBe("loaded");
+    if (result.kind !== "loaded") throw new Error("unreachable");
+
+    expect(orchestrateMock).not.toHaveBeenCalled();
+    expect(result.evidence.subject.mode).toBe("public-read");
+    expect(result.score.tier).toBe("A");
+    expect(result.score.ceilingApplied).toBe("public_read_a");
+    expect(result.score.score_100).toBeGreaterThanOrEqual(75);
+    expect(result.score.score_100).toBeLessThanOrEqual(78);
+    expect(result.score.seniority).toBeGreaterThanOrEqual(0.67);
+    expect(result.score.seniority).toBeLessThanOrEqual(0.69);
+    expect(result.score.relevance).toBeGreaterThanOrEqual(0.84);
+    expect(result.score.relevance).toBeLessThanOrEqual(0.86);
+    expect(result.score.meta.nonZeroSourceCount).toBe(4);
+
+    expect(result.evidence.sourcify).toHaveLength(2);
+    expect(result.evidence.sourcify.every((entry) => entry.kind === "ok")).toBe(true);
+    expect(result.evidence.github.kind).toBe("ok");
+    if (result.evidence.github.kind !== "ok") throw new Error("unreachable");
+    expect(result.evidence.github.value.owner).toBe("vbuterin");
+    expect(result.evidence.github.value.repos.length).toBeGreaterThanOrEqual(10);
+    expect(result.evidence.onchain).toHaveLength(2);
+    expect(result.evidence.ensInternal.kind).toBe("ok");
+    if (result.evidence.ensInternal.kind !== "ok") throw new Error("unreachable");
+    expect(result.evidence.ensInternal.value.textRecordCount).toBeGreaterThan(0);
+    expect(result.evidence.failures).toHaveLength(0);
   });
 });

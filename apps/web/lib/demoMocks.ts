@@ -13,15 +13,15 @@
 // subgraph) is bypassed for these four exact names — they always
 // render the booth-tuned story.
 //
-// Score breakdown numbers below are NOT derived from `computeScore`.
-// They're hand-tuned to land on the predicted tier and read clean in
-// the breakdown panel. Each component carries its EXACT weight (see
-// packages/evidence/src/score/weights.ts) so the math reads correct
-// when a judge inspects.
-//
-// Tier thresholds: S ≥ 90 / A ≥ 75 / B ≥ 60 / C ≥ 45 / D ≥ 0.
+// Most score breakdown numbers below remain hand-tuned legacy booth
+// fixtures. The `vitalik.eth` Tier A fixture is the exception: it
+// carries a full deterministic evidence object and derives its score
+// from the real score engine so the source grid, drawers, and math
+// ledger tell the same story.
 
-import type {
+import {
+  computeScore,
+  type GithubRepoP0,
   EngineContribution,
   MultiSourceEvidence,
   ScoreComponentBreakdown,
@@ -36,6 +36,8 @@ export type LoadBenchLoaded = {
 };
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" as const;
+const DEMO_NOW_SECONDS = 1_778_284_800; // 2026-05-10T00:00:00Z
+const MAINNET_LATEST_BLOCK = 22_600_000n;
 
 function comp(
   id: string,
@@ -68,6 +70,8 @@ type MockSubjectInput = {
   readonly relevanceComponents: ReadonlyArray<ScoreComponentBreakdown>;
   readonly githubVerified: boolean;
   readonly nonZeroSourceCount: number;
+  readonly evidenceOverride?: MultiSourceEvidence;
+  readonly scoreFromEvidence?: boolean;
 };
 
 function buildScore(input: MockSubjectInput): ScoreResult {
@@ -139,6 +143,7 @@ function buildScore(input: MockSubjectInput): ScoreResult {
 }
 
 function buildEvidence(input: MockSubjectInput): MultiSourceEvidence {
+  if (input.evidenceOverride) return input.evidenceOverride;
   return {
     subject: {
       name: input.name,
@@ -248,13 +253,257 @@ const RICH_RECORDS: MockSubjectInput = {
   nonZeroSourceCount: 3,
 };
 
+type SourcifyOkEntry = Extract<
+  MultiSourceEvidence["sourcify"][number],
+  { kind: "ok" }
+>;
+type OnchainOkEntry = Extract<
+  MultiSourceEvidence["onchain"][number],
+  { kind: "ok" }
+>;
+
+function demoRepo(
+  name: string,
+  index: number,
+  pushedAt: string | null,
+  releasesLast12m: number,
+): GithubRepoP0 {
+  return {
+    name,
+    fullName: `vbuterin/${name}`,
+    createdAt: `20${String(11 + (index % 9)).padStart(2, "0")}-0${
+      (index % 8) + 1
+    }-12T00:00:00Z`,
+    pushedAt,
+    archived: false,
+    defaultBranch: "master",
+    license: index % 3 === 0 ? "MIT" : "Apache-2.0",
+    topics: ["ethereum", "research", "public-goods"],
+    hasTestDir: true,
+    hasSubstantialReadme: true,
+    readmeBytes: 4_800 + index * 160,
+    hasLicense: true,
+    fetchStatus: "ok",
+    ciRuns: { successful: index <= 10 ? 16 : 14, total: index <= 10 ? 17 : 15 },
+    bugIssues:
+      index <= 8
+        ? { closed: 8, total: 9 }
+        : { closed: 10, total: 10 },
+    releasesLast12m,
+    hasSecurity: true,
+    hasDependabot: true,
+    hasBranchProtection: true,
+    p1FetchStatus: "ok",
+  };
+}
+
+function demoSourcifyEntry(
+  label: string,
+  address: `0x${string}`,
+  contractName: string,
+): SourcifyOkEntry {
+  return {
+    kind: "ok",
+    chainId: 1,
+    address,
+    label,
+    deep: {
+      chainId: 1,
+      address,
+      match: "exact_match",
+      creationMatch: "exact_match",
+      runtimeMatch: "exact_match",
+      compilation: {
+        compiler: "solc",
+        compilerVersion: "0.8.24+commit.e11b9ed9",
+        language: "Solidity",
+        evmVersion: "paris",
+        optimizerEnabled: true,
+        optimizerRuns: 20_000,
+        contractName,
+        fullyQualifiedName: `contracts/demo/${contractName}.sol:${contractName}`,
+      },
+      functionSignatures: [
+        { selector: "0x01ffc9a7", signature: "supportsInterface(bytes4)" },
+        { selector: "0x8da5cb5b", signature: "owner()" },
+        { selector: "0x3659cfe6", signature: "upgradeTo(address)" },
+      ],
+      eventSignatures: [
+        {
+          topicHash:
+            "0xbc7cd75a20ee27fd9ade8dbc6ef9333db2ac192f4fe05d37de7a3c36dca2f743",
+          signature: "Upgraded(address)",
+        },
+      ],
+      licenses: [
+        { path: `contracts/demo/${contractName}.sol`, license: "MIT" },
+        { path: "contracts/demo/interfaces/IRegistry.sol", license: "MIT" },
+      ],
+      userdoc: { kind: "user", methods: {}, notice: "Curated booth fixture." },
+      devdoc: {
+        kind: "dev",
+        title: contractName,
+        details: "Mock verified contract metadata for the Tier A demo snapshot.",
+      },
+      proxyResolution: {
+        isProxy: true,
+        proxyType: "EIP1967Proxy",
+        implementations: [
+          {
+            address: "0x1111111111111111111111111111111111111111",
+            name: `${contractName}V1`,
+          },
+          {
+            address: "0x2222222222222222222222222222222222222222",
+            name: `${contractName}V2`,
+          },
+        ],
+      },
+    },
+    patterns: [
+      {
+        pattern: "uups",
+        label: "UUPS upgrade surface",
+        evidence: ["upgradeTo(address)", "Upgraded(address)"],
+        openzeppelin: true,
+      },
+      {
+        pattern: "ownable",
+        label: "Ownable access control",
+        evidence: ["owner()"],
+        openzeppelin: true,
+      },
+    ],
+    licenseCompiler: {
+      licenses: [{ spdx: "MIT", count: 2 }],
+      dominantLicense: "MIT",
+      compiler: {
+        raw: "0.8.24+commit.e11b9ed9",
+        major: 0,
+        minor: 8,
+        patch: 24,
+        commit: "e11b9ed9",
+        prerelease: null,
+        recent: true,
+      },
+    },
+  };
+}
+
+function demoOnchainEntry(
+  chainId: number,
+  nonce: number,
+  transferCountRecent90d: number,
+  transferCountTotal: number,
+): OnchainOkEntry {
+  return {
+    kind: "ok",
+    chainId,
+    value: {
+      chainId,
+      address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+      nonce,
+      firstTxBlock: chainId === 1 ? 4_620_000n : 5_310_000n,
+      firstTxTimestamp: chainId === 1 ? 1_509_494_400 : 1_710_201_600,
+      latestBlock: chainId === 1 ? MAINNET_LATEST_BLOCK : 8_920_000n,
+      transferCountRecent90d,
+      transferCountTotal,
+      transferCountProvider: "etherscan",
+    },
+  };
+}
+
+function buildVitalikTierADemoEvidence(): MultiSourceEvidence {
+  const repos = [
+    demoRepo("pyethereum", 1, "2026-05-02T10:15:00Z", 1),
+    demoRepo("research", 2, "2026-04-28T18:20:00Z", 1),
+    demoRepo("serenity", 3, "2026-04-12T12:00:00Z", 1),
+    demoRepo("casper", 4, "2026-03-31T09:30:00Z", 1),
+    demoRepo("eth2.0-specs", 5, "2026-03-20T15:45:00Z", 1),
+    demoRepo("minimal-vm", 6, "2026-02-28T08:10:00Z", 1),
+    demoRepo("public-goods-sim", 7, "2026-02-19T21:10:00Z", 1),
+    demoRepo("account-abstraction-notes", 8, "2026-02-13T12:00:00Z", 1),
+    demoRepo("zk-notes", 9, "2026-02-12T17:05:00Z", 1),
+    demoRepo("rollup-research", 10, "2026-02-10T11:00:00Z", 1),
+    demoRepo("quadratic-funding", 11, "2026-05-06T07:45:00Z", 0),
+    demoRepo("archived-demo-reference", 12, "2025-11-18T09:00:00Z", 0),
+  ];
+
+  return {
+    subject: {
+      name: "vitalik.eth",
+      chainId: 1,
+      mode: "public-read",
+      primaryAddress: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+      kind: null,
+      manifest: null,
+      inferredGithub: {
+        owner: "vbuterin",
+        verified: false,
+        verificationGist: null,
+      },
+      inferredTexts: {
+        "com.github": "vbuterin",
+        "com.twitter": "VitalikButerin",
+        "xyz.farcaster": "vitalik.eth",
+        url: "https://vitalik.ca",
+        description:
+          "Curated booth fixture: deterministic mock evidence for Tier A public-read output.",
+      },
+      contentHash: "ipfs://bafybeihdwdcefgh4dqkjv67uzcmw7ojee6xedzdetojuzjevtenxquvyku",
+    },
+    sourcify: [
+      demoSourcifyEntry(
+        "Curated demo registry proxy",
+        "0x1000000000000000000000000000000000000001",
+        "DemoRegistryProxy",
+      ),
+      demoSourcifyEntry(
+        "Curated demo verifier",
+        "0x1000000000000000000000000000000000000002",
+        "DemoVerifier",
+      ),
+    ],
+    github: {
+      kind: "ok",
+      value: {
+        owner: "vbuterin",
+        user: {
+          login: "vbuterin",
+          createdAt: "2011-07-18T00:00:00Z",
+          publicRepos: 146,
+          followers: 34_200,
+        },
+        repos,
+      },
+    },
+    onchain: [
+      demoOnchainEntry(1, 1_240, 950, 18_430),
+      demoOnchainEntry(11155111, 86, 0, 420),
+    ],
+    ensInternal: {
+      kind: "ok",
+      value: {
+        name: "vitalik.eth",
+        registrationDate: 1_507_852_800,
+        subnameCount: 12,
+        textRecordCount: 7,
+        lastRecordUpdateBlock: MAINNET_LATEST_BLOCK,
+      },
+    },
+    crossChain: null,
+    failures: [],
+  };
+}
+
 const MAINNET_PUBLIC: MockSubjectInput = {
   name: "vitalik.eth",
   chainId: 1,
   mode: "public-read",
   kind: null,
-  // Seniority Σ ≈ 0.81 (would land tier S in manifest mode), but the
-  // public-read cap floors final tier at A regardless.
+  // `scoreFromEvidence` below makes the real score engine authoritative.
+  // These component rows mirror the same target band for legacy readers:
+  // seniority ≈ 0.67, relevance ≈ 0.85, final ≈ 76.
   seniorityComponents: [
     comp("compileSuccess", 0.25, 1.0, "verified", "computed"),
     comp("ciPassRate", 0.2, 0.95, "unverified", "computed"),
@@ -272,13 +521,18 @@ const MAINNET_PUBLIC: MockSubjectInput = {
   ],
   githubVerified: false,
   nonZeroSourceCount: 4,
+  evidenceOverride: buildVitalikTierADemoEvidence(),
+  scoreFromEvidence: true,
 };
 
 function buildResult(input: MockSubjectInput): LoadBenchLoaded {
+  const evidence = buildEvidence(input);
   return {
     kind: "loaded",
-    evidence: buildEvidence(input),
-    score: buildScore(input),
+    evidence,
+    score: input.scoreFromEvidence
+      ? computeScore(evidence, { nowSeconds: DEMO_NOW_SECONDS })
+      : buildScore(input),
     engines: [],
   };
 }

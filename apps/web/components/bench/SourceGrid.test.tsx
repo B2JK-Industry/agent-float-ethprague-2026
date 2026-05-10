@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
 
 import { SourceGrid } from "./SourceGrid";
+import { getDemoMock } from "../../lib/demoMocks";
 
 import type {
   GithubEvidence,
@@ -304,5 +305,22 @@ describe("SourceGrid (US-133)", () => {
     const githubTile = tileFor(container, "github");
     expect(sourcifyTile.style.border).not.toMatch(/dashed/);
     expect(githubTile.style.border).not.toMatch(/dashed/);
+  });
+
+  it("vitalik.eth curated Tier A fixture has no empty-source placeholder tiles", () => {
+    const demo = getDemoMock("vitalik.eth");
+    expect(demo).toBeDefined();
+    if (!demo) throw new Error("missing vitalik.eth demo fixture");
+
+    const { container } = render(<SourceGrid evidence={demo.evidence} />);
+    for (const key of ["sourcify", "github", "onchain", "ens"] as const) {
+      expect(tileFor(container, key).getAttribute("data-state")).not.toBe(
+        "missing",
+      );
+    }
+    expect(container.textContent).not.toMatch(/no projects in manifest/i);
+    expect(container.textContent).not.toMatch(/no PAT \/ no claim/i);
+    expect(container.textContent).not.toMatch(/no chains queried/i);
+    expect(container.textContent).not.toMatch(/no Graph API key/i);
   });
 });
