@@ -206,11 +206,14 @@ export function SourcifyEvidencePanel({
           </li>
         ))}
 
-        {etherscanOk.map((entry) => (
+        {/* 2026-05-10 UX fix per Daniel: when Etherscan fallback hits
+            multiple chains it generates near-identical "(×0.5 weight)"
+            rows that read as noise. Collapse into one compact summary
+            row with a <details> for per-chain breakdown. */}
+        {etherscanOk.length > 0 ? (
           <li
-            key={`et-${entry.chainId}`}
-            data-entry-state="etherscan-fallback"
-            data-chain-id={entry.chainId}
+            data-entry-state="etherscan-fallback-summary"
+            data-chain-count={etherscanOk.length}
             style={{
               padding: "12px 20px",
               borderBottom: "1px dotted var(--color-border)",
@@ -219,7 +222,8 @@ export function SourcifyEvidencePanel({
           >
             <div className="flex items-baseline justify-between gap-2">
               <code className="text-t1">
-                chain {entry.chainId} · Etherscan fallback (×0.5 weight)
+                Etherscan fallback · {etherscanOk.length} chain
+                {etherscanOk.length === 1 ? "" : "s"} · ×0.5 weight each
               </code>
               <span
                 style={{
@@ -233,24 +237,56 @@ export function SourcifyEvidencePanel({
               </span>
             </div>
             <p className="text-t3" style={{ fontSize: "10px", marginTop: "4px" }}>
-              Sourcify had no entry for this address; Etherscan returned
-              a verified source. Counted at half-weight in compileSuccess
-              acknowledging Sourcify supremacy. Submit to Sourcify to lift
-              the score.
+              Sourcify had no entry; Etherscan returned a verified source on
+              the chains listed below. Counted at half-weight acknowledging
+              Sourcify supremacy. Submit to Sourcify to lift the score.
             </p>
-            <div className="mt-2 flex gap-3">
-              <a
-                href={sourcifyVerifyUrl(entry.chainId, entry.value.address)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-accent hover:underline"
-                style={{ fontSize: "10px", letterSpacing: "0.06em" }}
+            <details className="mt-2">
+              <summary
+                className="cursor-pointer text-t3 hover:text-t1"
+                style={{
+                  fontSize: "10px",
+                  letterSpacing: "0.06em",
+                }}
               >
-                Submit to Sourcify ↗
-              </a>
-            </div>
+                per-chain Etherscan addresses ({etherscanOk.length})
+              </summary>
+              <ul
+                className="m-0 mt-2 list-none p-0"
+                style={{
+                  fontSize: "10px",
+                  fontFamily: "var(--font-mono)",
+                  lineHeight: 1.6,
+                }}
+              >
+                {etherscanOk.map((e) => (
+                  <li
+                    key={`et-${e.chainId}`}
+                    data-chain-id={e.chainId}
+                    className="flex items-baseline justify-between gap-2"
+                    style={{
+                      padding: "3px 0",
+                      borderBottom: "1px dotted var(--color-border)",
+                    }}
+                  >
+                    <code className="text-t2">
+                      chain {e.chainId} · {truncateAddress(e.value.address)}
+                    </code>
+                    <a
+                      href={sourcifyVerifyUrl(e.chainId, e.value.address)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-accent hover:underline"
+                      style={{ fontSize: "10px", letterSpacing: "0.06em" }}
+                    >
+                      Submit to Sourcify ↗
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </details>
           </li>
-        ))}
+        ) : null}
       </ul>
 
       <p
